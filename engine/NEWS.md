@@ -1,17 +1,25 @@
 # powerkit 0.78.16
 
-* Mediation with a mediator in three or more ordered categories (E39,
-  template `ordinal_mediator`): the latent-response model, simulated by
-  Spower and analysed by `lavaan::sem()` with the mediator (and a yes/no
-  outcome) declared ordered, WLSMV and the theta parameterisation; the
-  indirect effect a*b is tested by the delta method. X two groups or a
-  score, Y a score or yes/no. New `backend-mediation-ordm.R`, schema
-  definition `template_mediation_ordinal_mediator` (population metric
-  `latent_response`: `m_probabilities`, `a`, `b`, `direct`, `y_baseline`),
-  example spec, check run, simulated-data code and exported R script, and
-  the validation chunk `mediation_ordm` (an independent simulation in
-  lavaan's delta parameterisation with its own delta-method test, and the
-  Type I error).
+- McNemar's test (template `mcnemar`) takes `target_test > method`:
+  `"mcnemar_exact"` (the default, pwrss's exact power, unchanged),
+  `"mcnemar_chisq"` or `"mcnemar_chisq_corrected"`. The chi-square
+  versions are simulated with Spower's `p_mcnemar.test()`
+  (`stats::mcnemar.test()`, with or without the continuity correction) in
+  powerkit's experiment `p_mcnemar_chisq()` (`backend-mcnemar-chisq.R`),
+  with a check run, an exported script and the smallest detectable change
+  by simulation. They are two-sided; a one-sided plan is refused.
+- Two variances (template `two_variances`) take `target_test > method`
+  `"levene"` or `"brown_forsythe"` beside `"f_var"`, with
+  `population > score_shape` (normal, skewed or heavy-tailed). They are
+  simulated with Spower in powerkit's experiment `p_levene()`, which runs
+  `car::leveneTest()` (center = mean or median), with unequal groups
+  allowed, a check run, simulated data, an exported script and the
+  smallest detectable variance ratio by simulation (`backend-levene.R`).
+  Two-sided only.
+- New validation: `test-validation-mcnemar-chisq.R` and section 4 of
+  `test-validation-variance-tests.R` compare both routes with simulations
+  written without their packages and check their Type I error (chunk
+  `variances`).
 
 # powerkit 0.78.15
 

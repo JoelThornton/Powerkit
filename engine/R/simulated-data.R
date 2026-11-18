@@ -231,6 +231,9 @@ sim_basic_code <- function(spec, n) {
   if (!spec$template %in% templates) {
     return(NULL)
   }
+  # Levene's and the Brown-Forsythe tests: the two groups in the chosen
+  # shape (sim_levene_code(), backend-levene.R).
+  if (levene_test(spec)) return(sim_levene_code(spec, n))
   pop <- spec$population
   if (spec$template == "paired_variances") {
     # The paired scores themselves (pitman_morgan_scores() before it takes

@@ -3718,6 +3718,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # brackets, not two in a row (P-15).
   if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  # McNemar's chi-square test and the variance tests that don't assume
+  # normal scores (17 November 2026, next.md item 27).
+  if (identical(spec$target_test$method, "mcnemar_chisq")) name <- "McNemar's chi-square test without the continuity correction, simulated"
+  if (identical(spec$target_test$method, "mcnemar_chisq_corrected")) {
+    name <- "McNemar's chi-square test with the continuity correction (the default in R's mcnemar.test()), simulated"
+  }
+  if (isTRUE(spec$target_test$method %in% c("levene", "brown_forsythe"))) {
+    name <- sprintf("%s of two variances (car's leveneTest(), deviations from each group's %s), simulated assuming %s",
+      if (identical(spec$target_test$method, "levene")) "Levene's test" else "the Brown-Forsythe test",
+      if (identical(spec$target_test$method, "levene")) "mean" else "median",
+      score_shape_text(spec$population$score_shape))
+  }
   # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
   # effect given as partial eta-squared) or measured (Shieh's method).
   if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"

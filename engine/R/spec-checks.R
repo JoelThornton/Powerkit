@@ -69,6 +69,7 @@ population_problems <- function(spec) {
     check_method_allowed(spec),
     check_df_method(spec),
     check_score_shape_allowed(spec),
+    check_two_sided_only(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
     check_minimum_effect(spec),
@@ -180,7 +181,7 @@ exact_available <- function(spec) {
   continuity_corrected(spec) || bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) ||
     welch_anova(spec) && identical(spec$template, "oneway_between") || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
-    !pairwise_comparison(spec) &&
+    !pairwise_comparison(spec) && !levene_test(spec) && !mcnemar_chisq_test(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       identical(spec$template, "growth_curve") ||
@@ -249,7 +250,8 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) ||
-    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec)
+    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec) ||
+    levene_test(spec) || mcnemar_chisq_test(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -432,6 +434,33 @@ jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere
 # independent-groups template: a rank test that allows the groups to
 # differ in spread as well as location.
 brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
+
+# Levene's test and the Brown-Forsythe test of two variances
+# (car::leveneTest() with center = mean or median), simulated with Spower on
+# scores of a chosen shape (backend-levene.R).
+levene_test <- function(spec) {
+  identical(spec$template, "two_variances") && isTRUE(spec$target_test$method %in% c("levene", "brown_forsythe"))
+}
+
+# McNemar's chi-square test, without or with the continuity correction
+# (stats::mcnemar.test()), simulated with Spower's p_mcnemar.test()
+# (backend-mcnemar-chisq.R). The exact test stays with pwrss.
+mcnemar_chisq_test <- function(spec) {
+  identical(spec$template, "mcnemar") && isTRUE(spec$target_test$method %in% c("mcnemar_chisq", "mcnemar_chisq_corrected"))
+}
+
+# Both are two-sided tests: their statistics (an F test of absolute
+# deviations, a chi-square) have no direction.
+check_two_sided_only <- function(spec) {
+  if (!levene_test(spec) && !mcnemar_chisq_test(spec)) return(character())
+  if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) return(character())
+  sprintf("%s is two-sided: remove 'target_test > alternative' or set it to \"two_sided\". %s",
+    if (levene_test(spec)) {
+      if (identical(spec$target_test$method, "levene")) "Levene's test" else "The Brown-Forsythe test"
+    } else "McNemar's chi-square test",
+    if (levene_test(spec)) "For a one-sided test of which group's variance is larger, choose the F test." else
+      "For a one-sided test, choose McNemar's exact test.")
+}
 
 # Yuen's tests: the trimming proportion goes with them only, and the paired
 # test needs the correlation between the two measurements, because yuend()
@@ -899,14 +928,15 @@ check_welch_sds <- function(spec) {
 # and ANOVA powerkit computes assume normal scores.
 check_score_shape_allowed <- function(spec) {
   # MANOVA and PERMANOVA: check_manova() says so.
-  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec) || identical(spec$template, "manova")) {
+  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec) || identical(spec$template, "manova") ||
+      levene_test(spec)) {
     return(character())
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform), Yuen's trimmed-means tests and the rank correlations (Spearman, ",
-    "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
-    "or choose a rank test in 'target_test > method'."
+    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform), Yuen's trimmed-means tests, the rank correlations (Spearman, ",
+    "Kendall), and Levene's and the Brown-Forsythe tests of two variances; the t-tests, ANOVA, Pearson's r and the F test of two variances assume normal scores. Remove it, ",
+    "or choose one of those tests in 'target_test > method'."
   )
 }
 
@@ -915,7 +945,7 @@ check_score_shape_allowed <- function(spec) {
 pwrss_only <- function(spec) {
   (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
     !isTRUE(spec$template %in% c("factorial", "multinomial", "interaction", "multinomial_interaction"))) ||
-    spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
+    spec$template %in% c("one_proportion", if (!mcnemar_chisq_test(spec)) "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
@@ -960,7 +990,7 @@ check_allocation_allowed <- function(spec) {
   # The two-variance test has two groups, but Spower can only simulate
   # equal ones: gen_var.test() builds a data frame of the wrong length when
   # the group sizes differ (docs/upstream-questions.md).
-  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation")) {
+  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation") && !levene_test(spec)) {
     return(paste0(
       "'options > allocation_ratio' isn't available for the simulated ",
       "two-variance test: the simulation can only draw groups of the same ",

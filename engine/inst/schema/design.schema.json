@@ -4262,7 +4262,7 @@
       }
     },
     "template_mcnemar": {
-      "description": "The same people (or matched pairs) measured twice on a yes/no outcome, compared by McNemar's exact test.",
+      "description": "The same people (or matched pairs) measured twice on a yes/no outcome, compared by McNemar's exact test (the default, 'mcnemar_exact', pwrss's exact power), or by McNemar's chi-square test without ('mcnemar_chisq') or with ('mcnemar_chisq_corrected', R's mcnemar.test() default) the continuity correction, simulated with Spower's p_mcnemar.test(). The chi-square tests are two-sided.",
       "properties": {
         "variables": {
           "required": [
@@ -4306,7 +4306,11 @@
               "const": "paired_proportion_difference"
             },
             "method": {
-              "const": "mcnemar_exact"
+              "enum": [
+                "mcnemar_exact",
+                "mcnemar_chisq",
+                "mcnemar_chisq_corrected"
+              ]
             }
           }
         }
@@ -5821,7 +5825,7 @@
       }
     },
     "template_two_variances": {
-      "description": "Two independent groups compared on the variance of Y (the F test of two variances). The effect is the ratio of the two.",
+      "description": "Two independent groups compared on the variance of Y. The effect is the ratio of the two. The F test of two variances ('f_var', the default, as G*Power computes it) assumes normal scores; Levene's test ('levene', car::leveneTest(center = mean)) and the Brown-Forsythe test ('brown_forsythe', car::leveneTest(center = median), the car package's default) compare the groups' absolute deviations from their means or medians, are two-sided, and are simulated with Spower on scores of the shape in population > score_shape.",
       "properties": {
         "variables": {
           "required": [
@@ -5856,6 +5860,14 @@
             "var2": {
               "description": "Variance of Y in the second group. Equal variances (no effect) are allowed, to check the Type I error rate at a fixed n.",
               "$ref": "#/definitions/variance"
+            },
+            "score_shape": {
+              "description": "Levene's and the Brown-Forsythe test only: the shape of the scores powerkit simulates, each group's scores that shape scaled to its variance. 'normal' (the default); 'skewed': a standardised chi-square distribution with 10 df; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           }
         },
@@ -5865,7 +5877,11 @@
               "const": "variance_ratio"
             },
             "method": {
-              "const": "f_var"
+              "enum": [
+                "f_var",
+                "levene",
+                "brown_forsythe"
+              ]
             }
           }
         }

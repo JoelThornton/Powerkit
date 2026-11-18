@@ -88,6 +88,8 @@ export_script <- function(spec, result, file = NULL) {
       pwr_script(spec, result)
     },
     Spower = if (identical(spec$template, "repeated_glmm")) repeated_glmm_script(spec, result) else
+      if (levene_test(spec)) levene_script(spec, result) else
+      if (mcnemar_chisq_test(spec)) mcnemar_chisq_script(spec, result) else
       if (cluster_glmer_test(spec)) cluster_glmer_script(spec, result) else
       if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) count_interaction_script(spec, result) else
       if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else

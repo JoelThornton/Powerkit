@@ -169,6 +169,7 @@ power while matching G\*Power) is folded there instead
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
 | **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, rounding the groups at each total (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443, and so does powerkit; it gave 148 and 296, N = 444, while it kept the ratio exact); the simulation is refused one while Spower can't draw unequal groups |
+| **powerkit**, Levene's and the Brown-Forsythe test (from 17 November 2026) | E53 also offers the tests that don't assume normal scores: Levene's test (`target_test > method` "levene", deviations from each group's mean) and the Brown-Forsythe test ("brown_forsythe", deviations from the medians), both `car::leveneTest()` (center = mean or median; median is car's default; SPSS reports Levene's). No package gives their power, and Spower's `p_var.test()` runs the F test for two groups whatever `test` says, so powerkit's own Spower experiment `p_levene()` draws the scores in the chosen shape (`population > score_shape`: normal, skewed or heavy-tailed) and runs `car::leveneTest()` (`backend-levene.R`). The F test stays the default, as in G\*Power [powerkit] | As above | Two-sided only (a one-sided test of which variance is larger is the F test's); unequal groups are simulated (rounded as the formula rounds them). At 200 people, variances 1.5 and 1: the F test 0.518, Levene's test 0.467 and the Brown-Forsythe test 0.466 with normal scores, and the Brown-Forsythe test 0.25 with heavy-tailed scores. `test-validation-variance-tests.R` checks them against an ANOVA of the absolute deviations written out without car |
 
 ## Factorial ANOVA
 
@@ -2184,6 +2185,17 @@ Wired into the app on 18 October 2026 (E25, E26).*
   smallest n that reaches the target", "known difference: pwrss's own
   sample-size answer for exact tests of counts (Known difference 2)", and
   the G\*Power checks for one proportion and McNemar.
+- **McNemar's chi-square test** (E26's options from 17 November 2026,
+  `target_test > method` "mcnemar_chisq" or "mcnemar_chisq_corrected") is
+  not an exact test: its power is simulated with Spower's
+  `p_mcnemar.test()` (`stats::mcnemar.test()`, the correction applied
+  unless the researcher chooses the uncorrected test, as jamovi reports
+  it), and this note is not shown for it. At 120 pairs with 0.10 and 0.25
+  discordant: the exact test 0.769, the uncorrected chi-square test 0.812
+  and the corrected one 0.764 (10,000 simulated studies each;
+  `test-validation-mcnemar-chisq.R`). pwrss's
+  `power.exact.mcnemar(method = "approximate")`, a normal approximation to
+  the uncorrected test, gives 0.801.
 - **Fisher's exact test** (E5's option, 18 October 2026) is an exact test
   of counts too, and powerkit reports its smallest N in the same way. It
   hasn't been compared with G\*Power yet, and the size of the difference
