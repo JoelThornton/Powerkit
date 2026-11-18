@@ -315,8 +315,10 @@ each area, is at the end of
   about the original, and offers the other routes beside them (the
   smallest effect that matters, what resources allow, a sequential
   design, several originals); results from earlier answers are marked
-  out of date. Still to come: a visual rebuild of the planner in the
-  input screens' style, ANOVA originals' full goals and smallest effect, then the rest
+  out of date. The planner looks like the input screens: numbered step
+  titles, titled cards, tile choices, number-sized boxes, ticked steps
+  and one "Still needed" bar beside the button. Still to come: ANOVA
+  originals' full goals and smallest effect, then the rest
   of item 28 (several originals,
   attrition, unequal allocation, reliability, claims resting on several
   tests) and study plans' shared settings (29).

@@ -123,7 +123,9 @@ replication_workspace_ui <- function(tree) {
     p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
     div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
       radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
-    conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
+    # Finished steps get a tick, as the input screens' step bar has.
+    tags$script(HTML("Shiny.addCustomMessageHandler('rep-steps-done', function(m) { var done = m.done || []; document.querySelectorAll('.replication-steps input[name=rep_section]').forEach(function(r) { var l = r.closest('label'); if (l) { l.classList.toggle('rep-step-done', done.indexOf(r.value) >= 0); } }); });")),
+    conditionalPanel("input.rep_section == 'whether'", class = "form-section", rep_section_title("whether"), replication_notes_ui(tree)),
     # Not worth replicating: the planning steps don't apply, and say so.
     conditionalPanel("input.labs_outcome == 'not_worth' && ['original', 'goals', 'differences'].indexOf(input.rep_section) >= 0",
       div(class = "alert alert-info rep-skip-note", role = "note",

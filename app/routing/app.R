@@ -248,6 +248,28 @@ app_css <- "
   .rep-also-fold { margin-bottom: 0.75rem; }
   .rep-also-fold > summary { cursor: pointer; font-weight: 500; }
   .rep-also-fold[open] > summary { margin-bottom: 0.5rem; }
+  /* The replication planner in the input screens' style (18 November
+     2026): its choices as the same tiles (still radio buttons, so the
+     keyboard and screen readers work as before), number boxes their
+     size, steps ticked when done, and the answer in its own card. */
+  .replication-workspace .rep-section-title { font-size: 1.15rem; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.5rem; margin: 0.25rem 0 0.5rem; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .radio,
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .radio-inline { margin: 0; padding: 0; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label { display: flex; gap: 0.5rem; align-items: flex-start; height: 100%; margin: 0;
+    background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.6rem 0.85rem; min-height: 44px; cursor: pointer; color: var(--pk-navy); font-weight: 500; line-height: 1.35; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:hover { border-color: var(--pk-blue); }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(input:checked) { border: 2px solid var(--pk-blue); background: #eef4fa; padding: calc(0.6rem - 1px) calc(0.85rem - 1px); }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(input:focus-visible) { outline: 2px solid var(--pk-blue); outline-offset: 2px; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group input[type=radio] { margin-top: 0.2rem; flex: none; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { display: block; }
+  @media (min-width: 768px) { .replication-workspace .form-field input.rep-num { max-width: 16rem; } }
+  .replication-steps .shiny-options-group label.rep-step-done::before { content: '\\2713'; background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }
+  .replication-steps .shiny-options-group label.rep-step-done:has(input:checked)::before { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  .rep-run-bar { flex-wrap: wrap; margin-top: 0.5rem; }
+  .rep-card-status > h4.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
+  .rep-answer:has(.result-panel, table, .alert) { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--pk-shadow); }
+  @media (max-width: 600px) { .replication-workspace table.result-table { display: block; overflow-x: auto; white-space: nowrap; } }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
   .validation-line .badge-progress { margin-right: 0; }
   .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }
