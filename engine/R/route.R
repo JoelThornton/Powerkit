@@ -128,7 +128,9 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     } else {
       pwrss_backend(spec, seed)
     },
-    "basic_test/mcnemar" = ,
+    # McNemar's chi-square test, simulated (backend-mcnemar-chisq.R); the
+    # exact test is pwrss's.
+    "basic_test/mcnemar" = if (mcnemar_chisq_test(spec)) mcnemar_chisq_backend(spec, seed) else pwrss_backend(spec, seed),
     "basic_test/chi_square_gof" = ,
     "basic_test/two_correlations" = ,
     "basic_test/overlapping_correlations" = ,
@@ -219,7 +221,10 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     # The Cochran-Armitage test, simulated with Spower.
     "basic_test/proportion_trend" = spower_backend(spec, seed),
     "basic_test/one_variance" = ,
-    "basic_test/two_variances" = if (basic_test_method(spec) == "exact") {
+    "basic_test/two_variances" = if (levene_test(spec)) {
+      # Levene's and the Brown-Forsythe test, simulated (backend-levene.R).
+      levene_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
       variance_backend(spec, seed)
     } else {
       spower_backend(spec, seed)

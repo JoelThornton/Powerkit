@@ -27,7 +27,7 @@
 # The variance tests powerkit computes by formula. The Pitman-Morgan test
 # of two paired variances has no closed form here and stays simulated.
 variance_formula_test <- function(spec) {
-  identical(spec$design, "basic_test") && spec$template %in% c("one_variance", "two_variances")
+  identical(spec$design, "basic_test") && spec$template %in% c("one_variance", "two_variances") && !levene_test(spec)
 }
 
 variance_backend <- function(spec, seed = NULL) {

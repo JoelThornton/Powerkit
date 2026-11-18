@@ -59,7 +59,7 @@
 pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
   if (eta_squared_anova(spec) || interaction_r2_change(spec)) return(TRUE)
-  key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
+  key %in% c("basic_test/one_proportion", if (!mcnemar_chisq_test(spec)) "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
              "factorial_anova/oneway_ancova", "factorial_anova/factorial_ancova",
