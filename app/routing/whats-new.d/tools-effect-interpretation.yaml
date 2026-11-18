@@ -1,0 +1,8 @@
+entries:
+  - date: "2026-11-18"
+    title: Clearer effect conversion and visualiser results
+    text: >
+      The effect converter identifies which t statistics it can use, checks
+      study sizes, and asks for a recalculation after an edit. The power
+      visualiser explains how positive and negative results cross the
+      significance threshold.

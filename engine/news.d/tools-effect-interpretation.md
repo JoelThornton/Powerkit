@@ -1,0 +1,1 @@
+* Validate converter inputs, identify pooled-variance t conversions, and distinguish unavailable safeguard intervals from intervals including zero. Clarify signed significance thresholds in the power visualiser.

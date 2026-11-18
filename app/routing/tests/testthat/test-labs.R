@@ -262,7 +262,7 @@ test_that("plan from a published result: the engine converts and gives the safeg
   # An ANOVA's F, with both dfs; no safeguard there yet.
   anova <- published_result(list(pub_design = "oneway_between", pub_from = "F", pub_value = "4.2", pub_df1 = "2", pub_df = "57"), convert, safeguard)
   expect_match(anova$lines[1], "partial eta-squared = 0.128", fixed = TRUE)
-  expect_match(anova$lines[2], "Safeguard power isn't available for partial eta-squared yet", fixed = TRUE)
+  expect_match(anova$lines[2], "Safeguard power isn't available for partial eta-squared here", fixed = TRUE)
   # Plain problems, no stack traces.
   expect_match(published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5"), convert, safeguard)$problems,
     "Enter its error degrees of freedom", fixed = TRUE)
@@ -563,4 +563,58 @@ test_that("common results link to the visualiser and 1,000 studies at their own 
   # A design the visualiser doesn't draw gets no link.
   anova <- calc_for("E18")
   expect_null(labs_learn_ui(anova$spec, anova$result))
+})
+
+test_that("the converter distinguishes invalid sizes, unavailable intervals and intervals containing zero", {
+  convert <- function(...) stop("conversion should not be called for an entered effect size")
+  values <- list(pub_design = "independent_t", pub_from = "as_is", pub_value = "0.5", pub_n1 = "0", pub_n2 = "30")
+  invalid <- published_result(values, convert, function(...) stop("invalid input"))
+  expect_length(invalid$lines, 0)
+  expect_match(invalid$problems, "group 1's sample size as a whole number of at least 2", fixed = TRUE)
+
+  values$pub_n1 <- "30"
+  for (backend in list(function(...) stop("test failure"), function(...) list(lower = NA_real_, conf_level = 0.6))) {
+    unavailable <- published_result(values, convert, backend)
+    expect_match(unavailable$lines[1], "couldn't calculate a safeguard interval", fixed = TRUE)
+    expect_no_match(unavailable$lines[1], "includes zero", fixed = TRUE)
+  }
+  crossed <- published_result(values, convert, function(...) list(lower = -0.1, conf_level = 0.6))
+  expect_match(crossed$lines[1], "the 60% confidence interval includes zero", fixed = TRUE)
+  values$pub_value <- "-0.5"
+  negative <- published_result(values, convert, function(...) list(lower = -0.2, conf_level = 0.6, protection = 0.8))
+  expect_no_match(negative$lines[1], "includes zero", fixed = TRUE)
+  expect_match(negative$lines[1], "-0.20", fixed = TRUE)
+})
+
+test_that("fractional Welch degrees of freedom are explained without a pooled conversion", {
+  values <- list(pub_design = "independent_t", pub_from = "t", pub_value = "2.1",
+    pub_df = "47.6", pub_n1 = "20", pub_n2 = "40")
+  result <- published_result(values, function(...) stop("should not convert"), function(...) stop("should not calculate"))
+  expect_match(result$problems, "For Welch's test, use a reported Cohen's d", fixed = TRUE)
+  expect_length(result$lines, 0)
+  expect_match(names(published_from_choices("independent_t"))[2], "pooled-variance", fixed = TRUE)
+})
+
+test_that("changing the converter's input retires the previous answer until recalculation", {
+  mock_safeguard <- function(...) list(lower = NA_real_, conf_level = 0.6)
+  testServer(function(input, output, session) published_server(input, output, safeguard = mock_safeguard), {
+    session$setInputs(pub_design = "oneway_between", pub_from = "as_is", pub_value = "0.2", pub_run = 1)
+    expect_match(as.character(output$pub_result$html), "Safeguard power isn't available", fixed = TRUE)
+    session$setInputs(pub_value = "0.4")
+    expect_match(as.character(output$pub_result$html), "Inputs changed", fixed = TRUE)
+    expect_no_match(as.character(output$pub_result$html), "Safeguard power", fixed = TRUE)
+    session$setInputs(pub_run = 2)
+    expect_match(as.character(output$pub_result$html), "Safeguard power isn't available", fixed = TRUE)
+  })
+})
+
+test_that("the visualiser describes the two tails and the directional threshold", {
+  r <- engine_function("power_picture_r")(84, 0.3, alpha = 0.05)
+  negative <- 2 * stats::pt(-abs(-0.30 * sqrt(82 / (1 - (-0.30)^2))), df = 82)
+  expect_lt(negative, 0.05)
+  expect_match(as.character(picture_numbers(r)), "absolute value is at least this large, in either direction", fixed = TRUE)
+  one <- picture_for(function(id) list(picture_sides = "greater")[[id]], 0.05)
+  expect_match(as.character(picture_numbers(one)), "in the positive direction", fixed = TRUE)
+  proportions <- picture_for(function(id) list(picture_design = "two_proportions")[[id]], 0.05)
+  expect_match(as.character(picture_numbers(proportions)), "h on the arcsine scale", fixed = TRUE)
 })
