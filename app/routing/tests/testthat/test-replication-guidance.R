@@ -82,7 +82,7 @@ test_that("large corrected numbers are explained, with the other routes offered 
 
 test_that("an ANOVA original shows 50% assurance beside the chosen 80%", {
   skip_if_not_installed("BUCSS")
-  v <- list(rep_design = "anova", rep_anova_kind = "between", rep_levels_a = "2", rep_levels_b = "2",
+  v <- list(rep_design = "anova", rep_anova_kind = "between", rep_levels_a = "2", rep_levels_b = "3",
     rep_anova_effect = "interaction", rep_n = "120", rep_f_from = "f", rep_anova_f = "15.38", rep_assurance = "0.8")
   plan <- run_plan(v)
   t <- text_of(replication_result_ui(plan))

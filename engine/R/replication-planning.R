@@ -96,7 +96,15 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'
 #' @param design `"two_groups"`, `"one_sample"`, `"paired"`,
 #'   `"correlation"`, or `"generic"` for any other design whose focal
-#'   effect is one number.
+#'   effect is one number.; or `"anova_between"`, `"anova_within"` or
+#'   `"anova_mixed"` for an ANOVA effect with one numerator degree of
+#'   freedom (a factor with two levels, or a 2 x 2 interaction), given by
+#'   its F (`original_f`) or partial eta-squared, with `original_n`,
+#'   `levels_a`, `levels_b` and `effect` as for [replication_bucss()]. Its
+#'   F is the square of a two-group or paired comparison's t (Lakens,
+#'   2013), which is planned as that t-test original; BUCSS's correction
+#'   is the ANOVA's own. An effect with several degrees of freedom is
+#'   refused: see [replication_anova_smallest()].
 #' @param original_effect The original study's effect as reported: d, d_z
 #'   or r; for `"generic"`, the estimate on its reported scale (a ratio as
 #'   the ratio, a correlation as r). Not zero (not 1 for a ratio).
@@ -145,7 +153,12 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   between the two measurements in the original study.
 #' @param original_f For a generic design: an F statistic with one
 #'   numerator degree of freedom, whose square root is the estimate's
-#'   |t| (in place of `original_statistic`).
+#'   |t| (in place of `original_statistic`). For an ANOVA design, the
+#'   effect's F.
+#' @param levels_a,levels_b,effect,original_partial_eta,original_df_error
+#'   For an ANOVA design: the factors' levels, the effect, and the
+#'   partial eta-squared with its F test's error degrees of freedom in
+#'   place of `original_f`, as for [replication_bucss()].
 #' @param original_alpha The original study's two-sided significance
 #'   level (for small telescopes' d33).
 #' @param alpha The replication's significance level: two-sided by
@@ -190,7 +203,10 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   significant result at 50% and 80% assurance, corrected for
 #'   publication bias and uncertainty; `NULL` without BUCSS); `sequential` (for a Bayesian t-test original, each belief as
 #'   a design prior for [bayes_sequential()]); `functions_used`; and
-#'   `packages`.
+#'   `packages`. An ANOVA original adds `inputs$anova` (what was entered)
+#'   and `anova_effect`: the comparison planned (`design`, `effect_words`),
+#'   the F and t used, and the ANOVA's and the t-test's error degrees of
+#'   freedom (`df_error`, `df_t`).
 #' @export
 #' @examples
 #' if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
@@ -209,14 +225,38 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
                                  scale = "none", effect_name = NULL, original_analysis = "test",
                                  original_bf = NULL, original_prior_scale = 1 / sqrt(2),
                                  original_prior = NULL, original_effect_type = "d", original_r = NULL,
-                                 original_f = NULL, alternative = "two.sided", publication_filter = TRUE) {
+                                 original_f = NULL, alternative = "two.sided", publication_filter = TRUE,
+                                 levels_a = NULL, levels_b = NULL, effect = NULL, original_partial_eta = NULL,
+                                 original_df_error = NULL) {
   if (!requireNamespace("BayesRepDesign", quietly = TRUE)) {
     abort_run("The replication planner needs the R package BayesRepDesign. Install it with install.packages(\"BayesRepDesign\").")
+  }
+  # An ANOVA effect with one degree of freedom: its two-mean comparison,
+  # planned from t = sqrt(F) as a t-test original (replication-anova.R),
+  # with BUCSS's correction from the ANOVA's own function.
+  if (is.character(design) && length(design) == 1 && design %in% replication_anova_designs) {
+    if (!identical(original_analysis, "test")) abort_run("An ANOVA original is planned from its significance test, its F or partial eta-squared.")
+    map <- replication_anova_one_df(design, original_n, levels_a, levels_b, effect, original_f,
+      original_partial_eta, original_df_error)
+    plan <- replication_planning(map$design, original_effect = map$t, original_n = map$n, original_n1 = map$n1,
+      original_n2 = map$n2, original_effect_type = "t", original_alpha = original_alpha, alpha = alpha, power = power,
+      tau = tau, smallest_effect = smallest_effect, threshold = threshold, n = n, max_n = max_n,
+      original_prior_scale = original_prior_scale, alternative = alternative, publication_filter = publication_filter)
+    if (!is.null(plan$bias_corrected)) {
+      plan$bias_corrected <- replication_bucss(design, original_statistic = map$f, original_n = original_n,
+        levels_a = levels_a, levels_b = levels_b, effect = map$effect, original_alpha = original_alpha, alpha = alpha,
+        power = power, assurance = c(0.5, 0.8), alternative = alternative, publication_filter = publication_filter)
+    }
+    plan$inputs$anova <- list(design = design, original_n = original_n, levels_a = levels_a, levels_b = levels_b,
+      effect = map$effect, original_f = if (is.null(original_partial_eta)) original_f,
+      original_partial_eta = original_partial_eta, original_df_error = original_df_error)
+    plan$anova_effect <- map[c("design", "effect", "effect_words", "f", "t", "df_error", "df_t")]
+    return(plan)
   }
   one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
   whole <- function(x, low) one_number(x) && x == round(x) && x >= low && x <= 1e6
   if (!is.character(design) || length(design) != 1 || !design %in% names(replication_designs)) {
-    abort_run("'design' should be \"two_groups\", \"one_sample\", \"paired\", \"correlation\" or \"generic\".")
+    abort_run("'design' should be \"two_groups\", \"one_sample\", \"paired\", \"correlation\", \"generic\", or an ANOVA design (\"anova_between\", \"anova_within\", \"anova_mixed\").")
   }
   if (!is.logical(publication_filter) || length(publication_filter) != 1 || is.na(publication_filter)) {
     abort_run("'publication_filter' should be TRUE (published because it was significant) or FALSE (published whatever it found).")
@@ -947,6 +987,10 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     "library(BayesRepDesign)",
     "",
     "# The original study",
+    if (!is.null(plan$anova_effect)) c(
+      sprintf("# An ANOVA effect with one degree of freedom: F(1, %s) = %s is the square of a %s t (Lakens, 2013),",
+        format(plan$anova_effect$df_error), num(plan$anova_effect$f), if (two) "two-group" else "paired"),
+      sprintf("# so t = sqrt(F) = %s, the effect being %s.", num(plan$anova_effect$t), plan$anova_effect$effect_words)),
     if (two) c(sprintf("n1 <- %s; n2 <- %s", i$original_n1, i$original_n2),
       to_lines,
       so_post %||% "so <- sqrt((n1 + n2) / (n1 * n2) + to^2 / (2 * (n1 + n2)))  # Pawel et al., eq. 9",

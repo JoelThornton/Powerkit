@@ -65,10 +65,54 @@ replication_assurances_ui <- c("80% (BUCSS's default)" = "0.8", "50% (the correc
   "90%" = "0.9", "95%" = "0.95")
 replication_assurance_levels <- c(0.5, 0.8, 0.9, 0.95)
 
+# Designs the list doesn't name. An ANCOVA's effect with one degree of
+# freedom (the adjusted difference between two groups) is one number, so
+# "Another design" gives it every goal; BUCSS has no ANCOVA function. No
+# package plans a replication of a MANOVA from its original, so it is an
+# ordinary power analysis from the smallest effect that would matter.
+replication_design_list_note <- paste(
+  "An ANCOVA: its adjusted difference between two groups is one number, so enter it under \u201cAnother design\u201d, with its standard error, interval or F (one numerator degree of freedom), and every goal applies. With three or more groups, enter the one comparison the hypothesis is about the same way.",
+  "A MANOVA: no published method plans a replication from a MANOVA's result, so plan it as an ordinary power analysis on the MANOVA card, from the smallest effect that would matter to you, or replicate the one outcome and comparison the hypothesis is about as its own design.",
+  "Anything else whose focal effect is one number goes under \u201cAnother design\u201d too.")
+
 replication_is_anova <- function(values) identical(trimws(as.character(values$rep_design %||% "")), "anova")
 
+# An ANOVA effect with one degree of freedom (a factor with two levels, or
+# a 2 x 2 interaction) is a comparison of two means, F(1, df) = t^2, so it
+# goes through every goal as that comparison (the engine's
+# replication-anova.R); one with several degrees of freedom is planned
+# with BUCSS, and from the smallest effect that would matter
+# (decisions.md, 18 November 2026).
+replication_anova_effect_choice <- function(values) {
+  v <- function(id) trimws(as.character(values[[id]] %||% ""))
+  kind <- if (v("rep_anova_kind") %in% replication_anova_kinds_ui) v("rep_anova_kind") else "between"
+  effect <- if (v("rep_anova_effect") %in% replication_anova_effects_ui) v("rep_anova_effect") else "factor_a"
+  if (!nzchar(v("rep_levels_b")) && !identical(kind, "mixed")) effect <- "factor_a"
+  list(kind = kind, effect = effect)
+}
+
+replication_anova_one_df <- function(values) {
+  if (!replication_is_anova(values)) return(FALSE)
+  level <- function(id) suppressWarnings(as.numeric(trimws(as.character(values[[id]] %||% ""))))
+  two <- function(id) isTRUE(level(id) == 2)
+  switch(replication_anova_effect_choice(values)$effect,
+    factor_a = two("rep_levels_a"), factor_b = two("rep_levels_b"),
+    interaction = two("rep_levels_a") && two("rep_levels_b"))
+}
+
+# Planned with BUCSS alone (and the smallest effect): an ANOVA effect with
+# several degrees of freedom.
+replication_bucss_only <- function(values) replication_is_anova(values) && !replication_anova_one_df(values)
+
+# The same in the browser, for the Goals step's panels.
+replication_one_df_js <- paste0("(function () { var a = Number((input.rep_levels_a || '').trim()), bt = (input.rep_levels_b || '').trim(), ",
+  "b = Number(bt), e = input.rep_anova_effect || 'factor_a'; if (bt === '' && input.rep_anova_kind !== 'mixed') e = 'factor_a'; ",
+  "return (e === 'factor_a' && a === 2) || (e === 'factor_b' && bt !== '' && b === 2) || (e === 'interaction' && a === 2 && bt !== '' && b === 2); })()")
+replication_one_number_js <- sprintf("(input.rep_design != 'anova' || %s)", replication_one_df_js)
+replication_bucss_only_js <- sprintf("(input.rep_design == 'anova' && !%s)", replication_one_df_js)
+
 # The engine function a plan's fields go to.
-replication_engine_name <- function(values) if (replication_is_anova(values)) "replication_bucss" else "replication_planning"
+replication_engine_name <- function(values) if (replication_bucss_only(values)) "replication_bucss" else "replication_planning"
 
 # What the paper gave for a t-test original (Lakens, 2013): the design's
 # own d, its t statistic, or for pairs a repeated-measures d (d_rm, or
@@ -100,7 +144,7 @@ replication_card_design <- function(forms, ep_id) {
 replication_card_effect_note <- function(forms, ep_id) {
   e <- replication_card_effect(forms, ep_id)
   if (is.null(e) || !is.null(e$exact)) return(NULL)
-  anova <- if (!is.null(e$anova)) " If the paper reports the effect's F or partial eta-squared, enter it under \u201cAn ANOVA effect\u201d instead: the plan corrects it for publication bias and uncertainty (BUCSS)."
+  anova <- if (!is.null(e$anova)) " If the paper reports the effect's F or partial eta-squared, enter it under \u201cAn ANOVA effect\u201d instead: an effect with one degree of freedom (two levels, or a 2 x 2 interaction) then gets every goal, with BUCSS's correction for publication bias and uncertainty beside them, and one with several gets BUCSS's correction and a plan from the smallest effect that would matter."
   paste0(replication_card_effect_note_words(e), anova %||% "")
 }
 
@@ -291,7 +335,7 @@ replication_conceptual_settings <- function(values) {
   # a changed procedure changing the effect, so raising it would not answer
   # the question; the researcher chooses the assurance (decisions.d,
   # replication-bucss.md).
-  if (identical(design, "anova")) return(list())
+  if (identical(design, "anova") && !replication_anova_one_df(values)) return(list())
   out <- list(rep_prior = "shrunk")
   bump <- function(choices, now) {
     vals <- unname(choices)
@@ -423,7 +467,7 @@ rep_note_id <- function(text) {
 # the label (closed in both modes; with explanations off the line folds).
 # Number boxes are sized for a number, as the input screens' are; those
 # that can't be negative also bring up a number keyboard on phones.
-replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon",
+replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon", "rep_anova_smallest",
   "rep_bf", "rep_bf_both", "rep_prior_scale", "rep_post_sd", "rep_cri_level", "rep_se", "rep_ci_level", "rep_f",
   "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_smallest", "rep_tau_value", "rep_n_at", "rep_alpha", "rep_power")
 replication_signed_fields <- c("rep_effect", "rep_effect_r", "rep_statistic", "rep_cri_lower", "rep_cri_upper",
@@ -467,6 +511,8 @@ replication_planner_sections <- function() {
         uiOutput("rep_from_notes_study"),
         field("rep_study", "The original study (authors, year, title or link)"),
         selectInput("rep_design", "Its design", choices = replication_designs_ui, selectize = FALSE, width = "100%"),
+        # Where the designs not in the list go (decisions.md, 18 November 2026).
+        rep_note(replication_design_list_note, label = "Not in the list?"),
         conditionalPanel("input.rep_design != 'anova'",
           radioButtons("rep_analysis", "How it was analysed", choices = replication_analyses_ui, selected = "test", width = "100%"))),
       rep_card("What it reported",
@@ -564,7 +610,9 @@ replication_planner_sections <- function() {
 
     section("goals",
       rep_card("What the replication should show",
-        conditionalPanel("input.rep_design != 'anova'",
+        conditionalPanel(replication_one_number_js,
+          conditionalPanel("input.rep_design == 'anova'",
+            p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. BUCSS's correction of the original is shown beside them.")),
           rep_note("Start with what the replication should show. One main criterion sets the sample size; any others you tick are reported beside it, as their chance at that sample size, so the plan can use p-values, Bayes factors or both (Anderson & Maxwell, 2016). Fix them before collecting data."),
           radioButtons("rep_purpose", "What should the replication show?", choices = replication_purposes_ui, selected = "confirm", width = "100%"),
           selectInput("rep_goal", "The main criterion: the one that sets the sample size", choices = replication_goal_choices,
@@ -584,16 +632,18 @@ replication_planner_sections <- function() {
             field("rep_smallest", "The smallest effect that would matter to you (positive: d, d_z or r; for another design, on its own scale, a ratio above 1)",
               help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015), a bound for when nothing else justifies one; another design needs a number here.")),
           NULL),
-        conditionalPanel("input.rep_design == 'anova'",
-          rep_note("An ANOVA original is planned for one goal: a significant F test for its effect in the replication. Its effect is corrected for publication bias, because a study is more likely to be published when its test is significant, and for the uncertainty in its estimate, with BUCSS (Anderson, Kelley & Maxwell, 2017)."),
+        conditionalPanel(replication_bucss_only_js,
+          rep_note("This ANOVA effect has several degrees of freedom, so it has no one number for the goals the one-number designs have. Two routes plan a significant F test for it: from the original, with its effect corrected for publication bias, because a study is more likely to be published when its test is significant, and for the uncertainty in its estimate, by BUCSS (Anderson, Kelley & Maxwell, 2017); and from the smallest effect that would matter to you, by the ANOVA card's own F test. The second doesn't depend on the original's effect at all."),
           radioButtons("rep_assurance", "Assurance: how sure you want to be that the replication reaches the power below", choices = replication_assurances_ui,
             selected = "0.8", width = "100%"),
           rep_note("The corrected effect is itself uncertain. At 50% assurance the plan uses its best estimate, so the replication reaches the power aimed for about half the time; at 80% it uses a smaller effect, so it reaches it four times in five. More assurance needs more people. The original's significance level, under The original study, is taken as the threshold its result had to pass to be published."),
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
-              "You noted changes under How the replication differs. The more a replication changes, the more its true effect can differ from the original's; BUCSS has no setting for variation between studies, so choose a higher assurance here."))),
+              "You noted changes under How the replication differs. The more a replication changes, the more its true effect can differ from the original's; BUCSS has no setting for variation between studies, so choose a higher assurance here, or plan from the smallest effect that would matter.")),
+          field("rep_anova_smallest", "Optional: the smallest effect that would matter to you, as a partial eta-squared",
+            help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.")),
         NULL),
-      conditionalPanel("input.rep_design != 'anova'",
+      conditionalPanel(replication_one_number_js,
         rep_card("How much the effect may vary between studies",
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
@@ -613,17 +663,17 @@ replication_planner_sections <- function() {
         shortcut_field("rep_alpha", "The replication's significance level", c("0.05", "0.01", "0.005"),
           c("Use 0.05, the usual level", "0.01", "0.005"),
           help = "0.01 or 0.005 fit a replication that runs many tests, or a claim that needs stronger evidence."),
-        conditionalPanel(paste("input.rep_design != 'anova' &&", replication_needs_js(c("significance", "pooled"), confirm = TRUE)),
+        conditionalPanel(paste(replication_one_number_js, "&&", replication_needs_js(c("significance", "pooled"), confirm = TRUE)),
           radioButtons("rep_sided", "Is the significance test two-sided or one-sided?", choices = replication_sided_ui,
             selected = "two.sided", width = "100%"),
           rep_note("Either way, only a result in the original's direction counts as a success. A one-sided test at .05 needs fewer people than a two-sided test at .05, as a one-sided test at .025 is the two-sided one; choose it only if the replication's preregistration says so.")),
         shortcut_field("rep_power", "The chance of success to aim for", c("0.8", "0.9", "0.95"), c("80%", "90%", "95%"),
           help = "The main criterion's sample size gives it this chance; a higher chance needs more people."),
-        conditionalPanel(paste("input.rep_design != 'anova' &&", replication_needs_js(replication_bf_goals, either = TRUE)),
+        conditionalPanel(paste(replication_one_number_js, "&&", replication_needs_js(replication_bf_goals, either = TRUE)),
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors: the Bayes factor the replication should reach",
             choiceNames = c("3", "6", "10 (a common threshold)", "30"), choiceValues = c("3", "6", "10", "30"), selected = "10", inline = TRUE),
           rep_note("Choose the evidence your claim needs: 10 is a common threshold, and so is 3; there is no correct one.")),
-        conditionalPanel("input.rep_design != 'anova'",
+        conditionalPanel(replication_one_number_js,
           field("rep_n_at", "Optional: a sample size you could recruit (in total), to see each goal's chance at it")),
         NULL),
       # One bar for what is still needed and the button, kept in view
@@ -639,9 +689,9 @@ replication_planner_sections <- function() {
         conditionalPanel("input.rep_keeps == 'extension'",
           rep_note("The original comparison is planned as a replication under Goals and on the original's card. Each thing you add (a new condition, a moderator, another measure) is an analysis of its own, with its own effect size: an extension's effect has no original estimate, so it is planned as an ordinary power analysis and reported under its own heading. Plan for whichever needs more people."),
           actionButton("rep_add_extension", "Add an extension analysis", class = "btn btn-outline-primary")),
-        conditionalPanel("input.rep_keeps == 'conceptual' && input.rep_design == 'anova'",
-          rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. Choose the assurance under Goals from the table of every level in the results, and say why in your write-up; or, if the original's effect is a weak guide to the new procedure, plan from the smallest effect that would matter to you, as an ordinary power analysis on the original's card. If the effect has one degree of freedom (two levels, or a 2 x 2 interaction), entering its estimate (such as the interaction contrast) with its F under \"Another design\" gives every goal and the variation between studies.")),
-        conditionalPanel("input.rep_keeps == 'conceptual' && input.rep_design != 'anova'",
+        conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_bucss_only_js),
+          rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. Choose the assurance under Goals from the table of every level in the results, and say why in your write-up; or, if the original's effect is a weak guide to the new procedure, plan from the smallest effect that would matter to you, under Goals.")),
+        conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_one_number_js),
           rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. So plan from the shrunk belief and allow more variation between studies, and keep the checks below."),
           actionButton("rep_use_conceptual", "Plan it this way: the shrunk belief and more variation", class = "btn btn-outline-primary"),
           uiOutput("rep_conceptual_done")),
@@ -717,7 +767,7 @@ replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", 
   "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
-  "rep_epsilon", "rep_assurance")
+  "rep_epsilon", "rep_assurance", "rep_anova_smallest")
 
 # The fields a calculation depends on: a result is out of date once any
 # of them changes (the study's name and how the replication differs only
@@ -741,13 +791,28 @@ replication_args <- function(values) {
   }
   design <- v("rep_design")
   if (!nzchar(design)) design <- "two_groups"
-  if (identical(design, "anova")) return(replication_anova_args(values))
+  if (identical(design, "anova") && !replication_anova_one_df(values)) return(replication_anova_args(values))
   args <- list(design = design, original_effect = num("rep_effect", NA_real_),
     original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
     power = num("rep_power", 0.8), tau = replication_tau_value(values), smallest_effect = num("rep_smallest"),
     threshold = num("rep_threshold", 10), n = num("rep_n_at"))
   if (identical(v("rep_published"), "any")) args$publication_filter <- FALSE
   if (identical(v("rep_sided"), "one.sided")) args$alternative <- "one.sided"
+  if (identical(design, "anova")) {
+    # A 1-df ANOVA effect: its design, levels, effect and F (or partial
+    # eta-squared), which the engine plans as the two-mean comparison.
+    anova <- replication_anova_args(values)
+    args$original_effect <- NULL
+    args$design <- anova$design
+    args[c("original_n", "levels_a", "levels_b", "effect")] <- anova[c("original_n", "levels_a", "levels_b", "effect")]
+    if (!is.null(anova$original_partial_eta)) {
+      args$original_partial_eta <- anova$original_partial_eta
+      args$original_df_error <- anova$original_df_error
+    } else {
+      args$original_f <- anova$original_statistic
+    }
+    return(Filter(Negate(is.null), args))
+  }
   if (identical(design, "two_groups")) {
     args$original_n1 <- num("rep_n1", NA_real_)
     args$original_n2 <- num("rep_n2", NA_real_)
@@ -898,13 +963,21 @@ replication_stop <- function(message) {
 # reported (the engine's at_n; the app only chooses which to ask for).
 # Agreement and too small to matter need a bound: left blank, it is d33
 # (Simonsohn, 2015), from the same plan's small-telescopes yardstick.
-replication_run <- function(values, engine, bucss = NULL) {
+replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
   args <- replication_args(values)
-  if (replication_is_anova(values)) {
+  if (replication_bucss_only(values)) {
     plan <- do.call(bucss, args)
     plan$anova <- TRUE
     plan$chosen_assurance <- suppressWarnings(as.numeric(values$rep_assurance %||% "0.8"))
     if (is.na(plan$chosen_assurance) || !plan$chosen_assurance %in% plan$sizes$assurance) plan$chosen_assurance <- 0.8
+    # From the smallest effect that would matter, when given: the ANOVA
+    # card's own F test (the engine's replication_anova_smallest()).
+    eta <- suppressWarnings(as.numeric(trimws(as.character(values$rep_anova_smallest %||% ""))))
+    if (!is.na(eta) && !is.null(smallest)) {
+      plan$smallest <- tryCatch(do.call(smallest, c(args[c("design", "levels_a", "levels_b", "effect")],
+        list(smallest_effect = eta, alpha = args$alpha, power = args$power))),
+        error = function(e) list(problem = replication_problem(e)))
+    }
     return(plan)
   }
   plan <- do.call(engine, args)
@@ -939,6 +1012,8 @@ replication_run <- function(values, engine, bucss = NULL) {
 
 replication_n_words <- function(plan, n) {
   if (is.na(n)) return(NA_character_)
+  # A 1-df ANOVA effect planned as pairs: the same people in each condition.
+  if (!is.null(plan$anova_effect) && identical(plan$inputs$design, "paired")) return(sprintf("%s participants", format(n, big.mark = ",")))
   switch(plan$inputs$design,
     two_groups = sprintf("%s participants (%s per group)", format(n, big.mark = ","), format(n / 2, big.mark = ",")),
     paired = sprintf("%s pairs", format(n, big.mark = ",")),
@@ -1132,7 +1207,7 @@ replication_routes_ui <- function(res, anova = FALSE) {
     p(class = "small mb-1", "Other ways to a sample size, each as sound as this one; say in the write-up which you use:"),
     tags$ul(class = "small",
       tags$li(tags$strong("The smallest effect that would matter. "), if (anova)
-        "Plan from the effect you would not want to miss, rather than the original's. For a single contrast, enter its estimate and F under “Another design” with the smallest effect under Goals; for the omnibus effect, use the design's card."
+        "Plan from the effect you would not want to miss, rather than the original's: enter it under Goals, as a partial eta-squared, and the ANOVA card's own F test plans it beside BUCSS's numbers."
         else "Plan from the effect you would not want to miss, rather than the original's: enter it under Goals. This suits a conceptual replication or an extension, where the original's effect is a weaker guide anyway."),
       tags$li(tags$strong("What your resources allow. "), if (anova)
         "Fix the sample size you can reach and report the effect it can detect, on the design's card (Lakens, 2022)."
@@ -1149,8 +1224,8 @@ replication_bucss_reason_words <- function(res) {
       format(res$inputs$original_alpha)))
   }
   if (any(!is.na(res$sizes$n))) return(sprintf("At the higher assurances, the original's result, corrected for %s, leaves no effect to plan for, so those can't be planned.", replication_bucss_corrects(res)))
-  if (!replication_bucss_filtered(res)) return("Once corrected for the uncertainty in its estimate, the original's result leaves no effect to plan for: it is too weak to plan a replication from with BUCSS. Plan from the smallest effect that would matter instead, on the design's card.")
-  "Once corrected for publication bias and the uncertainty in its estimate, the original's result leaves no effect to plan for: it is too weak to plan a replication from with BUCSS. Plan from the smallest effect that would matter instead, on the design's card."
+  if (!replication_bucss_filtered(res)) return("Once corrected for the uncertainty in its estimate, the original's result leaves no effect to plan for: it is too weak to plan a replication from with BUCSS. Plan from the smallest effect that would matter instead, under Goals.")
+  "Once corrected for publication bias and the uncertainty in its estimate, the original's result leaves no effect to plan for: it is too weak to plan a replication from with BUCSS. Plan from the smallest effect that would matter instead, under Goals."
 }
 
 # An ANOVA original: BUCSS's sample size for a significant F test at the
@@ -1181,6 +1256,7 @@ replication_bucss_result_ui <- function(plan) {
     beside,
     p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_bucss_validation_text),
     if (any(!is.na(sz$reason))) p(replication_bucss_reason_words(plan)),
+    replication_anova_smallest_ui(plan),
     tags$table(class = "table table-sm result-table", id = "rep-bucss-table",
       tags$caption(sprintf("Replication sample size (in total) for %s power, at each assurance", replication_pct(i$power))),
       tags$thead(tags$tr(tags$th(scope = "col", "Assurance"), tags$th(scope = "col", "Sample size"), tags$th(scope = "col", "Its power"))),
@@ -1190,6 +1266,28 @@ replication_bucss_result_ui <- function(plan) {
     rep_note("BUCSS plans the replication as the same design with the same number of levels, analysed with the same F test. A replication that changes the design, or tests one contrast instead of the omnibus effect, is planned on that analysis's card."),
     p(class = "small text-muted", sprintf("Calculated by powerkit's engine with BUCSS %s: %s.", plan$packages[[1]]$version,
       sub("assurance = a", "assurance", plan$function_used, fixed = TRUE))))
+}
+
+# Beside BUCSS: the sample size from the smallest effect that would
+# matter, by the ANOVA card's own F test (the engine's
+# replication_anova_smallest()), or a prompt for it.
+replication_anova_smallest_ui <- function(plan) {
+  s <- plan$smallest
+  i <- plan$inputs
+  if (is.null(s)) {
+    return(p(class = "small", id = "rep-anova-smallest", tags$strong("From the smallest effect that would matter. "),
+      "Enter it under Goals, as a partial eta-squared, to plan the same F test from it instead of the original's effect."))
+  }
+  if (!is.null(s$problem)) return(p(class = "small", id = "rep-anova-smallest", tags$strong("From the smallest effect that would matter. "), s$problem))
+  cells <- if (!is.na(s$per_unit)) sprintf(" (%s in each %s)", format(s$per_unit, big.mark = ","),
+    if (identical(i$design, "anova_mixed") || is.null(i$levels_b)) "group" else "cell") else ""
+  div(class = "mt-2", id = "rep-anova-smallest",
+    h4(class = "h6", "From the smallest effect that would matter"),
+    p(sprintf("If the true effect is a partial eta-squared of %s, the smallest that would matter to you, a significant F test for the %s (alpha = %s) with %s power needs %s participants%s.",
+      format(s$inputs$smallest_effect), replication_anova_effect_words(i), sub("^0", "", format(s$inputs$alpha)), replication_pct(s$inputs$power),
+      format(s$n, big.mark = ","), cells)),
+    p(class = "small", "This is the ANOVA card's own calculation, and it doesn't depend on the original's effect, so it fits a conceptual replication as well as a close one. If the original's corrected effect asks for fewer people than this, the replication could miss an effect you would care about; if more, it plans for an effect larger than you need to detect."),
+    p(class = "small text-muted", sprintf("Calculated by powerkit's engine with %s.", s$function_used)))
 }
 
 replication_anova_effect_words <- function(i) {
@@ -1253,6 +1351,17 @@ replication_bias_corrected_ui <- function(plan) {
       sprintf(". Calculated with BUCSS %s.", b$packages[[1]]$version))))
 }
 
+# A 1-df ANOVA effect: which comparison it was planned as, and its F.
+replication_anova_one_df_note <- function(plan) {
+  a <- plan$anova_effect
+  if (is.null(a)) return(NULL)
+  df_note <- if (!identical(a$df_error, a$df_t)) sprintf(" The ANOVA's error degrees of freedom (%s) differ from that t-test's (%s); only small telescopes and the Bayes factor t-test use them, and the difference matters only in small samples.",
+    format(a$df_error), format(a$df_t)) else ""
+  p(class = "small", id = "rep-anova-one-df", sprintf(
+    "The ANOVA effect has one degree of freedom, so it is planned as a comparison of two means: F(1, %s) = %s is the square of its t, %s (Lakens, 2013). Its effect is %s, so the smallest effect and the variation between studies are on that scale.%s",
+    format(a$df_error), format(signif(a$f, 4)), format(signif(a$t, 4)), a$effect_words, df_note))
+}
+
 replication_result_ui <- function(plan) {
   if (isTRUE(plan$anova)) return(replication_bucss_result_ui(plan))
   o <- plan$original
@@ -1261,6 +1370,7 @@ replication_result_ui <- function(plan) {
     div(class = "result-panel mt-2", role = "status",
       if (is.null(plan$choice)) replication_headline_ui(plan) else replication_main_headline(plan),
       p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_validation_text),
+      replication_anova_one_df_note(plan),
       replication_main_chances_ui(plan),
       if (bayes) p(replication_bayes_original_words(plan)) else p(sprintf("The original estimate is %s with a standard error of %s%s (two-sided p = %s, by the normal approximation). %s",
         format(signif(o$estimate, 3)), format(signif(o$se, 3)),
@@ -1374,6 +1484,11 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   } else if (identical(i$original_analysis, "posterior")) {
     sprintf("its posterior mean, %s = %s, with its posterior SD standing in for the standard error, from a %s prior, %s",
       plan$effect_name, format(i$original_effect), i$original_prior, original)
+  } else if (!is.null(plan$anova_effect)) {
+    a <- plan$anova_effect
+    sprintf("%s = %s, from its F(1, %s) = %s, the square of the t (%s) of the two-mean comparison it is (Lakens, 2013), %s, with %s people in total",
+      plan$effect_name, format(signif(i$original_effect, 3)), format(a$df_error), format(signif(a$f, 4)), format(signif(a$t, 4)),
+      a$effect_words, format(i$anova$original_n))
   } else if (identical(i$original_effect_type, "t")) {
     sprintf("%s = %s, from its t statistic of %s (Lakens, 2013), %s", plan$effect_name, format(signif(i$original_effect, 3)),
       format(i$original_reported), original)
@@ -1675,7 +1790,10 @@ replication_bucss_report_lines <- function(plan, values) {
     if (replication_bucss_filtered(plan)) sprintf("Settings: replication significance level %s, power aimed for %s; the original's significance level, taken as its literature's publication threshold, %s.",
       format(i$alpha), replication_pct(i$power), format(i$original_alpha))
     else sprintf("Settings: replication significance level %s, power aimed for %s; no publication filter, as the original would have been published whatever it found (BUCSS's alpha_prior = 1).",
-      format(i$alpha), replication_pct(i$power)), "")
+      format(i$alpha), replication_pct(i$power)), "",
+    if (!is.null(plan$smallest$n)) c(sprintf("From the smallest effect that would matter to us, a partial eta-squared of %s, the same F test with %s power needs %s participants (%s, as powerkit's ANOVA card calculates it).",
+      format(plan$smallest$inputs$smallest_effect), replication_pct(plan$smallest$inputs$power), format(plan$smallest$n, big.mark = ","),
+      plan$smallest$function_used), ""))
 }
 
 # A t-test or correlation original's BUCSS sample sizes, in the write-up.
@@ -1723,7 +1841,13 @@ replication_ref_keys_used <- function(plan) {
 # main criterion's sample size under the chosen belief, and the others'
 # chances at it), otherwise every goal under every belief.
 replication_script_text <- function(plan, script) {
-  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(plan$script)
+  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, if (!is.null(plan$smallest$n)) {
+    si <- plan$smallest$inputs
+    c("", "# From the smallest effect that would matter: the ANOVA card's own F test, through powerkit's engine",
+      sprintf("powerkit::replication_anova_smallest(\"%s\", levels_a = %s%s, effect = \"%s\", smallest_effect = %s, alpha = %s, power = %s)$n",
+        si$design, si$levels_a, if (is.null(si$levels_b)) "" else sprintf(", levels_b = %s", si$levels_b), si$effect,
+        format(si$smallest_effect), format(si$alpha), format(si$power)))
+  }), collapse = "\n"))
   ch <- plan$choice
   if (is.null(ch) || !ch$goal %in% plan$goals$goal) return(script(plan))
   script(plan, goal = ch$goal, also = intersect(ch$also, plan$goals$goal), prior = ch$prior)
@@ -1783,7 +1907,8 @@ replication_server <- function(input, output, session, notes = function() list()
       problem(sprintf("Choose %s under Goals first: the buttons below each box fill in the usual values.", paste(settings, collapse = " and ")))
       return()
     }
-    result <- tryCatch(replication_run(vals, engine_function("replication_planning"), engine_function("replication_bucss")),
+    result <- tryCatch(replication_run(vals, engine_function("replication_planning"), engine_function("replication_bucss"),
+      engine_function("replication_anova_smallest")),
       error = function(e) list(problem = replication_problem(e)))
     if (!is.null(result$problem)) problem(result$problem) else { plan(result); used(replication_calc_key(vals)) }
   }

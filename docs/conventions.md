@@ -133,7 +133,12 @@ power while matching G\*Power) is folded there instead
   then the replication's sample size for the power aimed for. Used for
   ANOVA originals (between, within and mixed; Anderson & Kelley, 2024,
   `AndersonKelley2024_replication_design`) and beside t-test and
-  correlation originals' goals in replication plans.
+  correlation originals' goals in replication plans. Since 18 November
+  2026 an ANOVA effect with one degree of freedom also goes through the
+  other goals as the two-mean comparison it is (F = t², Lakens, 2013),
+  with BUCSS's ANOVA function beside them; as in BUCSS, its groups are
+  taken as equal (the original's total split in half). A one-sided test
+  of such an effect is planned as for a t-test.
 - **powerkit:** BUCSS's `ss_buc_*()` functions with their defaults: the
   original's significance level as `alpha_prior` (0.05 unless the user
   says otherwise), 80% assurance to start (50%, 90% and 95% shown
