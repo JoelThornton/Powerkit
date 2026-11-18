@@ -1167,7 +1167,7 @@ test_that("headings and labels are the same with explanations on or off, and the
   expect_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))),
     "boxes headed \u201cThe expected group means\u201d and \u201cThe SD\u201d.", fixed = TRUE)
   one <- as.character(form_ui(tree, forms, "E25", form_groups(forms, "E25")))
-  expect_match(one, "the effect size goes in the box headed \u201cThe expected proportion\u201d.", fixed = TRUE)
+  expect_no_match(one, "the effect size goes in the box headed", fixed = TRUE)
   # Field labels are the full ones in both modes; the short ones name
   # fields only in the "still needed" line.
   e2 <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))

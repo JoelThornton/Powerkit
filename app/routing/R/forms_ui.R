@@ -333,11 +333,10 @@ effect_boxes_ui <- function(groups) {
     any(vapply(g$fields, function(f) isTRUE(f$effect) && field_applies(f, defaults), logical(1))), groups)
   names <- unique(vapply(boxes, function(g) g$input %||% g$title %||% "", character(1)))
   names <- names[nzchar(names)]
-  if (!length(names)) return(NULL)
+  if (length(names) < 2) return(NULL)
   quoted <- paste0("\u201c", names, "\u201d")
-  list_text <- if (length(quoted) == 1) quoted else paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
-  p(class = "effect-boxes", if (length(quoted) == 1) sprintf("For this analysis, the effect size goes in the box headed %s.", list_text)
-    else sprintf("For this analysis, the effect size and the values it depends on go in the boxes headed %s.", list_text))
+  list_text <- paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
+  p(class = "effect-boxes", sprintf("For this analysis, the effect size and the values it depends on go in the boxes headed %s.", list_text))
 }
 
 # The browser condition under which at least one of a group's fields is
