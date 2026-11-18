@@ -4207,3 +4207,31 @@ as-reported belief, but for an original d = 0.3 with 90 per group and
 tau = 0.1 the shrunk belief needs 26,086 people against the default's
 7,393. The result screen says so whenever these Bayes factors are in a
 plan, and the methods paragraph states it.
+
+## 2026-11-17 · Designs nobody had decided on: which to offer, and in what order
+
+The maintainer accepted the recommendation in `next.md` item 15.
+powerkit is for research studies generally (5 November 2026), and
+several of these designs are common outside psychology's usual ones.
+
+- **First: prevalence and diagnostic accuracy.** The E46
+  one-proportion precision route is audited first (its interval,
+  denominator and sampling assumptions), because prevalence estimation
+  extends it (roadmap B66; presize). Diagnostic accuracy follows:
+  sensitivity and specificity, and the area under the ROC curve (B63;
+  pROC, MKpower, presize).
+- **Group-sequential designs with interim analyses use rpact** (B57;
+  `getDesignGroupSequential()`, `getSampleSizeMeans()`,
+  `getPowerMeans()`), the package the recommendation named; replications
+  and other expensive studies need these designs, and replication plans
+  will offer them.
+- **Assurance as an option beside power** (B60): power averaged over a
+  prior on the effect (Spower's expected power) on the cards that can
+  take it, named so it is not confused with the precision cards' width
+  assurance.
+- **Later: single-case designs** (B65, scan) **and network models**
+  (B53, powerly), kept off the queue until the designs above are in.
+
+Each package's methods are checked against its help files before its
+card is built; departures from the package or G\*Power are recorded in
+`conventions.md`.
