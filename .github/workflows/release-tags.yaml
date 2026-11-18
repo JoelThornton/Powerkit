@@ -1,9 +1,9 @@
 # Tags each finished powerkit version (vX.Y.Z) and publishes it as a
 # GitHub release, so a version quoted in an export or a methods paragraph
-# can be found and checked out. A version is finished once main moves on
-# to the next one; the version main is on now waits until then
-# (scripts/tag-releases.sh). Earlier versions are filled in on the first
-# run; later runs only add what is missing.
+# can be found and checked out (scripts/tag-releases.sh). Since 18 November
+# 2026 after-merge.yaml numbers each merge and runs the same script, so
+# this workflow is the backstop: it runs when the script changes, or by
+# hand. Runs only add what is missing.
 #
 # Most finished versions point at a commit whose workflow files differ
 # from main's, and GitHub refuses such a tag from the workflow's own token

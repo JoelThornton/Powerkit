@@ -1,6 +1,8 @@
 # Decisions log
 
 Short records of decisions that are not obvious from the code. Newest last.
+A pull request adds a new entry as a file in [`decisions.d/`](decisions.d/README),
+which is added to the end of this page after it merges.
 Full validation runs are recorded in `docs/validation-log.md`.
 
 ## Before 1 November 2026
