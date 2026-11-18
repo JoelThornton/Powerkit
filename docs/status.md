@@ -1,6 +1,10 @@
 # Project status
 
-*Last updated: 18 November 2026 (the two-variances card preselects the Brown-Forsythe test, and the search finds Levene's, Brown-Forsythe, the F test of two variances and McNemar's tests by name; next.md). History is in git,
+*Last updated: 18 November 2026.*
+
+*Where the project is
+now, one short paragraph per area; replace a paragraph rather than adding
+to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
 [`archive/status-history.md`](archive/status-history.md), which holds this
 page as it stood before each rewrite.*
@@ -21,7 +25,7 @@ the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
-and the two-variance card Levene's and the Brown-Forsythe test). The input screen's headings and labels are the
+and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
 
