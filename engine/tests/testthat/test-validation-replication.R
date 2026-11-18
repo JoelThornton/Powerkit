@@ -94,6 +94,30 @@ test_that("the sceptical Bayes factor's chance matches a published example (publ
   expect_power_near(exact_estimate(a$chance[a$goal == "bf_sceptical" & a$prior == "as_reported"]), published_chance)
 })
 
+test_that("BUCSS's corrected sample size matches a published example (published)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("BUCSS")
+  # Source: Anderson, Kelley & Maxwell (2017), Psychological Science 28,
+  #   1547-1562 (refs.bib Anderson2017_bucss), or Anderson & Kelley (2024):
+  #   a worked example of an original ANOVA (its design as
+  #   replication_bucss()'s `design`, its F, total N, levels and effect)
+  #   with the replication's total sample size the paper gives at a stated
+  #   assurance and power.
+  design <- TODO_PUBLISHED_VALUE
+  f <- TODO_PUBLISHED_VALUE
+  n <- TODO_PUBLISHED_VALUE
+  levels_a <- TODO_PUBLISHED_VALUE
+  levels_b <- TODO_PUBLISHED_VALUE # NULL for one factor
+  effect <- TODO_PUBLISHED_VALUE
+  assurance <- TODO_PUBLISHED_VALUE
+  power <- TODO_PUBLISHED_VALUE
+  published_n <- TODO_PUBLISHED_VALUE
+  skip_if_todo(design, f, n, levels_a, effect, assurance, power, published_n)
+  res <- replication_bucss(design, f, n, levels_a = levels_a, levels_b = levels_b, effect = effect,
+    assurance = assurance, power = power)
+  expect_equal(res$sizes$n, published_n)
+})
+
 # 2. A simulation written separately --------------------------------------------
 
 # The model (paper, "Between-Study Heterogeneity"): the overall effect theta

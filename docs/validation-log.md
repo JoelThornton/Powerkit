@@ -1751,3 +1751,17 @@ yes/no (four categories, n = 300). Each difference lies inside its
 99.9% Monte Carlo interval. With X not changing the mediator and a large
 path b, the rejection rate is 0.0465 at alpha = 0.05. The four tests
 took about two hours of computing in all.
+
+## 2026-11-18 · Replication plans with BUCSS (local)
+
+Linux, R 4.5.3, engine 0.78.17 plus this change, BUCSS 2.0.0. Command:
+`Rscript scripts/run-validation.R --only replication --cores 2`.
+[Summary](validation/2026-11-18-replication-summary.txt): **3 PASS,
+0 FAIL, 0 ERROR, 4 published-reference TODO SKIP**. The chunk gains a
+placeholder for a published BUCSS example (Anderson, Kelley & Maxwell,
+2017, or Anderson & Kelley, 2024), left for the maintainer to transcribe.
+Until then, BUCSS's sample sizes are checked in the ordinary tests
+against direct calls to BUCSS and against the figures recorded when the
+method was chosen (86 and 152 people for Shnabel et al.'s mixed-design
+interaction at 50% and 80% assurance), so the plan says validation is in
+progress. The other goals' checks pass as before.

@@ -1018,6 +1018,20 @@
       ],
       "Hash": "7d4cbde55d00bd2b796b96d38c38be61"
     },
+    "BUCSS": {
+      "Package": "BUCSS",
+      "Version": "2.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "generics",
+        "graphics",
+        "stats",
+        "withr"
+      ],
+      "Hash": "b52e14a2d1e6dbe7b59977001804c6c6"
+    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.1.0",

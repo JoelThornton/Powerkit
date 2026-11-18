@@ -293,8 +293,14 @@ each area, is at the end of
   extension's analyses join it as extensions, never as the original's; a
   conceptual replication is planned from the shrunk belief with more
   variation between studies; and a new study is offered an ordinary
-  study plan. Still to come: BUCSS for originals reported as an F (item
-  28) and study plans' shared settings (29).
+  study plan. An original reported as an F or a partial eta-squared from
+  a between, within or mixed ANOVA is planned with BUCSS, corrected for
+  publication bias and uncertainty at a chosen assurance, and t-test and
+  correlation originals show BUCSS's corrected sample sizes beside their
+  goals (validation in progress: a published example is still to be
+  transcribed). Still to come: the rest of item 28 (several originals,
+  attrition, unequal allocation, reliability, claims resting on several
+  tests) and study plans' shared settings (29).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning
