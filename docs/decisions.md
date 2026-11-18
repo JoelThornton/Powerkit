@@ -4083,6 +4083,53 @@ to 32).
   Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
   simulated studies.
 
+## 2026-11-17 · McNemar's chi-square test (E26) and Levene's and the Brown-Forsythe test (E53)
+
+The second round of `next.md` item 27's audit of method choices made for
+the researcher: two cards offered one test where researchers commonly
+run another.
+
+- **E26, McNemar's test.** The card computed McNemar's exact test only
+  (pwrss's exact power, as G\*Power's exact option). R's
+  `mcnemar.test()` runs the chi-square test with the continuity
+  correction by default, and jamovi reports the uncorrected chi-square
+  test, so the input screen now asks which test will be run
+  (`target_test > method`: "mcnemar_exact", the default and unchanged;
+  "mcnemar_chisq"; "mcnemar_chisq_corrected"). No package gives the
+  corrected test's power, so both chi-square versions are simulated with
+  Spower's own `p_mcnemar.test()` (`backend-mcnemar-chisq.R`). Only the
+  discordant proportions enter the test; the concordant pairs are split
+  equally between the two concordant cells, and a study with no
+  discordant pairs counts as not significant. The chi-square tests are
+  two-sided; a one-sided plan is refused with a pointer to the exact test.
+  Known difference 2 (the exact tests' smallest N) is shown for the exact
+  test only.
+- **E53, two variances.** The card computed the F test only, which
+  assumes normal scores and whose false-positive rate is far from alpha
+  when they aren't. It now also offers Levene's test (deviations from the
+  means; SPSS's) and the Brown-Forsythe test (deviations from the medians;
+  `car::leveneTest()`'s default), with the shape of the scores (normal,
+  skewed or heavy-tailed) asked for those two, since their power depends
+  on it. Spower's `p_var.test()` always runs the F test for two groups,
+  so powerkit's experiment `p_levene()` draws the scores and calls
+  `car::leveneTest()` (`backend-levene.R`). Unequal groups are simulated;
+  both tests are two-sided.
+- **Defaults.** The exact test and the F test stay preselected: they are
+  G\*Power's, and changing a default is the maintainer's call. For E53
+  the literature favours a test that doesn't assume normality whenever
+  normality is in doubt, so the Brown-Forsythe test is a candidate for
+  the default (recommendation in the pull request).
+- **Sizes.** At 120 pairs, discordant proportions 0.10 and 0.25: exact
+  0.769, uncorrected chi-square 0.812, corrected 0.764. At 200 people,
+  variances 1.5 and 1, normal scores: F test 0.518, Levene 0.467,
+  Brown-Forsythe 0.466; Brown-Forsythe with heavy-tailed scores 0.25.
+- **Validation.** Both routes agree with independent simulations written
+  without their packages (McNemar's statistic from multinomial counts; an
+  ANOVA of the absolute deviations) and keep the Type I error at alpha
+  (the corrected McNemar test at or below it): validation chunk
+  `variances`, run 17 November 2026, all passing; a published example for
+  McNemar's chi-square test is left as a placeholder.
+
 ## 2026-11-17 · The input screen's headings and labels with explanations on or off
 
 The 10 November decision (conventional names in compact mode) also

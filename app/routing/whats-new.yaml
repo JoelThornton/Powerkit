@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Choose the version of McNemar's test, and test two variances without assuming normal scores"
+    text: "McNemar's test now asks which test you will run: the exact test, as before, or the chi-square test with the continuity correction (R's default) or without it (jamovi's). The test of two variances now also offers Levene's test and the Brown-Forsythe test, which don't assume normal scores; for those you choose the shape of the scores, because it changes their power."
+  - date: "2026-11-17"
     title: "The values screen reads the same with explanations on or off"
     text: "Questions and box headings now have the same wording whether explanations are on or off; turning explanations off only folds the help text away. A line under \"Your effect size, and where it comes from\" says which boxes the effect size goes in, for example \"The expected group means\" and \"The SD\" for a one-way ANOVA. Box headings no longer start with \"Effect size:\", which was wrong for boxes such as an SD."
   - date: "2026-11-17"
