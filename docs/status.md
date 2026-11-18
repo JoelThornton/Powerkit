@@ -289,8 +289,12 @@ each area, is at the end of
   are numbered steps with a "Next" button under each, and the original's
   card starts on the sample-size question with the plan's significance
   level, chance of success and, for the four exact designs, the
-  original's effect. Still to come: extensions (item 28), BUCSS for
-  originals reported as an F (29) and study plans' shared settings (30).
+  original's effect. The plan asks what the replication keeps: an
+  extension's analyses join it as extensions, never as the original's; a
+  conceptual replication is planned from the shrunk belief with more
+  variation between studies; and a new study is offered an ordinary
+  study plan. Still to come: BUCSS for originals reported as an F (item
+  28) and study plans' shared settings (29).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

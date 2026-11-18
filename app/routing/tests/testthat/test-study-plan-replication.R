@@ -211,3 +211,59 @@ test_that("the list of analyses, opened from a replication plan, says what to ch
   expect_match(as.character(known_ui(tree, note = replication_known_note(plan))), "replication-known-note", fixed = TRUE)
   expect_no_match(as.character(known_ui(tree)), "replication-known-note", fixed = TRUE)
 })
+
+test_that("a replication plan asks what the replication keeps, and each answer leads somewhere (queue item 28)", {
+  html <- as.character(replication_workspace_ui(tree))
+  expect_match(html, "rep_keeps", fixed = TRUE)
+  for (k in unname(replication_keeps_ui)) expect_match(html, sprintf("value=\"%s\"", k), fixed = TRUE)
+  for (id in c("rep_add_extension", "rep_use_conceptual", "rep_start_study_plan", "rep_diff_checks", "rep-changes-note"))
+    expect_match(html, id, fixed = TRUE)
+  expect_true(all(c("rep_keeps", "rep_diff_checks") %in% replication_plan_field_ids))
+  # The write-up says what it keeps, and the checks for a changed replication.
+  plan <- plan_set_replication(new_replication_plan("Smith replication"),
+    fields = list(rep_keeps = "conceptual", rep_diff_checks = "A manipulation check after the prime"))
+  report <- paste(replication_plan_report(plan, tree, forms, engine = function(name) NULL), collapse = "\n")
+  expect_match(report, "What it keeps: a conceptual replication", fixed = TRUE)
+  expect_match(report, "A manipulation check after the prime", fixed = TRUE)
+  close <- plan_set_replication(new_replication_plan("Close"), fields = list(rep_keeps = "close"))
+  expect_no_match(paste(replication_plan_report(close, tree, forms, engine = function(name) NULL), collapse = "\n"),
+    "still tests the same thing", fixed = TRUE)
+})
+
+test_that("a conceptual replication is planned from the shrunk belief with more variation between studies", {
+  expect_identical(replication_conceptual_settings(list(rep_design = "two_groups", rep_tau = "0.05")),
+    list(rep_prior = "shrunk", rep_tau = "0.125"))
+  expect_identical(replication_conceptual_settings(list(rep_design = "paired", rep_tau = "0.125"))$rep_tau, "0.2")
+  expect_identical(replication_conceptual_settings(list(rep_design = "two_groups", rep_tau = "0.2"))$rep_tau, "0.2")
+  expect_identical(replication_conceptual_settings(list(rep_design = "correlation", rep_tau_r = "0.025"))$rep_tau_r, "0.075")
+  # A generic effect's variation is on its own scale: left to the researcher.
+  expect_identical(replication_conceptual_settings(list(rep_design = "generic")), list(rep_prior = "shrunk"))
+})
+
+test_that("an analysis added as an extension is never taken for the original's", {
+  entry <- function(ep, label, n, ext = FALSE) c(list(endpoint = ep, label = label, n = n), if (ext) list(extension = TRUE))
+  # Added before the original's card was chosen: still not the original's.
+  plan <- new_replication_plan()
+  plan$entries <- list(entry("E2", "The added condition", 300, ext = TRUE))
+  expect_true(is.na(replication_original_index(plan)))
+  lines <- paste(replication_analysis_lines(plan, tree, forms), collapse = "\n")
+  expect_match(lines, "Not planned yet", fixed = TRUE)
+  expect_match(lines, "## Other analyses in this plan", fixed = TRUE)
+  expect_no_match(as.character(replication_card_status_ui(tree, plan_set_replication(plan, endpoint = "E2"), forms)), "N = 300", fixed = TRUE)
+  # The same card as the original's: the one not added as an extension is.
+  plan$entries <- c(plan$entries, list(entry("E2", "The original comparison", 128)))
+  plan <- plan_set_replication(plan, endpoint = "E2")
+  expect_identical(replication_original_index(plan), 2L)
+  # Replacing an extension's result keeps it an extension.
+  keyed <- plan_add_entry(new_replication_plan(), entry("E7", "Added", 90, ext = TRUE))
+  updated <- plan_update_entry(keyed, keyed$entries[[1]]$key, entry("E7", "Added", 120))
+  expect_true(isTRUE(updated$entries[[1]]$extension))
+})
+
+test_that("the list and the card say when an extension is being chosen, and the card status says why the sample sizes can differ", {
+  plan <- new_replication_plan("Smith replication")
+  expect_match(as.character(replication_extension_note(plan)), "what the replication adds", fixed = TRUE)
+  expect_match(as.character(replication_extension_note(plan, card = TRUE)), "no original estimate", fixed = TRUE)
+  status <- as.character(replication_card_status_ui(tree, plan_set_replication(plan, endpoint = "E2"), forms))
+  expect_match(status, "The card and the Goals can give different sample sizes", fixed = TRUE)
+})
