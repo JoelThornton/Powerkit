@@ -4294,3 +4294,67 @@ several of these designs are common outside psychology's usual ones.
 Each package's methods are checked against its help files before its
 card is built; departures from the package or G\*Power are recorded in
 `conventions.md`.
+
+## 2026-11-18 · Versions are given after a merge, not by each pull request
+
+From 13 November 2026 every pull request ran `scripts/close-batch.R` as
+its last commit, so that every change on main had its own number. With
+several pull requests open at once, each merge took the number the
+others had claimed: each of them then had to merge main, renumber and
+run its checks again (up to an hour each time), and the same happened
+with the status page's "Last updated" line, the end of this log and the
+release inventory, which every pull request rewrote.
+
+Decision: pull requests write only files of their own and the lines
+their change is about. After each merge, `.github/workflows/after-merge.yaml`
+runs `scripts/after-merge.R` on main: the waiting change notes get the
+next version (minor when a merged pull request has the "minor" label,
+otherwise patch), the entries waiting in `decisions.d/` are added here,
+oldest first, `status.md` gets the date, and the release inventory is
+regenerated, in one commit marked `[skip ci]`. The same job tags the
+version and publishes its release. Every change on main still gets its
+own number; it arrives a minute or two after the merge.
+
+The job pushes to main with the `RELEASE_TOKEN` secret, so the "Require
+checked pull requests" ruleset lists the repository admin role as its one
+bypass actor (`repository-protection.md`). Everything else still reaches
+main only through a pull request with passing checks.
+
+`status.md` was cut from 58 KB to 25 KB at the same time, since every
+thread reads it in full: the dated history of each area moved to the end
+of `archive/status-history.md`, word for word.
+
+## 2026-11-18 · Replication plans: replications that change something
+
+Queue item 28, carrying out the 17 November decision above ("Replications
+that change something").
+
+- **The question.** "How the replication differs" opens with what the
+  replication keeps: everything it can (close), the original comparison
+  with something added (an extension), the idea in changed conditions
+  (conceptual), or not the original comparison (a new study). It starts
+  unanswered.
+- **Extensions.** "Add an extension analysis" opens the list of every
+  analysis as an ordinary route, not the replicate aim, so its card
+  takes the effect expected for what is added (there is no original
+  estimate) and doesn't become the original's. "Add to plan" marks the
+  entry `extension = TRUE`, which a replaced result keeps, so it is never
+  reported as the original's analysis, even when it uses the original's
+  card or is added before that card is chosen.
+- **Conceptual replications.** A button sets the shrunk belief and the
+  next larger variation between studies (the design's medium value at
+  least). It is a button rather than an automatic change, because the
+  answer is restored when a saved plan opens and must not overwrite the
+  settings saved with it. A generic effect's variation is on its own
+  scale, so it is left to the researcher, and the note says so.
+- **A new study.** The plan says the original's effect doesn't tell the
+  researcher what to expect and offers an ordinary study plan instead.
+- **Checks and the goals.** An extension or conceptual replication is
+  asked for the checks that show it still tests the same thing (a
+  manipulation check, the original's measure kept, a condition where the
+  effect is known to appear); the write-up reports them. Goals show a
+  note asking for more variation between studies once changes are
+  written down, and the original's card status says why the card (an
+  ordinary power analysis for the effect entered) and the Goals (which
+  allow for an uncertain, often inflated estimate and for variation
+  between studies) can give different sample sizes.
