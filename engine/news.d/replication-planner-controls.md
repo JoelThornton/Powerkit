@@ -1,1 +1,0 @@
-* Clarify the replication planner's help and fix the evidence threshold layout. Show settings for the frequentist and Bayesian criteria selected for the replication.

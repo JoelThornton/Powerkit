@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-18"
-    title: Clearer replication planner controls
-    text: >
-      Evidence threshold labels are easier to read, and the planner puts help
-      next to the relevant settings. Choose frequentist or Bayesian criteria for
-      the replication and see the settings those criteria use.

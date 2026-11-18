@@ -1,1 +1,0 @@
-* Group detectable-effect goals, keep balanced alpha under Advanced goals, and simplify form and result guidance in the app.

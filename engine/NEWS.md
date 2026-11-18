@@ -1,3 +1,11 @@
+# powerkit 0.78.28
+
+* Clarify analysis save status and distinguish print actions from file downloads in the app.
+
+* Group detectable-effect goals, keep balanced alpha under Advanced goals, and simplify form and result guidance in the app.
+
+* Clarify the replication planner's help and fix the evidence threshold layout. Show settings for the frequentist and Bayesian criteria selected for the replication.
+
 # powerkit 0.78.27
 
 * Replication plans: an ANOVA original's effect with one numerator

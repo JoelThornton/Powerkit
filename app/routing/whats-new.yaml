@@ -8,6 +8,26 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-18"
+    title: Clearer save and export messages
+    text: >
+      The result screen asks you to check your downloads after requesting
+      a file. Print or save PDF opens the browser’s print dialog. ZIPs are
+      labelled by what they contain and include editable report formats.
+  - date: "2026-11-18"
+    title: Easier to scan the inputs and result
+    text: >
+      Choose the smallest detectable effect first, then choose one sample
+      size or compare several where available. Balanced significance level
+      is under Advanced goals. Simple forms omit repeated effect-size
+      directions, and the result invites you to see what happens if your
+      assumptions change.
+  - date: "2026-11-18"
+    title: Clearer replication planner controls
+    text: >
+      Evidence threshold labels are easier to read, and the planner puts help
+      next to the relevant settings. Choose frequentist or Bayesian criteria for
+      the replication and see the settings those criteria use.
+  - date: "2026-11-18"
     title: "Replication plans: every goal for an ANOVA effect with one degree of freedom"
     text: >-
       An ANOVA original whose effect compares two means (a factor with two levels, or a 2 x 2 interaction) now gets
