@@ -99,7 +99,13 @@ jobs:
           for attempt in 1 2 3 4; do
             git fetch -q origin main
             git reset -q --hard origin/main
-            version=$(Rscript scripts/after-merge.R "$BUMP")
+            # The version comes from DESCRIPTION, not R's output: the
+            # repository's .Rprofile (renv) can print messages there.
+            before=$(awk '/^Version:/ {print $2}' engine/DESCRIPTION)
+            Rscript scripts/after-merge.R "$BUMP"
+            after=$(awk '/^Version:/ {print $2}' engine/DESCRIPTION)
+            version=""
+            [ "$after" != "$before" ] && version=$after
             git add -A
             if git diff --cached --quiet; then
               echo "Nothing to number."
