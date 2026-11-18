@@ -228,6 +228,45 @@ replication_purposes_ui <- c(
   "That the effect is absent or too small to matter (the original may be a false positive)" = "absent"
 )
 
+# What the replication keeps (queue item 28, decided 17 November 2026):
+# everything it can (close), the original comparison with something added
+# (an extension, whose analyses join the plan under their own heading),
+# the idea in changed conditions (a conceptual replication, planned from
+# the shrunk belief with more variation between studies), or not the
+# original comparison (a new study, planned as an ordinary study plan).
+replication_keeps_ui <- c(
+  "Everything it can: the same comparison, measures and procedure (a close replication)" = "close",
+  "The original comparison, with something added: a new condition, measure or group (a replication with an extension)" = "extension",
+  "The idea, tested in changed conditions: other materials, measures or people (a conceptual replication)" = "conceptual",
+  "Not the original comparison: it asks a different question (a new study)" = "new"
+)
+replication_keeps_words <- c(close = "a close replication", extension = "a replication with an extension",
+  conceptual = "a conceptual replication", new = "a new study rather than a replication")
+
+# A conceptual replication's settings: the shrunk belief and the next
+# larger variation between studies than the one chosen (the design's
+# medium value at least), as the decision says. A generic effect's
+# variation is on its own scale, so it is left to the researcher.
+replication_conceptual_settings <- function(values) {
+  v <- function(id) trimws(as.character(values[[id]] %||% ""))
+  design <- if (nzchar(v("rep_design"))) v("rep_design") else "two_groups"
+  out <- list(rep_prior = "shrunk")
+  bump <- function(choices, now) {
+    vals <- unname(choices)
+    at <- match(now, vals)
+    medium <- vals[[3]]
+    if (is.na(at) || at < 3) medium else vals[[min(at + 1L, length(vals))]]
+  }
+  if (identical(design, "correlation")) out$rep_tau_r <- bump(replication_taus_r, v("rep_tau_r"))
+  else if (!identical(design, "generic")) out$rep_tau <- bump(replication_taus, v("rep_tau"))
+  out
+}
+
+# The same in the browser, for the note under Goals.
+replication_changes_js <- paste0("input.rep_keeps == 'conceptual' || input.rep_keeps == 'extension' || ",
+  paste(sprintf("(input.%s || '').trim() !== ''", c("rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_checks")),
+    collapse = " || "))
+
 # The main criterion's box: the purpose's usual one first, then any goal.
 replication_goal_choices <- c("The usual one for what it should show" = "auto",
   stats::setNames(names(replication_goal_labels), replication_goal_labels))
@@ -402,6 +441,9 @@ replication_planner_sections <- function() {
           uiOutput("rep_from_notes_smallest"),
           field("rep_smallest", "The smallest effect that would matter to you (positive: d, d_z or r; for another design, on its own scale, a ratio above 1)",
             help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015), a bound for when nothing else justifies one; another design needs a number here.")),
+        conditionalPanel(replication_changes_js,
+          p(class = "small rep-changes-note", role = "note",
+            "You noted changes under How the replication differs. The more a replication changes, the more its true effect can differ from the original's, so allow more variation between studies here, and consider the shrunk belief above; a conceptual replication should use both.")),
         conditionalPanel("input.rep_design != 'correlation' && input.rep_design != 'generic'",
           selectInput("rep_tau", "How much the true effect may vary between studies (an SD in d, or d_z for pairs)", choices = replication_taus, selected = "0.05", selectize = FALSE, width = "100%"),
           p(class = "small text-muted", "Kenny and Judd (2019) use 0.05, 0.125 and 0.20 as examples and argue zero should not be the default; they are a quarter of Cohen's 0.2, 0.5 and 0.8, so treat them as illustrations, not estimates for your field. It starts at the smallest.")),
@@ -430,13 +472,27 @@ replication_planner_sections <- function() {
         uiOutput("rep_result"))),
 
     section("differences",
+      tags$fieldset(class = "form-group-box rep-keeps", tags$legend(class = "h6", "What the replication keeps"),
+        radioButtons("rep_keeps", "Which describes your study best?", choices = replication_keeps_ui, selected = character(0), width = "100%"),
+        conditionalPanel("input.rep_keeps == 'extension'",
+          p(class = "small", "The original comparison is planned as a replication under Goals and on the original's card. Each thing you add (a new condition, a moderator, another measure) is an analysis of its own, with its own effect size: an extension's effect has no original estimate, so it is planned as an ordinary power analysis and reported under its own heading. Plan for whichever needs more people."),
+          actionButton("rep_add_extension", "Add an extension analysis", class = "btn btn-outline-primary")),
+        conditionalPanel("input.rep_keeps == 'conceptual'",
+          p(class = "small", "With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. So plan from the shrunk belief and allow more variation between studies, and keep the checks below."),
+          actionButton("rep_use_conceptual", "Plan it this way: the shrunk belief and more variation", class = "btn btn-outline-primary"),
+          uiOutput("rep_conceptual_done")),
+        conditionalPanel("input.rep_keeps == 'new'",
+          p(class = "small", "If the study doesn't test the original comparison, the original's effect doesn't tell you what to expect, and a replication plan's goals don't apply. Plan it as an ordinary study, with the smallest effect that would matter to you or one from earlier work."),
+          actionButton("rep_start_study_plan", "Start a study plan instead", class = "btn btn-outline-primary"))),
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "How the replication differs"),
         p(class = "group-note", "No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies under Goals."),
         box("rep_diff_people", "The people: who takes part, where and when, and how they differ from the original sample"),
         box("rep_diff_materials", "The materials and measures: what is translated, updated or replaced"),
         box("rep_diff_procedure", "The procedure and setting: for example online instead of in the lab"),
         box("rep_diff_analysis", "The analysis: the original's test, and anything added or changed"),
-        box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"))),
+        box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"),
+        conditionalPanel("input.rep_keeps == 'extension' || input.rep_keeps == 'conceptual'",
+          box("rep_diff_checks", "The checks that show the changed study still tests the same thing: for example a manipulation check, the original's measure kept beside a new one, or a condition where the effect is known to appear")))),
 
     section("writeup",
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "Write-up"),
@@ -490,7 +546,7 @@ replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", 
   "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha",
   "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_goal", "rep_prior",
-  "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect")
+  "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks")
 
 # The engine's arguments from the fields: numbers parsed, blanks NULL.
 replication_args <- function(values) {
@@ -1143,11 +1199,14 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
   lines <- c(lines, "## The original's analysis, planned on its card", "",
     if (length(analyses)) analyses else c("_(Not planned yet: under The original study, find the original's design and plan it on its card.)_", ""),
     "## How the replication differs", "",
+    sprintf("- What it keeps: %s", if (v("rep_keeps") %in% names(replication_keeps_words)) replication_keeps_words[[v("rep_keeps")]] else or_blank("")),
     sprintf("- The people: %s", or_blank(v("rep_diff_people"))),
     sprintf("- The materials and measures: %s", or_blank(v("rep_diff_materials"))),
     sprintf("- The procedure and setting: %s", or_blank(v("rep_diff_procedure"))),
     sprintf("- The analysis: %s", or_blank(v("rep_diff_analysis"))),
-    sprintf("- Would the original authors expect the same effect? %s", or_blank(v("rep_diff_expect"))), "")
+    sprintf("- Would the original authors expect the same effect? %s", or_blank(v("rep_diff_expect"))),
+    if (v("rep_keeps") %in% c("extension", "conceptual") || nzchar(v("rep_diff_checks")))
+      sprintf("- The checks that it still tests the same thing: %s", or_blank(v("rep_diff_checks"))), "")
   if (!is.null(notes) && any(nzchar(trimws(unlist(notes))))) {
     report <- labs_report(notes, notes_outcome, citation = labs_citation())
     report <- sub("^#", "##", report)

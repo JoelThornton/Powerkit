@@ -1162,6 +1162,7 @@ server <- function(input, output, session) {
     guided_plan = NULL,      # the study plan the guided route ("Plan a whole study") fills
     plan_more_target = NULL, # the plan whose "Add an analysis" was pressed last
     rep_plan = NULL,         # the replication plan the replicate aim's card fills (R/study-plan-replication.R)
+    rep_extension_plan = NULL, # the replication plan an extension analysis is being chosen for
     ws_result = NULL         # whole-study simulation: the last finished run, summarised for its study plan
   )
   # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
@@ -1344,6 +1345,7 @@ server <- function(input, output, session) {
       open_in_app(project, restore_from_project(project$route, tree, forms))
       return()
     }
+    if (pick == "home" || kind == "route" || kind == "aim") state$rep_extension_plan <- NULL
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
@@ -2266,7 +2268,11 @@ server <- function(input, output, session) {
     plan <- plan_for_adding(input$plan_target)
     hash <- calc$result$provenance$spec_hash
     if (plan_has_result(plan, hash)) return()
-    plan <- plan_add_entry(plan, plan_entry(tree, state$endpoint, calc, calc$route))
+    entry <- plan_entry(tree, state$endpoint, calc, calc$route)
+    # An extension chosen for a replication plan is kept as one, so it is
+    # never reported as the original's analysis (queue item 28).
+    if (identical(plan$id, state$rep_extension_plan)) entry$extension <- TRUE
+    plan <- plan_add_entry(plan, entry)
     plans_put(plan)
     state$current_plan <- plan$id
     state$plan_just_added <- list(plan = plan$id, hash = hash)
@@ -3025,7 +3031,7 @@ server <- function(input, output, session) {
       else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
         "rep_purpose", "rep_prior", "rep_sided")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
-      else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
+      else if (id %in% c("labs_outcome", "rep_keeps")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else updateTextInput(session, id, value = v)
     }
     rep_loaded(list(id = plan$id, values = values, synced = FALSE))
@@ -3090,6 +3096,7 @@ server <- function(input, output, session) {
     plan <- plan_get(id)
     req(plan_is_replication(plan))
     cancel_job()
+    state$rep_extension_plan <- NULL
     state$start <- list(aim = "replicate")
     state$rep_plan <- id; state$current_plan <- id
     state$history <- list(); state$node <- NULL; state$calc <- NULL
@@ -3114,6 +3121,37 @@ server <- function(input, output, session) {
     start_replication_route(plan$id, plan$replication$endpoint)
   })
   observeEvent(input$rep_view_plan, open_plans_page(isolate(state$rep_plan)))
+  # What the replication keeps (queue item 28). An extension: the list of
+  # every analysis, as an ordinary analysis (not the original's), whose
+  # "Add to plan" keeps it in this plan under its own heading.
+  observeEvent(input$rep_add_extension, {
+    plan <- plan_get(isolate(state$plans_view))
+    req(plan_is_replication(plan))
+    cancel_job()
+    state$start <- list(); state$rep_plan <- NULL
+    state$rep_extension_plan <- plan$id; state$current_plan <- plan$id
+    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$ctx <- list()
+    state$route <- "known"; state$skip_screening <- TRUE; state$screen <- "known"
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  })
+  # A conceptual replication: the shrunk belief and more variation between
+  # studies, set when the researcher asks (never on loading a plan).
+  observeEvent(input$rep_use_conceptual, {
+    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r))
+    updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
+    if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
+    if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
+    output$rep_conceptual_done <- renderUI(p(class = "small text-success", role = "status",
+      if (identical(input$rep_design, "generic")) "Done: the shrunk belief. For this effect, raise the variation between studies under Goals yourself, on its own scale."
+      else "Done: the shrunk belief and more variation between studies, under Goals. You can change either there."))
+  })
+  # A new study: an ordinary study plan instead.
+  observeEvent(input$rep_start_study_plan, {
+    plan <- new_plan()
+    plans_put(plan)
+    state$current_plan <- plan$id
+    open_plans_page(plan$id)
+  })
   # The replicate aim's card is kept in a replication plan: the one it was
   # started from, or a new one.
   observeEvent(list(state$screen, state$endpoint), {
@@ -3266,7 +3304,8 @@ server <- function(input, output, session) {
         saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
       known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode,
-        note = if (replicating(state$start)) replication_known_note(plan_get(state$rep_plan))),
+        note = if (replicating(state$start)) replication_known_note(plan_get(state$rep_plan))
+          else if (!is.null(state$rep_extension_plan)) replication_extension_note(plan_get(state$rep_extension_plan))),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route, isolate(state$bayes_mode)),
       card = tagList(
         screen_nav_ui(),
@@ -3277,7 +3316,8 @@ server <- function(input, output, session) {
         route_fit_ui(tree, state$endpoint, state$ctx),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
         version_card_note(state$preset_version, state$endpoint),
-        if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan)),
+        if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan))
+        else if (!is.null(state$rep_extension_plan)) replication_extension_note(plan_get(state$rep_extension_plan), card = TRUE),
         card_ui(tree, state$endpoint, history = state$history,
           fits = !length(route_fit_messages(tree, state$endpoint, state$ctx))),
         card_nav_ui(forms, state$endpoint),
