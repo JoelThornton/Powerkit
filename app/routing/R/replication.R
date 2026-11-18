@@ -101,10 +101,44 @@ replication_card_note <- function(forms, ep_id, plan = NULL) {
 }
 
 # The input screen's starting values when replicating: the effect comes
-# from an earlier study, unless the user has already chosen.
-replication_form_values <- function(values) {
+# from an earlier study, unless the user has already chosen. With the
+# replication plan (queue item 28), the card starts on the sample-size
+# question at the plan's significance level and chance of success, and,
+# for the four designs whose effect the card takes as entered (d, d_z or
+# r), with the original's reported effect: entered once, in the plan.
+replication_form_values <- function(values, ep = NULL, plan_values = NULL) {
   if (is.null(values$just_type)) values$just_type <- "prior_study"
+  if (is.null(plan_values)) return(values)
+  given <- function(id) {
+    x <- trimws(as.character(plan_values[[id]] %||% ""))
+    if (length(x) == 1 && nzchar(x) && !is.na(suppressWarnings(as.numeric(x)))) x else NULL
+  }
+  keep <- function(id, x) if (is.null(values[[id]]) && !is.null(x)) values[[id]] <<- x
+  keep("goal", "sample_size")
+  keep("alpha", given("rep_alpha"))
+  keep("power", given("rep_power"))
+  field <- replication_card_effect_field(ep, plan_values)
+  if (!is.null(field)) {
+    if (!identical(field, "r")) keep("effect_units", "standardised")
+    keep(field, given("rep_effect"))
+  }
   values
+}
+
+# The card field that takes the original's effect as the plan holds it:
+# d on E1 and E2, d_z on E3 (only when the paper gave d_z, not a t
+# statistic or d_rm) and r on E4, for an original analysed with a test.
+replication_card_effect_field <- function(ep, plan_values) {
+  v <- function(id) as.character(plan_values[[id]] %||% "")
+  if (!identical(v("rep_analysis"), "test") && nzchar(v("rep_analysis"))) return(NULL)
+  type <- v("rep_effect_type")
+  d_given <- !nzchar(type) || identical(type, "d")
+  switch(ep %||% "",
+    E1 = if (d_given && identical(v("rep_design"), "one_sample")) "d",
+    E2 = if (d_given && identical(v("rep_design"), "two_groups")) "d",
+    E3 = if (d_given && identical(v("rep_design"), "paired")) "dz",
+    E4 = if (identical(v("rep_design"), "correlation")) "r",
+    NULL)
 }
 
 # How the original was analysed (queue item 21): a test, a Bayes factor

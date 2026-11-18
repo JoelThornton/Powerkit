@@ -238,9 +238,10 @@ each area, is at the end of
   (Anderson & Maxwell, 2016; BayesRepDesign, Pawel, Consonni & Held,
   2026; the small-telescopes card's calculation) under three beliefs
   about the true effect, how the replication differs, and one write-up.
-  The original's design is found with the design finder's questions; its
-  card, with each effect field labelled as the original's, plans the
-  replication and keeps the result in the plan. The plan saves, shares
+  The original's analysis is chosen from the searchable list of analyses
+  (the design finder's questions as a second way); its card, with each
+  effect field labelled as the original's, plans the replication and
+  keeps the result in the plan. The plan saves, shares
   and downloads like any study plan. Since 15 November 2026 the goals
   table covers any card whose focal effect is one number: the original's
   estimate with its standard error, interval or test statistic, ratios on
@@ -284,9 +285,12 @@ each area, is at the end of
   is entered, and the table of every criterion folds under the answer.
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
-  and the significance test can be one-sided. Still to come: the card in
-  replication mode and a step bar (item 28), extensions (29), BUCSS for
-  originals reported as an F (30) and study plans' shared settings (31).
+  and the significance test can be one-sided. The page's five sections
+  are numbered steps with a "Next" button under each, and the original's
+  card starts on the sample-size question with the plan's significance
+  level, chance of success and, for the four exact designs, the
+  original's effect. Still to come: extensions (item 28), BUCSS for
+  originals reported as an F (29) and study plans' shared settings (30).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

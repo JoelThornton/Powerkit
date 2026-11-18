@@ -119,11 +119,26 @@ plan_from_replication_text <- function(text, now = Sys.time()) {
 replication_workspace_ui <- function(tree) {
   div(class = "replication-workspace",
     h3(class = "h5", "Planning the replication"),
-    p(class = "small", "Fill the sections in any order and come back to them. Everything is kept in this plan: save the plan to keep it."),
-    radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%"),
+    p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
+    div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
+      radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
     conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
     replication_planner_sections(),
+    replication_next_step_ui(),
     replication_references_ui())
+}
+
+# Under each step, a button to the next one, so the plan reads in order
+# while every step stays open to come back to.
+replication_next_step_ui <- function() {
+  ids <- unname(replication_sections)
+  tagList(lapply(seq_len(length(ids) - 1L), function(i) {
+    conditionalPanel(sprintf("input.rep_section == '%s'", ids[[i]]),
+      div(class = "nav-buttons rep-next-step",
+        tags$button(type = "button", class = "btn btn-outline-primary",
+          onclick = sprintf("var r = document.querySelector('input[name=rep_section][value=%s]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }", ids[[i + 1L]]),
+          sprintf("Next: %s", names(replication_sections)[[i + 1L]]))))
+  }))
 }
 
 # The planner's fields when the original's card is chosen: its design and,
@@ -188,8 +203,10 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
   div(class = "rep-card-status form-group-box",
     h4(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
-      p("Find the original study's design with the design finder's questions. Its card plans the replication's sample size for that design, with the effect labelled as the original's, and the result is kept in this plan."),
-      actionButton("rep_find_design", "Find the original's design", class = "btn btn-primary"))
+      p("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
+      div(class = "nav-buttons",
+        actionButton("rep_pick_design", "Choose it from the list of analyses", class = "btn btn-primary"),
+        actionButton("rep_find_design", "Not sure? Answer questions about the study", class = "btn btn-outline-secondary")))
     else tagList(
       p(HTML(sprintf("The original's design: <strong>%s</strong>%s.", htmltools::htmlEscape(tree$endpoints[[ep]]$plain_name %||% ep),
         if (!is.null(entry)) sprintf(" (planned: %s)", htmltools::htmlEscape(plan_item_summary(entry))) else ""))),
@@ -200,7 +217,16 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
       },
       div(class = "nav-buttons",
         actionButton("rep_open_card", if (is.null(entry)) "Plan it on its card" else "Open its card again", class = "btn btn-primary"),
-        actionButton("rep_find_design", "Choose a different design", class = "btn btn-outline-secondary"))))
+        actionButton("rep_pick_design", "Choose a different analysis", class = "btn btn-outline-secondary"))))
+}
+
+# Above the list of every analysis when it is opened from a replication
+# plan: what to choose, and where the choice is kept.
+replication_known_note <- function(plan) {
+  div(class = "status status-soon replication-known-note",
+    p(class = "mb-0", if (plan_is_replication(plan)) sprintf(
+      "Choose the analysis the original study used. Its card plans the replication and is kept in the replication plan \u201c%s\u201d.", plan$name)
+      else "Choose the analysis the original study used. Its card plans the replication."))
 }
 
 # "N = 128" or the card's own goal, for one line.
