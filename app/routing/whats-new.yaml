@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-18"
+    title: "Two variances start with the Brown-Forsythe test, and tests are found by name"
+    text: "The test of two variances now starts with the Brown-Forsythe test, which keeps false positives at the level you set whatever the shape of the scores; the F test that G*Power uses is still one choice away. Searching for Levene's test, the Brown-Forsythe test, homogeneity of variance or McNemar's chi-square test now opens the right input screen with that test chosen."
+  - date: "2026-11-18"
     title: "Replication plans: shorter pages, both kinds of analysis, and a quicker way out"
     text: >-
       The replication plan's guidance now shows one sentence at a time, with the rest under "More", and with "Show
