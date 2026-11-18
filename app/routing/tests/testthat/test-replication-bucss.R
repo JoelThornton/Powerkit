@@ -118,11 +118,20 @@ test_that("the server plans an ANOVA original from its fields", {
   })
 })
 
-test_that("a conceptual replication of an ANOVA original asks for more assurance", {
-  expect_identical(replication_conceptual_settings(list(rep_design = "anova", rep_assurance = "0.8")), list(rep_assurance = "0.9"))
-  expect_identical(replication_conceptual_settings(list(rep_design = "anova", rep_assurance = "0.9")), list(rep_assurance = "0.95"))
-  expect_identical(replication_conceptual_settings(list(rep_design = "anova", rep_assurance = "0.5")), list(rep_assurance = "0.9"))
-  expect_identical(replication_conceptual_settings(list(rep_design = "anova", rep_assurance = "0.95")), list(rep_assurance = "0.95"))
+test_that("a conceptual replication of an ANOVA original changes no setting, and says why", {
+  # BUCSS's assurance allows for the original's sampling error and
+  # publication bias, not a changed procedure: the researcher chooses it.
+  for (a in c("0.5", "0.8", "0.9", "0.95")) {
+    expect_identical(replication_conceptual_settings(list(rep_design = "anova", rep_assurance = a)), list())
+  }
+  html <- as.character(replication_workspace_ui(tree))
+  expect_match(html, "input.rep_keeps == &#39;conceptual&#39; &amp;&amp; input.rep_design == &#39;anova&#39;", fixed = TRUE)
+  expect_match(html, "powerkit changes no setting for you", fixed = TRUE)
+  expect_match(html, "plan from the smallest effect that would matter to you, as an ordinary power analysis", fixed = TRUE)
+  # The button that sets the shrunk belief and more variation is for the
+  # one-number designs only.
+  expect_match(html, "input.rep_keeps == &#39;conceptual&#39; &amp;&amp; input.rep_design != &#39;anova&#39;", fixed = TRUE)
+  expect_identical(replication_conceptual_settings(list(rep_design = "two_groups"))$rep_prior, "shrunk")
 })
 
 test_that("an ANOVA card opens the plan on the ANOVA design, and says so", {

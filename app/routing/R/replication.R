@@ -285,13 +285,12 @@ replication_keeps_words <- c(close = "a close replication", extension = "a repli
 replication_conceptual_settings <- function(values) {
   v <- function(id) trimws(as.character(values[[id]] %||% ""))
   design <- if (nzchar(v("rep_design"))) v("rep_design") else "two_groups"
-  # An ANOVA original (BUCSS) has no belief or variation between studies:
-  # the next higher assurance (90% at least) allows for the change instead.
-  if (identical(design, "anova")) {
-    now <- suppressWarnings(as.numeric(v("rep_assurance")))
-    higher <- replication_assurance_levels[replication_assurance_levels > max(0.8, if (is.na(now)) 0.8 else now)]
-    return(list(rep_assurance = format(if (length(higher)) higher[[1]] else max(replication_assurance_levels))))
-  }
+  # An ANOVA original (BUCSS): nothing is changed. BUCSS's assurance
+  # allows for the original's sampling error and publication bias, not for
+  # a changed procedure changing the effect, so raising it would not answer
+  # the question; the researcher chooses the assurance (decisions.d,
+  # replication-bucss.md).
+  if (identical(design, "anova")) return(list())
   out <- list(rep_prior = "shrunk")
   bump <- function(choices, now) {
     vals <- unname(choices)
@@ -547,7 +546,9 @@ replication_planner_sections <- function() {
         conditionalPanel("input.rep_keeps == 'extension'",
           p(class = "small", "The original comparison is planned as a replication under Goals and on the original's card. Each thing you add (a new condition, a moderator, another measure) is an analysis of its own, with its own effect size: an extension's effect has no original estimate, so it is planned as an ordinary power analysis and reported under its own heading. Plan for whichever needs more people."),
           actionButton("rep_add_extension", "Add an extension analysis", class = "btn btn-outline-primary")),
-        conditionalPanel("input.rep_keeps == 'conceptual'",
+        conditionalPanel("input.rep_keeps == 'conceptual' && input.rep_design == 'anova'",
+          p(class = "small", "With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. Choose the assurance under Goals from the table of every level in the results, and say why in your write-up; or, if the original's effect is a weak guide to the new procedure, plan from the smallest effect that would matter to you, as an ordinary power analysis on the original's card. If the effect has one degree of freedom (two levels, or a 2 x 2 interaction), entering its estimate (such as the interaction contrast) with its F under \"Another design\" gives every goal and the variation between studies.")),
+        conditionalPanel("input.rep_keeps == 'conceptual' && input.rep_design != 'anova'",
           p(class = "small", "With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. So plan from the shrunk belief and allow more variation between studies, and keep the checks below."),
           actionButton("rep_use_conceptual", "Plan it this way: the shrunk belief and more variation", class = "btn btn-outline-primary"),
           uiOutput("rep_conceptual_done")),

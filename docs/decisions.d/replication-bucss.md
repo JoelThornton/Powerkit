@@ -23,13 +23,24 @@ Queue item 28, carrying out the 17 November decision above ("BUCSS").
   17 November is unchanged. BUCSS's test is two-sided, so a one-sided
   replication is planned as BUCSS's two-sided test at twice its level
   (the same critical value in the original's direction).
-- **A conceptual replication of an ANOVA original.** BUCSS has no
-  belief or variation between studies, so the conceptual-replication
-  button raises the assurance to the next level (90% at least) instead
-  of choosing the shrunk belief and more variation. Recommended because
-  more assurance plans for a smaller true effect, the direction the
-  17 November decision asked for; the maintainer may prefer to leave
-  the assurance to the researcher.
+- **A conceptual replication of an ANOVA original changes no setting.**
+  BUCSS's assurance allows for the original's sampling error and
+  publication bias (Anderson, Kelley & Maxwell, 2017); nothing in BUCSS
+  allows for a changed procedure changing the true effect, which is what
+  makes a conceptual replication harder to plan. Raising the assurance
+  for every conceptual replication would buy a larger sample with a
+  number that does not answer that question, and would make "conceptual
+  means 90%" a new convention with no basis. So the assurance stays at
+  BUCSS's default of 80% unless the researcher chooses another, from
+  the table of every level the results show, and the page says so in
+  plain words. It points to the two routes that do address the change:
+  planning from the smallest effect that would matter, as an ordinary
+  power analysis on the original's card, and, for an effect with one
+  degree of freedom, entering its estimate and F under "Another design",
+  which has every goal and the variation between studies. The
+  conceptual-replication button (the shrunk belief and more variation
+  between studies) stays for the one-number designs, where it sets the
+  parameter that describes the change.
 - **ANOVA cards.** E7, E8, E18, E20, E21, E22, E54 and E55 are marked
   `anova` in `forms.yaml`'s `replication_effects`, so a plan opened from
   one starts on "An ANOVA effect"; entering them under "Another design"
