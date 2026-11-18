@@ -285,7 +285,7 @@ replication_goal_notes <- c(
   agreement = "Asks whether the two estimates are close, not whether either differs from zero. A small original rarely allows it.",
   bf_replication = "Compares the original's effect with no effect, using the new data.",
   bf_sceptical = "Asks whether the two studies together would persuade someone who doubts the effect. A weak original may never allow it.",
-  bf_repeat = "The test the original used, with its prior, run on the new data alone: the Bayesian counterpart of a significant result again.",
+  bf_repeat = "A Bayes factor t-test on the replication's data alone, with a Cauchy prior for the effect.",
   small_telescopes = "Planned for a true effect of zero. A result below the yardstick says the original was too small to see an effect that size, not that it was a false positive.",
   negligible = "Planned for a true effect of zero. It needs the smallest effect that matters, and usually a large sample.",
   bf_null = "Planned for a true effect of zero. Evidence for no effect needs many more people than evidence for an effect (McLatchie, Warmelink & Tkacheva, 2020)."
@@ -536,7 +536,7 @@ replication_planner_sections <- function() {
           rep_note("An ANOVA effect is planned with BUCSS (Anderson, Kelley & Maxwell, 2017): the replication's sample size for a significant F test, with the original's effect corrected for publication bias and the uncertainty of its estimate. For a one-degree-of-freedom effect with its estimate and standard error, \u201cAnother design\u201d gives the other goals too.")),
         conditionalPanel("input.rep_analysis == 'bayes_factor' && input.rep_design != 'anova'",
           field("rep_bf", "Its Bayes factor for an effect, BF10",
-            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. Powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
+            help = "Enter a two-sided BF10 from a Bayes factor t-test. If the paper gives BF01, take its reciprocal. With the sample size and prior, this gives the effect's magnitude. Use the paper's result to identify the direction.")),
         conditionalPanel("input.rep_analysis == 'both' && input.rep_design != 'anova'",
           field("rep_bf_both", "Its Bayes factor for an effect, BF10 (optional)",
             help = "If the paper gives BF01 (for no effect), enter 1 / BF01. The effect is taken from the significance test below, its most direct report; the Bayes factor and its prior are recorded in the write-up, and the prior's scale is used to repeat the original's Bayes factor test as a goal.")),
@@ -544,8 +544,8 @@ replication_planner_sections <- function() {
           radioButtons("rep_original_prior", "Its prior", choices = replication_original_priors_ui, selected = "default", width = "100%"),
           rep_note("A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.", label = "Which posterior can I use?", keep = TRUE)),
         conditionalPanel("input.rep_analysis != 'test' && (input.rep_design == 'two_groups' || input.rep_design == 'one_sample' || input.rep_design == 'paired')",
-          field("rep_prior_scale", "The scale of its Cauchy prior on the effect", value = "0.707",
-            help = "0.707 is the default in JASP and the BayesFactor package. It is used to read the Bayes factor and to repeat the original's test.")),
+          field("rep_prior_scale", "Cauchy prior scale for the Bayes factor t-test", value = "0.707",
+            help = "Match the original prior if you entered a Bayes factor. For a posterior summary, this sets the prior scale for the replication's Bayes factor t-test. JASP and BayesFactor use 0.707 by default.")),
         conditionalPanel("input.rep_design == 'generic'",
           field("rep_effect_name", "What the effect is",
             help = "For example \u201cthe interaction coefficient\u201d or \u201codds ratio\u201d. The original's card suggests one."),
@@ -1147,7 +1147,8 @@ replication_bayes_original_words <- function(plan) {
   scale_words <- if (identical(i$design, "correlation") || identical(i$scale, "fisher_z")) " on Fisher's z scale"
     else if (identical(i$scale, "log")) " on the log scale" else ""
   if (identical(i$original_analysis, "bayes_factor")) {
-    return(sprintf("The original's Bayes factor of %s (BF10), with its sample size and a Cauchy prior of scale %s, comes from a t statistic of %s: an effect of %s with a standard error of %s.",
+    return(sprintf(paste("The original's two-sided BF10 of %s, with its sample size and a Cauchy prior of scale %s, implies an absolute t statistic of %s and an effect magnitude of %s (standard error %s).",
+      "The calculation uses a positive orientation. Use the original study to identify the effect's direction."),
       format(signif(i$original_bf, 3)), format(signif(i$original_prior_scale, 3)), format(signif(o$t, 3)),
       format(signif(o$estimate, 3)), format(signif(o$se, 3))))
   }
@@ -1467,7 +1468,7 @@ replication_result_ui <- function(plan) {
         sprintf("Small telescopes' yardstick is the same %s.", plan$telescope$effect_name)
         else sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
           plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
-      else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes is left out: it rests on the original's significance test, and the original was analysed with Bayes factors.")
+      else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes needs the original's significance test. This plan uses a Bayesian summary of the original.")
       else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
       replication_bias_corrected_ui(plan),
       tags$details(class = "mt-2", id = "rep-every-goal", open = if (is.null(plan$choice)) NA,
@@ -1559,7 +1560,7 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     format(signif(plan$original$se, 3)), switch(i$scale %||% "none", log = ", on the log scale", fisher_z = ", on Fisher's z scale", "")) else ""
   bayes <- !identical(i$original_analysis %||% "test", "test")
   shown <- if (identical(i$original_analysis, "bayes_factor")) {
-    sprintf("%s = %s, read from its Bayes factor (BF10 = %s, a default t-test with a Cauchy prior of scale %s; Ly et al., 2018), %s",
+    sprintf("effect magnitude |%s| = %s, inferred from its two-sided Bayes factor (BF10 = %s from a t-test with a Cauchy prior of scale %s, Ly et al., 2018), %s",
       plan$effect_name, format(signif(plan$original$estimate, 3)), format(signif(i$original_bf, 3)),
       format(signif(i$original_prior_scale, 3)), original)
   } else if (identical(i$original_analysis, "posterior")) {
@@ -1753,7 +1754,8 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       analysis])),
     if (identical(analysis, "bayes_factor")) c(
       sprintf("- Its Bayes factor (BF10): %s", or_blank(v("rep_bf"))),
-      sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale")))),
+      sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale"))),
+      "- The two-sided Bayes factor gives the effect's magnitude. Use the original study to identify its direction."),
     if (identical(analysis, "both") && !identical(v("rep_design"), "anova")) c(
       if (nzchar(v("rep_bf_both"))) sprintf("- Its Bayes factor (BF10): %s", v("rep_bf_both")),
       if (v("rep_design") %in% c("two_groups", "one_sample", "paired", "")) sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale")))),
