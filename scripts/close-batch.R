@@ -98,6 +98,26 @@ archive_old_updates <- function(whats_new_path, archive_path, days = 31) {
   invisible(sum(old))
 }
 
+# Puts whats-new.yaml's entries newest first, keeping the written order
+# of entries with the same date. Notes are numbered in the order their
+# pull requests merge, which need not be the order of their dates.
+sort_updates <- function(path) {
+  lines <- read_lines(path)
+  at <- match("entries:", lines)
+  body <- lines[-seq_len(at)]
+  starts <- grep("^  - date: ", body)
+  if (length(starts) < 2) return(invisible(FALSE))
+  lead <- body[seq_len(starts[1] - 1)]
+  body <- body[starts[1]:length(body)]
+  starts <- starts - starts[1] + 1
+  dates <- as.Date(sub("^  - date: \"?([0-9-]+)\"?.*$", "\\1", body[starts]))
+  block <- cumsum(seq_along(body) %in% starts)
+  ord <- order(-as.numeric(dates), seq_along(dates))
+  if (identical(ord, seq_along(dates))) return(invisible(FALSE))
+  write_lines(c(lines[seq_len(at)], lead, unlist(lapply(ord, function(i) body[block == i]))), path)
+  invisible(TRUE)
+}
+
 close_batch <- function(bump, root = ".") {
   news_files <- pending_news(root)
   update_files <- pending_updates(root)
@@ -136,6 +156,7 @@ close_batch <- function(bump, root = ".") {
     entries <- unlist(lapply(update_files, update_entry_lines))
     write_lines(c(lines[seq_len(at)], entries, lines[-seq_len(at)]), whats_new_path)
   }
+  sort_updates(file.path(root, "app", "routing", "whats-new.yaml"))
   archived <- archive_old_updates(file.path(root, "app", "routing", "whats-new.yaml"),
     file.path(root, "app", "routing", "whats-new-archive.yaml"))
 
