@@ -17,7 +17,9 @@ test_that("the switch is on both ways to find an analysis, off unless chosen, an
   expect_match(as.character(node_ui(tree, first, list())), "bayes_mode_switch", fixed = TRUE)
   expect_no_match(as.character(node_ui(tree, first, list(list(node = first, answer = "x")))), "bayes_mode_switch", fixed = TRUE)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode)", fixed = TRUE)
+  # The Bayes factor switch is passed on (the list also takes a note: a
+  # replication plan's, queue item 28).
+  expect_match(code, "known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode,", fixed = TRUE)
   expect_match(code, "bayes_mode = FALSE", fixed = TRUE)
   expect_match(code, "tags$script(HTML(bayes_mode_js))", fixed = TRUE)
 })

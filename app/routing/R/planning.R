@@ -267,6 +267,27 @@ additional_input_guide <- function(f) {
     "0.2 means an interval about as wide as 0.5 to 0.7.",
     "pmvalsampsize's default of 0.2.",
     "Used only with a risk threshold; leave it empty for the default."))
+  # Mediation with a mediator in ordered categories (E39, the latent-response model).
+  if (identical(f$id, "ordm_m_probabilities")) return(make("How people spread across the mediator's categories without X: in the first (comparison) group, or at X's average if X is a score. Powerkit cuts an underlying score at these shares.",
+    "0.3, 0.3, 0.25, 0.15 means 30% of people given the usual information say booking is unlikely, 30% unsure, 25% likely and 15% certain.",
+    "The answers to the same question in the comparison group of a similar study, a pilot or a survey.",
+    "Power is usually highest when the shares are fairly even; if most people give one answer, check the plan with that spread."))
+  if (identical(f$id, "ordm_a")) return(make("How far X moves the mediator's underlying score, in its SD (path a): the second group against the first, or per SD of a score. It is the coefficient of an ordered probit regression of the mediator on X.",
+    "0.4 with the shares above means about 56% of people sent a reminder letter say booking is likely or certain, against 40% without one.",
+    "An ordered probit coefficient from a similar study, or the two groups' category shares converted to a shift on the underlying score.",
+    "Run the plan with the smallest change in the mediator you would care about."))
+  if (identical(f$id, "ordm_b")) return(make("How much the outcome changes per SD of the mediator's underlying score, at the same X (path b): in the outcome's SD for a score, or on the outcome's own underlying score for yes or no.",
+    "0.3 means people one SD higher on intention to book score 0.3 SD higher on the outcome, in the same condition.",
+    "A structural equation model with the mediator declared ordered in a comparable study, or a polyserial correlation of the mediator and the outcome.",
+    "If you know only that the mediator matters, run the plan with the smallest change you would care about."))
+  if (identical(f$id, "ordm_direct")) return(make("X's effect on the outcome that doesn't run through the mediator, on the same scale as path b (c'). The test of the indirect effect depends little on it.",
+    "0.1 means the reminder letter raises the outcome by 0.1 SD at the same intention to book.",
+    "The direct effect in a published mediation model, or 0 if you expect the mediator to carry the whole effect.",
+    "Leave it empty for 0."))
+  if (identical(f$id, "ordm_y_baseline")) return(make("How often the outcome is 'yes' for people in the first group (or at X's average) at the middle of the mediator's underlying score.",
+    "0.3 means 30% of people who got the usual information and are of average intention go on to book.",
+    "The outcome's rate in the comparison group of a similar study or routine records.",
+    "Check the plan with a rate further from a half, where power is usually lower."))
   # Mediation with a yes/no mediator (E39).
   if (identical(f$id, "binm_m_baseline")) return(make("How often the mediator is 'yes' without X: in the first (comparison) group, or at X's average if X is a score.",
     "0.3 means 30% of people given the usual information book an appointment.",

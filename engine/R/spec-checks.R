@@ -31,6 +31,7 @@ population_problems <- function(spec) {
     mediation = function(spec) {
       if (identical(spec$template, "multicategorical")) return(check_mediation_mcx(spec))
       if (identical(spec$template, "binary_mediator")) return(check_mediation_binm(spec))
+      if (identical(spec$template, "ordinal_mediator")) return(check_mediation_ordm(spec))
       if (identical(spec$template, "binary_or_count_outcome")) return(check_mediation_yglm(spec))
       c(check_path_model(spec), check_single_predictor_x(spec))
     },
@@ -66,7 +67,9 @@ population_problems <- function(spec) {
     check_cell_ratio_allowed(spec),
     check_group_ratio_allowed(spec),
     check_method_allowed(spec),
+    check_df_method(spec),
     check_score_shape_allowed(spec),
+    check_two_sided_only(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
     check_minimum_effect(spec),
@@ -178,7 +181,7 @@ exact_available <- function(spec) {
   continuity_corrected(spec) || bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) ||
     welch_anova(spec) && identical(spec$template, "oneway_between") || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
-    !pairwise_comparison(spec) &&
+    !pairwise_comparison(spec) && !levene_test(spec) && !mcnemar_chisq_test(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       identical(spec$template, "growth_curve") ||
@@ -247,7 +250,8 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) ||
-    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec)
+    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec) ||
+    levene_test(spec) || mcnemar_chisq_test(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -430,6 +434,33 @@ jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere
 # independent-groups template: a rank test that allows the groups to
 # differ in spread as well as location.
 brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
+
+# Levene's test and the Brown-Forsythe test of two variances
+# (car::leveneTest() with center = mean or median), simulated with Spower on
+# scores of a chosen shape (backend-levene.R).
+levene_test <- function(spec) {
+  identical(spec$template, "two_variances") && isTRUE(spec$target_test$method %in% c("levene", "brown_forsythe"))
+}
+
+# McNemar's chi-square test, without or with the continuity correction
+# (stats::mcnemar.test()), simulated with Spower's p_mcnemar.test()
+# (backend-mcnemar-chisq.R). The exact test stays with pwrss.
+mcnemar_chisq_test <- function(spec) {
+  identical(spec$template, "mcnemar") && isTRUE(spec$target_test$method %in% c("mcnemar_chisq", "mcnemar_chisq_corrected"))
+}
+
+# Both are two-sided tests: their statistics (an F test of absolute
+# deviations, a chi-square) have no direction.
+check_two_sided_only <- function(spec) {
+  if (!levene_test(spec) && !mcnemar_chisq_test(spec)) return(character())
+  if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) return(character())
+  sprintf("%s is two-sided: remove 'target_test > alternative' or set it to \"two_sided\". %s",
+    if (levene_test(spec)) {
+      if (identical(spec$target_test$method, "levene")) "Levene's test" else "The Brown-Forsythe test"
+    } else "McNemar's chi-square test",
+    if (levene_test(spec)) "For a one-sided test of which group's variance is larger, choose the F test." else
+      "For a one-sided test, choose McNemar's exact test.")
+}
 
 # Yuen's tests: the trimming proportion goes with them only, and the paired
 # test needs the correlation between the two measurements, because yuend()
@@ -897,14 +928,15 @@ check_welch_sds <- function(spec) {
 # and ANOVA powerkit computes assume normal scores.
 check_score_shape_allowed <- function(spec) {
   # MANOVA and PERMANOVA: check_manova() says so.
-  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec) || identical(spec$template, "manova")) {
+  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec) || identical(spec$template, "manova") ||
+      levene_test(spec)) {
     return(character())
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform), Yuen's trimmed-means tests and the rank correlations (Spearman, ",
-    "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
-    "or choose a rank test in 'target_test > method'."
+    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform), Yuen's trimmed-means tests, the rank correlations (Spearman, ",
+    "Kendall), and Levene's and the Brown-Forsythe tests of two variances; the t-tests, ANOVA, Pearson's r and the F test of two variances assume normal scores. Remove it, ",
+    "or choose one of those tests in 'target_test > method'."
   )
 }
 
@@ -913,7 +945,7 @@ check_score_shape_allowed <- function(spec) {
 pwrss_only <- function(spec) {
   (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
     !isTRUE(spec$template %in% c("factorial", "multinomial", "interaction", "multinomial_interaction"))) ||
-    spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
+    spec$template %in% c("one_proportion", if (!mcnemar_chisq_test(spec)) "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
@@ -958,7 +990,7 @@ check_allocation_allowed <- function(spec) {
   # The two-variance test has two groups, but Spower can only simulate
   # equal ones: gen_var.test() builds a data frame of the wrong length when
   # the group sizes differ (docs/upstream-questions.md).
-  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation")) {
+  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation") && !levene_test(spec)) {
     return(paste0(
       "'options > allocation_ratio' isn't available for the simulated ",
       "two-variance test: the simulation can only draw groups of the same ",
@@ -2159,6 +2191,8 @@ check_probability_table <- function(spec) {
 
 check_factorial_anova <- function(spec) {
   pop <- spec$population
+  covariate <- check_ancova_covariate(spec)
+  if (length(covariate)) return(covariate)
   if (identical(pop$metric, "eta_squared")) {
     return(check_eta_squared_anova(spec))
   }
@@ -3228,7 +3262,7 @@ minimum_n_design <- function(spec) {
     mediation = if (identical(spec$template, "multicategorical")) {
       k <- length(spec$variables$X$levels)
       max(2 * k, k + 3)
-    } else if (spec$template %in% c("binary_mediator", "binary_or_count_outcome")) {
+    } else if (spec$template %in% c("binary_mediator", "ordinal_mediator", "binary_or_count_outcome")) {
       # Y's regression has three coefficients; two people per group of X
       # at least.
       6
@@ -3292,7 +3326,7 @@ group_split <- function(spec) {
     return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
       valid = function(n) n %% g == 0))
   }
-  if (spec$template %in% c("binary_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
+  if (spec$template %in% c("binary_mediator", "ordinal_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
     return(list(rule = "split into 2 equal groups, one per group of X", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "multicategorical")) {
@@ -3528,6 +3562,7 @@ target_effect_is_zero <- function(spec) {
     regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
     mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else
       if (identical(spec$template, "binary_mediator")) binm_tested_effect(spec) else
+      if (identical(spec$template, "ordinal_mediator")) ordm_tested_effect(spec) else
       if (identical(spec$template, "binary_or_count_outcome")) yglm_tested_effect(spec) else {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {
@@ -3764,6 +3799,29 @@ check_logistic_factorial <- function(spec) {
 # An ANOVA given by its partial eta-squared (pwrss's F test, as in G*Power):
 # equal groups and the ANOVA F test only, since the group means that
 # Welch's F, the Kruskal-Wallis test and unequal cells need aren't given.
+# Whether the ANCOVA's covariates are measured on each person ("random",
+# Shieh's method, the default) or fixed by the design ("fixed", as G*Power
+# takes them), 17 November 2026.
+check_ancova_covariate <- function(spec) {
+  model <- spec$target_test$covariate_model
+  if (is.null(model)) return(character())
+  if (!spec$template %in% c("oneway_ancova", "factorial_ancova")) {
+    return("'target_test > covariate_model' describes an ANCOVA's covariates; remove it for this design.")
+  }
+  if (identical(spec$target_test$method, "bayes_factor") && identical(model, "fixed")) {
+    return(paste0(
+      "The Bayes factor ANCOVA is simulated with covariates measured on each person; ",
+      "set 'target_test > covariate_model' to \"random\" or remove it."))
+  }
+  if (identical(spec$population$metric, "eta_squared") && identical(model, "random")) {
+    return(paste0(
+      "An effect given as partial eta-squared is planned with the covariates fixed, as in G*Power: ",
+      "Shieh's method for measured covariates needs the adjusted means. Give the means, or set ",
+      "'target_test > covariate_model' to \"fixed\"."))
+  }
+  character()
+}
+
 check_eta_squared_anova <- function(spec) {
   if (!spec$template %in% eta_squared_templates) {
     return(paste0(
@@ -3861,6 +3919,23 @@ check_riclpm <- function(spec) {
   residual <- within - phi %*% within %*% t(phi)
   if (any(eigen(residual, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     return("These lagged effects and the correlation between X and Y at the same wave can't all hold: together they would explain more than all of a score's within-person variation. Use smaller lagged effects or a different correlation.")
+  }
+  character()
+}
+
+# The degrees of freedom of a mixed model's t or F test (17 November
+# 2026): Satterthwaite's or Kenward and Roger's, for the simr mixed models
+# with a score. A yes/no outcome is tested by glmer's Wald or
+# likelihood-ratio test, which have no such correction.
+check_df_method <- function(spec) {
+  df_method <- spec$target_test$df_method
+  if (is.null(df_method)) return(character())
+  simr_templates <- c("crossed_two_condition", "crossed_conditions", "two_level", "three_level", "item_predictor")
+  if (!identical(spec$design, "mixed_model") || !spec$template %in% simr_templates) {
+    return("'target_test > df_method' chooses the degrees of freedom of a mixed model's t or F test (participants and items, people in groups or three levels); remove it here.")
+  }
+  if (identical(spec$variables$Y$type, "binary") && identical(df_method, "kenward_roger")) {
+    return("Kenward and Roger's degrees of freedom are for a score; a yes/no outcome is tested by glmer's Wald or likelihood-ratio test. Remove 'target_test > df_method'.")
   }
   character()
 }

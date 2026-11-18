@@ -2244,6 +2244,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     b_XWZ = "three-way coefficient", separation = "separation between neighbouring profiles", loading = "loading", odds_ratio_xw = "interaction odds ratio", rate_ratio_xw = "interaction rate ratio",
     level_change = "change in level", slope_change = "change in trend per time point",
     r_range = "difference between the largest and smallest group's correlation",
+    indirect_effect = "indirect effect", index_of_moderated_mediation = "index of moderated mediation",
     fallback)
 }
 
@@ -2962,11 +2963,22 @@ departures_for <- function(forms, ep_id, spec) {
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
+# An ANCOVA planned with fixed covariates: chosen, or implied by an effect
+# given as partial eta-squared (pwrss's power.f.ancova(), as G*Power).
+is_fixed_ancova <- function(spec) {
+  isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova")) &&
+    identical(spec$target_test$method %||% "ancova_f", "ancova_f") &&
+    (identical(spec$target_test$covariate_model, "fixed") || identical(spec$population$metric, "eta_squared"))
+}
+
 # `known_differences_if_method` limits a known difference to one test
 # version (E5: Known difference 2 applies only to Fisher's exact test).
 known_difference_keys <- function(forms, ep_id, spec = NULL) {
   form <- forms$forms[[ep_id]]
   keys <- unlist(form$known_differences)
+  # Known difference 15 is Shieh's method against G*Power's fixed
+  # covariates; with fixed covariates there is no difference.
+  if (!is.null(spec) && is_fixed_ancova(spec)) keys <- setdiff(keys, "15")
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
   # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
@@ -3707,6 +3719,27 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # brackets, not two in a row (P-15).
   if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  # McNemar's chi-square test and the variance tests that don't assume
+  # normal scores (17 November 2026, next.md item 27).
+  if (identical(spec$target_test$method, "mcnemar_chisq")) name <- "McNemar's chi-square test without the continuity correction, simulated"
+  if (identical(spec$target_test$method, "mcnemar_chisq_corrected")) {
+    name <- "McNemar's chi-square test with the continuity correction (the default in R's mcnemar.test()), simulated"
+  }
+  if (isTRUE(spec$target_test$method %in% c("levene", "brown_forsythe"))) {
+    name <- sprintf("%s of two variances (car's leveneTest(), deviations from each group's %s), simulated assuming %s",
+      if (identical(spec$target_test$method, "levene")) "Levene's test" else "the Brown-Forsythe test",
+      if (identical(spec$target_test$method, "levene")) "mean" else "median",
+      score_shape_text(spec$population$score_shape))
+  }
+  # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
+  # effect given as partial eta-squared) or measured (Shieh's method).
+  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
+  # A mixed model's test with Kenward and Roger's degrees of freedom in
+  # place of Satterthwaite's (17 November 2026).
+  if (identical(spec$target_test$df_method, "kenward_roger")) {
+    name <- if (grepl("Satterthwaite", name, fixed = TRUE)) gsub("Satterthwaite", "Kenward-Roger", name, fixed = TRUE) else
+      paste0(name, " (Kenward-Roger tests)")
+  }
   if (identical(spec$design, "survival")) {
     name <- switch(spec$target_test$method %||% "",
       log_rank = "a time-to-event analysis (the log-rank test)",
@@ -3754,6 +3787,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
       if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
         sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
+  }
+  # Mediation with a mediator in ordered categories (E39).
+  if (identical(spec$template, "ordinal_mediator")) {
+    name <- sprintf(paste0("mediation with a mediator in %d ordered categories, as a structural equation model in which the categories are cut from ",
+      "an underlying normal score (lavaan's latent-response model for ordered variables, theta parameterisation, with %s), ",
+      "the indirect effect a*b tested by the delta method, simulated"),
+      length(spec$population$m_probabilities),
+      if (identical(spec$variables$Y$type, "binary")) "the yes/no outcome declared ordered too" else "the outcome a score")
   }
   # One yes/no answer in each of three or more conditions (E75).
   if (identical(spec$target_test$method, "cochran_q")) {

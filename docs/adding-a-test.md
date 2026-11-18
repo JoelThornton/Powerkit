@@ -54,11 +54,11 @@ Every box ticked, in one PR:
    entries (date, title, text, newest first, no codes) but **cannot tell
    that you wrote one**: that box is on the author, so say in the PR
    description which entry you added.
-7. Its developer note is in a new file of its own in `engine/news.d/`,
-   and the pull request gives the notes their version with
-   `scripts/close-batch.R` as its last commit ("Change notes and version
-   numbers" below; *test:* the version agreement test and the change-note
-   checks in `test-repo-consistency.R`).
+7. Its developer note is in a new file of its own in `engine/news.d/`;
+   the after-merge workflow gives it its version once the pull request
+   is on main ("Change notes and version numbers" below; *test:* the
+   change-note checks in `test-repo-consistency.R`). A new design is a
+   batch of features: give its first pull request the "minor" label.
 8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
    say where it now stands (*test:* `test-repo-consistency.R` keeps the
    roadmap's summary counts honest).
@@ -301,45 +301,48 @@ Name the files after the change (`welch-default.md`), not the branch, so
 two pull requests never pick the same name. A pull request that changes
 nothing users or developers would notice writes neither.
 
-Every pull request that writes a note gives it its version before it
-merges (decided 13 November 2026), so main never holds a change without a
-number. Make it the last commit, once the branch has caught up with main,
-from the repository root:
+Decisions work the same way: a pull request that records a decision
+writes it as a new file in `docs/decisions.d/` (one entry, starting with
+its `## YYYY-MM-DD · Title` heading), rather than adding to the end of
+`docs/decisions.md`, where every such pull request would collide.
 
-```sh
-Rscript scripts/close-batch.R minor   # first pull request of a batch of features: 0.44.0 -> 0.45.0
-Rscript scripts/close-batch.R patch   # anything else: 0.44.0 -> 0.44.1
-```
+**Pull requests don't number themselves** (decided 18 November 2026).
+From 13 to 18 November each pull request ran `scripts/close-batch.R` as
+its last commit, so every merge took the next number from every other
+open pull request, which then had to merge main in, renumber and run
+its checks again. Now `.github/workflows/after-merge.yaml` runs
+`scripts/after-merge.R` on main straight after each merge. In one commit,
+marked `[skip ci]` because it changes no tested code, it:
 
-It sets the number in `engine/DESCRIPTION` and `CITATION.cff`, puts every
-waiting engine note under one `# powerkit X.Y.Z` heading at the top of
-`NEWS.md`, moves every waiting Updates entry to the top of
-`whats-new.yaml`, moves Updates entries more than a month older than the
-newest to `whats-new-archive.yaml` (the Updates tab shows them with the
-rest), and deletes the files it used.
+- gives the waiting notes the next version (`scripts/close-batch.R`):
+  patch, or minor when a merged pull request has the **minor** label
+  (the first pull request of a batch of features). It sets the number in
+  `engine/DESCRIPTION` and `CITATION.cff`, puts every engine note under one
+  `# powerkit X.Y.Z` heading at the top of `NEWS.md`, moves every Updates
+  entry to the top of `whats-new.yaml`, moves entries more than a month
+  older than the newest to `whats-new-archive.yaml`, and deletes the files
+  it used;
+- adds the waiting decision entries to the end of `decisions.md`, oldest
+  first;
+- sets the date on `status.md`'s "Last updated" line;
+- regenerates `docs/release-support-inventory.json`.
 
-If main moves on before your pull request merges, its version is taken.
-Merge main in, take main's copies of the version files and bring back
-your notes from before your close commit, then close again:
+It then tags the version and publishes its release
+(`scripts/tag-releases.sh`). So a pull request never edits the version,
+`NEWS.md`, `CITATION.cff`, `whats-new.yaml`, the inventory or the status
+date, and never needs renumbering when another merges first. A version
+or a number the maintainer chooses (`1.0.0`) is set by hand with
+`Rscript scripts/close-batch.R 1.0.0` in a pull request of its own.
 
-```sh
-git checkout origin/main -- engine/DESCRIPTION CITATION.cff engine/NEWS.md app/routing/whats-new.yaml
-git checkout <your close commit>^ -- engine/news.d/<topic>.md app/routing/whats-new.d/<topic>.yaml
-Rscript scripts/close-batch.R patch
-```
-
-Add `app/routing/whats-new-archive.yaml` to the first line once main has
-one (the script creates it the first time it archives an entry): git
-refuses the whole command if a named file is missing.
-
-The required checks already make a branch catch up with main before it
-merges, so this costs a merge that was needed anyway.
-`test-repo-consistency.R` refuses a branch that leaves notes without a
-number, so a forgotten close fails the checks rather than reaching main.
+Notes wait on main for the minute or two the job takes; the app already
+shows waiting Updates entries. If the job fails (the message says why),
+the notes keep waiting and the next merge numbers them, or run the
+workflow by hand from the Actions tab.
 
 The tests check each waiting file (an Updates file has the same shape as
-`whats-new.yaml`; an engine note starts with a bullet) and that
-`DESCRIPTION`, `CITATION.cff` and the top heading of `NEWS.md` agree.
+`whats-new.yaml`; an engine note starts with a bullet; a decision entry
+has one dated heading) and that `DESCRIPTION`, `CITATION.cff` and the top
+heading of `NEWS.md` agree.
 
 Shipped so far: 0.1.0 the first working prototype (17 October 2026),
 0.2.0 the four-screen design and the app going online (18 October), 0.3.0
@@ -358,8 +361,9 @@ or "unknown" is a question for the maintainer first, not a batch.
 
 ## Keep the first-release inventory current
 
-After changing cards, expanded forms or routing helpers, run
-Rscript scripts/release-support.R from the repository root and commit the
-generated discovery inventory. Its consistency check detects source drift;
-it does not establish scientific validity. Complete the case-specific
+The discovery inventory (`docs/release-support-inventory.json`) is
+regenerated on main after each merge (`scripts/after-merge.R`), so a pull
+request that changes cards, expanded forms or routing helpers doesn't
+commit it; `test-release-support.R` checks what its code produces. The
+inventory does not establish scientific validity. Complete the case-specific
 evidence and usability gates in [v1-support-plan.md](v1-support-plan.md).

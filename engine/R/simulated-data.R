@@ -179,6 +179,7 @@ simulated_data_code <- function(spec, n, seed) {
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
     mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else
       if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else
+      if (identical(spec$template, "ordinal_mediator")) sim_ordm_code(spec, n) else
       if (identical(spec$template, "binary_or_count_outcome")) sim_yglm_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
@@ -230,6 +231,9 @@ sim_basic_code <- function(spec, n) {
   if (!spec$template %in% templates) {
     return(NULL)
   }
+  # Levene's and the Brown-Forsythe tests: the two groups in the chosen
+  # shape (sim_levene_code(), backend-levene.R).
+  if (levene_test(spec)) return(sim_levene_code(spec, n))
   pop <- spec$population
   if (spec$template == "paired_variances") {
     # The paired scores themselves (pitman_morgan_scores() before it takes

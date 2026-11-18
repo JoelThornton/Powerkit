@@ -70,12 +70,14 @@ plan_add_entry <- function(plan, entry, now = Sys.time(), allow_duplicate = FALS
   plan_touch(plan, now)
 }
 
-# Replaces an analysis with a new result, keeping its place, role and note.
+# Replaces an analysis with a new result, keeping its place, role and note
+# (and, in a replication plan, whether it is an extension).
 plan_update_entry <- function(plan, key, entry, now = Sys.time()) {
   i <- plan_entry_index(plan, key)
   if (is.na(i)) return(plan)
   old <- plan$entries[[i]]
   entry$key <- old$key; entry$role <- old$role; entry$note <- old$note
+  if (isTRUE(old$extension)) entry$extension <- TRUE
   plan$entries[[i]] <- entry
   plan_touch(plan, now)
 }

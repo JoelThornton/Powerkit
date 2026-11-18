@@ -704,6 +704,20 @@
           "description": "Bayes factor ANCOVA only: the scale of the Cauchy analysis prior on the covariates' standardised slopes. Default 0.354, JASP's Bayesian ANCOVA 'r scale covariates' (BayesFactor's generalTestBF(rscaleCont = 'medium'), sqrt(2)/4).",
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "covariate_model": {
+          "enum": [
+            "random",
+            "fixed"
+          ],
+          "description": "ANCOVA only (oneway_ancova, factorial_ancova): whether the covariates are measured on each person ('random', the default, Shieh's method) or fixed by the design ('fixed', as G*Power takes them); see those templates."
+        },
+        "df_method": {
+          "enum": [
+            "satterthwaite",
+            "kenward_roger"
+          ],
+          "description": "Mixed models with a score (crossed_two_condition, crossed_conditions, two_level, three_level, item_predictor): the small-sample degrees of freedom of the t or F test, Satterthwaite's ('satterthwaite', the default, lmerTest; Departure 16) or Kenward and Roger's ('kenward_roger', pbkrtest). Not for a yes/no outcome."
         }
       },
       "allOf": [
@@ -3819,6 +3833,7 @@
               "process_6",
               "multicategorical",
               "binary_mediator",
+              "ordinal_mediator",
               "binary_or_count_outcome"
             ]
           },
@@ -3843,7 +3858,7 @@
                       "joint_significance",
                       "delta_method"
                     ],
-                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator, ordinal_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), or for ordinal_mediator the delta-method test of a*b in a latent-response model (lavaan), simulated"
                   }
                 }
               }
@@ -3909,6 +3924,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_mediation_binary_mediator"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "ordinal_mediator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_ordinal_mediator"
             }
           },
           {
@@ -4232,7 +4262,7 @@
       }
     },
     "template_mcnemar": {
-      "description": "The same people (or matched pairs) measured twice on a yes/no outcome, compared by McNemar's exact test.",
+      "description": "The same people (or matched pairs) measured twice on a yes/no outcome, compared by McNemar's exact test (the default, 'mcnemar_exact', pwrss's exact power), or by McNemar's chi-square test without ('mcnemar_chisq') or with ('mcnemar_chisq_corrected', R's mcnemar.test() default) the continuity correction, simulated with Spower's p_mcnemar.test(). The chi-square tests are two-sided.",
       "properties": {
         "variables": {
           "required": [
@@ -4276,7 +4306,11 @@
               "const": "paired_proportion_difference"
             },
             "method": {
-              "const": "mcnemar_exact"
+              "enum": [
+                "mcnemar_exact",
+                "mcnemar_chisq",
+                "mcnemar_chisq_corrected"
+              ]
             }
           }
         }
@@ -5791,7 +5825,7 @@
       }
     },
     "template_two_variances": {
-      "description": "Two independent groups compared on the variance of Y (the F test of two variances). The effect is the ratio of the two.",
+      "description": "Two independent groups compared on the variance of Y. The effect is the ratio of the two. The F test of two variances ('f_var', the default, as G*Power computes it) assumes normal scores; Levene's test ('levene', car::leveneTest(center = mean)) and the Brown-Forsythe test ('brown_forsythe', car::leveneTest(center = median), the car package's default) compare the groups' absolute deviations from their means or medians, are two-sided, and are simulated with Spower on scores of the shape in population > score_shape.",
       "properties": {
         "variables": {
           "required": [
@@ -5826,6 +5860,14 @@
             "var2": {
               "description": "Variance of Y in the second group. Equal variances (no effect) are allowed, to check the Type I error rate at a fixed n.",
               "$ref": "#/definitions/variance"
+            },
+            "score_shape": {
+              "description": "Levene's and the Brown-Forsythe test only: the shape of the scores powerkit simulates, each group's scores that shape scaled to its variance. 'normal' (the default); 'skewed': a standardised chi-square distribution with 10 df; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           }
         },
@@ -5835,7 +5877,11 @@
               "const": "variance_ratio"
             },
             "method": {
-              "const": "f_var"
+              "enum": [
+                "f_var",
+                "levene",
+                "brown_forsythe"
+              ]
             }
           }
         }
@@ -6242,7 +6288,14 @@
                 "ancova_f",
                 "bayes_factor"
               ],
-              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method, or with fixed covariates; see 'covariate_model'). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+            },
+            "covariate_model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the covariates are measured on each person and vary from sample to sample, Shieh's (2020) method (pwrss's power.f.ancova.shieh()). 'fixed': the covariates are set by the design, as G*Power takes them (noncentrality N gamma^2, pwrss's power.f.ancova()); an effect given as 'eta_squared' is always planned this way."
             }
           }
         }
@@ -6380,7 +6433,14 @@
                 "ancova_f",
                 "bayes_factor"
               ],
-              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method, or with fixed covariates; see 'covariate_model'). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+            },
+            "covariate_model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the covariates are measured on each person and vary from sample to sample, Shieh's (2020) method (pwrss's power.f.ancova.shieh()). 'fixed': the covariates are set by the design, as G*Power takes them (noncentrality N gamma^2, pwrss's power.f.ancova()); an effect given as 'eta_squared' is always planned this way."
             }
           }
         }
@@ -8846,6 +8906,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -9864,6 +9931,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -10001,6 +10075,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11085,6 +11166,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11206,6 +11294,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -13733,6 +13828,83 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_ordinal_mediator": {
+      "description": "Mediation with a mediator in ordered categories (E39): the mediator's categories cut from an underlying normal score (the latent-response, ordered probit formulation), M* = a X + e (residual SD 1); Y a score, Y = b M* + c' X + e, or yes/no, from an underlying score in the same way; fitted by lavaan::sem() with the mediator (and a yes/no Y) declared ordered and parameterization 'theta'; the indirect effect a*b tested by its delta-method standard error, in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The mediator: its levels are its ordered categories, lowest first.",
+              "$ref": "#/definitions/variable_categorical"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_probabilities",
+            "a",
+            "b"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "latent_response"
+            },
+            "m_probabilities": {
+              "description": "The mediator's category proportions for the first group of X (or at X's mean, for a score), lowest category first: three or more, adding up to 1.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "a": {
+              "description": "X's effect on the mediator's underlying score (the second group against the first, or per SD of a score), in the SD of its residual (path a).",
+              "type": "number"
+            },
+            "b": {
+              "description": "Y's change per SD of the mediator's underlying score, holding X (path b): in Y's residual SD for a score, on Y's underlying (probit) scale for yes/no.",
+              "type": "number"
+            },
+            "direct": {
+              "description": "X's effect on Y holding the mediator (c'), on the same scale as b. 0 if omitted.",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) when the mediator's underlying score is at its average.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
             }
           }
         }

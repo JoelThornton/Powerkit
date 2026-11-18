@@ -1,0 +1,59 @@
+{
+  "spec_version": "0.1",
+  "design": "mediation",
+  "template": "ordinal_mediator",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Usual information",
+        "Reminder letter"
+      ]
+    },
+    "M": {
+      "type": "categorical",
+      "label": "Intention to book",
+      "levels": [
+        "Unlikely",
+        "Unsure",
+        "Likely",
+        "Certain"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Health knowledge"
+    }
+  },
+  "population": {
+    "metric": "latent_response",
+    "m_probabilities": [
+      0.3,
+      0.3,
+      0.25,
+      0.15
+    ],
+    "a": 0.4,
+    "b": 0.3,
+    "direct": 0.1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest effects the team would consider practically meaningful."
+  },
+  "target_test": {
+    "effect": "indirect_effect",
+    "path": "X->M->Y",
+    "method": "delta_method",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 39
+  }
+}

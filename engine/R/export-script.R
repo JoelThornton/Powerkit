@@ -88,6 +88,8 @@ export_script <- function(spec, result, file = NULL) {
       pwr_script(spec, result)
     },
     Spower = if (identical(spec$template, "repeated_glmm")) repeated_glmm_script(spec, result) else
+      if (levene_test(spec)) levene_script(spec, result) else
+      if (mcnemar_chisq_test(spec)) mcnemar_chisq_script(spec, result) else
       if (cluster_glmer_test(spec)) cluster_glmer_script(spec, result) else
       if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) count_interaction_script(spec, result) else
       if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
@@ -95,6 +97,7 @@ export_script <- function(spec, result, file = NULL) {
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else
       if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else
       if (identical(spec$template, "binary_mediator")) mediation_binm_script(spec, result) else
+      if (identical(spec$template, "ordinal_mediator")) mediation_ordm_script(spec, result) else
       if (identical(spec$template, "binary_or_count_outcome")) mediation_yglm_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -726,6 +729,12 @@ design_description <- function(spec) {
     "mediation/binary_mediator" = sprintf(
       "mediation with a yes/no mediator (%s), X %s and Y %s; natural indirect effect tested by regression-based causal mediation analysis",
       spec$variables$M$label %||% "M",
+      if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
+      if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
+    ),
+    "mediation/ordinal_mediator" = sprintf(
+      "mediation with a mediator in %d ordered categories (%s), X %s and Y %s; indirect effect tested in a latent-response model (lavaan, the mediator's underlying score)",
+      length(spec$population$m_probabilities), spec$variables$M$label %||% "M",
       if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
       if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
     ),
@@ -4203,7 +4212,7 @@ simr_script <- function(spec, result) {
     script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"cond\", \"%s\")", inputs$method)),
     "library(simr)",
     if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
-      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+      simr_test_comment(inputs$method),
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, in its own units; cond is %s coded -0.5 (%s) and 0.5 (%s),", comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),

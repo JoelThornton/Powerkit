@@ -270,15 +270,64 @@ test_that("NEWS.md's top heading is the version in DESCRIPTION", {
   expect_identical(grep("^# powerkit ", news, value = TRUE)[1], paste("# powerkit", version))
 })
 
-test_that("no change note is left without a version", {
-  # Every change that reaches main gets a number (decided 13 November 2026):
-  # a pull request that writes a note runs scripts/close-batch.R before it
-  # merges, which files the note under the new version and deletes it.
-  waiting <- basename(c(Sys.glob(file.path(repo_dir, "engine", "news.d", "*.md")),
-    Sys.glob(file.path(repo_dir, "app", "routing", "whats-new.d", "*.yaml"))))
-  expect(length(waiting) == 0, paste0(
-    "These change notes have no version yet: ", paste(waiting, collapse = ", "),
-    ". Run `Rscript scripts/close-batch.R patch` (or `minor` for the first pull request of a batch of features) as the last commit."))
+test_that("pull requests leave the numbering to the job that runs after each merge", {
+  # Since 18 November 2026 change notes wait on main for a moment after a
+  # merge, until .github/workflows/after-merge.yaml numbers them with
+  # scripts/after-merge.R. A pull request runs neither script.
+  workflow <- paste(readLines(file.path(repo_dir, ".github", "workflows", "after-merge.yaml"), warn = FALSE), collapse = "\n")
+  expect_match(workflow, "scripts/after-merge.R", fixed = TRUE)
+  expect_match(workflow, "scripts/tag-releases.sh", fixed = TRUE)
+  expect_match(workflow, "[skip ci]", fixed = TRUE)
+  rules <- paste(readLines(file.path(repo_dir, "CLAUDE.md"), warn = FALSE), collapse = "\n")
+  expect_false(grepl("as its last commit before merging, runs scripts/close-batch.R", rules, fixed = TRUE))
+})
+
+test_that("every decision entry waiting for the decisions log has a dated heading", {
+  expect_true(file.exists(file.path(repo_dir, "docs", "decisions.d", "README")))
+  for (path in Sys.glob(file.path(repo_dir, "docs", "decisions.d", "*.md"))) {
+    lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
+    lines <- lines[nzchar(trimws(lines))]
+    expect_match(lines[1], "^## [0-9]{4}-[0-9]{2}-[0-9]{2} \u00b7 \\S", label = basename(path))
+    expect_identical(sum(grepl("^## ", lines)), 1L, label = basename(path))
+  }
+})
+
+test_that("the job after a merge numbers the notes, joins the decisions and dates the status page", {
+  root <- withr::local_tempdir()
+  for (d in c("engine/news.d", "app/routing/whats-new.d", "docs/decisions.d", "scripts")) {
+    dir.create(file.path(root, d), recursive = TRUE)
+  }
+  writeLines(c("Package: powerkit", "Version: 0.44.0", "Title: x"), file.path(root, "engine", "DESCRIPTION"))
+  writeLines(c("cff-version: 1.2.0", "version: 0.44.0", "title: x"), file.path(root, "CITATION.cff"))
+  writeLines(c("# powerkit 0.44.0", "", "* Older."), file.path(root, "engine", "NEWS.md"))
+  writeLines(c("entries:", "  - date: \"2026-11-08\"", "    title: \"Old\"", "    text: >-", "      Old."),
+    file.path(root, "app", "routing", "whats-new.yaml"))
+  writeLines("* A change.", file.path(root, "engine", "news.d", "a-change.md"))
+  writeLines(c("# Decisions log", "", "## 2026-11-01 \u00b7 First", "", "Text.", ""), file.path(root, "docs", "decisions.md"))
+  writeLines(c("## 2026-11-18 \u00b7 Later", "", "Two."), file.path(root, "docs", "decisions.d", "a-later.md"))
+  writeLines(c("", "## 2026-11-17 \u00b7 Earlier", "", "One.", ""), file.path(root, "docs", "decisions.d", "z-earlier.md"))
+  writeLines(c("# Project status", "", "*Last updated: 1 November 2026 (a long note).*", "", "Body."),
+    file.path(root, "docs", "status.md"))
+  # A stand-in for the inventory, which needs the whole app.
+  writeLines(c("release_support_text <- function(root = \".\") \"{}\\n\""), file.path(root, "scripts", "release-support.R"))
+  file.copy(file.path(repo_dir, "scripts", "close-batch.R"), file.path(root, "scripts"))
+
+  job <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "after-merge.R"), envir = job)
+  done <- job$after_merge("patch", root = root, date = as.Date("2026-11-18"), scripts = file.path(root, "scripts"))
+  expect_identical(done$version, "0.44.1")
+  expect_identical(readLines(file.path(root, "engine", "NEWS.md"))[1:3], c("# powerkit 0.44.1", "", "* A change."))
+  expect_identical(readLines(file.path(root, "docs", "decisions.md")),
+    c("# Decisions log", "", "## 2026-11-01 \u00b7 First", "", "Text.",
+      "", "## 2026-11-17 \u00b7 Earlier", "", "One.", "", "## 2026-11-18 \u00b7 Later", "", "Two."))
+  expect_length(Sys.glob(file.path(root, "docs", "decisions.d", "*.md")), 0)
+  expect_identical(readLines(file.path(root, "docs", "status.md"))[3], "*Last updated: 18 November 2026.*")
+  expect_identical(readLines(file.path(root, "docs", "release-support-inventory.json")), "{}")
+  # Nothing waiting: no new version, but the date and inventory still run.
+  done <- job$after_merge("minor", root = root, date = as.Date("2026-11-19"), scripts = file.path(root, "scripts"))
+  expect_null(done$version)
+  expect_identical(readLines(file.path(root, "docs", "status.md"))[3], "*Last updated: 19 November 2026.*")
+  expect_error(job$after_merge("amend", root = root, scripts = file.path(root, "scripts")), "patch or minor")
 })
 
 test_that("every engine note waiting for a version is a list of bullets", {

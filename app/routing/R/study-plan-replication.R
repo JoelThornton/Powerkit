@@ -20,7 +20,8 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
   rep_original_alpha = "0.05", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
-  rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
+  rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
+  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
@@ -118,11 +119,26 @@ plan_from_replication_text <- function(text, now = Sys.time()) {
 replication_workspace_ui <- function(tree) {
   div(class = "replication-workspace",
     h3(class = "h5", "Planning the replication"),
-    p(class = "small", "Fill the sections in any order and come back to them. Everything is kept in this plan: save the plan to keep it."),
-    radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%"),
+    p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
+    div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
+      radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
     conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
     replication_planner_sections(),
+    replication_next_step_ui(),
     replication_references_ui())
+}
+
+# Under each step, a button to the next one, so the plan reads in order
+# while every step stays open to come back to.
+replication_next_step_ui <- function() {
+  ids <- unname(replication_sections)
+  tagList(lapply(seq_len(length(ids) - 1L), function(i) {
+    conditionalPanel(sprintf("input.rep_section == '%s'", ids[[i]]),
+      div(class = "nav-buttons rep-next-step",
+        tags$button(type = "button", class = "btn btn-outline-primary",
+          onclick = sprintf("var r = document.querySelector('input[name=rep_section][value=%s]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }", ids[[i + 1L]]),
+          sprintf("Next: %s", names(replication_sections)[[i + 1L]]))))
+  }))
 }
 
 # The planner's fields when the original's card is chosen: its design and,
@@ -146,13 +162,16 @@ replication_fields_for_card <- function(fields, forms, ep) {
 # Under "The original study": the original's analysis on its own card,
 # which plans the replication for its design (12 November 2026).
 # Which of the plan's analyses is the original's: the first planned on the
-# original's card, else the first. Any others (an extension, a check) are
-# the researcher's own additions and are reported apart from it.
+# original's card, else the first that wasn't added as an extension (none,
+# if every one was). Any others (an extension, a check) are the
+# researcher's own additions and are reported apart from it.
 replication_original_index <- function(plan) {
   if (!length(plan$entries)) return(NA_integer_)
+  ext <- vapply(plan$entries, function(e) isTRUE(e$extension), logical(1))
   ep <- plan$replication$endpoint
-  hit <- which(vapply(plan$entries, function(e) identical(e$endpoint, ep), logical(1)))
-  if (length(hit)) hit[[1]] else 1L
+  hit <- which(!ext & vapply(plan$entries, function(e) identical(e$endpoint, ep), logical(1)))
+  if (length(hit)) return(hit[[1]])
+  if (all(ext)) NA_integer_ else which(!ext)[[1]]
 }
 
 # The planner's design that a card's original effect is entered as
@@ -179,6 +198,12 @@ replication_design_mismatch <- function(plan, forms) {
     label(have), label(want))
 }
 
+# Why the card and the Goals can give different sample sizes (queue item 28).
+replication_card_vs_goals <- paste(
+  "The card and the Goals can give different sample sizes. The card is an ordinary power analysis: it takes the effect you enter as the true one.",
+  "The Goals allow for the original's estimate being uncertain, and often too large, and for the true effect varying between studies, so under those beliefs they usually need more people.",
+  "Say in the write-up which one the sample size is based on.")
+
 replication_card_status_ui <- function(tree, plan, forms = NULL) {
   ep <- plan$replication$endpoint
   i <- replication_original_index(plan)
@@ -187,8 +212,10 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
   div(class = "rep-card-status form-group-box",
     h4(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
-      p("Find the original study's design with the design finder's questions. Its card plans the replication's sample size for that design, with the effect labelled as the original's, and the result is kept in this plan."),
-      actionButton("rep_find_design", "Find the original's design", class = "btn btn-primary"))
+      p("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
+      div(class = "nav-buttons",
+        actionButton("rep_pick_design", "Choose it from the list of analyses", class = "btn btn-primary"),
+        actionButton("rep_find_design", "Not sure? Answer questions about the study", class = "btn btn-outline-secondary")))
     else tagList(
       p(HTML(sprintf("The original's design: <strong>%s</strong>%s.", htmltools::htmlEscape(tree$endpoints[[ep]]$plain_name %||% ep),
         if (!is.null(entry)) sprintf(" (planned: %s)", htmltools::htmlEscape(plan_item_summary(entry))) else ""))),
@@ -197,9 +224,30 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
         note <- replication_card_effect_note(forms, ep)
         if (!is.null(note)) p(class = "small", note)
       },
+      p(class = "small rep-card-vs-goals", replication_card_vs_goals),
       div(class = "nav-buttons",
         actionButton("rep_open_card", if (is.null(entry)) "Plan it on its card" else "Open its card again", class = "btn btn-primary"),
-        actionButton("rep_find_design", "Choose a different design", class = "btn btn-outline-secondary"))))
+        actionButton("rep_pick_design", "Choose a different analysis", class = "btn btn-outline-secondary"))))
+}
+
+# Above the list of every analysis when it is opened from a replication
+# plan: what to choose, and where the choice is kept.
+replication_known_note <- function(plan) {
+  div(class = "status status-soon replication-known-note",
+    p(class = "mb-0", if (plan_is_replication(plan)) sprintf(
+      "Choose the analysis the original study used. Its card plans the replication and is kept in the replication plan \u201c%s\u201d.", plan$name)
+      else "Choose the analysis the original study used. Its card plans the replication."))
+}
+
+# Above the list and the card when an extension analysis is being chosen
+# for a replication plan (queue item 28): an ordinary analysis, with its
+# own effect size, kept in the plan under its own heading.
+replication_extension_note <- function(plan, card = FALSE) {
+  name <- if (plan_is_replication(plan)) sprintf(" \u201c%s\u201d", plan$name) else ""
+  div(class = "status status-soon replication-extension-note",
+    p(class = "mb-0", if (card) sprintf(
+      "An extension of the replication plan%s: plan it with the effect you expect for what you added, which has no original estimate. \u201cAdd to plan\u201d keeps it in the plan, reported apart from the original's analysis.", name)
+      else sprintf("Choose the analysis for what the replication adds. Its card plans it as an ordinary power analysis, and it is kept in the replication plan%s, reported apart from the original's analysis.", name)))
 }
 
 # "N = 128" or the card's own goal, for one line.
@@ -217,10 +265,11 @@ replication_analysis_lines <- function(plan, tree, forms) {
       text %||% "The methods paragraph for this analysis is in its own report.", "")
   }
   i <- replication_original_index(plan)
-  others <- plan$entries[-i]
+  others <- if (is.na(i)) plan$entries else plan$entries[-i]
   # The other analyses (an extension, a check) under their own heading, so
   # none is reported as the original's (the report's next heading follows).
-  c(one(plan$entries[[i]]),
+  c(if (is.na(i)) c("_(Not planned yet: under The original study, choose the original's analysis and plan it on its card.)_", "")
+    else one(plan$entries[[i]]),
     if (length(others)) c("## Other analyses in this plan", "",
       "Planned beside the replication, such as an extension or a check; not part of the original study.", "",
       unlist(lapply(others, one))))

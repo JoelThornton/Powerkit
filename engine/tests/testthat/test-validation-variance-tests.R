@@ -180,3 +180,82 @@ test_that("two variances: Type I error is near alpha", {
   )
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+# 4. Levene's test and the Brown-Forsythe test (simulated) ----------------------
+#
+# Backend: Spower simulation of powerkit's experiment p_levene(), which calls
+# car::leveneTest(). Checked against an independent simulation: the same
+# scores drawn and tested by the statistic written out from its definition
+# (a one-way ANOVA F test of the absolute deviations from each group's mean,
+# for Levene's test, or median, for the Brown-Forsythe test), without car.
+
+levene_validation_spec <- function(method, var1, var2, n, shape, ratio = 1, seed = 401) {
+  spec <- example_spec("two_variances")
+  spec$population$var1 <- var1
+  spec$population$var2 <- var2
+  spec$population$score_shape <- shape
+  spec$target_test$method <- method
+  spec$target_test$alternative <- "two_sided"
+  spec$goal <- list(type = "power", n = n)
+  spec$options <- c(list(nrep = validation_nrep(), seed = seed), if (ratio != 1) list(allocation_ratio = ratio))
+  spec <- validate_spec(spec)
+  skip_if_no_backend(spec)
+  spec
+}
+
+levene_p_by_hand <- function(x, y, center) {
+  middle <- if (center == "mean") mean else stats::median
+  z <- c(abs(x - middle(x)), abs(y - middle(y)))
+  group <- factor(rep(1:2, c(length(x), length(y))))
+  stats::oneway.test(z ~ group, var.equal = TRUE)$p.value
+}
+
+levene_draw <- function(shape) {
+  switch(shape,
+    normal = function(n) stats::rnorm(n),
+    skewed = function(n) (stats::rchisq(n, df = 10) - 10) / sqrt(20),
+    heavy_tailed = function(n) stats::rt(n, df = 3) / sqrt(3))
+}
+
+levene_by_hand <- function(var1, var2, shape, center, n1, n2, nrep, seed) {
+  draw <- levene_draw(shape)
+  hits <- with_seed(seed, vapply(seq_len(nrep), function(i) {
+    levene_p_by_hand(sqrt(var1) * draw(n1), sqrt(var2) * draw(n2), center) < 0.05
+  }, logical(1)))
+  list(power = mean(hits), mcse = sqrt(mean(hits) * (1 - mean(hits)) / nrep))
+}
+
+test_that("Levene and Brown-Forsythe: powerkit agrees with the test written out (simulation)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("car")
+  # The statistic written out gives car's p-values.
+  for (seed in 1:3) {
+    x <- with_seed(seed, stats::rt(25, 3))
+    y <- with_seed(seed + 10, 2 * stats::rt(40, 3))
+    group <- factor(rep(1:2, c(25, 40)))
+    for (center in c("mean", "median")) {
+      expect_equal(levene_p_by_hand(x, y, center),
+        car::leveneTest(c(x, y), group, center = center)[["Pr(>F)"]][1], tolerance = 1e-8)
+    }
+  }
+  cases <- list(
+    list(method = "levene", var1 = 1.5, var2 = 1, shape = "normal", n = 200, ratio = 1),
+    list(method = "brown_forsythe", var1 = 1, var2 = 2, shape = "heavy_tailed", n = 150, ratio = 2),
+    list(method = "brown_forsythe", var1 = 2, var2 = 1, shape = "skewed", n = 120, ratio = 1)
+  )
+  for (case in cases) {
+    spec <- levene_validation_spec(case$method, case$var1, case$var2, case$n, case$shape, case$ratio)
+    n1 <- floor(case$n / (1 + case$ratio) + 0.5)
+    center <- if (case$method == "levene") "mean" else "median"
+    reference <- levene_by_hand(case$var1, case$var2, case$shape, center, n1, case$n - n1, 4000L, 402)
+    expect_power_agrees_within(engine_power(spec), reference, allowance = 0)
+  }
+})
+
+test_that("Levene and Brown-Forsythe: Type I error is near alpha (simulation)", {
+  skip_unless_full_validation()
+  # Normal scores, unequal groups; and the Brown-Forsythe test with
+  # skewed scores, which it was proposed for.
+  expect_type1_near(engine_power(levene_validation_spec("levene", 1, 1, 120, "normal", ratio = 2, seed = 403)), alpha = 0.05)
+  expect_type1_near(engine_power(levene_validation_spec("brown_forsythe", 1, 1, 120, "skewed", seed = 404)), alpha = 0.05)
+})

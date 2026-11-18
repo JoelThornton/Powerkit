@@ -783,6 +783,33 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.t.welch")
 })
 
+test_that("E39's screen plans a mediator in ordered categories with lavaan's latent-response model", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E39"))
+  values <- form_example_ordinal_mediator
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E39", fields, values)
+  expect_identical(spec$template, "ordinal_mediator")
+  expect_identical(spec$variables$M$type, "categorical")
+  expect_identical(spec$population$metric, "latent_response")
+  expect_equal(unlist(spec$population$m_probabilities), c(0.3, 0.3, 0.25, 0.15))
+  expect_null(spec$population$m_odds_ratio)
+  # The yes/no mediator's inputs are hidden, and a yes/no outcome asks for its rate.
+  shown <- function(v) vapply(fields, function(f) field_applies(f, v), logical(1))
+  ids <- vapply(fields, `[[`, character(1), "id")
+  expect_false(any(shown(values)[ids %in% c("binm_m_baseline", "binm_m_or", "binm_b", "M_levels")]))
+  expect_true(shown(modifyList(values, list(binm_y = "binary")))[ids == "ordm_y_baseline"])
+  expect_false(shown(modifyList(values, list(binm_y = "binary")))[ids == "binm_y_baseline"])
+  spec$goal <- list(type = "power", n = 200L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  html <- as.character(result_panel_ui(tree, forms, "E39", fields, values, calc))
+  expect_match(html, "mediator in 4 ordered categories", fixed = TRUE)
+  expect_match(html, "latent-response model", fixed = TRUE)
+})
+
 test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with Spower, with their own notes", {
   skip_without_run()
   for (ep in names(form_examples_rank)) {
