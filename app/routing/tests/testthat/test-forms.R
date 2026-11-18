@@ -350,7 +350,7 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   expect_null(goal("E2", list(situation = "choose"))$default)
   expect_equal(goal("E2", list(situation = "fixed"))$default, "sensitivity")
   expect_equal(goal("E9", list(situation = "fixed"))$default, "sensitivity")
-  expect_equal(goal("E10", list(situation = "fixed"))$default, "power")
+  expect_equal(goal("E38", list(situation = "fixed"))$default, "power")
   for (ep in paste0("E", 1:6)) expect_true("sensitivity" %in% names(goal(ep, list())$choices), info = ep)
   # Whether the sample size is fixed is asked with the goals that take one.
   situation <- function(start) Filter(function(f) f$id == "situation", form_fields(form_groups(forms, "E2", start = start)))[[1]]
@@ -711,11 +711,11 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   expect_no_match(as.character(effect_help_ui(forms$forms$E2, form_groups(forms, "E2"))), "You don&#39;t know|You don't know")
   e3 <- as.character(form_ui(tree, forms, "E3", form_groups(forms, "E3")))
   expect_match(e3, "SD of the differences", fixed = TRUE)
-  # 2 x 2 designs scale the entered pattern; mediation can't yet.
+  # 2 x 2 designs scale the entered pattern; the difference between conditional indirect effects can't.
   e7 <- as.character(effect_unsure_ui(forms$forms$E7))
   expect_match(e7, "pkEffectUnsure(false)", fixed = TRUE)
-  expect_null(effect_unsure_ui(forms$forms$E10))
-  expect_match(as.character(effect_help_ui(forms$forms$E10, form_groups(forms, "E10"))), "won&#39;t suggest one|won't suggest one")
+  expect_null(effect_unsure_ui(forms$forms$E38))
+  expect_match(as.character(effect_help_ui(forms$forms$E38, form_groups(forms, "E38"))), "won&#39;t suggest one|won't suggest one")
   # The button sets two choices only: no effect-size box is filled.
   expect_match(effect_unsure_js, "set('f_goal', 'sensitivity')", fixed = TRUE)
   expect_false(grepl("f_d'|f_dz|f_r'|f_p1|f_p2", effect_unsure_js))

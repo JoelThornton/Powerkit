@@ -261,3 +261,27 @@ test_that("latent profiles and factor analysis find their smallest separation an
     expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
   }
 })
+
+test_that("the mediation cards offer the smallest indirect effect or index, through the R script", {
+  export <- engine_function("export_run_script")
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E16", "E17", "E40")) {
+    goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, ep)))[[1]]
+    expect_true("sensitivity" %in% names(goal$choices), info = ep)
+    fields <- form_fields(form_groups(forms, ep))
+    values <- smallest_effect_values(ep, list(n = "200"))
+    expect_length(form_problems(fields, values), 0)
+    spec <- build_spec(forms, ep, fields, values)
+    spec$options$seed <- 3L
+    # No preview: straight to the script, with its run time.
+    expect_true(runs_long(forms, ep, spec), info = ep)
+    expect_false(has_preview(forms, ep, "sensitivity", spec), info = ep)
+    expect_match(script_run_time(forms, ep, "sensitivity", spec), "sizes of the effect are simulated", fixed = TRUE, info = ep)
+    file <- withr::local_tempfile(fileext = ".R")
+    export(spec, file)
+    expect_true(any(grepl("sensitivity", readLines(file), fixed = TRUE)), info = ep)
+  }
+  # E38 (the difference between two conditional indirect effects) does not
+  # offer it: its residual variances change with every path.
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E38")))[[1]]
+  expect_false("sensitivity" %in% names(goal$choices))
+})

@@ -171,7 +171,10 @@ each area, is at the end of
   moderation of a yes/no or count outcome, an outcome in unordered
   categories, moderated regression with a yes/no X or W, latent
   profiles (the separation) and factor recovery (the loading), and by
-  InteractionPoweR's formula the three-way interaction (the rest is `next.md` item 11). Results show the critical effect size for the
+  InteractionPoweR's formula the three-way interaction; and the mediation
+  cards' smallest indirect effect or index of moderated mediation, by the
+  same search through the R script they hand out (the rest is `next.md`
+  item 11). Results show the critical effect size for the
   t-tests (Student's) and the correlation. The "If the effect were
   different" and "What if the true effect is smaller?" panels work on the
   basic tests and, since 16 November 2026, on the formula cards whose

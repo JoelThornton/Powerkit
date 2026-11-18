@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "The smallest indirect effect you could detect, for mediation"
+    text: "Simple, parallel and serial mediation, and moderated mediation, now offer \"the smallest effect I'd have a good chance of finding\". The answer is the smallest indirect effect, or index of moderated mediation, with the paths you entered kept in proportion. Like the required sample size on these cards, it comes as an R script to run on your own computer, since it takes 15 minutes to a couple of hours."
