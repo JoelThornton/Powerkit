@@ -8,6 +8,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Replication plans: numbered steps, and the original's card filled in from the plan"
+    text: >-
+      A replication plan's sections are now numbered steps, with a button to the next one under each.
+      You choose the original study's analysis from the searchable list (its paper usually names it), or answer
+      questions about the study if you're not sure. Its card then starts on the sample size, with the plan's
+      significance level and chance of success, and, for the t-tests and the correlation, the original's effect,
+      so you enter them once.
+  - date: "2026-11-17"
     title: "Plan mediation through a mediator in ordered categories"
     text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."
   - date: "2026-11-17"
