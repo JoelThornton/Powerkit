@@ -658,6 +658,23 @@ approximates a risk ratio only when the outcome is rare; the test of
 whether it is 0 doesn't depend on that approximation. An X-by-M
 interaction, covariates and a bootstrap interval are not offered yet.
 
+## Mediation with a mediator in ordered categories (E39, ordinal_mediator)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Not offered for an ordered mediator: PROCESS estimates every mediator's equation by OLS, so the categories are treated as equally spaced scores | — | — |
+| lavaan, Mplus | A structural equation model with the mediator declared ordered (`ordered =`): each category is the range of an underlying normal score between two thresholds, the paths into and out of the mediator are on that score, and the indirect effect a*b is tested with a delta-method standard error (lavaan's `:=`), the default output of both (Rosseel, 2012, lavaan's citation()) | a and b on the underlying score | lavaan's default estimator for ordered variables is WLSMV; its default parameterisation is "delta" (the underlying score's total variance is 1) |
+| power4mome | Not offered: the mediator is drawn as a score | — | — |
+| **powerkit** | Spower running `p_mediation_ordm()`: X two equal groups (0, 1) or a standard normal score, the mediator's underlying score M* = aX + e (e standard normal) cut at `qnorm(cumsum(shares))`, Y = bM* + c'X + e for a score Y, or a yes/no Y from the same model's underlying score cut so that the chance of "yes" at X = 0 and M* = 0 is the input; analysed by `lavaan::sem()` with M (and a yes/no Y) declared ordered, WLSMV, `parameterization = "theta"`; significant when a*b's two-sided delta-method p value is below alpha (E39, from 17 November 2026) [powerkit] | The share of people in each category in the first group (or at X's mean), X's effect on the underlying score in its residual SD (a, the ordered probit coefficient), the outcome's change per SD of that score (b), and X's direct effect | The theta parameterisation is chosen so that a and b are on the scales the researcher gives (the residual SD of the underlying score is 1); a*b's test is the same in either parameterisation, up to simulation error (`test-validation-mediation-ordm.R`). A study whose model can't be fitted counts as not significant |
+
+powerkit follows the structural equation modelling programs' usual
+analysis of an ordered mediator here, and no departure is recorded. PROCESS
+users who treat the categories as a score will see a different model; that
+model is still available on the mediation cards for a score mediator. The
+delta-method test of a*b is somewhat conservative in small samples, as on
+the yes/no mediator card.
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |

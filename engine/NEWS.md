@@ -1,15 +1,17 @@
 # powerkit 0.78.17
 
-* App: a replication plan's original analysis is chosen from the
-  searchable list of every analysis first (`rep_pick_design`), with a
-  note naming the plan, and the design finder's questions second
-  (`rep_find_design`). The card's input screen starts on the
-  sample-size question at the plan's significance level and chance of
-  success, and on E1 to E4 with the original's d, d_z or r as the plan
-  holds it (`replication_form_values()`, `replication_card_effect_field()`);
-  values already chosen are kept. The plan's five sections are drawn as
-  numbered steps (still radio buttons) with a "Next" button under each
-  (`replication_next_step_ui()`). Queue item 28.
+* Mediation with a mediator in three or more ordered categories (E39,
+  template `ordinal_mediator`): the latent-response model, simulated by
+  Spower and analysed by `lavaan::sem()` with the mediator (and a yes/no
+  outcome) declared ordered, WLSMV and the theta parameterisation; the
+  indirect effect a*b is tested by the delta method. X two groups or a
+  score, Y a score or yes/no. New `backend-mediation-ordm.R`, schema
+  definition `template_mediation_ordinal_mediator` (population metric
+  `latent_response`: `m_probabilities`, `a`, `b`, `direct`, `y_baseline`),
+  example spec, check run, simulated-data code and exported R script, and
+  the validation chunk `mediation_ordm` (an independent simulation in
+  lavaan's delta parameterisation with its own delta-method test, and the
+  Type I error).
 
 # powerkit 0.78.16
 
