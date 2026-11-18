@@ -70,6 +70,12 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
 #' @param original_alpha The significance level the original's literature
 #'   published at (BUCSS's `alpha_prior`): the publication threshold the
 #'   correction undoes.
+#' @param publication_filter Whether the original was published because
+#'   it was significant. `TRUE` (BUCSS's default) corrects for publication
+#'   bias at `original_alpha`; `FALSE`, for an original that would have
+#'   been published whatever it found (a Registered Report, say), passes
+#'   BUCSS `alpha_prior = 1`, which leaves only the correction for
+#'   uncertainty (Anderson, Kelley & Maxwell, 2017, p. 1552).
 #' @param alpha The replication's significance level, two-sided.
 #' @param power The power the replication aims for.
 #' @param assurance The levels of assurance: the chance the planned power
@@ -97,7 +103,7 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
 replication_bucss <- function(design, original_statistic = NULL, original_n, levels_a = NULL, levels_b = NULL,
                               effect = NULL, epsilon = 1, original_partial_eta = NULL, original_df_error = NULL,
                               original_alpha = 0.05, alpha = 0.05, power = 0.8, assurance = c(0.5, 0.8),
-                              alternative = "two.sided") {
+                              alternative = "two.sided", publication_filter = TRUE) {
   need_packages("BUCSS")
   one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
   whole <- function(x, low) one_number(x) && x == round(x) && x >= low && x <= 1e6
@@ -109,6 +115,9 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   correlation <- identical(design, "correlation")
   if (!is.character(alternative) || length(alternative) != 1 || !alternative %in% c("two.sided", "one.sided")) {
     abort_run("'alternative' should be \"two.sided\" or \"one.sided\".")
+  }
+  if (!is.logical(publication_filter) || length(publication_filter) != 1 || is.na(publication_filter)) {
+    abort_run("'publication_filter' should be TRUE (published because it was significant) or FALSE (published whatever it found).")
   }
   if (anova && identical(alternative, "one.sided")) {
     abort_run("An ANOVA's F test has no direction, so the replication's test is planned as the F test at its significance level.")
@@ -174,7 +183,8 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   b_effect <- if (anova) c(factor_a = "factor_A", factor_b = "factor_B", interaction = "interaction",
     between = "between", within = "within")[[effect]]
   call_for <- function(a) {
-    common <- list(alpha_prior = original_alpha, alpha_planned = alpha_planned, assurance = a, desired_power = power)
+    # No publication filter: alpha_prior = 1 truncates nothing.
+    common <- list(alpha_prior = if (publication_filter) original_alpha else 1, alpha_planned = alpha_planned, assurance = a, desired_power = power)
     spec <- switch(design,
       two_groups = list(fun = "ss_buc_independent_t", args = c(list(t_observed = stat, N = original_n), common)),
       one_sample = list(fun = "ss_buc_one_sample_t", args = c(list(t_observed = stat, N = original_n), common)),
@@ -223,7 +233,7 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
       levels_a = levels_a, levels_b = levels_b, effect = effect, epsilon = if (anova && !identical(design, "anova_between")) epsilon,
       original_partial_eta = original_partial_eta, original_df_error = original_df_error,
       original_alpha = original_alpha, alpha = alpha, power = power, assurance = sort(unique(assurance)),
-      alternative = alternative),
+      alternative = alternative, publication_filter = publication_filter),
     design_label = label,
     unit = unit,
     df_effect = df_effect,
@@ -242,7 +252,8 @@ replication_bucss_script <- function(res, header = TRUE) {
   c(
     if (header) c(
       "# Replication plan, from powerkit's replication plan:",
-      "# the sample size for a significant result, corrected for publication bias and uncertainty,",
+      if (isFALSE(res$inputs$publication_filter)) "# the sample size for a significant result, corrected for uncertainty (no publication filter: alpha_prior = 1),"
+        else "# the sample size for a significant result, corrected for publication bias and uncertainty,",
       "# with BUCSS (Anderson, Kelley & Maxwell, 2017).",
       sprintf("# Written by powerkit %s on %s.", as.character(utils::packageVersion("powerkit")), format(Sys.Date())),
       ""),

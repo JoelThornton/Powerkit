@@ -107,3 +107,32 @@ test_that("a t-test or correlation original's plan carries BUCSS's sample sizes 
   generic <- replication_planning("generic", 0.5, original_n = 100, original_se = 0.1)
   expect_null(generic$bias_corrected)
 })
+
+test_that("an original published whatever it found is corrected for uncertainty only", {
+  # Anderson, Kelley & Maxwell (2017, p. 1552): alpha_prior = 1 when the
+  # original faced no publication filter, leaving the uncertainty
+  # correction. d = 0.6 with 40 per group.
+  t <- 0.6 / sqrt(1 / 40 + 1 / 40)
+  filtered <- replication_bucss("two_groups", t, 80)
+  open <- replication_bucss("two_groups", t, 80, publication_filter = FALSE)
+  direct <- function(a) BUCSS::ss_buc_independent_t(t_observed = t, N = 80, alpha_prior = 1, alpha_planned = 0.05,
+    assurance = a, desired_power = 0.8)
+  expect_equal(open$sizes$n, vapply(c(0.5, 0.8), function(a) {
+    v <- direct(a); 2 * v$value[v$term == "necessary_n_per_group"]
+  }, numeric(1)))
+  expect_match(open$function_used, "alpha_prior = 1,", fixed = TRUE)
+  expect_false(open$inputs$publication_filter)
+  # The size of the difference: the filter's correction is most of the total.
+  expect_true(all(open$sizes$n < filtered$sizes$n))
+  expect_match(open$script, "no publication filter", fixed = TRUE)
+  # An original not significant at its level can still be planned: with no
+  # filter there is no threshold it had to pass.
+  expect_false(any(replication_bucss("two_groups", 1.5, 40, publication_filter = FALSE)$sizes$reason %in% "not_significant"))
+  expect_error(replication_bucss("two_groups", t, 80, publication_filter = NA), "publication_filter", class = "powerkit_error")
+  skip_if_not_installed("BayesRepDesign")
+  plan <- replication_planning("two_groups", 0.6, original_n1 = 40, original_n2 = 40, publication_filter = FALSE)
+  expect_equal(plan$bias_corrected$sizes, open$sizes)
+  expect_match(replication_planning_script(plan), "with no publication filter", fixed = TRUE)
+  expect_error(replication_planning("two_groups", 0.6, original_n1 = 40, original_n2 = 40, publication_filter = "no"),
+    "publication_filter", class = "powerkit_error")
+})

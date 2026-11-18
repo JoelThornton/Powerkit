@@ -140,6 +140,14 @@ power while matching G\*Power) is folded there instead
   beside it), sphericity assumed (`epsilon = 1`) unless the user gives
   epsilon. A partial eta-squared is moved to its F by Lakens's (2013)
   identity with the error degrees of freedom the user enters.
+  The user can say the original faced no publication filter (it would
+  have been published whatever it found, such as a Registered Report):
+  `alpha_prior = 1`, which truncates nothing and leaves only the
+  uncertainty correction (Anderson, Kelley & Maxwell, 2017, p. 1552).
+  That is BUCSS's own option, not a departure; the default stays
+  BUCSS's. `test-replication-bucss.R` shows the size of the difference
+  (d = 0.6 with 40 per group: 6,336 at 80% assurance with the filter,
+  194 without).
 - **Not a departure:** G\*Power has no correction for publication bias.
   BUCSS's test is two-sided; a one-sided replication is planned as its
   two-sided test at twice the level, which has the same critical value

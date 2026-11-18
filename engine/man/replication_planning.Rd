@@ -31,7 +31,8 @@ replication_planning(
   original_effect_type = "d",
   original_r = NULL,
   original_f = NULL,
-  alternative = "two.sided"
+  alternative = "two.sided",
+  publication_filter = TRUE
 )
 }
 \arguments{
@@ -131,6 +132,12 @@ the original's direction) or, one-sided, at \code{alpha}; the pooled goal
 is at that level squared. Agreement, too small to matter (TOST at
 \code{alpha}), small telescopes (one-sided at \code{alpha}) and the Bayes factor
 goals are the same either way.}
+
+\item{publication_filter}{Whether the original was published because
+it was significant, for \code{bias_corrected}: \code{FALSE} (an original that
+would have been published whatever it found, such as a Registered
+Report) corrects BUCSS's sample sizes for uncertainty only; see
+\code{\link[=replication_bucss]{replication_bucss()}}. The other goals are the same either way.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the

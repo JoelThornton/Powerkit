@@ -336,9 +336,6 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
     plan_running_ui(running),
-    if (k == 0 && plan_is_replication(plan)) div(class = "plan-empty result-card",
-      p(tags$strong("The original's analysis isn't planned yet.")),
-      p("Work through the sections below in any order. Under The original study, find its design: its card plans the replication's sample size, and the result is kept here.")),
     if (k == 0 && !length(running) && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(

@@ -308,8 +308,15 @@ each area, is at the end of
   goes straight to the write-up, a negative pre-replication report, and
   the planning steps say they aren't needed. The pages' guidance follows
   the "Show explanations" switch: one sentence in view and the rest under
-  "More", folded behind info buttons with explanations off. Still to
-  come: ANOVA originals' full goals and smallest effect, then the rest
+  "More", folded behind info buttons with explanations off. The plan
+  asks whether the original was published because it was significant
+  (if not, as for a Registered Report, BUCSS corrects for uncertainty
+  only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding
+  about the original, and offers the other routes beside them (the
+  smallest effect that matters, what resources allow, a sequential
+  design, several originals); results from earlier answers are marked
+  out of date. Still to come: a visual rebuild of the planner in the
+  input screens' style, ANOVA originals' full goals and smallest effect, then the rest
   of item 28 (several originals,
   attrition, unequal allocation, reliability, claims resting on several
   tests) and study plans' shared settings (29).

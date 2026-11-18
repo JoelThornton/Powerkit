@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-18"
+    title: "Replication plans: Registered Reports, and other ways to a sample size"
+    text: >-
+      The replication plan now asks whether the original study was published because its result was significant. If it
+      would have been published whatever it found, such as a Registered Report, the bias-corrected sample size allows
+      for its uncertainty only, which is often far smaller. When the corrected numbers are very large, the plan says
+      why, and that they describe the original rather than a sample you must reach, and it sets out the other ways to
+      a sample size beside them: the smallest effect that would matter, what your resources allow, a sequential design,
+      or several originals. Results from earlier answers are now marked as out of date, sample sizes say
+      "participants", and the list of other criteria is folded.

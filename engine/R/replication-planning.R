@@ -158,6 +158,11 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   is at that level squared. Agreement, too small to matter (TOST at
 #'   `alpha`), small telescopes (one-sided at `alpha`) and the Bayes factor
 #'   goals are the same either way.
+#' @param publication_filter Whether the original was published because
+#'   it was significant, for `bias_corrected`: `FALSE` (an original that
+#'   would have been published whatever it found, such as a Registered
+#'   Report) corrects BUCSS's sample sizes for uncertainty only; see
+#'   [replication_bucss()]. The other goals are the same either way.
 #' @param power The chance of success the sample sizes aim for.
 #' @param tau How much the true effect varies between studies (a standard
 #'   deviation on the effect's scale; Fisher's z for a correlation), for
@@ -204,7 +209,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
                                  scale = "none", effect_name = NULL, original_analysis = "test",
                                  original_bf = NULL, original_prior_scale = 1 / sqrt(2),
                                  original_prior = NULL, original_effect_type = "d", original_r = NULL,
-                                 original_f = NULL, alternative = "two.sided") {
+                                 original_f = NULL, alternative = "two.sided", publication_filter = TRUE) {
   if (!requireNamespace("BayesRepDesign", quietly = TRUE)) {
     abort_run("The replication planner needs the R package BayesRepDesign. Install it with install.packages(\"BayesRepDesign\").")
   }
@@ -212,6 +217,9 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   whole <- function(x, low) one_number(x) && x == round(x) && x >= low && x <= 1e6
   if (!is.character(design) || length(design) != 1 || !design %in% names(replication_designs)) {
     abort_run("'design' should be \"two_groups\", \"one_sample\", \"paired\", \"correlation\" or \"generic\".")
+  }
+  if (!is.logical(publication_filter) || length(publication_filter) != 1 || is.na(publication_filter)) {
+    abort_run("'publication_filter' should be TRUE (published because it was significant) or FALSE (published whatever it found).")
   }
   rule <- replication_designs[[design]]
   generic <- identical(design, "generic")
@@ -567,7 +575,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       correlation = original_effect,
       original_effect * sqrt(original_n))
     replication_bucss(design, stat, original$n, original_alpha = original_alpha, alpha = alpha, power = power,
-      assurance = c(0.5, 0.8), alternative = alternative)
+      assurance = c(0.5, 0.8), alternative = alternative, publication_filter = publication_filter)
   }
 
   list(
@@ -580,7 +588,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       original_prior_scale = if (t_test) original_prior_scale, original_prior = original_prior,
       original_effect_type = if (converting) original_effect_type else "d",
       original_reported = if (converting) original_reported, original_r = if (converting) original_r,
-      original_f = original_f, alternative = alternative),
+      original_f = original_f, alternative = alternative, publication_filter = publication_filter),
     effect_name = if (generic) effect_name %||% "estimate" else rule$effect,
     scale = if (generic) switch(scale, log = "log", fisher_z = "Fisher's z", "as reported") else if (correlation) "Fisher's z" else rule$effect,
     original = original,
@@ -884,7 +892,9 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
   }
   analysis <- i$original_analysis %||% "test"
   bucss_lines <- if (!is.null(plan$bias_corrected)) c("",
-    "# Corrected for publication bias and uncertainty (BUCSS; Anderson, Kelley & Maxwell, 2017):",
+    if (isFALSE(plan$bias_corrected$inputs$publication_filter))
+      "# Corrected for uncertainty, with no publication filter (BUCSS; Anderson, Kelley & Maxwell, 2017):"
+    else "# Corrected for publication bias and uncertainty (BUCSS; Anderson, Kelley & Maxwell, 2017):",
     "# the sample size (in total) for a significant result, at each level of assurance",
     replication_bucss_script(plan$bias_corrected, header = FALSE))
   from_bf <- identical(analysis, "bayes_factor")
