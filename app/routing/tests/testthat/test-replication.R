@@ -535,8 +535,8 @@ test_that("the purpose picks the main criterion, and the others are reported at 
   # There, a Bayes factor main criterion shows absence by the replication
   # Bayes factor, which is already the main one.
   sceptical <- replication_resolve_goals(list(rep_goal = "bf_sceptical", rep_also = "absence"), no_t)
-  expect_identical(sceptical[c("also", "absence_missing")], list(also = "bf_replication", absence_missing = FALSE))
-  expect_false(replication_resolve_goals(list(rep_purpose = "either", rep_also = "absence"), no_t)$absence_missing)
+  expect_identical(sceptical[c("also", "absence_missing")], list(also = character(0), absence_missing = TRUE))
+  expect_true(replication_resolve_goals(list(rep_purpose = "either", rep_also = "absence"), no_t)$absence_missing)
   # The run: the sample size from the main criterion under the chosen belief,
   # and the chances at that sample size from the engine.
   plan <- replication_run(c(base, rep_purpose = "confirm", rep_prior = "shrunk", rep_also = "absence\nbf_replication"), planner)
@@ -649,4 +649,24 @@ test_that("the replication Bayes factors' direction is shown and written up when
   plain <- replication_run(c(base, rep_also = "none"), planner)
   expect_no_match(as.character(replication_result_ui(plain)), "rep-direction-note", fixed = TRUE)
   expect_no_match(paste(replication_report(c(base, rep_also = "none"), plain), collapse = "\n"), "paradox", fixed = TRUE)
+})
+
+test_that("replication criteria control their own settings", {
+  original <- list(rep_design = "two_groups", rep_analysis = "bayes_factor", rep_goal = "auto",
+    rep_also = "absence", rep_power = "0.8")
+  expect_true(replication_criteria_settings(original)$bf)
+  expect_false(replication_criteria_settings(original)$alpha)
+  expect_length(replication_settings_missing(original), 0)
+
+  frequentist <- modifyList(original, list(rep_goal = "significance"))
+  expect_false(replication_criteria_settings(frequentist)$bf)
+  expect_true(replication_criteria_settings(frequentist)$alpha)
+  expect_identical(replication_settings_missing(frequentist), "the significance level")
+
+  bayesian <- modifyList(original, list(rep_analysis = "test", rep_goal = "bf_repeat"))
+  expect_true(replication_criteria_settings(bayesian)$bf)
+  expect_false(replication_criteria_settings(bayesian)$sided)
+  mixed <- modifyList(bayesian, list(rep_also = "significance"))
+  expect_true(replication_criteria_settings(mixed)$alpha)
+  expect_true(replication_criteria_settings(mixed)$bf)
 })
