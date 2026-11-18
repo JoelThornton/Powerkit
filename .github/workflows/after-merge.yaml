@@ -10,6 +10,11 @@
 # inventory is regenerated. It commits that to main as one commit marked
 # [skip ci] (it changes no code the checks test), then tags the version.
 #
+# GitHub skips every workflow for a commit whose message contains that
+# marker anywhere, title or body. So a pull request's commit messages, and
+# the squash message when it merges, must not quote it, or its checks and
+# this job won't run.
+#
 # The push uses the RELEASE_TOKEN secret (see release-tags.yaml). main's
 # "Require checked pull requests" ruleset must list the repository admin
 # role as a bypass actor, or the push is refused; nothing else may push to
