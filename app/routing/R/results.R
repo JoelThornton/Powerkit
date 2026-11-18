@@ -1587,7 +1587,7 @@ heterogeneity_range_ui <- function(result) {
 # Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
 # pwr, the replication's one-sided test against it from pwrss.
 
-# "How sure can you be?" for small telescopes: the plan assumes a true
+# "What if your assumptions change?" for small telescopes: the plan assumes a true
 # effect of 0, so show the power if the effect is real but smaller than
 # d33 (the engine's `if_small` table, from pwrss).
 telescope_if_small_ui <- function(spec, result) {
@@ -3356,7 +3356,7 @@ labs_variation_settings <- function(spec, result) {
     alpha = if (pic$alpha %in% c("0.005", "0.01", "0.05", "0.10")) pic$alpha)
 }
 
-# The links themselves, under "How sure can you be?".
+# The links themselves, under "What if your assumptions change?".
 labs_learn_ui <- function(spec, result) {
   # The learning aids draw the usual test of the effect entered, not a
   # small-telescopes test against d33.
@@ -3420,7 +3420,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   bayes_card <- if (!telescopes) bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
+    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "What if your assumptions change?",
     `result-bayes` = if (!is.null(bayes_card)) "If it isn't significant",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up", `result-how-card` = "How it was calculated")
@@ -3471,7 +3471,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below."),
     keep_result_ui(can_export, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
     if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
-      h4(class = "h5", "How sure can you be?"),
+      h4(class = "h5", "What if your assumptions change?"),
       if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       telescope_sure,
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),

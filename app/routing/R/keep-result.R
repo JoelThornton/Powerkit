@@ -88,7 +88,7 @@ keep_result_js <- sprintf("
       status.textContent = 'Download requested. Check your downloads.';
     }
   }, true);
-  Shiny.addCustomMessageHandler('pk_result_added_to_plan', function() { mark('In your study plan'); });
+  Shiny.addCustomMessageHandler('pk_result_added_to_plan', function(message) { mark('In your study plan'); });
   // A link copied for this result counts as kept.
   $(document).on('pk:share-link', function(e, kind) { if (kind === 'project') mark('Link made'); });
   // An answer changed after calculating: the result on screen is no longer

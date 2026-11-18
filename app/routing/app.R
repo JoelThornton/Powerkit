@@ -253,7 +253,7 @@ app_css <- "
      keyboard and screen readers work as before), number boxes their
      size, steps ticked when done, and the answer in its own card. */
   .replication-workspace .rep-section-title { font-size: 1.15rem; }
-  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.5rem; margin: 0.25rem 0 0.5rem; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr)); gap: 0.5rem; margin: 0.25rem 0 0.5rem; }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .radio,
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .radio-inline { margin: 0; padding: 0; }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label { display: flex; gap: 0.5rem; align-items: flex-start; height: 100%; margin: 0;
@@ -261,7 +261,16 @@ app_css <- "
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:hover { border-color: var(--pk-blue); }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(input:checked) { border: 2px solid var(--pk-blue); background: #eef4fa; padding: calc(0.6rem - 1px) calc(0.85rem - 1px); }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(input:focus-visible) { outline: 2px solid var(--pk-blue); outline-offset: 2px; }
-  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group input[type=radio] { margin-top: 0.2rem; flex: none; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group input[type=radio] { position: static; margin: 0.2em 0 0; flex: none; }
+  .replication-workspace #rep_threshold.shiny-input-radiogroup .shiny-options-group { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 600px) {
+    .replication-workspace #rep_threshold.shiny-input-radiogroup .shiny-options-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .replication-workspace .rep-note { margin-bottom: 0.75rem; }
+  .replication-workspace .rep-more > summary { color: var(--pk-blue); cursor: pointer; }
+  .replication-workspace .rep-note-context { display: none; }
+  .terms-mode .replication-workspace .rep-note-lead { display: none; }
+  .terms-mode .replication-workspace .rep-note-context { display: block; }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { display: block; }
   @media (min-width: 768px) { .replication-workspace .form-field input.rep-num { max-width: 16rem; } }
   .replication-steps .shiny-options-group label.rep-step-done::before { content: '\\2713'; background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }

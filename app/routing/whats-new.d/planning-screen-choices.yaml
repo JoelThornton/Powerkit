@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-18"
+    title: Easier to scan the inputs and result
+    text: >
+      Choose the smallest detectable effect first, then choose one sample
+      size or compare several where available. Balanced significance level
+      is under Advanced goals. Simple forms omit repeated effect-size
+      directions, and the result invites you to see what happens if your
+      assumptions change.

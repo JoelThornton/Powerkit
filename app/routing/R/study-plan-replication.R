@@ -312,8 +312,8 @@ replication_effect_labels <- function(groups) {
 replication_plan_report <- function(plan, tree, forms, engine = engine_function) {
   values <- replication_values(plan$replication)
   table <- if (!length(replication_missing(values))) {
-    planner <- engine(replication_engine_name(values))
-    if (!is.null(planner)) tryCatch(do.call(planner, replication_args(values)), error = function(e) NULL)
+    tryCatch(replication_run(values, engine("replication_planning"), engine("replication_bucss"),
+      engine("replication_anova_smallest")), error = function(e) NULL)
   }
   notes <- values[vapply(labs_fields, `[[`, "", "id")]
   replication_report(values, table, notes, values$labs_outcome, powerkit_version(),
