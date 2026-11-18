@@ -33,8 +33,8 @@ Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the
 repeated-measures correlation (E76), prediction models (E77), Cochran's
 Q (E78), repeated counts, yes/no answers and ordered categories (E75),
-mediation with X in three or more groups (E42) or a yes/no mediator
-(E39), count, multinomial and yes/no outcomes on E32, within-person
+mediation with X in three or more groups (E42) or a yes/no or
+ordered-category mediator (E39), count, multinomial and yes/no outcomes on E32, within-person
 moderation (E41), Yuen's trimmed-means t-tests (E2, E3), the
 Bland-Altman limits of agreement (E69), and Bayes factor versions of
 regression (E24), ANCOVA (E23) and the three-factor ANOVA (E56). The

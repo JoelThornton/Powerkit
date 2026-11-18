@@ -3830,6 +3830,32 @@ method chosen first. All follow JASP's default priors.
   definition of the indirect effect on K - 1 log-odds scales, and no
   package checked so far provides one (docs/next.md, item 1).
 
+## 2026-11-17 · Mediation through a mediator in ordered categories
+
+- **Decided by the maintainer (17 November 2026):** plan it with the
+  latent-response model fitted by lavaan, the structural equation
+  modelling programs' usual analysis of an ordered variable, rather than
+  an ordered logistic regression for the mediator combined with
+  regression-based causal mediation analysis.
+- **What it covers.** E39 now asks whether the mediator is yes or no or
+  in three or more ordered categories. For ordered categories, X is two
+  groups or a score, and the outcome a score or yes/no.
+- **Method.** The mediator's categories are cut from an underlying normal
+  score; a and b are on that score, and the indirect effect a*b is tested
+  by lavaan's delta method (`lavaan::sem()`, WLSMV, theta
+  parameterisation, so the paths are on the scales the researcher gives).
+  No package computes this test's power, so it is simulated with Spower.
+- **Inputs.** The share of people in each category in the first group,
+  a as X's shift of the underlying score in its SD (the ordered probit
+  coefficient), b as the outcome's change per SD of that score, X's
+  direct effect, and for a yes/no outcome its chance of "yes" in the first
+  group at the middle of the mediator's score.
+- **Runs in the app.** About 0.1 s per simulated study, so power (about
+  20 s at 200 studies) and the sample size (a few minutes) run in the
+  background, as the yes/no mediator does.
+- **Still uncovered:** a mediator in unordered categories, which needs
+  one indirect effect per category (docs/next.md, item 1).
+
 ## 2026-11-17 · Which assumption the answer depends on most
 
 - **What it does.** On the result screen's "How sure can you be?" card,
