@@ -31,6 +31,7 @@ population_problems <- function(spec) {
     mediation = function(spec) {
       if (identical(spec$template, "multicategorical")) return(check_mediation_mcx(spec))
       if (identical(spec$template, "binary_mediator")) return(check_mediation_binm(spec))
+      if (identical(spec$template, "ordinal_mediator")) return(check_mediation_ordm(spec))
       if (identical(spec$template, "binary_or_count_outcome")) return(check_mediation_yglm(spec))
       c(check_path_model(spec), check_single_predictor_x(spec))
     },
@@ -3261,7 +3262,7 @@ minimum_n_design <- function(spec) {
     mediation = if (identical(spec$template, "multicategorical")) {
       k <- length(spec$variables$X$levels)
       max(2 * k, k + 3)
-    } else if (spec$template %in% c("binary_mediator", "binary_or_count_outcome")) {
+    } else if (spec$template %in% c("binary_mediator", "ordinal_mediator", "binary_or_count_outcome")) {
       # Y's regression has three coefficients; two people per group of X
       # at least.
       6
@@ -3325,7 +3326,7 @@ group_split <- function(spec) {
     return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
       valid = function(n) n %% g == 0))
   }
-  if (spec$template %in% c("binary_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
+  if (spec$template %in% c("binary_mediator", "ordinal_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
     return(list(rule = "split into 2 equal groups, one per group of X", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "multicategorical")) {
@@ -3561,6 +3562,7 @@ target_effect_is_zero <- function(spec) {
     regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
     mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else
       if (identical(spec$template, "binary_mediator")) binm_tested_effect(spec) else
+      if (identical(spec$template, "ordinal_mediator")) ordm_tested_effect(spec) else
       if (identical(spec$template, "binary_or_count_outcome")) yglm_tested_effect(spec) else {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {

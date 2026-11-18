@@ -179,6 +179,7 @@ simulated_data_code <- function(spec, n, seed) {
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
     mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else
       if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else
+      if (identical(spec$template, "ordinal_mediator")) sim_ordm_code(spec, n) else
       if (identical(spec$template, "binary_or_count_outcome")) sim_yglm_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
