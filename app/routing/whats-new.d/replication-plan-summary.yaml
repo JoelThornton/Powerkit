@@ -19,10 +19,10 @@ entries:
       ANOVA original, the assurance choices now run from 50% to 95%; 80%,
       BUCSS's default, is still the one selected.
   - date: "2026-11-19"
-    title: Shorter labels in the replication planner with explanations off
+    title: Shorter labels in the replication planner
     text: >
-      With explanations off, the replication planner's long labels are
-      shortened to the question itself, such as "Significance level",
-      "Chance of success (power)" and "Whether the effect is there or not",
-      and sentences that only explain are left out. Turn explanations on to
-      see the full wording again.
+      The replication planner's labels are shorter, such as "Significance
+      level", "Chance of success (power)" and "Whether the effect is there or
+      not", and read the same with explanations on or off. What the longer
+      labels explained is now in each field's help, and examples are inside
+      the text boxes.

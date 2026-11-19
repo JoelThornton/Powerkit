@@ -17,10 +17,10 @@
   scrolled clear of it (`focus_js`, with `scroll-padding-bottom` on pages
   that have one), meeting WCAG 2.4.11. `replication_assurances_ui` lists
   50% first, in the order of the comparison tables; 80% stays selected.
-* App: with explanations off, the replication planner shows short labels
-  (new `R/replication-short.R`): `replication_shorten()` adds a short form
-  beside each listed label, choice and card title through `name_swap()`,
-  and `data-short` on select options, swapped by `pkSyncExplanations`.
-  Short labels keep full words (no symbols for words, which a test
-  checks). Text that only explains takes the class `plain-only` and is
-  hidden with explanations off; `terms-only` shows the short criterion line.
+* App: the replication planner's labels and choices are concise and the
+  same in both modes (decisions.d/concise-labels.md); what they explained
+  is in field help or textarea placeholders, and explanatory paragraphs
+  take the class `plain-only`, hidden with explanations off. A test caps
+  labels and choices at 75 characters. Four criterion labels are shorter
+  (`replication_goal_labels`); `replication_goal_written()` adds the
+  threshold to the replication and sceptical Bayes factors by criterion.

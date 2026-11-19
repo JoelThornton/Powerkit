@@ -380,7 +380,7 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   expect_match(alpha, 'value=""', fixed = TRUE)
   expect_match(alpha, "rep-num", fixed = TRUE)
   expect_match(html, 'id="rep_alpha_usual"', fixed = TRUE)
-  expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
+  expect_match(html, "0.05 (the usual)", fixed = TRUE)
   expect_match(html, 'id="rep_power_usual_3"[^>]*>95%', perl = TRUE)
   # One sentence over the two routes; the references once, folded, linked.
   expect_match(html, "Two ways, from the answers above", fixed = TRUE)
@@ -418,7 +418,7 @@ test_that("variation between studies is on each design's own scale", {
   expect_equal(replication_args(c(generic, rep_tau_value = "0.03"))$tau, 0.03)
   html <- as.character(replication_workspace_ui(tree))
   expect_match(html, '<option value="0.025" selected>Example: 0.025</option>', fixed = TRUE)
-  expect_match(html, "an SD on the effect's own scale", fixed = TRUE)
+  expect_match(html, "(SD on its scale)", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0, "generic", "log")), "no meaning on this effect's scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.03, "generic", "log")), "0.03 on the log scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.025, "correlation")), "the correlation card's smallest value", fixed = TRUE)

@@ -167,8 +167,8 @@ test_that("the plan warns when the design entered and the original's card disagr
   plan <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "two_groups", rep_effect = "0.5"), endpoint = "E4")
   status <- as.character(replication_card_status_ui(tree, plan, forms))
   expect_match(status, "rep-design-mismatch", fixed = TRUE)
-  expect_match(status, "Two separate groups compared on a score", fixed = TRUE)
-  expect_match(status, "Two scores and how they are related", fixed = TRUE)
+  expect_match(status, "Two separate groups (Cohen", fixed = TRUE)
+  expect_match(status, "A correlation between two scores", fixed = TRUE)
   # Matching designs, and a card whose effect goes under Another design, don't warn.
   same <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "correlation"), endpoint = "E4")
   expect_null(replication_design_mismatch(same, forms))
@@ -350,25 +350,17 @@ test_that("the criterion settings say what the purpose suggests and what was cho
   expect_identical(cr$for_purpose, replication_goal_labels[["significance"]])
 })
 
-test_that("with explanations off the planner has short labels, and the plain ones stay for explanations on", {
+test_that("the planner's labels and choices are concise, the same with explanations on or off", {
+  # One label in both modes (decisions.md, 17 November 2026): what a
+  # long label explained is in its help, shown with explanations on.
   html <- as.character(replication_planner_sections())
-  # Every short label and choice reaches the page, beside its plain one.
-  expect_match(html, "significance level</span>\\s*<span class=\"name-tech\">Significance level</span>")
-  expect_match(html, "<span class=\"name-tech\">Whether the effect is there or not</span>", fixed = TRUE)
-  expect_match(html, "<option value=\"significance\" data-short=\"Significant, in the original&#39;s direction\">", fixed = TRUE)
-  # Short, not terse: no Greek letter stands in for a word.
-  expect_false(any(grepl("[\u03b1-\u03c9]", c(replication_short_labels, unlist(replication_short_choices)))))
-  for (id in names(replication_short_labels)) expect_match(html, sprintf("for=\"%s\"", id), fixed = TRUE, info = id)
-  for (id in setdiff(names(replication_short_choices), c("rep_design", "rep_goal"))) {
-    for (v in names(replication_short_choices[[id]])) {
-      expect_match(html, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(replication_short_choices[[id]][[v]])), fixed = TRUE, info = paste(id, v))
-    }
-  }
-  # Each short choice names a real value.
-  expect_true(all(names(replication_short_choices$rep_purpose) %in% replication_purposes_ui))
-  expect_true(all(names(replication_short_choices$rep_keeps) %in% replication_keeps_ui))
-  expect_true(all(setdiff(names(replication_short_choices$rep_goal), "auto") %in% names(replication_goal_labels)))
-  # The summary card's design, both ways.
-  card <- as.character(replication_overview_ui(list(rep_study = "Smith (2019)", rep_design = "paired")))
-  expect_match(card, "<span class=\"name-tech\">The same people measured twice (d_z)</span>", fixed = TRUE)
+  labels <- regmatches(html, gregexpr("<label class=\"control-label\"[^>]*>[^<]*</label>", html))[[1]]
+  labels <- trimws(gsub("<[^>]+>", "", labels))
+  choices <- regmatches(html, gregexpr("<input type=\"(radio|checkbox)\"[^>]*/>\\s*<span>[^<]*</span>", html))[[1]]
+  choices <- trimws(gsub("<[^>]+>", "", choices))
+  long <- c(labels, choices)[nchar(c(labels, choices)) > 75]
+  expect_identical(long, character(0))
+  expect_false(grepl("name-tech", html, fixed = TRUE))
+  expect_true("Significance level" %in% labels)
+  expect_true("Whether the effect is there or not" %in% choices)
 })

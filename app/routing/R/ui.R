@@ -267,12 +267,6 @@ terms_js <- "
       var ids = visible.concat(other);
       if (ids.length) el.setAttribute('aria-describedby', ids.join(' ')); else el.removeAttribute('aria-describedby');
     });
-    // A select's options with a short form (replication-short.R): the
-    // short text with explanations off, the plain one with them on.
-    document.querySelectorAll('option[data-short]').forEach(function(o) {
-      if (!o.hasAttribute('data-plain')) o.setAttribute('data-plain', o.textContent);
-      o.textContent = compact ? o.getAttribute('data-short') : o.getAttribute('data-plain');
-    });
     // One info button in the corner of each box that has notes (19 November
     // 2026), in place of a More context link under each note: with
     // explanations off it opens or closes every explanation in the box.
