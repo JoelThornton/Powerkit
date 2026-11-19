@@ -235,9 +235,9 @@ replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval"
 # November 2026).
 replication_taus <- c(
   "None: the same effect in every study" = "0",
-  "Small (0.05)" = "0.05",
-  "Medium (0.125)" = "0.125",
-  "Large (0.20)" = "0.2"
+  "Example: 0.05" = "0.05",
+  "Example: 0.125" = "0.125",
+  "Example: 0.20" = "0.2"
 )
 
 # The same for a correlation, on Fisher's z: Kenny and Judd's rule of 25%
@@ -245,9 +245,9 @@ replication_taus <- c(
 # (E4; docs/conventions.md, "Correlations that vary between studies").
 replication_taus_r <- c(
   "None: the same correlation in every study" = "0",
-  "Small (0.025)" = "0.025",
-  "Medium (0.075)" = "0.075",
-  "Large (0.125)" = "0.125"
+  "Example: 0.025" = "0.025",
+  "Example: 0.075" = "0.075",
+  "Example: 0.125" = "0.125"
 )
 
 # The variation the plan uses, on the effect's own scale: Kenny and
@@ -376,7 +376,7 @@ replication_published_ui <- c(
   "No, it would have been published regardless of the result" = "any")
 
 replication_also_choices <- c(
-  "A criterion that could show the effect is absent (an equivalence test; with a Bayes factor as the main criterion, a Bayes factor for no effect)" = "absence",
+  "A criterion that can support absence (an equivalence test or a Bayes factor)" = "absence",
   stats::setNames(names(replication_goal_labels), replication_goal_labels))
 
 # "Also report" as one text field, and back: the ticks joined by new
@@ -409,13 +409,16 @@ replication_resolve_goals <- function(values, available) {
     either = if ("bf_repeat" %in% available) "bf_repeat" else "bf_replication",
     absent = "negligible")
   also <- strsplit(v("rep_also"), "\n")[[1]]
-  # The criterion that can show absence: with a Bayes factor main
-  # criterion, use a Bayes factor t-test for no effect when it is available.
-  absence <- if (goal %in% replication_bf_goals) "bf_null" else "negligible"
+  # The replication Bayes factor can favour the point null when a
+  # Bayes factor t-test is unavailable.
+  absence <- if (!goal %in% replication_bf_goals) "negligible"
+    else if ("bf_null" %in% available) "bf_null" else "bf_replication"
   also <- unique(ifelse(also == "absence", absence, also))
   also <- setdiff(intersect(names(replication_goal_labels), intersect(also, available)), goal)
-  absence_missing <- "absence" %in% strsplit(v("rep_also"), "\\n")[[1]] && !absence %in% c(goal, also)
-  list(goal = goal, also = also, auto = auto, purpose = purpose, absence_missing = absence_missing,
+  absence_requested <- "absence" %in% strsplit(v("rep_also"), "\\n")[[1]]
+  list(goal = goal, also = also, auto = auto, purpose = purpose,
+    absence_missing = absence_requested && !absence %in% c(goal, also),
+    absence_fallback = absence_requested && identical(absence, "bf_replication") && absence %in% c(goal, also),
     prior = if (v("rep_prior") %in% names(replication_prior_labels)) v("rep_prior") else "uncertain")
 }
 
@@ -484,12 +487,15 @@ rep_number_input <- function(input, id) {
   input
 }
 
-rep_field <- function(id, label, value = "", help = NULL) {
+rep_field <- function(id, label, value = "", help = NULL, help_topic = NULL) {
   input <- rep_number_input(textInput(id, label, value = value, width = "100%"), id)
   if (is.null(help)) return(div(class = "form-field", input))
   help_id <- paste0(id, "_help")
   input <- htmltools::tagAppendAttributes(input, `aria-describedby` = help_id, .cssSelector = "input")
-  div(class = "form-field", input, p(class = "field-help small text-muted", id = help_id, help))
+  rest <- if (!is.null(help_topic)) help_rest(help)
+  div(class = "form-field", input,
+    p(class = "field-help small text-muted", id = help_id, if (is.null(rest)) help else help_lead(help)),
+    if (!is.null(rest)) tags$details(class = "rep-more small", tags$summary(help_topic), p(class = "mb-0", rest)))
 }
 
 # A step's title, numbered as the input screens' sections are, and a
@@ -615,7 +621,7 @@ replication_planner_sections <- function() {
       rep_card("What the replication should show",
         conditionalPanel(replication_one_number_js,
           conditionalPanel("input.rep_design == 'anova'",
-            p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. BUCSS's correction of the original is shown beside them.")),
+            p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. Plans with a frequentist criterion also show BUCSS sample sizes for a significant result.")),
           rep_note("Start with what the replication should show. One main criterion sets the sample size; any others you tick are reported beside it, as their chance at that sample size, so the plan can use p-values, Bayes factors or both (Anderson & Maxwell, 2016). Fix them before collecting data."),
           radioButtons("rep_purpose", "What should the replication show?", choices = replication_purposes_ui, selected = "confirm", width = "100%"),
           selectInput("rep_goal", "Main criterion for the replication", choices = replication_goal_choices,
@@ -633,10 +639,11 @@ replication_planner_sections <- function() {
           conditionalPanel("output.rep_criteria && output.rep_criteria.bound",
             uiOutput("rep_from_notes_smallest"),
             field("rep_smallest", "The smallest effect that would matter to you (positive: d, d_z or r; for another design, on its own scale, a ratio above 1)",
-              help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015), a bound for when nothing else justifies one; another design needs a number here.")),
+              help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015) where the original's test supports it. With other designs, enter a bound for the equivalence test.",
+              help_topic = "How the equivalence bound is used")),
           NULL),
         conditionalPanel(replication_bucss_only_js,
-          p(class = "small", "For an ANOVA effect with several degrees of freedom, plan a significant F test from the original study with BUCSS, or from the smallest effect that would matter to you."),
+          p(class = "small", "For an ANOVA effect with several degrees of freedom, BUCSS plans a significant F test while accounting for uncertainty in the original estimate. It also accounts for selection when publication depended on significance. You can also plan from the smallest effect that would matter."),
           radioButtons("rep_assurance", "Assurance: how sure you want to be that the replication reaches the power below", choices = replication_assurances_ui,
             selected = "0.8", width = "100%"),
           rep_note("The corrected effect is itself uncertain. At 50% assurance the plan uses its best estimate, so the replication reaches the power aimed for about half the time; at 80% it uses a smaller effect, so it reaches it four times in five. More assurance needs more people. When publication is assumed to depend on significance, BUCSS uses the original study's significance level as the threshold.", label = "How assurance works"),
@@ -644,7 +651,8 @@ replication_planner_sections <- function() {
             p(class = "small rep-changes-note", role = "note",
               "If the original effect is a weak guide to the changed design, you can plan from the smallest effect that would matter. BUCSS assurance describes uncertainty about the original effect.")),
           field("rep_anova_smallest", "Optional: the smallest effect that would matter to you, as a partial eta-squared",
-            help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.")),
+            help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.",
+            help_topic = "Choosing an ANOVA effect size")),
         NULL),
       conditionalPanel(replication_one_number_js,
         rep_card("How much the effect may vary between studies",
@@ -659,7 +667,14 @@ replication_planner_sections <- function() {
             field("rep_tau_value", "How much the true effect may vary between studies (optional): an SD on the effect's own scale",
               help = "In the units of the effect you entered: for a ratio, of its log; for a correlation, of Fisher's z. Kenny and Judd's examples are in d, so they can't be used here; a meta-analysis of this effect that reports tau is the best source. Empty plans for no variation.")),
           conditionalPanel("input.rep_design != 'generic'",
-            rep_note("The between-study SD describes how much true effects may vary across samples or settings. The presets illustrate small, medium and large variation (Kenny & Judd, 2019). If comparable studies provide an estimate of this SD, you can use it to judge which setting is closest.", label = "How to interpret the between-study SD")),
+            tags$details(class = "rep-more small",
+              tags$summary("Choosing a between-study SD"),
+              p(class = "mb-1", "Use a between-study SD (tau) on this effect scale from a comparable meta-analysis if one is available."),
+              conditionalPanel("input.rep_design != 'correlation'",
+                p(class = "mb-1", "Kenny and Judd (2019) illustrate variation with a quarter of Cohen's reference effects. Use these examples to compare scenarios.")),
+              conditionalPanel("input.rep_design == 'correlation'",
+                p(class = "mb-1", "These examples apply Kenny and Judd's quarter-of-the-effect rule to reference correlations of 0.1, 0.3 and 0.5. The resulting SDs are on Fisher's z.")),
+              p(class = "mb-0", "Choose zero if you expect the same true effect across settings."))),
         NULL)),
       rep_card("How sure the replication should be",
         conditionalPanel("output.rep_criteria && output.rep_criteria.alpha",
@@ -674,8 +689,8 @@ replication_planner_sections <- function() {
           help = "The main criterion's sample size gives it this chance; a higher chance needs more people."),
         conditionalPanel("output.rep_criteria && output.rep_criteria.bf",
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors",
-            choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
-          p(class = "small text-muted", "A larger threshold requires stronger evidence.")),
+            choices = c("3" = "3", "6" = "6", "10" = "10", "30" = "30"), selected = "10", width = "100%"),
+          p(class = "small text-muted", "Choose how much evidence your claim needs. A larger threshold requires stronger evidence.")),
         conditionalPanel(replication_one_number_js,
           field("rep_n_at", "Optional: a sample size you could recruit (in total), to see each goal's chance at it")),
         NULL),
@@ -1167,6 +1182,12 @@ replication_validation_text <- paste(
 
 # The main criterion and those also reported, as their chance at the main
 # criterion's sample size: the chosen belief first, the others beside it.
+replication_absence_fallback <- function(plan) {
+  if (isTRUE(plan$choice$absence_fallback)) paste(
+    "The replication Bayes factor can favour no effect over the original-effect model.",
+    "The chance shown for this factor is for evidence in favour of the original-effect model.")
+}
+
 replication_main_chances_ui <- function(plan) {
   ch <- plan$choice
   if (is.null(ch)) return(NULL)
@@ -1174,8 +1195,9 @@ replication_main_chances_ui <- function(plan) {
     if (identical(ch$bound, "d33")) p(class = "small", sprintf("The smallest effect that matters was left blank, so the equivalence test and agreement use %s = %s, the effect the original study had a one-in-three chance of detecting (Simonsohn, 2015). Enter your own under Goals if you can justify one.",
       plan$telescope$effect_name, format(signif(plan$telescope$effect, 3)))),
     if (isTRUE(ch$absence_missing)) p(class = "small",
-      if (ch$goal %in% replication_bf_goals) "A Bayes factor for no effect is available here for t-test designs. If an equivalence test fits your study, you can add it under Goals."
-      else "To report an equivalence test, enter the smallest effect under Goals to add it."))
+      if (ch$goal %in% replication_bf_goals) "This plan has no Bayes factor for absence. If an equivalence test fits your study, add it under Goals."
+      else "To report an equivalence test, enter the smallest effect under Goals to add it."),
+    if (isTRUE(ch$absence_fallback)) p(class = "small", replication_absence_fallback(plan)))
   at <- plan$at_main
   if (is.null(at)) return(notes)
   a <- at$chances
@@ -1805,6 +1827,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     ch <- plan$choice %||% replication_resolve_goals(values, unique(plan$goals$goal))
     goal <- if (ch$goal %in% plan$goals$goal) ch$goal else "significance"
     lines <- c(lines, paste(c(replication_methods_paragraph(plan, goal, ch$prior), replication_also_sentence(plan),
+      replication_absence_fallback(plan),
       if (is.null(plan$without_publication_filter)) replication_bias_corrected_sentence(plan)), collapse = " "), "",
       if (!is.null(plan$without_publication_filter)) c(
         sprintf("BUCSS sample sizes for a significant result with %s power (Anderson, Kelley & Maxwell, 2017).", replication_pct(plan$inputs$power)), "",
@@ -1938,11 +1961,16 @@ replication_ref_keys_used <- function(plan) {
 # chances at it), otherwise every goal under every belief.
 replication_script_text <- function(plan, script) {
   original <- replication_primary_script(plan, script)
+  fallback <- replication_absence_fallback(plan)
+  if (!is.null(fallback)) original <- paste(paste("#", strwrap(fallback), collapse = "\n"), original, sep = "\n\n")
   comparison <- plan$without_publication_filter
   if (is.null(comparison)) return(original)
-  paste("# Publication process unknown. Compare BUCSS under both assumptions.",
-    "# Scenario 1: publication required a significant result.", original,
-    "# Scenario 2: publication regardless of the result.", comparison$script, sep = "\n\n")
+  heading <- "# Publication process unknown. Compare BUCSS under both assumptions."
+  no_filter <- c("# Publication regardless of the result.", "local({", comparison$script, "})")
+  if (is.null(plan$goals)) {
+    return(paste(c(heading, "# Publication required a significant result.", original, no_filter), collapse = "\n\n"))
+  }
+  paste(c(heading, no_filter, original), collapse = "\n\n")
 }
 
 replication_primary_script <- function(plan, script) {

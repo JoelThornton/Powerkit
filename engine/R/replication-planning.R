@@ -733,6 +733,7 @@ replication_generic_original <- function(effect, n, se = NULL, ci = NULL, ci_lev
 replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL) {
   i <- plan$inputs
   post <- identical(i$original_analysis, "posterior")
+  uses <- function(g) is.null(focus) || any(g %in% c(focus$goal, focus$also))
   so_line <- switch(plan$original$from,
     se = sprintf("so <- %s  # its %s, as reported", num(i$original_se), if (post) "posterior SD" else "standard error"),
     ci = sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% %s interval",
@@ -754,8 +755,9 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     sprintf("to <- %s", tf_call(num(i$original_effect))),
     so_line,
     "n_from_se <- function(se) max(2, ceiling(n_original * (so / se)^2 - 1e-9))",
-    sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau)),
-    replication_level_line(i),
+    if (uses(c("significance", "pooled", "agreement", "negligible"))) sprintf("alpha <- %s", num(i$alpha)),
+    sprintf("power <- %s; tau <- %s", num(i$power), num(i$tau)),
+    if (uses(c("significance", "pooled"))) replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -1001,9 +1003,10 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
       "n_from_se <- function(se) ceiling(1 / se^2 + 3 - 1e-9)")
     else c(to_lines, so_post %||% sprintf("so <- 1 / sqrt(%s)", i$original_n),
       "n_from_se <- function(se) ceiling(se2n(se, unitSD = 1) - 1e-9)"),
-    if (bayes) sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau))
-    else sprintf("original_alpha <- %s; alpha <- %s; power <- %s; tau <- %s", num(i$original_alpha), num(i$alpha), num(i$power), num(i$tau)),
-    replication_level_line(i),
+    if (!bayes && uses("small_telescopes")) sprintf("original_alpha <- %s", num(i$original_alpha)),
+    if (uses(c("significance", "pooled", "agreement", "negligible", "small_telescopes"))) sprintf("alpha <- %s", num(i$alpha)),
+    sprintf("power <- %s; tau <- %s", num(i$power), num(i$tau)),
+    if (uses(c("significance", "pooled"))) replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -1022,10 +1025,11 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     se_line <- if (two) "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups"
       else if (correlation) "se_of <- function(n) 1 / sqrt(n - 3)  # the replication's standard error, Fisher's z"
       else "se_of <- function(n) 1 / sqrt(n)  # the replication's standard error"
-    return(paste(c(head, replication_focused_lines(plan, focus, num, margin, se_line = se_line,
-      telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
-      bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
-        scale = num(i$original_prior_scale))), bucss_lines), collapse = "\n"))
+    return(paste(c(head, if (length(bucss_lines)) c("local({", bucss_lines, "})"),
+      replication_focused_lines(plan, focus, num, margin, se_line = se_line,
+        telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
+        bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
+          scale = num(i$original_prior_scale)))), collapse = "\n"))
   }
   c(head,
     "",

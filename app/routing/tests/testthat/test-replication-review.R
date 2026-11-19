@@ -10,7 +10,7 @@ test_that("replication help is labelled or attached to its input", {
   expect_match(field, 'aria-describedby="x_id_help"', fixed = TRUE)
   expect_match(field, 'id="x_id_help">This explains the field.', fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))
-  expect_length(regmatches(html, gregexpr("How to interpret the between-study SD", html, fixed = TRUE))[[1]], 1)
+  expect_length(regmatches(html, gregexpr("Choosing a between-study SD", html, fixed = TRUE))[[1]], 1)
   expect_match(html, 'name="rep_threshold" value="10" checked="checked"', fixed = TRUE)
 })
 

@@ -28,6 +28,10 @@ offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
+Replication plans compare BUCSS publication assumptions when the original's
+publication process is unknown. Goals and exports describe what the selected
+criterion can show, including the replication Bayes factor for designs without
+a Bayes factor t-test (Departure 30).
 
 Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the

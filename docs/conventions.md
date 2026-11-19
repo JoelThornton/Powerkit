@@ -2093,12 +2093,16 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   whether the effect is absent" ticked (from 17 November 2026). With a
   Bayes factor main criterion this is the default Bayes factor for no
   effect (bfpwr, the original's test run the other way) where the
-  original was a t-test, and the replication Bayes factor (no effect
-  against the original's) for another design; with any other main
-  criterion it is the equivalence test (TOST)
-  against the smallest effect that matters, d33 (Simonsohn, 2015) when
-  none is entered. Its chance at the main criterion's sample size is
-  shown beside the main one. Unticking it gives the single-criterion
+  original was a t-test, and the replication Bayes factor for another
+  design. That factor can favour the point null over the original-effect
+  model. For the fallback, the table and write-up label the planned
+  probability as the chance of support for the original-effect model.
+  With a frequentist main criterion the absence criterion is the
+  equivalence test (TOST) against the smallest effect that matters, with
+  d33 (Simonsohn, 2015) used when available if the bound is left empty.
+  For a Bayesian original and a confirmation aim, the suggested criterion
+  is the Bayes factor t-test where offered and the replication Bayes
+  factor otherwise. Unticking the extra criterion gives a single-criterion
   plan.
 - **Why:** a replication that fails to reach significance is commonly
   misread as evidence of absence; reporting a criterion that can show
