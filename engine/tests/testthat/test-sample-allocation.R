@@ -174,3 +174,19 @@ test_that("a standalone script splits any total when the groups are rounded", {
   expect_equal(env$groups_analysed, analysed_groups(spec, 101))
   expect_equal(env$groups_analysed, c(60, 41))
 })
+
+test_that("every design whose sample size moves in steps recruits group by group", {
+  # A backend whose n moves in steps of k splits people into equal groups;
+  # recruitment must then round up each group, not the total.
+  specs <- list.files(system.file("specs", package = "powerkit"), "\\.json$", full.names = TRUE)
+  ungrouped <- character()
+  for (file in specs) {
+    spec <- unclass(read_spec(file, validate = FALSE))
+    backend <- tryCatch(route_backend(spec), error = function(e) NULL)
+    step <- backend$n_step %||% 1
+    if (is.numeric(step) && step > 1 && identical(sample_allocation(spec)$kind, "single")) {
+      ungrouped <- c(ungrouped, basename(file))
+    }
+  }
+  expect_identical(ungrouped, character())
+})

@@ -122,7 +122,7 @@ const SHOTS = process.env.SHOTS || null;
       r.warnings_shown = await page.locator('#form_result .alert-warning, #form_result .warning, #form_result [class*=warn]').allInnerTexts().then(a => a.map(s => s.slice(0, 200))).catch(() => []);
       await page.waitForTimeout(2000);
       // Outputs that stay empty until the visitor asks for them.
-      const ON_DEMAND = ['bayes_companion'];
+      const ON_DEMAND = ['bayes_companion', 'assumptions_result'];
       const emptyOutputs = await page.evaluate(ON_DEMAND => [...document.querySelectorAll('#form_result .shiny-html-output, #form_result .shiny-image-output, #form_result .shiny-plot-output')].filter(e => e.offsetParent && e.innerHTML.trim() === '' && !ON_DEMAND.includes(e.id)).map(e => e.id), ON_DEMAND);
       if (emptyOutputs.length) r.problems.push('blank outputs: ' + emptyOutputs.join(','));
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/${c.id}${GOAL ? '-' + GOAL : ''}.png`, fullPage: false });
