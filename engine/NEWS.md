@@ -1,3 +1,9 @@
+# powerkit 0.79.2
+
+* One-sided exact tests with no difference (the false-positive rate) now run in the direction asked. pwrss takes the tail of `power.exact.oneprop()` and `power.exact.fisher()` from the sign of the effect, so with equal proportions it chose the upper tail for one proportion and group 1's upper tail for Fisher's test, whatever the spec said; with a null proportion other than 0.5, or unequal groups, the two tails' rates differ (2.85% against 4.32% for one proportion at n = 40 against 0.2). The other direction is now passed as its mirror image (the other answer's proportion, or the groups swapped), in the engine and the R script, and is checked against `binom.test()` and `fisher.test()` applied to every possible outcome.
+* The exact binomial test of one proportion (E25) can use R's `binom.test()` p-value (`target_test > method` `binom_test`), which when two-sided adds up every count no more likely than the one observed instead of putting alpha / 2 in each tail. No package computes its power, so it is summed over every count from `binom.test()`'s own steps (`backend-binom-test.R`, as `backend-corrected-exact.R` does for `prop.test()`), checked against `binom.test()` on every count; power, sample size and the smallest detectable proportion, with a base-R script. For 20% against 10% at 80% power it needs 83 people against 94 with equal tails. Equal tails stays the default, and the write-up names which rule was used.
+* The power visualiser says "1 degree of freedom" and "1 predictor", and its one-sided threshold refers to the direction expected rather than only the positive one.
+
 # powerkit 0.79.1
 
 * The generated R scripts for the BayesFactor-based Bayes factor designs
