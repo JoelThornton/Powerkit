@@ -75,9 +75,10 @@ test_that("the planner's file keeps its own fields and nothing else", {
   path <- tempfile(fileext = ".json")
   jsonlite::write_json(replication_file(c(filled, list(other = "x")), "0.0.0"), path, auto_unbox = TRUE)
   back <- plan_from_replication_text(paste(readLines(path), collapse = "\n"))$replication$fields
-  expect_true(all(names(back) %in% names(filled)))
+  expect_setequal(names(back), union(names(replication_clean_fields(filled)), "rep_published"))
   expect_false("other" %in% names(back))
   expect_identical(back$rep_effect, "0.7")
+  expect_identical(back$rep_published, "significant")
   expect_null(plan_from_replication_text(jsonlite::toJSON(list(app = "something-else", fields = filled), auto_unbox = TRUE)))
   expect_null(plan_from_replication_text("not json"))
 })
@@ -113,7 +114,7 @@ test_that("replicating from the finder asks the original's design, and its card 
   # With the plan (queue item 28): the sample-size question, the plan's
   # level and chance of success, and the original's effect where the card
   # takes it as the plan holds it.
-  pv <- replication_values(list(fields = list(rep_design = "two_groups", rep_effect = "0.45",
+  pv <- replication_values(replication_record(list(rep_design = "two_groups", rep_effect = "0.45",
     rep_alpha = "0.01", rep_power = "0.9")))
   fv <- replication_form_values(list(), "E2", pv)
   expect_identical(fv[c("goal", "alpha", "power", "effect_units", "d")],
@@ -121,16 +122,16 @@ test_that("replicating from the finder asks the original's design, and its card 
   # What the user already chose is kept.
   expect_identical(replication_form_values(list(goal = "power", d = "0.3"), "E2", pv)[c("goal", "d")], list(goal = "power", d = "0.3"))
   # Empty plan settings stay empty: the card asks for them.
-  empty <- replication_form_values(list(), "E2", replication_values(list(fields = list())))
+  empty <- replication_form_values(list(), "E2", replication_values(replication_record()))
   expect_null(empty$alpha); expect_null(empty$power); expect_null(empty$d)
   # A t statistic, d_rm, another design or a card that takes another effect: no effect copied.
-  t_given <- replication_values(list(fields = list(rep_design = "paired", rep_effect_type = "t", rep_effect = "3.1")))
+  t_given <- replication_values(replication_record(list(rep_design = "paired", rep_effect_type = "t", rep_effect = "3.1")))
   expect_null(replication_form_values(list(), "E3", t_given)$dz)
-  dz <- replication_values(list(fields = list(rep_design = "paired", rep_effect = "0.4")))
+  dz <- replication_values(replication_record(list(rep_design = "paired", rep_effect = "0.4")))
   expect_identical(replication_form_values(list(), "E3", dz)$dz, "0.4")
   expect_null(replication_card_effect_field("E2", dz))
   expect_null(replication_card_effect_field("E7", pv))
-  r <- replication_values(list(fields = list(rep_design = "correlation", rep_effect = "0.3")))
+  r <- replication_values(replication_record(list(rep_design = "correlation", rep_effect = "0.3")))
   expect_identical(replication_form_values(list(), "E4", r)$r, "0.3")
   expect_null(replication_form_values(list(), "E4", r)$effect_units)
   # They reach the input screen.
@@ -273,7 +274,7 @@ bf_filled <- list(rep_design = "two_groups", rep_analysis = "bayes_factor", rep_
   rep_n1 = "30", rep_n2 = "30", rep_effect = "", rep_original_alpha = "0.05", rep_tau = "0", rep_alpha = "0.05",
   rep_power = "0.8", rep_threshold = "10", rep_n_at = "120", rep_goal = "bf_repeat", rep_prior = "uncertain")
 post_filled <- list(rep_design = "one_sample", rep_analysis = "posterior", rep_original_prior = "default",
-  rep_effect = "0.4", rep_post_from = "ci", rep_cri_lower = "0.12", rep_cri_upper = "0.67", rep_cri_level = "95",
+  rep_post_mean = "0.4", rep_post_from = "ci", rep_cri_lower = "0.12", rep_cri_upper = "0.67", rep_cri_level = "95",
   rep_prior_scale = "0.707", rep_n = "50", rep_tau = "0", rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10")
 
 test_that("an original's Bayes factor or posterior becomes the engine's arguments", {
@@ -291,7 +292,7 @@ test_that("an original's Bayes factor or posterior becomes the engine's argument
   expect_equal(replication_args(modifyList(post_filled, list(rep_post_from = "sd", rep_post_sd = "0.14")))$original_se, 0.14)
   # A generic posterior takes the posterior's SD, not the standard error fields.
   generic_post <- replication_args(modifyList(generic_filled, list(rep_analysis = "posterior", rep_original_prior = "vague",
-    rep_post_from = "sd", rep_post_sd = "0.25")))
+    rep_post_from = "sd", rep_post_mean = "0.6", rep_post_sd = "0.25")))
   expect_equal(generic_post$original_se, 0.25)
   expect_null(generic_post$original_ci)
   expect_null(replication_args(filled)$original_analysis)
@@ -299,7 +300,7 @@ test_that("an original's Bayes factor or posterior becomes the engine's argument
   expect_length(replication_missing(post_filled), 0)
   expect_match(replication_missing(modifyList(bf_filled, list(rep_bf = ""))), "Bayes factor")
   expect_match(replication_missing(modifyList(post_filled, list(rep_cri_upper = ""))), "credible interval")
-  expect_match(replication_missing(modifyList(post_filled, list(rep_effect = "")))[1], "posterior's mean")
+  expect_match(replication_missing(modifyList(post_filled, list(rep_post_mean = "")))[1], "posterior's mean")
 })
 
 test_that("a Bayes factor original's table, headline, methods and write-up", {
@@ -307,7 +308,8 @@ test_that("a Bayes factor original's table, headline, methods and write-up", {
   skip_if_not_installed("bfpwr")
   plan <- plan_of(bf_filled)
   html <- as.character(replication_result_ui(plan))
-  expect_match(html, "comes from a t statistic of 2.5", fixed = TRUE)
+  expect_match(html, "implies an absolute t statistic of 2.5", fixed = TRUE)
+  expect_match(html, "Use the original study to identify the effect's direction", fixed = TRUE)
   expect_match(html, replication_goal_labels[["bf_repeat"]], fixed = TRUE)
   expect_match(html, replication_goal_labels[["bf_null"]], fixed = TRUE)
   expect_match(html, "Small telescopes needs the original's significance test", fixed = TRUE)
@@ -323,7 +325,7 @@ test_that("a Bayes factor original's table, headline, methods and write-up", {
   expect_match(methods, "Ly et al., 2018", fixed = TRUE)
   expect_match(methods, replication_n_words(plan, g$n[g$prior %in% "uncertain"]), fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "bf_null", "uncertain"), "planned for a true effect of zero", fixed = TRUE)
-  expect_match(replication_methods_paragraph(plan, "significance", "uncertain"), "read from its Bayes factor", fixed = TRUE)
+  expect_match(replication_methods_paragraph(plan, "significance", "uncertain"), "read from its two-sided Bayes factor", fixed = TRUE)
   report <- paste(replication_report(bf_filled, plan), collapse = "\n")
   expect_match(report, "How it was analysed: a Bayes factor", fixed = TRUE)
   expect_match(report, "Its Bayes factor (BF10): 3.38", fixed = TRUE)
@@ -354,7 +356,7 @@ test_that("a posterior original is planned, refused for an informative prior", {
     expect_match(as.character(output$rep_result$html), "only for a t-test", fixed = TRUE)
   })
   ui <- as.character(replication_planner_sections())
-  for (id in c("rep_analysis", "rep_bf", "rep_original_prior", "rep_prior_scale", "rep_post_from", "rep_post_sd",
+  for (id in c("rep_analysis", "rep_bf", "rep_original_prior", "rep_prior_scale", "rep_post_from", "rep_post_mean", "rep_post_sd",
                "rep_cri_lower", "rep_cri_upper", "rep_cri_level")) {
     expect_match(ui, sprintf("id=\"%s\"", id), fixed = TRUE)
     expect_true(id %in% replication_field_ids)
@@ -365,11 +367,11 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   html <- as.character(replication_workspace_ui(tree))
   # The evidence threshold as the cards word it, 10 labelled.
   expect_match(html, "Evidence threshold for the Bayes factors", fixed = TRUE)
-  expect_match(html, "10 (a common threshold)", fixed = TRUE)
+  expect_match(html, "there is no correct one", fixed = TRUE)
   expect_no_match(html, "Strong evidence", fixed = TRUE)
   expect_false(any(grepl("Strong evidence", replication_goal_labels, fixed = TRUE)))
   # Variation starts at Small, with the cards' help.
-  expect_match(html, '<option value="0.05" selected>Small (0.05)</option>', fixed = TRUE)
+  expect_match(html, '<option value="0.05" selected>Example: 0.05</option>', fixed = TRUE)
   expect_match(html, "How to interpret the between-study SD", fixed = TRUE)
   expect_match(html, "a quarter of Cohen's 0.2, 0.5 and 0.8", fixed = TRUE)
   expect_match(html, "illustrations, not estimates for your field", fixed = TRUE)
@@ -415,7 +417,7 @@ test_that("variation between studies is on each design's own scale", {
   expect_equal(replication_args(generic)$tau, 0)
   expect_equal(replication_args(c(generic, rep_tau_value = "0.03"))$tau, 0.03)
   html <- as.character(replication_workspace_ui(tree))
-  expect_match(html, '<option value="0.025" selected>Small (0.025)</option>', fixed = TRUE)
+  expect_match(html, '<option value="0.025" selected>Example: 0.025</option>', fixed = TRUE)
   expect_match(html, "an SD on the effect's own scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0, "generic", "log")), "no meaning on this effect's scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.03, "generic", "log")), "0.03 on the log scale", fixed = TRUE)
@@ -551,6 +553,9 @@ test_that("the purpose picks the main criterion, and the others are reported at 
   expect_identical(replication_settings_missing(needs), "the smallest effect that would matter")
   expect_length(replication_settings_missing(c(needs, rep_smallest = "0.1")), 0)
   expect_length(replication_settings_missing(modifyList(needs, list(rep_analysis = "test"))), 0)
+  # A Bayesian original's "confirm" with no Bayes factor t-test: the replication Bayes factor.
+  confirm <- replication_resolve_goals(list(rep_purpose = "confirm", rep_analysis = "posterior"), no_t)
+  expect_identical(confirm$goal, "bf_replication")
   # The run: the sample size from the main criterion under the chosen belief,
   # and the chances at that sample size from the engine.
   plan <- replication_run(c(base, rep_purpose = "confirm", rep_prior = "shrunk", rep_also = "absence\nbf_replication"), planner)
@@ -578,7 +583,16 @@ test_that("the purpose picks the main criterion, and the others are reported at 
     rep_alpha = "0.05", rep_power = "0.8")
   expect_error(replication_run(c(generic, rep_goal = "small_telescopes"), planner), "planned on the design's card")
   expect_error(replication_run(c(generic, rep_purpose = "absent"), planner), "needs the smallest effect that would matter")
-  # Without a bound, another design's absence criterion is left out, with a note.
+  for (values in list(generic, list(rep_design = "correlation", rep_effect = "0.5", rep_n = "100", rep_power = "0.8"))) {
+    values <- c(values, rep_goal = "bf_sceptical", rep_also = "absence")
+    # The replication Bayes factor's chance is planned for the effect, so it
+    # never stands in for absence: the equivalence test does, or the plan
+    # says it needs a bound.
+    plan_bf <- replication_run(values, planner)
+    expect_false("bf_replication" %in% plan_bf$choice$also)
+    expect_true(identical(plan_bf$choice$also, "negligible") || isTRUE(plan_bf$choice$absence_missing))
+  }
+  # Without a bound, another design's equivalence criterion is left out, with a note.
   quiet <- replication_run(c(generic, rep_also = "absence"), planner)
   expect_true(quiet$choice$absence_missing)
   expect_match(as.character(replication_result_ui(quiet)), "enter it under Goals to add it", fixed = TRUE)
@@ -825,4 +839,26 @@ test_that("a correlation whose measure changes is planned from the attenuated r"
   skip_if(is.null(plan$original$attenuation), "this engine attenuates d only")
   expect_match(as.character(replication_attenuation_ui(plan)), "original&#39;s r of 0.3|original's r of 0.3")
   expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "both measures' reliabilities", fixed = TRUE)
+})
+
+test_that("tests and Bayesian posteriors each supply their own effect for both replication methods", {
+  values <- list(rep_design = "two_groups", rep_effect_type = "t", rep_effect = "3.2",
+    rep_post_mean = "0.55", rep_post_sd = "0.12", rep_n1 = "40", rep_n2 = "40",
+    rep_original_alpha = "0.05", rep_alpha = "0.05", rep_power = "0.8", rep_also = "none")
+  for (source in c("test", "posterior")) {
+    for (goal in c("significance", "bf_repeat")) {
+      fields <- modifyList(values, list(rep_analysis = source, rep_goal = goal))
+      args <- replication_args(fields)
+      expect_equal(args$original_effect, if (source == "test") 3.2 else 0.55)
+      plan <- replication_run(fields, engine_function("replication_planning"))
+      expect_identical(plan$choice$goal, goal)
+      expect_true(is.finite(plan$at_main$n))
+      if (goal == "bf_repeat") expect_true(all(plan$goals$goal %in% replication_bf_goals))
+    }
+  }
+  # A hidden F from a previously selected test must not override the posterior.
+  generic <- modifyList(values, list(rep_design = "generic", rep_analysis = "posterior",
+    rep_n = "80", rep_se_from = "f", rep_f = "10"))
+  expect_null(replication_args(generic)$original_f)
+  expect_equal(replication_args(generic)$original_effect, 0.55)
 })

@@ -3106,13 +3106,15 @@ server <- function(input, output, session) {
   # Filling the fields from a plan; until they hold its values, nothing is
   # written back (so one plan's fields never go into another).
   rep_loaded <- reactiveVal(NULL)
+  rep_conceptual_note <- reactiveVal(NULL)
   rep_fill <- function(plan) {
+    rep_conceptual_note(NULL)
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
       if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal", "rep_anova_effect")) updateSelectInput(session, id, selected = v)
       else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
-        "rep_purpose", "rep_prior", "rep_sided", "rep_anova_kind", "rep_f_from", "rep_assurance")) updateRadioButtons(session, id, selected = v)
+        "rep_published", "rep_purpose", "rep_prior", "rep_sided", "rep_anova_kind", "rep_f_from", "rep_assurance")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
       else if (id %in% c("labs_outcome", "rep_keeps")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else updateTextInput(session, id, value = v)
@@ -3220,20 +3222,27 @@ server <- function(input, output, session) {
   # A conceptual replication: the shrunk belief and more variation between
   # studies, set when the researcher asks (never on loading a plan).
   observeEvent(input$rep_use_conceptual, {
+    req(identical(input$rep_keeps, "conceptual"))
     # Every field, not only the variation boxes: whether an ANOVA effect
     # has one degree of freedom depends on its levels and effect.
-    s <- replication_conceptual_settings(stats::setNames(lapply(replication_field_ids, function(id) input[[id]]), replication_field_ids))
-    if (!length(s)) {
-      output$rep_conceptual_done <- renderUI(p(class = "small", role = "status",
-        "Nothing was changed: this original is planned with BUCSS, which has no setting for a changed procedure. Choose the assurance under Goals, or plan from the smallest effect that would matter."))
+    before <- stats::setNames(lapply(replication_field_ids, function(id) input[[id]]), replication_field_ids)
+    settings <- replication_conceptual_settings(before)
+    if (!length(settings)) {
+      rep_conceptual_note(list(settings = list(rep_design = before$rep_design),
+        message = "Nothing was changed: this original is planned with BUCSS, which has no setting for a changed procedure. Choose the assurance under Goals, or plan from the smallest effect that would matter."))
       return()
     }
-    if (!is.null(s$rep_prior)) updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
-    if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
-    if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
-    output$rep_conceptual_done <- renderUI(p(class = "small text-success", role = "status",
-      if (identical(input$rep_design, "generic")) "Done: the shrunk belief. For this effect, raise the variation between studies under Goals yourself, on its own scale."
-      else "Done: the shrunk belief and more variation between studies, under Goals. You can change either there."))
+    if (!is.null(settings$rep_prior)) updateRadioButtons(session, "rep_prior", selected = settings$rep_prior)
+    if (!is.null(settings$rep_tau)) updateSelectInput(session, "rep_tau", selected = settings$rep_tau)
+    if (!is.null(settings$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = settings$rep_tau_r)
+    rep_conceptual_note(list(settings = c(list(rep_design = before$rep_design), settings),
+      message = replication_conceptual_summary(before, settings)))
+  })
+  output$rep_conceptual_done <- renderUI({
+    applied <- rep_conceptual_note()
+    req(applied, identical(input$rep_keeps, "conceptual"))
+    req(all(vapply(names(applied$settings), function(id) identical(input[[id]], applied$settings[[id]]), logical(1))))
+    p(class = "small text-success", role = "status", applied$message)
   })
   # A new study: an ordinary study plan instead.
   observeEvent(input$rep_start_study_plan, {

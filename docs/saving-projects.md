@@ -718,10 +718,19 @@ planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
   extension's "Add an extension analysis" opens the list of analyses as
   an ordinary route; its card's "Add to plan" keeps the result in the
   plan marked `extension = TRUE`, reported under "Other analyses in this
-  plan" and never as the original's. A conceptual replication's button
-  sets the shrunk belief and more variation between studies; a new study
-  is offered an ordinary study plan. The extension and conceptual answers
+  plan" and never as the original's. For a conceptual replication, an
+  optional sensitivity scenario uses a shrunk belief and increases
+  between-study variation where a preset is available. The planner
+  reports the before and after values. A new study is offered an ordinary
+  study plan. The extension and conceptual answers
   add a box for the checks that the study still tests the same thing.
+- New replication plans start with the original's publication process
+  set to unknown. When BUCSS is applicable, results, the write-up and the
+  R script compare publication requiring significance with publication
+  regardless of the result. Saved plans carry their previous publication
+  choice forward. The original's test estimate and posterior mean are
+  saved separately, with older values restored according to the saved
+  analysis.
 - Choosing the card also sets the goals table's route (15 November
   2026): the four exact designs keep their own fields; any other card
   with one focal effect asks for that effect (named from `forms.yaml`'s
