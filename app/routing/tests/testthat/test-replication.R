@@ -28,7 +28,7 @@ test_that("the table has every goal under the three beliefs, and the no-effect g
   html <- as.character(replication_result_ui(plan))
   for (label in replication_prior_labels) expect_match(html, label, fixed = TRUE)
   for (goal in unique(plan$goals$goal)) expect_match(html, replication_goal_labels[[goal]], fixed = TRUE)
-  expect_match(html, "(planned for no effect)", fixed = TRUE)
+  expect_match(html, ", planned for no effect", fixed = TRUE)
   # An original of 20 per group can't show agreement within 0.2.
   expect_match(html, "Not reachable with this original study", fixed = TRUE)
   # The numbers are the engine's.
@@ -310,7 +310,7 @@ test_that("a Bayes factor original's table, headline, methods and write-up", {
   expect_match(html, "comes from a t statistic of 2.5", fixed = TRUE)
   expect_match(html, replication_goal_labels[["bf_repeat"]], fixed = TRUE)
   expect_match(html, replication_goal_labels[["bf_null"]], fixed = TRUE)
-  expect_match(html, "Small telescopes is left out", fixed = TRUE)
+  expect_match(html, "Small telescopes needs the original's significance test", fixed = TRUE)
   expect_no_match(html, "two-sided p =", fixed = TRUE)
   expect_match(html, "rep_to_sequential", fixed = TRUE)
   g <- plan$goals[plan$goals$goal == "bf_repeat", ]
@@ -371,7 +371,8 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   # Variation starts at Small, with the cards' help.
   expect_match(html, '<option value="0.05" selected>Small (0.05)</option>', fixed = TRUE)
   expect_match(html, "How to interpret the between-study SD", fixed = TRUE)
-  expect_match(html, "true effects may vary across samples or settings", fixed = TRUE)
+  expect_match(html, "a quarter of Cohen's 0.2, 0.5 and 0.8", fixed = TRUE)
+  expect_match(html, "illustrations, not estimates for your field", fixed = TRUE)
   # Alpha and power empty, with one-click buttons.
   alpha <- regmatches(html, regexpr('<input[^>]*id="rep_alpha"[^>]*>', html))
   expect_match(alpha, 'value=""', fixed = TRUE)
@@ -532,10 +533,24 @@ test_that("the purpose picks the main criterion, and the others are reported at 
   # Another design has no default Bayes factor test: settling it either way uses the replication Bayes factor.
   no_t <- setdiff(goals, c("bf_repeat", "bf_null"))
   expect_identical(replication_resolve_goals(list(rep_purpose = "either"), no_t)$goal, "bf_replication")
-  # This design has no Bayes factor for absence in the planner.
+  # There, a Bayes factor main criterion shows absence by the equivalence
+  # test, whose chance is planned for no effect (the replication Bayes
+  # factor's is not); without a bound for it, the plan says so.
   sceptical <- replication_resolve_goals(list(rep_goal = "bf_sceptical", rep_also = "absence"), no_t)
-  expect_identical(sceptical[c("also", "absence_missing")], list(also = character(0), absence_missing = TRUE))
-  expect_true(replication_resolve_goals(list(rep_purpose = "either", rep_also = "absence"), no_t)$absence_missing)
+  expect_identical(sceptical[c("also", "absence_missing")], list(also = "negligible", absence_missing = FALSE))
+  unbounded <- replication_resolve_goals(list(rep_purpose = "either", rep_also = "absence"), setdiff(no_t, "negligible"))
+  expect_true(unbounded$absence_missing)
+  # A Bayesian original: to show absence, the Bayes factor t-test for no
+  # effect where the design has one, else the equivalence test.
+  bayes <- list(rep_analysis = "posterior", rep_purpose = "absent")
+  expect_identical(replication_resolve_goals(bayes, goals)$goal, "bf_null")
+  expect_identical(replication_resolve_goals(bayes, no_t)$goal, "negligible")
+  expect_identical(replication_resolve_goals(c(bayes, rep_design = "anova"), goals)$goal, "negligible")
+  # Its equivalence test needs the researcher's bound, asked for before the run.
+  needs <- list(rep_design = "correlation", rep_analysis = "posterior", rep_purpose = "absent", rep_power = "0.8", rep_alpha = "0.05")
+  expect_identical(replication_settings_missing(needs), "the smallest effect that would matter")
+  expect_length(replication_settings_missing(c(needs, rep_smallest = "0.1")), 0)
+  expect_length(replication_settings_missing(modifyList(needs, list(rep_analysis = "test"))), 0)
   # The run: the sample size from the main criterion under the chosen belief,
   # and the chances at that sample size from the engine.
   plan <- replication_run(c(base, rep_purpose = "confirm", rep_prior = "shrunk", rep_also = "absence\nbf_replication"), planner)
@@ -566,7 +581,7 @@ test_that("the purpose picks the main criterion, and the others are reported at 
   # Without a bound, another design's absence criterion is left out, with a note.
   quiet <- replication_run(c(generic, rep_also = "absence"), planner)
   expect_true(quiet$choice$absence_missing)
-  expect_match(as.character(replication_result_ui(quiet)), "enter the smallest effect under Goals to add it", fixed = TRUE)
+  expect_match(as.character(replication_result_ui(quiet)), "enter it under Goals to add it", fixed = TRUE)
 })
 
 test_that("Also report is kept in the plan as text, with no tick kept as none", {
@@ -623,7 +638,8 @@ test_that("the write-up has a study design table, and the script runs the chosen
   expect_match(rows[3], "d33, the effect the original had a one-in-three chance of detecting", fixed = TRUE)
   expect_identical(report[start + 9], "")
   # Labels keep their capitals inside a sentence.
-  expect_match(paste(report, collapse = "\n"), "(replication Bayes factor), ", fixed = TRUE)
+  expect_match(paste(report, collapse = "\n"), "(replication Bayes factor of at least 10), ", fixed = TRUE)
+  expect_no_match(paste(report, collapse = "\n"), "at your threshold", fixed = TRUE)
   # The script: the main criterion's sample size, then the others' chances at it.
   script <- replication_script_text(plan, engine_function("replication_planning_script"))
   expect_no_match(script, "sapply(priors", fixed = TRUE)

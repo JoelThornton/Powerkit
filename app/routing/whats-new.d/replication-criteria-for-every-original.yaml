@@ -1,0 +1,12 @@
+entries:
+  - date: "2026-11-19"
+    title: Replication plans fit every kind of original study
+    text: >
+      Whether the original reported a p-value, a Bayes factor, a posterior or
+      both, the replication plan now suggests criteria that fit it, greys out
+      the ones it can't use, and always reports a criterion that could show
+      the effect is absent, with its chance planned in advance. When that
+      needs the smallest effect that would matter, the planner asks for it
+      before running. The chance at a sample size you could recruit is now
+      shown with the result, and the write-up states the evidence threshold
+      in words.

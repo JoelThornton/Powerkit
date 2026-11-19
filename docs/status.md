@@ -286,6 +286,12 @@ each area, is at the end of
   starts ticked (Departure 30), the default Bayes factor t-test is
   offered for p-value originals, d33 is the equivalence bound when none
   is entered, and the table of every criterion folds under the answer.
+  Since 19 November 2026 the criteria fit every kind of original: the
+  list is grouped into frequentist and Bayesian criteria with those the
+  original can't give greyed out, only the settings the chosen criteria
+  use are asked for, the absence criterion is always one planned for no
+  effect (the Bayes factor t-test for no effect, else the equivalence
+  test), and a bound the plan can't default is asked for before the run.
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
   and the significance test can be one-sided. The page's five sections
@@ -312,7 +318,8 @@ each area, is at the end of
   goes straight to the write-up, a negative pre-replication report, and
   the planning steps say they aren't needed. The pages' guidance follows
   the "Show explanations" switch: one sentence in view and the rest under
-  "More", folded behind info buttons with explanations off. The plan
+  a labelled fold, with even that sentence folded when explanations are
+  off; a field's help sits under its box. The plan
   asks whether the original was published because it was significant
   (if not, as for a Registered Report, BUCSS corrects for uncertainty
   only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding
