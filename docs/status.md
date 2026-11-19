@@ -46,6 +46,13 @@ multinomial test (E48) and JASP's A/B test (E5) are decided and queued
 (`next.md` item 2). Still uncovered: mediation of a categorical outcome
 and within-person mediation.
 
+A review of Tools, the exports and the exact tests (19 November 2026)
+found that a one-sided exact test of one proportion or Fisher's test,
+given no difference, ran in the tail pwrss chose rather than the one
+asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
+equal tails (the default) and names the rule in the write-up. Which rule
+G*Power uses for a fixed value other than 0.5 is not checked yet.
+
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
 The release-readiness and first-release reviews keep their own open
@@ -362,8 +369,8 @@ Type I error; independent checks exist for the basic tests (G\*Power), for
 mediation (pwrss and simsem), for the two-group MANOVA and for several
 simulations (a separately written simulation each). 17 published examples
 are transcribed and pass; the rest keep `TODO_PUBLISHED_VALUE` for the
-maintainer. 20 of the 70 cards that run are validated in the validation
-log's sense; the other 50 say "validation in progress". Validation runs
+maintainer. 20 of the 77 cards that run are validated in the validation
+log's sense; the other 57 say "validation in progress". Validation runs
 for a design before its PR merges, every night the engine changed, and in
 full every Sunday from 00:05 UTC (`scripts/validation-plan.R`), with
 tests dealt to parts by their recorded times so each part ends within

@@ -2987,7 +2987,7 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
   if (!is.null(spec) && (isTRUE(is_hartung_knapp(spec)) || isTRUE(spec$template %in% c("subgroups", "dependent_effects", "meta_regression", "heterogeneity")))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
-  keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  keys <- Filter(function(k) is.null(only[[k]]) || isTRUE(spec$target_test$method %in% unlist(only[[k]])), keys)
   # Some apply to one goal (Known difference 11, a justified alpha).
   by_goal <- form$known_differences_if_goal
   keys <- Filter(function(k) is.null(by_goal[[k]]) || identical(spec$goal$type, by_goal[[k]]), keys)
@@ -3721,6 +3721,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # brackets, not two in a row (P-15).
   if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  # A two-sided exact binomial test: which p-value (next.md item 30, 19
+  # November 2026), since equal tails and binom.test() need different n.
+  if (identical(spec$template, "one_proportion") && identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
+    if (identical(spec$target_test$method, "exact_binomial")) name <- paste(name, "with alpha / 2 in each tail")
+    if (identical(spec$target_test$method, "binom_test")) {
+      name <- paste(name, "with the two-sided p-value of R's binom.test(), which adds up every count no more likely than the one observed")
+    }
+  }
   # McNemar's chi-square test and the variance tests that don't assume
   # normal scores (17 November 2026, next.md item 27).
   if (identical(spec$target_test$method, "mcnemar_chisq")) name <- "McNemar's chi-square test without the continuity correction, simulated"
@@ -4488,7 +4496,7 @@ bayes_companion_templates <- c("one_sample_t", "paired_t", "independent_t", "cor
 bayes_companion_applies <- function(tree, ep_id, spec, result) {
   ep_id %in% names(tree$bayes_designs) && spec$template %in% bayes_companion_templates && !is_bayes_test(spec) &&
     result$goal_type %in% c("sample_size", "power") && is.null(spec$effect_justification$safeguard) &&
-    spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "z_test", "fisher_exact", "anova_f")
+    spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "binom_test", "z_test", "fisher_exact", "anova_f")
 }
 
 bayes_companion_card_ui <- function(tree, ep_id, spec, result) {

@@ -614,7 +614,16 @@ test_that("the visualiser describes the two tails and the directional threshold"
   expect_lt(negative, 0.05)
   expect_match(as.character(picture_numbers(r)), "absolute value is at least this large, in either direction", fixed = TRUE)
   one <- picture_for(function(id) list(picture_sides = "greater")[[id]], 0.05)
-  expect_match(as.character(picture_numbers(one)), "in the positive direction", fixed = TRUE)
+  expect_match(as.character(picture_numbers(one)), "in the direction you expect, shown here as positive", fixed = TRUE)
   proportions <- picture_for(function(id) list(picture_design = "two_proportions")[[id]], 0.05)
   expect_match(as.character(picture_numbers(proportions)), "h on the arcsine scale", fixed = TRUE)
+})
+
+test_that("the visualiser's description counts one degree of freedom and one predictor in the singular", {
+  skip_if(is.null(engine_function("power_picture_chisq")), "powerkit's engine isn't available here")
+  one_df <- engine_function("power_picture_chisq")(88, 0.3, df = 1)
+  expect_match(picture_alt(one_df), "and 1 degree of freedom at", fixed = TRUE)
+  expect_match(picture_alt(engine_function("power_picture_chisq")(88, 0.3, df = 3)), "and 3 degrees of freedom at", fixed = TRUE)
+  one_predictor <- engine_function("power_picture_f2")(80, 0.13, u = 1)
+  expect_match(picture_alt(one_predictor), "with 1 predictor and", fixed = TRUE)
 })

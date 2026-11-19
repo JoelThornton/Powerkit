@@ -89,7 +89,13 @@ pwrss_script_inputs <- function(spec) {
     one_proportion = c(
       sprintf("p <- %s # expected proportion with %s = %s", r_code(pop$p), comment_text(v$Y$label), lv("Y", 2)),
       sprintf("p0 <- %s # the fixed value it is compared with (the null hypothesis)", r_code(pop$p0)),
-      alt_line
+      alt_line,
+      if (pwrss_mirror_tie(spec)) c(
+        "# With p equal to p0, pwrss would test the upper tail; counting the other",
+        "# answer (1 - p against 1 - p0) tests the lower tail, as asked.",
+        "p <- 1 - p",
+        "p0 <- 1 - p0"
+      )
     ),
     mcnemar = c(
       sprintf(
@@ -343,7 +349,14 @@ pwrss_script_call_lines <- function(spec, inputs) {
     two_proportions = list(
       pre = c(
         "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
-        "  n_group2 <- n_total - n_group1"
+        "  n_group2 <- n_total - n_group1",
+        if (pwrss_mirror_tie(spec)) c(
+          "  # With p1 equal to p2, pwrss would test group 1's upper tail (group 1",
+          "  # higher); swapping the groups tests group 2 higher, as asked.",
+          "  n_swap <- n_group1",
+          "  n_group1 <- n_group2",
+          "  n_group2 <- n_swap"
+        )
       ),
       head = "power.exact.fisher( # Fisher's exact test",
       args = c(

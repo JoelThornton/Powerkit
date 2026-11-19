@@ -55,6 +55,8 @@ export_script <- function(spec, result, file = NULL) {
     pwr = ,
     stats = if (continuity_corrected(spec)) {
       corrected_exact_script(spec, result)
+    } else if (binom_test_method(spec)) {
+      binom_test_script(spec, result)
     } else if (heterogeneity_test(spec)) {
       heterogeneity_script(spec, result)
     } else if (variance_formula_test(spec)) {

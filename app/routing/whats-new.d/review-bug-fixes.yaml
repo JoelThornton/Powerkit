@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-19"
+    title: Exact binomial tests and one-sided proportion tests
+    text: >
+      The test of one proportion against a fixed value now asks which exact
+      test you will run: alpha / 2 in each tail, or the p-value R's
+      binom.test() gives, which often needs fewer people. The write-up names
+      the one you chose. A one-sided test of one proportion or Fisher's exact
+      test, given no difference to check its false-positive rate, now tests
+      the direction you chose; it could test the other one.

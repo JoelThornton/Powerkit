@@ -210,6 +210,25 @@ pwrss_alternative <- function(spec) {
   if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "two.sided" else "one.sided"
 }
 
+# pwrss's exact one-sided tests of one proportion and Fisher's test take
+# the tail from the sign of the effect, so with no difference at all (the
+# false-positive rate of a one-sided test) they pick a tail themselves: the
+# upper tail for one proportion ("greater"), group 1's upper tail for
+# Fisher's test ("less"). The two tails' rates differ for a discrete test
+# (a null proportion other than 0.5, or unequal groups), so the other
+# direction is run as its mirror image: the proportion of the other answer
+# (1 - p against 1 - p0), or the two groups swapped. TRUE when that is needed.
+pwrss_mirror_tie <- function(spec) {
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  pop <- spec$population
+  switch(
+    pwrss_key(spec),
+    one_proportion = identical(alternative, "less") && isTRUE(pop$p == pop$p0),
+    two_proportions = identical(alternative, "greater") && isTRUE(pop$p1 == pop$p2),
+    FALSE
+  )
+}
+
 # Welch's t-test: the smallest standardised mean difference (in the
 # spec's units, the root mean square of the two SDs when they differ) at
 # which pwrss's power.t.welch() reaches the target power at n, with the
@@ -290,13 +309,16 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
-    one_proportion = list(
-      fun = "power.exact.oneprop",
-      args = function(n) list(
-        prob = pop$p, null.prob = pop$p0, n = n, alpha = alpha,
-        alternative = alternative, verbose = 0
+    one_proportion = {
+      mirror <- pwrss_mirror_tie(spec)
+      list(
+        fun = "power.exact.oneprop",
+        args = function(n) list(
+          prob = if (mirror) 1 - pop$p else pop$p, null.prob = if (mirror) 1 - pop$p0 else pop$p0,
+          n = n, alpha = alpha, alternative = alternative, verbose = 0
+        )
       )
-    ),
+    },
     mcnemar = list(
       fun = "power.exact.mcnemar",
       # pwrss's prob10 is "success in case (or after) but failure in matched
@@ -325,11 +347,16 @@ pwrss_inputs <- function(spec) {
     },
     two_proportions = {
       ratio <- allocation_ratio(spec)
+      mirror <- pwrss_mirror_tie(spec)
       list(
         fun = "power.exact.fisher",
         args = function(n) {
           n1 <- floor(n / (1 + ratio) + 0.5)
           n2 <- n - n1
+          if (mirror) {
+            n2 <- n1
+            n1 <- n - n2
+          }
           # pwrss's n.ratio is n1 / n2.
           list(
             prob1 = pop$p1, prob2 = pop$p2, n.ratio = n1 / n2, n2 = n2,
@@ -567,10 +594,18 @@ pwrss_check_run <- function(spec, inputs) {
         )
       }
     },
-    one_proportion = rbind(
-      row("p passed to pwrss (prob)", pop$p, args$prob),
-      row("p0 passed to pwrss (null.prob)", pop$p0, args$null.prob)
-    ),
+    one_proportion = if (pwrss_mirror_tie(spec)) {
+      # The lower tail, run as the other answer's upper tail.
+      rbind(
+        row("1 - p passed to pwrss (prob)", 1 - pop$p, args$prob),
+        row("1 - p0 passed to pwrss (null.prob)", 1 - pop$p0, args$null.prob)
+      )
+    } else {
+      rbind(
+        row("p passed to pwrss (prob)", pop$p, args$prob),
+        row("p0 passed to pwrss (null.prob)", pop$p0, args$null.prob)
+      )
+    },
     mcnemar = rbind(
       row("yes in the second condition only, passed to pwrss (prob10)", pop$p_second_only, args$prob10),
       row("yes in the first condition only, passed to pwrss (prob01)", pop$p_first_only, args$prob01)

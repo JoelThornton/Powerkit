@@ -1432,14 +1432,16 @@ endpoints:
   E25:
     doc_name: "One proportion against a fixed value"
     technical_name: "One-sample proportion test"
-    search_words: "binomial test bayesian binomial test"
+    search_words: "binomial test bayesian binomial test binom.test exact binomial"
     plain_name: "Compare one group's proportion with a fixed value"
     template: "basic_test / one_proportion"
-    backend: "pwrss: power.exact.oneprop() (the exact binomial test); bfpwr: pbinbf01() (the Bayes factor test)"
+    backend: "pwrss: power.exact.oneprop() (the exact binomial test, alpha / 2 in each tail); stats: binom.test() summed over every count (its own two-sided p-value); bfpwr: pbinbf01() (the Bayes factor test)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     bayes_test: true
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests (a fixed value of 0.5). binom.test()'s version agrees with binom.test() applied to every possible count, in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    card_points:
+      - "Choose the exact test you will run. Two-sided, it can put alpha / 2 in each tail (pwrss), or add up every count no more likely than the one observed, as R's binom.test() does; the second often needs fewer people."
     inputs: ["Your outcome's name", "The expected proportion", "The fixed value", "The exact binomial test, or a Bayes factor test"]
     tier: v2
     alternatives: ["the exact binomial test", "a z test for one proportion"]
