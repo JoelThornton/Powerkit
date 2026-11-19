@@ -1187,6 +1187,26 @@ replication_validation_text <- paste(
   "Each goal's chance agrees with a separate simulation of the method's model, and small telescopes",
   "with t-tests on simulated people; the check against published examples is still to come.")
 
+# With "whether the effect is there or not", the main criterion is
+# planned for an effect and the absence criterion is only also reported,
+# so the planned sample size can leave a null result unable to show
+# anything (a Bayes factor for no effect grows slowly with the sample).
+# Returns the sentence that says so when the absence criterion's chance
+# at the planned sample size is below the chance aimed for, else NULL.
+replication_either_gap <- function(plan) {
+  ch <- plan$choice
+  if (is.null(ch) || !identical(ch$purpose, "either") || is.null(plan$at_main)) return(NULL)
+  absence <- intersect(c("bf_null", "negligible"), ch$also)[1]
+  if (is.na(absence)) return(NULL)
+  a <- plan$at_main$chances
+  chance <- a$chance[a$goal == absence][1]
+  if (is.na(chance) || chance >= plan$inputs$power) return(NULL)
+  n <- replication_main(plan, absence, ch$prior)$row$n
+  sprintf("To settle it either way, a null result must be able to show something too: with %s, %s has a %s chance if there is no effect%s. Plan for the larger number, or collect data until the evidence is strong either way (a sequential design).",
+    replication_n_words(plan, plan$at_main$n), replication_lc(replication_goal_labels[[absence]]), replication_pct(chance),
+    if (!is.na(n)) sprintf("; it needs %s for %s chance", replication_n_words(plan, n), replication_a_pct(plan$inputs$power)) else "")
+}
+
 # The main criterion and those also reported, as their chance at the main
 # criterion's sample size: the chosen belief first, the others beside it.
 replication_main_chances_ui <- function(plan) {
@@ -1198,7 +1218,8 @@ replication_main_chances_ui <- function(plan) {
     if (isTRUE(ch$absence_missing)) p(class = "small rep-changes-note", role = "note",
       paste(if (ch$goal %in% replication_bf_goals) "This design has no Bayes factor t-test for no effect, so the criterion that could show the effect is absent is the equivalence test."
         else "The criterion that could show the effect is absent is the equivalence test.",
-        "It needs the smallest effect that would matter, because the default bound (d33) comes from the original's significance test: enter it under Goals to add it.")))
+        "It needs the smallest effect that would matter, because the default bound (d33) comes from the original's significance test: enter it under Goals to add it.")),
+    if (!is.null(gap <- replication_either_gap(plan))) p(class = "small rep-changes-note", role = "note", id = "rep-either-gap", gap))
   at <- plan$at_main
   if (is.null(at)) return(notes)
   a <- at$chances

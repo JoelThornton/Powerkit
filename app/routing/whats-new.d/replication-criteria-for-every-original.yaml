@@ -13,3 +13,6 @@ entries:
       For a conceptual replication of an ANOVA effect with one degree of
       freedom, "Plan it this way" now really sets the shrunk belief and more
       variation between studies.
+      If you plan to find out whether the effect is there or not, the plan
+      now warns when its sample size gives a null result too little chance
+      of showing the effect is absent, and says how many people that needs.

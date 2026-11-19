@@ -689,3 +689,19 @@ test_that("replication criteria control their own settings", {
   expect_true(replication_criteria_settings(mixed)$alpha)
   expect_true(replication_criteria_settings(mixed)$bf)
 })
+
+test_that("'there or not' says when a null result could not show anything at the planned size", {
+  skip_if_not_installed("bfpwr")
+  run <- function(v) replication_run(v, engine_function("replication_planning"))
+  either <- modifyList(filled, list(rep_goal = "auto", rep_purpose = "either", rep_also = "absence", rep_prior = "shrunk", rep_n_at = ""))
+  plan <- run(either)
+  expect_identical(plan$choice[c("goal", "also")], list(goal = "bf_repeat", also = "bf_null"))
+  gap <- replication_either_gap(plan)
+  expect_match(gap, "To settle it either way", fixed = TRUE)
+  g <- plan$goals[plan$goals$goal == "bf_null", ]
+  expect_match(gap, replication_n_words(plan, g$n[1]), fixed = TRUE)
+  expect_match(as.character(replication_main_chances_ui(plan)), "rep-either-gap", fixed = TRUE)
+  # Not for the other purposes, which plan for what they aim to show.
+  expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "confirm")))))
+  expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "absent")))))
+})
