@@ -299,7 +299,7 @@ each area, is at the end of
   effect (the Bayes factor t-test for no effect, else the equivalence
   test), a bound the plan can't default is asked for before the run,
   "settle it either way" warns when a null result at the planned
-  size would have too little chance of showing absence, and an expected
+  size would have too little chance of showing absence, an expected
   dropout gives the number to recruit (the cards' rule), and a
   two-group replication can have unequal groups (the cards' allocation
   ratio).
