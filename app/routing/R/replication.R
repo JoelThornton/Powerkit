@@ -573,7 +573,8 @@ replication_planner_sections <- function() {
   field <- rep_field
   box <- function(id, label, rows = 3) div(class = "form-field", textAreaInput(id, label, rows = rows, width = "100%"))
   section <- function(id, ...) conditionalPanel(sprintf("input.rep_section == '%s'", id), class = "form-section", rep_section_title(id), ...)
-  tagList(
+  # With explanations off, short labels (replication-short.R).
+  replication_shorten(tagList(
     section("original",
       rep_card("Which study, and how it was analysed",
         uiOutput("rep_from_notes_study"),
@@ -676,7 +677,7 @@ replication_planner_sections <- function() {
           conditionalPanel("input.rep_design != 'generic'",
             radioButtons("rep_published", "Did publication depend on a significant result?", choices = replication_published_ui,
               selected = "unknown", width = "100%"),
-            p(class = "small text-muted", "This choice affects the BUCSS estimates. A Registered Report accepted before the results were known is an example of publication regardless of the result.")),
+            p(class = "small text-muted plain-only", "This choice affects the BUCSS estimates. A Registered Report accepted before the results were known is an example of publication regardless of the result.")),
         NULL)),
       # The simple answer first (colleague review C-14, 12 November
       # 2026): the sample size to find the effect significant again,
@@ -714,8 +715,8 @@ replication_planner_sections <- function() {
             choiceValues = names(replication_prior_labels), selected = "uncertain", width = "100%"),
           # Ten criteria: folded, with what is ticked by default said on the fold.
           tags$details(class = "rep-also-fold",
-            tags$summary("Also report other criteria, as their chance at that sample size",
-              tags$span(class = "small text-muted", " (ticked to start: a criterion that could show the effect is absent)")),
+            tags$summary(name_swap("Also report other criteria, as their chance at that sample size", "Also report other criteria"),
+              tags$span(class = "small text-muted plain-only", " (ticked to start: a criterion that could show the effect is absent)")),
             checkboxGroupInput("rep_also", "Also report", choices = replication_also_choices,
               selected = "absence", width = "100%")),
           conditionalPanel("output.rep_criteria && output.rep_criteria.bound",
@@ -725,7 +726,7 @@ replication_planner_sections <- function() {
               help_topic = "How the equivalence bound is used")),
           NULL),
         conditionalPanel(replication_bucss_only_js,
-          p(class = "small", "For an ANOVA effect with several degrees of freedom, BUCSS plans a significant F test while accounting for uncertainty in the original estimate. It also accounts for selection when publication depended on significance. You can also plan from the smallest effect that would matter."),
+          p(class = "small plain-only", "For an ANOVA effect with several degrees of freedom, BUCSS plans a significant F test while accounting for uncertainty in the original estimate. It also accounts for selection when publication depended on significance. You can also plan from the smallest effect that would matter."),
           radioButtons("rep_assurance", "Assurance: how sure you want to be that the replication reaches the power below", choices = replication_assurances_ui,
             selected = "0.8", width = "100%"),
           rep_note("The corrected effect is itself uncertain. At 50% assurance the plan uses its best estimate, so the replication reaches the power aimed for about half the time; at 80% it uses a smaller effect, so it reaches it four times in five. More assurance needs more people. When publication is assumed to depend on significance, BUCSS uses the original study's significance level as the threshold.", label = "How assurance works"),
@@ -756,7 +757,7 @@ replication_planner_sections <- function() {
       rep_card("How sure the replication should be",
         conditionalPanel("output.rep_criteria && output.rep_criteria.alpha",
           shortcut_field("rep_alpha", "The replication's significance level", c("0.05", "0.01", "0.005"),
-            c("Use 0.05, the usual level", "0.01", "0.005"),
+            list(name_swap("Use 0.05, the usual level", "0.05 (the usual)"), "0.01", "0.005"),
             help = "If you are adjusting for multiple comparisons, enter the level you plan to use for this test.")),
         conditionalPanel("output.rep_criteria && output.rep_criteria.sided",
           radioButtons("rep_sided", "Is the significance test two-sided or one-sided?", choices = replication_sided_ui,
@@ -767,7 +768,7 @@ replication_planner_sections <- function() {
         conditionalPanel("output.rep_criteria && output.rep_criteria.bf",
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors",
             choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
-          p(class = "small text-muted", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
+          p(class = "small text-muted plain-only", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
         conditionalPanel(replication_one_number_js,
           field("rep_n_at", "Optional: a sample size you could analyse (in total), to see each goal's chance at it")),
         conditionalPanel("(input.rep_design || 'two_groups') == 'two_groups'",
@@ -796,7 +797,7 @@ replication_planner_sections <- function() {
         conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_bucss_only_js),
           rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. If the original effect is a weak guide to the changed design, you can plan from the smallest effect that would matter to you, under Goals.")),
         conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_one_number_js),
-          p(class = "small", "Changing materials, measures or participants can change the effect. You can explore a scenario that shrinks the original estimate towards zero and uses a larger between-study SD where a preset is available."),
+          p(class = "small plain-only", "Changing materials, measures or participants can change the effect. You can explore a scenario that shrinks the original estimate towards zero and uses a larger between-study SD where a preset is available."),
           actionButton("rep_use_conceptual", "Try the sensitivity scenario", class = "btn btn-outline-primary"),
           uiOutput("rep_conceptual_done")),
         conditionalPanel("input.rep_keeps == 'new'",
@@ -828,7 +829,7 @@ replication_planner_sections <- function() {
       # The document as it will read, updated as the plan is filled in.
       tags$details(class = "rep-preview", open = NA,
         tags$summary("Preview the write-up"),
-        uiOutput("rep_preview"))))
+        uiOutput("rep_preview")))))
 }
 
 # A text box with buttons that fill in conventional values, as the input
@@ -841,7 +842,7 @@ shortcut_field <- function(id, label, values, labels, help = NULL) {
       `data-target` = id, `data-value` = values[[i]],
       onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
       labels[[i]]))),
-    if (!is.null(help)) p(class = "field-help small text-muted", help))
+    if (!is.null(help)) p(class = "field-help small text-muted plain-only", help))
 }
 
 replication_citations <- function(path = labs_refs_path(), keys = replication_ref_keys) {
@@ -2336,14 +2337,20 @@ replication_server <- function(input, output, session, notes = function() list()
   output$rep_suggested_goal <- renderUI({
     cr <- criteria()
     either <- identical(cr$purpose, "either")
+    # With explanations off, one short line in place of the sentence.
     if (nzchar(cr$chosen %||% "")) {
-      p(class = "rep-suggested", role = "status", "Main criterion, chosen from the list: ", tags$strong(cr$chosen, .noWS = "outside"),
-        ". Your answer above would suggest ", tags$strong(cr$for_purpose, .noWS = "outside"),
-        "; choose \u201cThe one your answer above suggests\u201d to follow it again.")
+      div(class = "rep-suggested", role = "status",
+        p(class = "plain-only mb-0", "Main criterion, chosen from the list: ", tags$strong(cr$chosen, .noWS = "outside"),
+          ". Your answer above would suggest ", tags$strong(cr$for_purpose, .noWS = "outside"),
+          "; choose \u201cThe one your answer above suggests\u201d to follow it again."),
+        p(class = "terms-only mb-0", "Your aim suggests ", tags$strong(cr$for_purpose, .noWS = "outside"), "."))
     } else if (nzchar(cr$for_purpose %||% "")) {
-      p(class = "rep-suggested", role = "status", "So the main criterion is ", tags$strong(cr$for_purpose, .noWS = "outside"),
-        if (either) ", and the plan also works out the sample size for showing the effect is absent, and recommends the larger. " else ". ",
-        "It sets the sample size. To use another, choose it below.")
+      div(class = "rep-suggested", role = "status",
+        p(class = "plain-only mb-0", "So the main criterion is ", tags$strong(cr$for_purpose, .noWS = "outside"),
+          if (either) ", and the plan also works out the sample size for showing the effect is absent, and recommends the larger. " else ". ",
+          "It sets the sample size. To use another, choose it below."),
+        p(class = "terms-only mb-0", "Main criterion: ", tags$strong(cr$for_purpose, .noWS = "outside"),
+          if (either) ", and absence; the larger sample size is used." else "."))
     }
   })
 

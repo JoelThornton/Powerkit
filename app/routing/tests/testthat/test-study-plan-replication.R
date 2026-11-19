@@ -349,3 +349,26 @@ test_that("the criterion settings say what the purpose suggests and what was cho
   expect_identical(cr$chosen, replication_goal_labels[["agreement"]])
   expect_identical(cr$for_purpose, replication_goal_labels[["significance"]])
 })
+
+test_that("with explanations off the planner has short labels, and the plain ones stay for explanations on", {
+  html <- as.character(replication_planner_sections())
+  # Every short label and choice reaches the page, beside its plain one.
+  expect_match(html, "significance level</span>\\s*<span class=\"name-tech\">Significance level</span>")
+  expect_match(html, "<span class=\"name-tech\">Whether the effect is there or not</span>", fixed = TRUE)
+  expect_match(html, "<option value=\"significance\" data-short=\"Significant, in the original&#39;s direction\">", fixed = TRUE)
+  # Short, not terse: no Greek letter stands in for a word.
+  expect_false(any(grepl("[\u03b1-\u03c9]", c(replication_short_labels, unlist(replication_short_choices)))))
+  for (id in names(replication_short_labels)) expect_match(html, sprintf("for=\"%s\"", id), fixed = TRUE, info = id)
+  for (id in setdiff(names(replication_short_choices), c("rep_design", "rep_goal"))) {
+    for (v in names(replication_short_choices[[id]])) {
+      expect_match(html, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(replication_short_choices[[id]][[v]])), fixed = TRUE, info = paste(id, v))
+    }
+  }
+  # Each short choice names a real value.
+  expect_true(all(names(replication_short_choices$rep_purpose) %in% replication_purposes_ui))
+  expect_true(all(names(replication_short_choices$rep_keeps) %in% replication_keeps_ui))
+  expect_true(all(setdiff(names(replication_short_choices$rep_goal), "auto") %in% names(replication_goal_labels)))
+  # The summary card's design, both ways.
+  card <- as.character(replication_overview_ui(list(rep_study = "Smith (2019)", rep_design = "paired")))
+  expect_match(card, "<span class=\"name-tech\">The same people measured twice (d_z)</span>", fixed = TRUE)
+})

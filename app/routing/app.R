@@ -48,6 +48,7 @@ source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "assumptions.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "replication.R"), local = TRUE)
+source(file.path("R", "replication-short.R"), local = TRUE)
 source(file.path("R", "study-plan-replication.R"), local = TRUE)
 source(file.path("R", "bayes-mode.R"), local = TRUE)
 source(file.path("R", "route-fit.R"), local = TRUE)
@@ -537,6 +538,10 @@ app_css <- "
   .terms-mode .name-tech { display: inline; }
   .terms-mode .known-choice .choice-help { display: none; }
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
+  /* Text that only explains, left out with explanations off (19 November 2026). */
+  .terms-mode .plain-only { display: none; }
+  .terms-only { display: none; }
+  .terms-mode .terms-only { display: block; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }

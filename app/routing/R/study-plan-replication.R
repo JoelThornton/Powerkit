@@ -189,14 +189,16 @@ replication_overview_ui <- function(values, answer = NULL) {
   if (!length(rows)) return(NULL)
   div(class = "rep-overview", role = "region", `aria-label` = "This replication so far",
     h3(class = "h6 rep-overview-title", "This replication so far"),
-    tags$dl(class = "rep-overview-list", lapply(names(rows), function(k) tagList(tags$dt(k), tags$dd(rows[[k]])))))
+    tags$dl(class = "rep-overview-list", lapply(names(rows), function(k) tagList(tags$dt(k), tags$dd(
+      # The design's short name with explanations off (replication-short.R).
+      if (identical(k, "Its design")) name_swap(rows[[k]], replication_short_choices$rep_design[[design]]) else rows[[k]])))))
 }
 
 replication_workspace_ui <- function(tree) {
   div(class = "replication-workspace",
     uiOutput("rep_overview"),
     h3(class = "h5", "Planning the replication"),
-    p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
+    p(class = "small plain-only", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
     div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
       radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
     # Finished steps get a tick, as the input screens' step bar has.

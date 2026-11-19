@@ -369,7 +369,7 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Still to come: the rest
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. With explanations off the planner's long labels are shortened to the question itself (“Significance level”, “Whether the effect is there or not”), in full words, and the sentences that only explain are hidden. Still to come: the rest
   of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
   an ANOVA original, reliability for pairs, claims
   resting on several tests).
