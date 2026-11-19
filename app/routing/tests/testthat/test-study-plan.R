@@ -24,7 +24,7 @@ test_that("the plan keeps different sample structures separate", {
   expect_match(html, "no single study-wide sample size", fixed = TRUE)
   expect_no_match(html, "groups needed", fixed = TRUE)
   expect_match(html, "participants needed", fixed = TRUE)
-  expect_match(html, "Powerkit doesn't calculate it for these designs yet", fixed = TRUE)
+  expect_match(html, "Powerkit doesn't calculate that joint chance for these designs yet", fixed = TRUE)
   expect_match(html, "Add an analysis", fixed = TRUE)
   expect_match(html, "Save plan", fixed = TRUE)
 })
@@ -80,8 +80,8 @@ test_that("joint power is offered only for one randomised comparison on several 
   expect_false(joint_power_offered(list(t_entry(), r_entry)))
   offered <- page_html((list(t_entry(), t_entry())))
   expect_match(offered, "Calculate joint power", fixed = TRUE)
-  expect_no_match(offered, "doesn't calculate it for these designs yet", fixed = TRUE)
-  expect_match(page_html((list(t_entry(), r_entry))), "doesn't calculate it for these designs yet", fixed = TRUE)
+  expect_no_match(offered, "doesn't calculate that joint chance for these designs yet", fixed = TRUE)
+  expect_match(page_html((list(t_entry(), r_entry))), "doesn't calculate that joint chance for these designs yet", fixed = TRUE)
   # Welch's test (the card's default): joint power needs Student's, and the
   # plan says so.
   welch <- t_entry()
