@@ -20,3 +20,7 @@ entries:
       to test whether the effect disappears in it, the planner now explains
       how to plan the comparison and why it needs about four times as many
       people.
+      You can now enter the proportion of people you expect to drop out,
+      and the replication plan tells you how many to recruit. Write-ups for
+      ANOVAs with two or three factors now name the effect with your
+      factors' names.

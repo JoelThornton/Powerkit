@@ -292,8 +292,9 @@ each area, is at the end of
   use are asked for, the absence criterion is always one planned for no
   effect (the Bayes factor t-test for no effect, else the equivalence
   test), a bound the plan can't default is asked for before the run,
-  and "settle it either way" warns when a null result at the planned
-  size would have too little chance of showing absence.
+  "settle it either way" warns when a null result at the planned
+  size would have too little chance of showing absence, and an expected
+  dropout gives the number to recruit (the cards' rule).
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
   and the significance test can be one-sided. The page's five sections

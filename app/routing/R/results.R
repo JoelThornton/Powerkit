@@ -3826,7 +3826,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       "than %s, the effect the original study (%s) had 33%% power to detect (%s), computed with pwrss"),
       telescope_effect_text(telescopes), telescope_original_text(telescopes), sub("^pwr[:]+", "pwr's ", telescopes$function_used))
   }
-  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, anova_effect_words(spec))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
@@ -4818,4 +4818,24 @@ efa_sentences <- function(spec, result) {
         whole(result$provenance$nrep), 100 * row$mcse),
       reading = plain_reading(row$power, outcome = outcome, if_not = if_not, condition = condition))
   }
+}
+
+# A factorial ANOVA's target effect in words, with the factors' own names
+# where the researcher gave them ("the three-way interaction of Vignettes,
+# Role and Message"), for the methods paragraph.
+anova_effect_words <- function(spec) {
+  e <- as.character(spec$target_test$effect %||% "")
+  lab <- function(k) {
+    l <- spec$variables[[k]]$label
+    if (is.character(l) && length(l) == 1 && nzchar(trimws(l))) trimws(l)
+    else c(A = "the first factor", B = "the second factor", C = "the third factor")[[k]]
+  }
+  and_list <- function(x) if (length(x) <= 2) paste(x, collapse = " and ") else paste0(paste(x[-length(x)], collapse = ", "), " and ", x[length(x)])
+  if (identical(e, "interaction")) return(sprintf("the interaction of %s", and_list(c(lab("A"), lab("B")))))
+  if (grepl("^main_effect_[ABC]$", e)) return(sprintf("the main effect of %s", lab(sub("^main_effect_", "", e))))
+  if (grepl("^interaction_[ABC]{2,3}$", e)) {
+    k <- strsplit(sub("^interaction_", "", e), "")[[1]]
+    return(sprintf("the %sinteraction of %s", if (length(k) == 3) "three-way " else "", and_list(vapply(k, lab, ""))))
+  }
+  gsub("_", " ", e)
 }

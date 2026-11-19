@@ -693,7 +693,9 @@ replication_planner_sections <- function() {
             choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
           p(class = "small text-muted", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
         conditionalPanel(replication_one_number_js,
-          field("rep_n_at", "Optional: a sample size you could recruit (in total), to see each goal's chance at it")),
+          field("rep_n_at", "Optional: a sample size you could analyse (in total), to see each goal's chance at it")),
+        field("rep_attrition", "Optional: the proportion you expect to drop out or be excluded, such as 0.1 for 10%",
+          help = "The sample sizes are the numbers analysed. With this, the plan also gives the number to recruit: each group's size divided by 1 minus the proportion, rounded up, the rule powerkit's cards use. It is a crude rule that ignores how missing data will be handled (Rubin, 2025)."),
         NULL),
       # One bar for what is still needed and the button, kept in view
       # as the input screens' is.
@@ -787,7 +789,7 @@ replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref
 replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", "rep_bf_both", "rep_original_prior", "rep_prior_scale",
   "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
-  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_goal", "rep_prior",
+  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_attrition", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
@@ -932,7 +934,53 @@ replication_settings_missing <- function(values) {
   settings <- replication_criteria_settings(values)
   c(if (settings$alpha && !v("rep_alpha")) "the significance level",
     if (!v("rep_power")) "the chance of success to aim for",
-    if (isTRUE(settings$bound_needed)) "the smallest effect that would matter")
+    if (isTRUE(settings$bound_needed)) "the smallest effect that would matter",
+    if (v("rep_attrition") && is.na(replication_attrition(values)) && !identical(trimws(as.character(values$rep_attrition)), "0"))
+      "the dropout as a proportion between 0 and 1, such as 0.1")
+}
+
+# The expected dropout (the proportion of those recruited who won't be
+# analysed), or NA when none was given or it isn't between 0 and 1.
+replication_attrition <- function(values) {
+  a <- suppressWarnings(as.numeric(trimws(as.character(values$rep_attrition %||% ""))))
+  if (length(a) != 1 || is.na(a) || a <= 0 || a >= 1) NA_real_ else a
+}
+
+# The number to recruit for the plan's main sample size, allowing for the
+# expected dropout (the engine's replication_recruitment()), or NULL.
+replication_add_recruitment <- function(plan, values, recruitment = engine_function("replication_recruitment")) {
+  a <- replication_attrition(values)
+  if (is.na(a) || is.null(recruitment)) return(plan)
+  if (!is.null(plan$sizes)) {
+    row <- plan$sizes[plan$sizes$assurance == (plan$chosen_assurance %||% 0.8), , drop = FALSE]
+    if (!nrow(row) || is.na(row$n[1])) return(plan)
+    groups <- if (!is.na(row$per_unit[1]) && row$per_unit[1] > 0) max(1, round(row$n[1] / row$per_unit[1])) else 1
+    plan$recruit <- recruitment(row$n[1], groups = groups, attrition = a)
+    return(plan)
+  }
+  n <- plan$at_main$n
+  if (is.null(n) || is.na(n)) return(plan)
+  plan$recruit <- recruitment(n, groups = if (identical(plan$inputs$design, "two_groups")) 2 else 1, attrition = a)
+  plan
+}
+
+# The recruitment target, under the headline.
+replication_recruit_ui <- function(plan) {
+  words <- replication_recruit_words(plan)
+  if (is.null(words)) return(NULL)
+  p(class = "rep-recruit", id = "rep-recruit", tags$strong("To recruit: "), paste0(words, "."),
+    tags$span(class = "small text-muted", " Each group's analysed size divided by 1 minus the dropout, rounded up."))
+}
+
+# The recruitment target in words: "484 participants (242 per group),
+# allowing for 10% dropout".
+replication_recruit_words <- function(plan) {
+  r <- plan$recruit
+  if (is.null(r)) return(NULL)
+  pairs <- identical(plan$inputs$design, "paired") && is.null(plan$anova_effect)
+  total <- sprintf("%s %s", format(r$n_recruit, big.mark = ","), if (pairs) "pairs" else "participants")
+  if (length(r$groups_recruit) > 1) total <- sprintf("%s (%s per group)", total, format(r$groups_recruit[1], big.mark = ","))
+  sprintf("%s, allowing for %s dropout", total, sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)))
 }
 
 replication_missing <- function(values) {
@@ -1010,7 +1058,7 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
         list(smallest_effect = eta, alpha = args$alpha, power = args$power))),
         error = function(e) list(problem = replication_problem(e)))
     }
-    return(plan)
+    return(replication_add_recruitment(plan, values))
   }
   plan <- do.call(engine, args)
   bounded <- c("agreement", "negligible")
@@ -1044,7 +1092,7 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
     at <- do.call(engine, utils::modifyList(args, list(n = main$row$n)))$at_n
     plan$at_main <- list(n = main$row$n, chances = at[at$goal %in% c(choice$goal, choice$also), , drop = FALSE])
   }
-  plan
+  replication_add_recruitment(plan, values)
 }
 
 replication_n_words <- function(plan, n) {
@@ -1111,7 +1159,7 @@ replication_chances_ui <- function(plan) {
     tags$tr(label, lapply(names(replication_prior_labels), function(p) tags$td(replication_pct(rows$chance[rows$prior %in% p][1]))))
   })
   tags$table(class = "table table-sm result-table", id = "rep-chances",
-    tags$caption(sprintf("The chance of each criterion with %s, the sample size you could recruit", replication_n_words(plan, plan$inputs$n))),
+    tags$caption(sprintf("The chance of each criterion with %s, the sample size you could analyse", replication_n_words(plan, plan$inputs$n))),
     tags$thead(tags$tr(tags$th(scope = "col", "Criterion"),
       lapply(replication_prior_labels, function(l) tags$th(scope = "col", l)))),
     tags$tbody(rows))
@@ -1333,6 +1381,7 @@ replication_bucss_result_ui <- function(plan) {
   })
   div(class = "result-panel mt-2", role = "status",
     p(class = "result-headline lead", headline),
+    replication_recruit_ui(plan),
     beside,
     p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_bucss_validation_text),
     if (any(!is.na(sz$reason))) p(replication_bucss_reason_words(plan)),
@@ -1449,6 +1498,7 @@ replication_result_ui <- function(plan) {
   tagList(
     div(class = "result-panel mt-2", role = "status",
       if (is.null(plan$choice)) replication_headline_ui(plan) else replication_main_headline(plan),
+      replication_recruit_ui(plan),
       p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_validation_text),
       replication_anova_one_df_note(plan),
       replication_main_chances_ui(plan),
@@ -1608,9 +1658,20 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     sprintf("%s%s, %s%s, with the original estimate (%s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign%s",
       replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_sided_words(plan, goal), belief, varies, shown, scaled)
   }
-  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s",
+  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s%s",
     replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n),
-    if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "")
+    if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "",
+    if (identical(goal, plan$choice$goal)) replication_recruit_sentence(plan) else "")
+}
+
+# The recruitment target, for the write-up: " Allowing for ..., we will
+# recruit ...", or "" without a dropout.
+replication_recruit_sentence <- function(plan) {
+  r <- plan$recruit
+  if (is.null(r)) return("")
+  sprintf(" Allowing for an expected dropout of %s, each group's analysed size was divided by %s and rounded up, so we will recruit %s.",
+    sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)), format(signif(1 - r$attrition, 6)),
+    sub(", allowing for .*$", "", replication_recruit_words(plan)))
 }
 
 # How a significance or pooled goal is tested, in words.
@@ -1823,13 +1884,14 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     bf_used <- any(used %in% replication_bf_goals)
     bound_used <- any(used %in% c("agreement", "negligible"))
     lines <- c(lines, "",
-      sprintf("Settings: %schance aimed for %s, belief about the true effect: %s, variation between studies %s%s%s.",
+      sprintf("Settings: %schance aimed for %s, belief about the true effect: %s, variation between studies %s%s%s%s.",
         if (any(used %in% replication_test_goals)) sprintf("replication significance level %s (%s), ", format(plan$inputs$alpha),
           if (identical(plan$inputs$alternative, "one.sided")) "one-sided, in the original's direction" else "two-sided") else "",
         replication_pct(plan$inputs$power), tolower(replication_prior_labels[[ch$prior]]), format(plan$inputs$tau),
         if (bound_used) sprintf(", smallest effect that matters %s%s", format(signif(plan$inputs$smallest_effect, 3)),
           if (identical(ch$bound, "d33")) " (d33, as none was given)" else "") else "",
-        if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else ""),
+        if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else "",
+        if (!is.null(plan$recruit)) sprintf(", expected dropout %s", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))) else ""),
       "", "The sample size each other goal would need, under each belief, is on the plan's Goals screen.", "",
       if (!is.null(plan$choice)) replication_design_table(plan, ch, values$rep_keeps))
   }
@@ -1866,7 +1928,7 @@ replication_bucss_report_lines <- function(plan, values) {
   chosen <- plan$sizes[plan$sizes$assurance == assurance, ][1, ]
   method <- sprintf("We planned the replication's sample size for a significant F test for the %s (alpha = %s) with %s power, correcting the original's effect for %s with BUCSS (Anderson, Kelley & Maxwell, 2017; Anderson & Kelley, 2024) at %s assurance. %s",
     replication_anova_effect_words(i), format(i$alpha), replication_pct(i$power), replication_bucss_corrects(plan), replication_pct(assurance), replication_bucss_original_words(plan))
-  result <- if (is.na(chosen$n)) paste(" ", replication_bucss_reason_words(plan)) else sprintf(" This gives %s.", replication_bucss_n_words(plan, chosen))
+  result <- if (is.na(chosen$n)) paste(" ", replication_bucss_reason_words(plan)) else sprintf(" This gives %s.%s", replication_bucss_n_words(plan, chosen), replication_recruit_sentence(plan))
   c(paste0(method, result), "",
     "| Assurance | Sample size | Its power |", "|---|---|---|",
     vapply(seq_len(nrow(plan$sizes)), function(k) {
@@ -1929,7 +1991,13 @@ replication_ref_keys_used <- function(plan) {
 # main criterion's sample size under the chosen belief, and the others'
 # chances at it), otherwise every goal under every belief.
 replication_script_text <- function(plan, script) {
-  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, if (!is.null(plan$smallest$n)) {
+  recruit <- if (!is.null(plan$recruit) && !is.null(plan$sizes)) c("",
+    sprintf("# Allowing for %s dropout: each group's analysed size divided by (1 - attrition), rounded up", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))),
+    "# (a common but crude rule: it ignores how missing data will be handled), at the chosen assurance",
+    sprintf("attrition <- %s", format(signif(plan$recruit$attrition, 8))),
+    sprintf("groups_analysed <- c(%s)", paste(format(plan$recruit$groups_analysed), collapse = ", ")),
+    "sum(ceiling(groups_analysed / (1 - attrition) - 1e-9))  # in total")
+  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, recruit, if (!is.null(plan$smallest$n)) {
     si <- plan$smallest$inputs
     c("", "# From the smallest effect that would matter: the ANOVA card's own F test, through powerkit's engine",
       "library(powerkit)",
@@ -1939,7 +2007,7 @@ replication_script_text <- function(plan, script) {
   }), collapse = "\n"))
   ch <- plan$choice
   if (is.null(ch) || !ch$goal %in% plan$goals$goal) return(script(plan))
-  script(plan, goal = ch$goal, also = intersect(ch$also, plan$goals$goal), prior = ch$prior)
+  script(plan, goal = ch$goal, also = intersect(ch$also, plan$goals$goal), prior = ch$prior, attrition = plan$recruit$attrition %||% 0)
 }
 
 # The run bar's status: what is still needed for the sample size, as the

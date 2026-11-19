@@ -705,3 +705,24 @@ test_that("'there or not' says when a null result could not show anything at the
   expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "confirm")))))
   expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "absent")))))
 })
+
+test_that("an expected dropout gives the number to recruit, in the result, the write-up and the script", {
+  skip_if(is.null(engine_function("replication_recruitment")), "this engine has no replication_recruitment()")
+  run <- function(v) replication_run(v, engine_function("replication_planning"))
+  v <- modifyList(filled, list(rep_attrition = "0.1", rep_n_at = ""))
+  plan <- run(v)
+  n <- plan$at_main$n
+  expect_equal(plan$recruit$n_recruit, 2 * ceiling(n / 2 / 0.9 - 1e-9))
+  html <- as.character(replication_result_ui(plan))
+  expect_match(html, "rep-recruit", fixed = TRUE)
+  expect_match(html, sprintf("%s participants (%s per group), allowing for 10%% dropout", format(plan$recruit$n_recruit, big.mark = ","),
+    format(plan$recruit$groups_recruit[1], big.mark = ",")), fixed = TRUE)
+  expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "so we will recruit", fixed = TRUE)
+  report <- paste(replication_report(v, plan), collapse = "\n")
+  expect_match(report, "expected dropout 10%", fixed = TRUE)
+  expect_match(replication_script_text(plan, engine_function("replication_planning_script")), "n_recruit <- 2 * ceiling", fixed = TRUE)
+  # None without a dropout, and a dropout that isn't a proportion is asked for again.
+  expect_null(run(filled)$recruit)
+  expect_match(paste(replication_settings_missing(modifyList(v, list(rep_attrition = "10"))), collapse = " "), "dropout as a proportion", fixed = TRUE)
+  expect_length(replication_settings_missing(modifyList(v, list(rep_attrition = "0"))), 0)
+})

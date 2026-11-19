@@ -907,6 +907,10 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #'   sample size.
 #' @param prior The belief about the true effect for `goal` and `also`:
 #'   `"as_reported"`, `"uncertain"` or `"shrunk"`.
+#' @param attrition The expected proportion of those recruited who won't be
+#'   analysed (0, the default, for none). With a `goal`, the script ends by
+#'   working out the number to recruit for its sample size, by
+#'   [replication_recruitment()]'s rule.
 #' @return The script, as one string.
 #' @export
 #' @examples
@@ -915,7 +919,20 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #'     smallest_effect = 0.2)
 #'   cat(replication_planning_script(plan))
 #' }
-replication_planning_script <- function(plan, goal = NULL, also = character(), prior = "uncertain") {
+replication_planning_script <- function(plan, goal = NULL, also = character(), prior = "uncertain", attrition = 0) {
+  # Allowing for dropout: the main criterion's n is the number analysed,
+  # and the number to recruit follows by replication_recruitment()'s rule.
+  if (is.numeric(attrition) && length(attrition) == 1 && !is.na(attrition) && attrition > 0 && !is.null(goal)) {
+    groups <- if (identical(plan$inputs$design, "two_groups")) 2 else 1
+    return(paste(c(replication_planning_script(plan, goal, also, prior),
+      "",
+      sprintf("# Allowing for %s%% dropout: each group's analysed size divided by (1 - attrition), rounded up", format(signif(100 * attrition, 4))),
+      "# (a common but crude rule: it ignores how missing data will be handled)",
+      sprintf("attrition <- %s", format(signif(attrition, 8))),
+      if (groups == 2) "n_recruit <- 2 * ceiling(n / 2 / (1 - attrition) - 1e-9)  # in total, two equal groups"
+      else "n_recruit <- ceiling(n / (1 - attrition) - 1e-9)",
+      "n_recruit"), collapse = "\n"))
+  }
   i <- plan$inputs
   focus <- replication_script_focus(plan, goal, also, prior)
   num <- function(x) format(signif(x, 8))

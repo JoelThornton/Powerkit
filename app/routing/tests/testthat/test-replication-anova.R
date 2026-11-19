@@ -103,3 +103,14 @@ test_that("an extension that changes the original condition is told how to plan 
   expect_match(ui, "about four times as many people", fixed = TRUE)
   expect_match(as.character(replication_extension_note(list(name = "x"), card = TRUE)), "Comparing the original condition with a changed version", fixed = TRUE)
 })
+
+test_that("an ANOVA effect planned with BUCSS gives the number to recruit at the chosen assurance", {
+  skip_if(is.null(engine_function("replication_recruitment")), "this engine has no replication_recruitment()")
+  several <- modifyList(anova_values, list(rep_levels_b = "3", rep_attrition = "0.2", rep_assurance = "0.8"))
+  plan <- run_anova(several)
+  row <- plan$sizes[plan$sizes$assurance == 0.8, ]
+  skip_if(is.na(row$n), "BUCSS couldn't plan this example")
+  expect_equal(plan$recruit$n_analysed, row$n)
+  expect_match(text_of(replication_result_ui(plan)), "allowing for 20% dropout", fixed = TRUE)
+  expect_match(replication_script_text(plan, NULL), "attrition <- 0.2", fixed = TRUE)
+})
