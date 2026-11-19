@@ -21,6 +21,10 @@
 #'   (the pre-replication notes, the original study, the goals and how the
 #'   replication differs) that the study plan holds. Kept as given; `NULL`
 #'   is not written.
+#' @param settings Optional list: the plan's settings for every analysis,
+#'   `alpha` (the significance level) and `power` (the target power), each a
+#'   number between 0 and 1 or absent. The app starts each analysis added
+#'   to the plan with them. `NULL` is not written.
 #'
 #' @return The JSON text, invisibly when written to `file`.
 #' @seealso [read_study_plan()], [write_project()]
@@ -32,7 +36,11 @@
 #' write_study_plan(list(list(spec = spec, result = run_spec(spec))), file = path)
 #' plan <- read_study_plan(path)
 #' unlink(path)
-write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, description = NULL, guided = NULL, replication = NULL) {
+write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, description = NULL, guided = NULL, replication = NULL,
+                             settings = NULL) {
+  if (!is.null(settings) && (!is.list(settings) || !identical(plan_settings(settings), settings[intersect(c("alpha", "power"), names(settings))]))) {
+    abort_project("A study plan's settings should be a list of 'alpha' and 'power', each a number between 0 and 1.")
+  }
   if (!is.null(guided) && !is.list(guided)) {
     abort_project("A study plan's guided plan should be a list (the app's guided-plan record).")
   }
@@ -76,10 +84,11 @@ write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, desc
     description = plan_text_field(description),
     analyses = entries,
     guided = guided,
-    replication = replication
+    replication = replication,
+    settings = if (length(settings)) plan_settings(settings)
   )
   # Optional fields: written only when given.
-  for (field in c("id", "name", "description", "guided", "replication")) if (is.null(plan[[field]])) plan[[field]] <- NULL
+  for (field in c("id", "name", "description", "guided", "replication", "settings")) if (is.null(plan[[field]])) plan[[field]] <- NULL
   text <- as.character(jsonlite::toJSON(
     plan,
     auto_unbox = TRUE, digits = NA, null = "null", na = "null", pretty = TRUE
@@ -103,7 +112,8 @@ write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, desc
 #'   `powerkit_project`s), `saved`, `powerkit_version`, `id`, `name` and
 #'   `description` (each `NULL` when the file has none), `guided` (the
 #'   guided-plan record, or `NULL`), `replication` (the replication-plan
-#'   record, or `NULL`), and `roles` and `notes`, character
+#'   record, or `NULL`), `settings` (the plan's `alpha` and `power` for
+#'   every analysis, or `NULL`), and `roles` and `notes`, character
 #'   vectors with one element per analysis (`NA` where the file has none).
 #' @seealso [write_study_plan()], [read_project()]
 #' @export
@@ -143,12 +153,21 @@ read_study_plan <- function(x) {
       description = plan_text_field(raw$description),
       guided = if (is.list(raw$guided)) raw$guided,
       replication = if (is.list(raw$replication)) raw$replication,
+      settings = if (length(plan_settings(raw$settings))) plan_settings(raw$settings),
       roles = per_analysis("plan_role"), notes = per_analysis("plan_note")),
     class = "powerkit_study_plan"
   )
 }
 
 study_plan_format <- function() "powerkit-study-plan"
+
+# A plan's settings for every analysis: alpha and power, each kept only
+# when it is one number strictly between 0 and 1.
+plan_settings <- function(x) {
+  if (!is.list(x)) return(list())
+  ok <- function(v) is.numeric(v) && length(v) == 1L && !is.na(v) && v > 0 && v < 1
+  Filter(Negate(is.null), list(alpha = if (ok(x$alpha)) x$alpha, power = if (ok(x$power)) x$power))
+}
 
 # A plan's optional text field: one string, or NULL (not written).
 plan_text_field <- function(x) {

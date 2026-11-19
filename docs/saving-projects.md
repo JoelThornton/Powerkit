@@ -457,7 +457,9 @@ About and Updates, not a screen of the plan tab:
       Note: ...                         [Open] [Role ▾] [Note] [Remove]
    2. ...
 
- [Add an analysis] [Save plan] [Copy a link] [Download everything (.zip)]
+ Settings for every analysis in this plan: [Significance level ▾] [Target power ▾]
+
+ [Help me choose an analysis] [I know my analysis] [Save plan] [Copy a link] [Download everything (.zip)]
  Not saved to a file since your last change.
  Delete this plan
 ```
@@ -467,6 +469,14 @@ About and Updates, not a screen of the plan tab:
   wherever shown. Two plans may share a name: each has its own id.
 - **Description.** Free text, optional, up to 2,000 characters, shown
   on the plan page and at the top of the study-wide document.
+- **Settings for every analysis.** A significance level and a target
+  power, each optional, set once on the plan page (queue item 29, 19
+  November 2026). An analysis added from the plan's "Help me choose an
+  analysis" or "I know my analysis" starts with them, as a replication
+  plan's card starts with its Goals (`replication_form_values()`), and
+  its card says so; a value the card already has is kept, and either
+  can be changed on the card for that analysis only. They are kept in
+  the browser and in the plan file (`settings`, written only when set).
 - **Roles.** Each analysis is Primary, Secondary or Check (manipulation
   or quality check); the default is Primary for the first analysis and
   Secondary for the rest, or the role "Plan my whole study" gave it.

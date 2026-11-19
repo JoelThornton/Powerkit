@@ -100,3 +100,16 @@ test_that("a study plan keeps a replication plan's record as it was given", {
   expect_null(read_study_plan(plain)$replication)
   expect_error(write_study_plan(list(list(spec = spec)), replication = "not a record"), "replication")
 })
+
+test_that("a study plan keeps its settings for every analysis", {
+  spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+  spec$target_test$method <- "student_t"
+  a <- list(spec = spec, result = run_spec(spec))
+  text <- write_study_plan(list(a), settings = list(alpha = 0.01, power = 0.9))
+  plan <- read_study_plan(text)
+  expect_identical(plan$settings, list(alpha = 0.01, power = 0.9))
+  expect_identical(read_study_plan(write_study_plan(list(a), settings = list(power = 0.95)))$settings, list(power = 0.95))
+  expect_null(read_study_plan(write_study_plan(list(a)))$settings)
+  expect_false("settings" %in% names(jsonlite::parse_json(write_study_plan(list(a)))))
+  expect_error(write_study_plan(list(a), settings = list(alpha = 5)), "between 0 and 1")
+})

@@ -216,7 +216,10 @@ each area, is at the end of
   opens again as the plan. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
-  the guided screens from the plan's page
+  the guided screens from the plan's page. A plan's significance level
+  and target power are set once on its page and start each analysis
+  added from it, and "Help me choose an analysis" and "I know my
+  analysis" both add to it
   ([`saving-projects.md`](saving-projects.md), "Study plans").
 
 - **Experimental: whole-study planning.** The guided plan simulates
@@ -332,9 +335,8 @@ each area, is at the end of
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
   and one "Still needed" bar beside the button. Still to come: the rest
-  of item 28 (the three-factor ANOVA, several originals,
-  attrition, unequal allocation, reliability, claims resting on several
-  tests) and study plans' shared settings (29).
+  of item 28 (the three-factor ANOVA, several originals, unequal
+  allocation, reliability, claims resting on several tests).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

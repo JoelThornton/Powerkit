@@ -1397,6 +1397,8 @@ server <- function(input, output, session) {
       return()
     }
     if (pick == "home" || kind == "route" || kind == "aim") state$rep_extension_plan <- NULL
+    # Starting again leaves the study plan whose "Add an analysis" led here.
+    if (pick == "home") state$plan_more_target <- NULL
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
@@ -1495,6 +1497,9 @@ server <- function(input, output, session) {
         # The replication plan's notes, in the user's own words, as the reasoning.
         seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
         if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
+      } else if (!is.null(target <- plan_get(state$plan_more_target))) {
+        # A study plan's settings for every analysis, entered once.
+        state$form_values <- plan_settings_form_values(state$form_values, target$settings)
       }
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
@@ -2480,6 +2485,13 @@ server <- function(input, output, session) {
     text <- plan_clean_text(edit$text %||% "", plan_description_max)
     if (!identical(text, plan$description %||% "")) plans_put(plan_edit(plan, description = text))
   })
+  # The plan's settings for every analysis (queue item 29).
+  observeEvent(input$plan_settings_edit, {
+    edit <- input$plan_settings_edit
+    plan <- if (is.character(edit$id) && length(edit$id) == 1L) plan_get(edit$id)
+    if (is.null(plan) || !isTRUE(edit$field %in% c("alpha", "power"))) return()
+    plans_put(plan_edit_settings(plan, edit$field, as.character(edit$value %||% "")))
+  })
   observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
   observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
   observeEvent(input$plan_remove, edit_viewed(function(p) plan_remove_entry(p, input$plan_remove)))
@@ -2597,6 +2609,19 @@ server <- function(input, output, session) {
       words <- joint_power_sentence(out, entries)
       div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
     })
+  })
+  # The next analysis, chosen from the searchable list of every analysis
+  # (queue item 29), added to this plan.
+  observeEvent(input$plan_more_known, {
+    if (!is.null(plan_get(isolate(state$plans_view)))) {
+      state$current_plan <- isolate(state$plans_view)
+      state$plan_more_target <- isolate(state$plans_view)
+    }
+    cancel_job()
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+    state$start <- list(); state$rep_plan <- NULL; state$rep_extension_plan <- NULL
+    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$ctx <- list()
+    state$route <- "known"; state$skip_screening <- TRUE; state$screen <- "known"
   })
   observeEvent(input$plan_more, {
     # The next analysis, found by "Help me choose" from the start, added
@@ -3375,6 +3400,7 @@ server <- function(input, output, session) {
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
         # Already in a replication plan: the signpost offering one is hidden.
         if (replicating(state$start)) tags$style(".labs-signpost { display: none; }"),
+        if (!replicating(state$start) && !is.null(target <- plan_get(state$plan_more_target))) plan_settings_note(target),
         form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
