@@ -1,0 +1,1 @@
+* `export_citations()`: powerkit's own citation has a year again. Installed from its source folder, powerkit's DESCRIPTION has no Date/Publication, Date or Packaged field, so `citation()` printed "Thornton J (????)"; the year the installed version was built now stands in (`powerkit_citation()`, internal).

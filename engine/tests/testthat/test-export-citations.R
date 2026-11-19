@@ -328,3 +328,15 @@ test_that("CITATION.cff agrees with the package DESCRIPTION", {
   expect_true(any(lines == "license: GPL-3.0-or-later"))
   expect_true(any(grepl("powerkit: Unified Power Analysis for Common Research Designs", lines, fixed = TRUE)))
 })
+
+test_that("powerkit's own citation has a year when it was installed from its source folder", {
+  meta <- list(Package = "powerkit", Title = "Unified Power Analysis", Version = "1.2.3",
+    `Authors@R` = 'person("A", "Author", role = c("aut", "cre"))', Built = "R 4.5.3; ; 2026-11-19 01:31:01 UTC; unix")
+  text <- format(powerkit_citation(meta), style = "text")
+  expect_match(text, "(2026)", fixed = TRUE)
+  expect_no_match(text, "????", fixed = TRUE)
+  # A dated DESCRIPTION keeps its own year.
+  meta$Date <- "2025-03-01"
+  expect_match(format(powerkit_citation(meta), style = "text"), "(2025)", fixed = TRUE)
+  expect_no_match(paste(export_citations(fake_result("pwr")), collapse = "\n"), "????", fixed = TRUE)
+})
