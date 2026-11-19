@@ -754,3 +754,28 @@ test_that("unequal groups are planned, named in the result and the write-up, and
   expect_true(is.na(replication_ratio(list(rep_ratio = "0"))))
   expect_true("rep_ratio" %in% replication_field_ids)
 })
+
+test_that("a change in the outcome measure's reliability is planned, explained and cited", {
+  skip_if(!"reliability_original" %in% names(formals(engine_function("replication_planning"))), "this engine has no reliabilities")
+  run <- function(v) replication_run(v, engine_function("replication_planning"))
+  v <- modifyList(filled, list(rep_rel_original = "0.9", rep_rel_replication = "0.7", rep_n_at = ""))
+  args <- replication_args(v)
+  expect_identical(c(args$reliability_original, args$reliability_replication), c(0.9, 0.7))
+  # Not for pairs, and not unless both are numbers above 0 and at most 1.
+  expect_null(replication_args(modifyList(v, list(rep_design = "paired", rep_n = "30")))$reliability_original)
+  expect_null(replication_reliabilities(modifyList(v, list(rep_rel_replication = ""))))
+  expect_match(paste(replication_settings_missing(modifyList(v, list(rep_rel_replication = ""))), collapse = " "),
+    "reliability in both studies", fixed = TRUE)
+  plan <- run(v)
+  same <- run(modifyList(v, list(rep_rel_original = "", rep_rel_replication = "")))
+  expect_gt(plan$at_main$n, same$at_main$n)
+  html <- as.character(replication_result_ui(plan))
+  expect_match(html, "Planned for the replication&#39;s measure|Planned for the replication's measure")
+  expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "Schmidt & Hunter, 1996", fixed = TRUE)
+  expect_true("Schmidt1996_measurement" %in% replication_ref_keys_used(plan))
+  # Small telescopes isn't offered, and the equivalence test needs a smallest effect.
+  expect_false("small_telescopes" %in% plan$goals$goal)
+  settings <- replication_criteria_settings(modifyList(v, list(rep_goal = "negligible", rep_smallest = "")))
+  expect_true(settings$bound_needed)
+  expect_true(all(c("rep_rel_original", "rep_rel_replication") %in% replication_field_ids))
+})

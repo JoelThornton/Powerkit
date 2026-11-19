@@ -423,7 +423,8 @@ replication_prior_notes <- c(
 
 replication_ref_keys <- c("Pawel2026_replication", "Anderson2016_replication", "Simonsohn2015_telescopes", "Kenny2019_heterogeneity",
   "VerhagenWagenmakers2014_replication", "Ly2019_replication_bf", "Ly2018_summary_reanalysis", "McLatchie2020_bayes_factors",
-  "bfpwr_method", "Lakens2013_effectsizes", "Anderson2017_bucss", "AndersonKelley2024_replication_design")
+  "bfpwr_method", "Lakens2013_effectsizes", "Anderson2017_bucss", "AndersonKelley2024_replication_design",
+  "Schmidt1996_measurement")
 
 # The replication planner's sections, inside a replication plan's
 # workspace (replication_workspace_ui(), R/study-plan-replication.R; a Labs tool
@@ -452,14 +453,18 @@ replication_criteria_settings <- function(values) {
   design <- values$rep_design %||% ""
   available <- names(replication_goal_labels)
   if (design %in% c("generic", "correlation")) available <- setdiff(available, c("bf_repeat", "bf_null"))
-  if (identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor")))
+  # A change of the outcome measure's reliability: small telescopes' d33
+  # is in the original's own units (the engine leaves it out).
+  rel <- replication_reliabilities(values)
+  measure_changed <- !is.null(rel) && design %in% c("two_groups", "one_sample", "") && !isTRUE(all.equal(rel[1], rel[2]))
+  if (identical(design, "generic") || measure_changed || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor")))
     available <- setdiff(available, "small_telescopes")
   choice <- replication_resolve_goals(values, available)
   used <- c(choice$goal, choice$also)
   # A bound for agreement or the equivalence test: the researcher's, or
   # d33 from the original's significance test, which a Bayesian original
   # or another design doesn't have.
-  no_d33 <- identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor"))
+  no_d33 <- identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor"))  || measure_changed
   smallest <- nzchar(trimws(as.character(values$rep_smallest %||% "")))
   list(alpha = any(used %in% replication_test_goals), sided = any(used %in% c("significance", "pooled")),
     bf = any(used %in% replication_bf_goals), bound = any(used %in% c("agreement", "negligible")),
@@ -730,6 +735,11 @@ replication_planner_sections <- function() {
         rep_note("No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies under Goals."),
         box("rep_diff_people", "The people: who takes part, where and when, and how they differ from the original sample"),
         box("rep_diff_materials", "The materials and measures: what is translated, updated or replaced"),
+        conditionalPanel("['two_groups', 'one_sample', ''].indexOf(input.rep_design || '') >= 0",
+          div(class = "rep-reliability",
+            field("rep_rel_original", "Optional, if the outcome measure changes: its reliability in the original study, such as 0.9"),
+            field("rep_rel_replication", "and the reliability you expect for the replication's measure, such as 0.75",
+              help = "A less reliable measure shows a smaller d for the same true effect: an observed d is the true d times the square root of the measure's reliability (Schmidt & Hunter, 1996). With both, the plan expects the original's d times the square root of the replication's reliability over the original's, so a less reliable measure needs more people. Use the same kind of reliability for both, such as Cronbach's alpha. Small telescopes and BUCSS work in the original's own units, so they are left out."))),
         box("rep_diff_procedure", "The procedure and setting: for example online instead of in the lab"),
         box("rep_diff_analysis", "The analysis: the original's test, and anything added or changed"),
         box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"),
@@ -792,7 +802,7 @@ replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref
 replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", "rep_bf_both", "rep_original_prior", "rep_prior_scale",
   "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
-  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_goal", "rep_prior",
+  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
@@ -848,6 +858,11 @@ replication_args <- function(values) {
     if (!is.na(ratio) && !isTRUE(all.equal(ratio, 1))) args$allocation_ratio <- ratio
   } else {
     args$original_n <- num("rep_n", NA_real_)
+  }
+  rel <- replication_reliabilities(values)
+  if (!is.null(rel) && design %in% c("two_groups", "one_sample")) {
+    args$reliability_original <- rel[[1]]
+    args$reliability_replication <- rel[[2]]
   }
   if (identical(design, "generic")) {
     args$scale <- if (v("rep_scale") %in% c("none", "log", "fisher_z")) v("rep_scale") else "none"
@@ -943,7 +958,18 @@ replication_settings_missing <- function(values) {
     if (v("rep_attrition") && is.na(replication_attrition(values)) && !identical(trimws(as.character(values$rep_attrition)), "0"))
       "the dropout as a proportion between 0 and 1, such as 0.1",
     if (v("rep_ratio") && identical(values$rep_design %||% "two_groups", "two_groups") && is.na(replication_ratio(values)))
-      "the groups' ratio as a number above 0 and at most 20, such as 2")
+      "the groups' ratio as a number above 0 and at most 20, such as 2",
+    if ((v("rep_rel_original") || v("rep_rel_replication")) && (values$rep_design %||% "two_groups") %in% c("two_groups", "one_sample", "") &&
+      is.null(replication_reliabilities(values)))
+      "the measure's reliability in both studies, each a number above 0 and at most 1")
+}
+
+# The outcome measure's reliability in the original and the replication,
+# or NULL unless both are numbers above 0 and at most 1.
+replication_reliabilities <- function(values) {
+  r <- vapply(c("rep_rel_original", "rep_rel_replication"), function(id)
+    suppressWarnings(as.numeric(trimws(as.character(values[[id]] %||% "")))), numeric(1))
+  if (anyNA(r) || any(r <= 0 | r > 1)) NULL else unname(r)
 }
 
 # The replication's group 2 size over group 1's, or NA when none was
@@ -1544,8 +1570,10 @@ replication_result_ui <- function(plan) {
         else sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
           plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
       else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes needs the original's significance test. This plan uses a Bayesian summary of the original.")
+      else if (!is.null(plan$original$attenuation)) NULL
       else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
       # The sample size the researcher could recruit, in view: they asked for it.
+      replication_attenuation_ui(plan),
       replication_chances_ui(plan),
       replication_bias_corrected_ui(plan),
       tags$details(class = "mt-2", id = "rep-every-goal", open = if (is.null(plan$choice)) NA,
@@ -1637,7 +1665,7 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   bayes <- !identical(i$original_analysis %||% "test", "test")
   shown <- if (identical(i$original_analysis, "bayes_factor")) {
     sprintf("%s = %s, read from its Bayes factor (BF10 = %s, a default t-test with a Cauchy prior of scale %s; Ly et al., 2018), %s",
-      plan$effect_name, format(signif(plan$original$estimate, 3)), format(signif(i$original_bf, 3)),
+      plan$effect_name, format(signif(plan$original$reported %||% plan$original$estimate, 3)), format(signif(i$original_bf, 3)),
       format(signif(i$original_prior_scale, 3)), original)
   } else if (identical(i$original_analysis, "posterior")) {
     sprintf("its posterior mean, %s = %s, with its posterior SD standing in for the standard error, from a %s prior, %s",
@@ -1656,6 +1684,7 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   } else {
     sprintf("%s = %s, %s", plan$effect_name, format(i$original_effect), original)
   }
+  shown <- paste0(shown, replication_attenuation_words(plan))
   belief <- switch(prior,
     as_reported = "assuming the true effect equals the original estimate",
     uncertain = "with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by the original study)",
@@ -2011,7 +2040,8 @@ replication_ref_keys_used <- function(plan) {
     if (identical(i$original_analysis, "posterior") || "bf_null" %in% goals) "McLatchie2020_bayes_factors",
     if (any(c("bf_repeat", "bf_null") %in% goals)) "bfpwr_method",
     if (isTRUE(i$original_effect_type %in% c("t", "d_rm"))) "Lakens2013_effectsizes",
-    if (!is.null(plan$bias_corrected)) "Anderson2017_bucss")
+    if (!is.null(plan$bias_corrected)) "Anderson2017_bucss",
+    if (!is.null(plan$original$attenuation)) "Schmidt1996_measurement")
   intersect(replication_ref_keys, keys)
 }
 
@@ -2226,4 +2256,28 @@ replication_sequential_settings <- function(plan, prior = NULL) {
 replication_uneven <- function(plan) {
   identical(plan$inputs$design, "two_groups") && is.null(plan$anova_effect) &&
     !isTRUE(all.equal(plan$inputs$allocation_ratio %||% 1, 1))
+}
+
+# A measure of different reliability: the d the replication's measure
+# would show, in the methods paragraph's words ("" when the same).
+replication_attenuation_words <- function(plan) {
+  a <- plan$original$attenuation
+  if (is.null(a)) return("")
+  i <- plan$inputs
+  sprintf(paste0("; as the outcome measure's reliability is %s in the original and expected to be %s in the replication, ",
+    "the original's d was planned as %s, the d the replication's measure would show (an observed d is the true d times the ",
+    "square root of the measure's reliability; Schmidt & Hunter, 1996)"),
+    format(i$reliability_original), format(i$reliability_replication), format(signif(plan$original$estimate, 3)))
+}
+
+# The same, on the result screen, with what it leaves out.
+replication_attenuation_ui <- function(plan) {
+  a <- plan$original$attenuation
+  if (is.null(a)) return(NULL)
+  i <- plan$inputs
+  rep_note(sprintf(paste0("Planned for the replication's measure: the original's d of %s is expected to show as %s with a measure of ",
+    "reliability %s instead of %s (the square root of their ratio, %s; Schmidt & Hunter, 1996). Small telescopes and BUCSS work ",
+    "in the original's own units, so they are left out."),
+    format(signif(plan$original$reported, 3)), format(signif(plan$original$estimate, 3)), format(i$reliability_replication),
+    format(i$reliability_original), format(signif(a, 3))))
 }

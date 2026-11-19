@@ -302,7 +302,9 @@ each area, is at the end of
   size would have too little chance of showing absence, an expected
   dropout gives the number to recruit (the cards' rule), and a
   two-group replication can have unequal groups (the cards' allocation
-  ratio).
+  ratio) and, for two groups or one group, an outcome measure of
+  different reliability (the original's d attenuated; Schmidt & Hunter,
+  1996).
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
   and the significance test can be one-sided. The page's five sections

@@ -38,7 +38,9 @@ replication_planning(
   effect = NULL,
   original_partial_eta = NULL,
   original_df_error = NULL,
-  allocation_ratio = 1
+  allocation_ratio = 1,
+  reliability_original = NULL,
+  reliability_replication = NULL
 )
 }
 \arguments{
@@ -165,10 +167,22 @@ the cards split it (group 1 is n / (1 + ratio) rounded to the nearest
 person), and every goal is judged at those groups' standard error,
 sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
 \code{bias_corrected} is \code{NULL} for unequal ones.}
+
+\item{reliability_original, reliability_replication}{For \code{"two_groups"}
+and \code{"one_sample"}: the outcome measure's reliability in the original
+study and in the replication (both or neither, each above 0 and at
+most 1). An observed d is the true d times the square root of the
+measure's reliability (Schmidt & Hunter, 1996), so the original's
+estimate and standard error are multiplied by
+sqrt(reliability_replication / reliability_original): the effect the
+replication's measure would show, with the original's z unchanged.
+Small telescopes and BUCSS work in the original's own units, so they
+are left out when the reliabilities differ.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
-analysis scale, z and two-sided p); \code{priors} (mean and SD of each
+analysis scale, z and two-sided p; with a change of reliability, also
+\code{reported}, the estimate in the original's units, and \code{attenuation}); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
 planned for no effect), \code{n} (the total sample size needed, \code{NA} when
 not reachable), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:

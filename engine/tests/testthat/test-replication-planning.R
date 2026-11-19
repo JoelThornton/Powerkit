@@ -542,3 +542,45 @@ test_that("the script for unequal groups gives the planner's numbers and the num
     expect_equal(env$n_recruit, replication_recruitment(env$n, groups = 2, attrition = 0.1, allocation_ratio = 2)$n_recruit)
   }
 })
+
+test_that("a measure of different reliability plans the d the replication's measure would show", {
+  same <- two_groups()
+  changed <- two_groups(reliability_original = 0.9, reliability_replication = 0.7)
+  a <- sqrt(0.7 / 0.9)
+  expect_equal(changed$original$estimate, same$original$estimate * a)
+  expect_equal(changed$original$se, same$original$se * a)
+  expect_equal(changed$original$z, same$original$z)
+  expect_equal(changed$original$attenuation, a)
+  # A smaller expected effect needs more people; the goals planned for no
+  # effect are judged at zero, as before.
+  expect_gt(goal_n(changed, "significance", "uncertain"), goal_n(same, "significance", "uncertain"))
+  expect_equal(goal_n(changed, "negligible"), goal_n(same, "negligible"))
+  # Small telescopes and BUCSS work in the original's own units.
+  expect_false("small_telescopes" %in% changed$goals$goal)
+  expect_null(changed$bias_corrected)
+  # The script gives the same numbers.
+  script <- replication_planning_script(changed, goal = "significance", prior = "uncertain")
+  expect_match(script, "attenuation <- sqrt(0.7 / 0.9)", fixed = TRUE)
+  env <- new.env()
+  eval(parse(text = script), envir = env)
+  expect_equal(env$n, goal_n(changed, "significance", "uncertain"))
+  expect_error(two_groups(reliability_original = 0.9), "both studies")
+  expect_error(two_groups(reliability_original = 0.9, reliability_replication = 1.2), "at most 1")
+  expect_error(replication_planning("paired", 0.5, original_n = 30, reliability_original = 0.9, reliability_replication = 0.7),
+    "two separate groups or one group")
+})
+
+test_that("an observed d is the true d times the square root of the measure's reliability, in simulated studies", {
+  # Schmidt & Hunter (1996): measurement error adds variance to the
+  # outcome, not to the difference between the groups' means.
+  set.seed(20261119)
+  n <- 2e5
+  delta <- 0.5
+  rel <- 0.7
+  true <- c(stats::rnorm(n), stats::rnorm(n, delta))
+  observed <- true + stats::rnorm(2 * n, sd = sqrt((1 - rel) / rel * stats::var(true[1:n])))
+  group <- rep(1:2, each = n)
+  pooled <- sqrt((stats::var(observed[group == 1]) + stats::var(observed[group == 2])) / 2)
+  d_observed <- diff(tapply(observed, group, mean)) / pooled
+  expect_equal(unname(d_observed), delta * sqrt(rel), tolerance = 0.01)
+})

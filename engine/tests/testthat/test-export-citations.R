@@ -120,7 +120,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # Bayes factors for replications, from the full-text PDFs (15 November 2026),
   # and Rochon, Gondan and Kieser on preliminary normality tests, from its
   # Crossref and PubMed records (17 November 2026), and BUCSS's two method
-  # papers, from their Crossref records (18 November 2026).
+  # papers, from their Crossref records (18 November 2026), and Schmidt and
+  # Hunter on measurement error, from its Crossref record (19 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -160,7 +161,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Lu2016_bland_altman_n = "verified", HayesPreacher2014_multicategorical = "verified",
       ValeriVanderWeele2013_mediation = "verified",
       VerhagenWagenmakers2014_replication = "verified", Ly2019_replication_bf = "verified",
-      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified", pmsampsize_method = "verified", pmvalsampsize_method = "verified"
+      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified", pmsampsize_method = "verified", pmvalsampsize_method = "verified",
+      Schmidt1996_measurement = "verified"
     )
   )
 })
