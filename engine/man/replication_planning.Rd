@@ -172,14 +172,19 @@ person), and every goal is judged at those groups' standard error,
 sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
 \code{bias_corrected} is \code{NULL} for unequal ones.}
 
-\item{reliability_original, reliability_replication}{For \code{"two_groups"}
-and \code{"one_sample"}: the outcome measure's reliability in the original
-study and in the replication (both or neither, each above 0 and at
-most 1). An observed d is the true d times the square root of the
-measure's reliability (Schmidt & Hunter, 1996), so the original's
-estimate and standard error are multiplied by
+\item{reliability_original, reliability_replication}{For \code{"two_groups"},
+\code{"one_sample"} and \code{"correlation"}: the outcome measure's reliability
+in the original study and in the replication (both or neither, each
+above 0 and at most 1). An observed d is the true d times the square
+root of the measure's reliability (Schmidt & Hunter, 1996), so the
+original's estimate and standard error are multiplied by
 sqrt(reliability_replication / reliability_original): the effect the
 replication's measure would show, with the original's z unchanged.
+An observed r is the true r times the square root of both measures'
+reliabilities, so for a correlation give the reliability of the
+measure that changed (or, if both changed, the product of the two
+measures' reliabilities in each study); r is scaled, moved back to
+Fisher's z, and its standard error scaled to keep its z.
 Small telescopes and BUCSS work in the original's own units, so they
 are left out when the reliabilities differ.}
 }

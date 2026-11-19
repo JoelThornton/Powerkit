@@ -458,7 +458,7 @@ replication_criteria_settings <- function(values) {
   # A change of the outcome measure's reliability: small telescopes' d33
   # is in the original's own units (the engine leaves it out).
   rel <- replication_reliabilities(values)
-  measure_changed <- !is.null(rel) && design %in% c("two_groups", "one_sample", "") && !isTRUE(all.equal(rel[1], rel[2]))
+  measure_changed <- !is.null(rel) && design %in% c("two_groups", "one_sample", "correlation", "") && !isTRUE(all.equal(rel[1], rel[2]))
   if (identical(design, "generic") || measure_changed || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor", "pooled")))
     available <- setdiff(available, "small_telescopes")
   choice <- replication_resolve_goals(values, available)
@@ -746,11 +746,11 @@ replication_planner_sections <- function() {
         rep_note("No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies under Goals."),
         box("rep_diff_people", "The people: who takes part, where and when, and how they differ from the original sample"),
         box("rep_diff_materials", "The materials and measures: what is translated, updated or replaced"),
-        conditionalPanel("['two_groups', 'one_sample', ''].indexOf(input.rep_design || '') >= 0",
+        conditionalPanel("['two_groups', 'one_sample', 'correlation', ''].indexOf(input.rep_design || '') >= 0",
           div(class = "rep-reliability",
             field("rep_rel_original", "Optional, if the outcome measure changes: its reliability in the original study, such as 0.9"),
             field("rep_rel_replication", "and the reliability you expect for the replication's measure, such as 0.75",
-              help = "A less reliable measure shows a smaller d for the same true effect: an observed d is the true d times the square root of the measure's reliability (Schmidt & Hunter, 1996). With both, the plan expects the original's d times the square root of the replication's reliability over the original's, so a less reliable measure needs more people. Use the same kind of reliability for both, such as Cronbach's alpha. Small telescopes and BUCSS work in the original's own units, so they are left out."))),
+              help = "A less reliable measure shows a smaller d for the same true effect: an observed d is the true d times the square root of the measure's reliability (Schmidt & Hunter, 1996). With both, the plan expects the original's d times the square root of the replication's reliability over the original's, so a less reliable measure needs more people. Use the same kind of reliability for both, such as Cronbach's alpha. For a correlation, give the reliability of the measure that changes (an observed r is the true r times the square root of both measures' reliabilities; if both change, give the product of their reliabilities in each study). Small telescopes and BUCSS work in the original's own units, so they are left out."))),
         box("rep_diff_procedure", "The procedure and setting: for example online instead of in the lab"),
         box("rep_diff_analysis", "The analysis: the original's test, and anything added or changed"),
         box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"),
@@ -872,7 +872,7 @@ replication_args <- function(values) {
     args$original_n <- num("rep_n", NA_real_)
   }
   rel <- replication_reliabilities(values)
-  if (!is.null(rel) && design %in% c("two_groups", "one_sample")) {
+  if (!is.null(rel) && design %in% c("two_groups", "one_sample", "correlation")) {
     args$reliability_original <- rel[[1]]
     args$reliability_replication <- rel[[2]]
   }
@@ -982,7 +982,7 @@ replication_settings_missing <- function(values) {
       "the dropout as a proportion between 0 and 1, such as 0.1",
     if (v("rep_ratio") && identical(values$rep_design %||% "two_groups", "two_groups") && is.na(replication_ratio(values)))
       "the groups' ratio as a number above 0 and at most 20, such as 2",
-    if ((v("rep_rel_original") || v("rep_rel_replication")) && (values$rep_design %||% "two_groups") %in% c("two_groups", "one_sample", "") &&
+    if ((v("rep_rel_original") || v("rep_rel_replication")) && (values$rep_design %||% "two_groups") %in% c("two_groups", "one_sample", "correlation", "") &&
       is.null(replication_reliabilities(values)))
       "the measure's reliability in both studies, each a number above 0 and at most 1")
 }
@@ -2307,10 +2307,14 @@ replication_attenuation_words <- function(plan) {
   a <- plan$original$attenuation
   if (is.null(a)) return("")
   i <- plan$inputs
-  sprintf(paste0("; as the outcome measure's reliability is %s in the original and expected to be %s in the replication, ",
-    "the original's d was planned as %s, the d the replication's measure would show (an observed d is the true d times the ",
-    "square root of the measure's reliability; Schmidt & Hunter, 1996)"),
-    format(i$reliability_original), format(i$reliability_replication), format(signif(plan$original$estimate, 3)))
+  r <- identical(i$design, "correlation")
+  e <- if (r) "r" else "d"
+  sprintf(paste0("; as the %s reliability is %s in the original and expected to be %s in the replication, ",
+    "the original's %s was planned as %s, the %s the replication's measure would show (an observed %s is the true %s times the ",
+    "square root of %s; Schmidt & Hunter, 1996)"),
+    if (r) "changed measure's" else "outcome measure's", format(i$reliability_original), format(i$reliability_replication),
+    e, format(signif(replication_attenuated_effect(plan, "estimate"), 3)), e, e, e,
+    if (r) "both measures' reliabilities" else "the measure's reliability")
 }
 
 # The same, on the result screen, with what it leaves out.
@@ -2318,9 +2322,17 @@ replication_attenuation_ui <- function(plan) {
   a <- plan$original$attenuation
   if (is.null(a)) return(NULL)
   i <- plan$inputs
-  rep_note(sprintf(paste0("Planned for the replication's measure: the original's d of %s is expected to show as %s with a measure of ",
+  rep_note(sprintf(paste0("Planned for the replication's measure: the original's %s of %s is expected to show as %s with a measure of ",
     "reliability %s instead of %s (the square root of their ratio, %s; Schmidt & Hunter, 1996). Small telescopes and BUCSS work ",
     "in the original's own units, so they are left out."),
-    format(signif(plan$original$reported, 3)), format(signif(plan$original$estimate, 3)), format(i$reliability_replication),
-    format(i$reliability_original), format(signif(a, 3))))
+    if (identical(i$design, "correlation")) "r" else "d",
+    format(signif(replication_attenuated_effect(plan, "reported"), 3)), format(signif(replication_attenuated_effect(plan, "estimate"), 3)),
+    format(i$reliability_replication), format(i$reliability_original), format(signif(a, 3))))
+}
+
+# The original's effect before ("reported") or after ("estimate") the
+# change of reliability, in its own units (r, not Fisher's z).
+replication_attenuated_effect <- function(plan, which) {
+  x <- plan$original[[which]]
+  if (identical(plan$inputs$design, "correlation")) tanh(x) else x
 }

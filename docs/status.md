@@ -302,7 +302,7 @@ each area, is at the end of
   size would have too little chance of showing absence, an expected
   dropout gives the number to recruit (the cards' rule), and a
   two-group replication can have unequal groups (the cards' allocation
-  ratio) and, for two groups or one group, an outcome measure of
+  ratio) and, for two groups, one group or a correlation, a measure of
   different reliability (the original's d attenuated; Schmidt & Hunter,
   1996). The original can be several studies or a meta-analysis: their
   pooled estimate with its standard error or interval, without a sample
@@ -345,7 +345,7 @@ each area, is at the end of
   titles, titled cards, tile choices, number-sized boxes, ticked steps
   and one "Still needed" bar beside the button. Still to come: the rest
   of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
-  an ANOVA original, reliability for pairs and correlations, claims
+  an ANOVA original, reliability for pairs, claims
   resting on several tests).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,

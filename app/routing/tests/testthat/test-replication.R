@@ -805,3 +805,16 @@ test_that("several original studies' pooled estimate is planned against, without
   expect_false(grepl("Group sizes", report, fixed = TRUE))
   expect_true(all(c("rep_pool_from", "rep_pool_se", "rep_pool_lower", "rep_pool_upper", "rep_pool_level") %in% replication_field_ids))
 })
+
+test_that("a correlation whose measure changes is planned from the attenuated r", {
+  skip_if(!"reliability_original" %in% names(formals(engine_function("replication_planning"))), "this engine has no reliabilities")
+  v <- list(rep_design = "correlation", rep_effect = "0.3", rep_n = "80", rep_original_alpha = "0.05", rep_tau = "0.05",
+    rep_alpha = "0.05", rep_power = "0.8", rep_goal = "significance", rep_prior = "uncertain",
+    rep_rel_original = "0.9", rep_rel_replication = "0.7")
+  args <- replication_args(v)
+  expect_identical(c(args$reliability_original, args$reliability_replication), c(0.9, 0.7))
+  plan <- tryCatch(replication_run(v, engine_function("replication_planning")), error = function(e) NULL)
+  skip_if(is.null(plan$original$attenuation), "this engine attenuates d only")
+  expect_match(as.character(replication_attenuation_ui(plan)), "original&#39;s r of 0.3|original's r of 0.3")
+  expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "both measures' reliabilities", fixed = TRUE)
+})

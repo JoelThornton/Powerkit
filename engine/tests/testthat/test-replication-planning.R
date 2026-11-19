@@ -567,7 +567,34 @@ test_that("a measure of different reliability plans the d the replication's meas
   expect_error(two_groups(reliability_original = 0.9), "both studies")
   expect_error(two_groups(reliability_original = 0.9, reliability_replication = 1.2), "at most 1")
   expect_error(replication_planning("paired", 0.5, original_n = 30, reliability_original = 0.9, reliability_replication = 0.7),
-    "two separate groups or one group")
+    "two separate groups, one group or a correlation")
+})
+
+test_that("a correlation measured less reliably is planned from the attenuated r, its z kept", {
+  same <- replication_planning("correlation", 0.3, original_n = 80)
+  changed <- replication_planning("correlation", 0.3, original_n = 80, reliability_original = 0.9, reliability_replication = 0.7)
+  a <- sqrt(0.7 / 0.9)
+  expect_equal(tanh(changed$original$estimate), 0.3 * a)
+  expect_equal(changed$original$z, same$original$z)
+  expect_gt(goal_n(changed, "significance", "uncertain"), goal_n(same, "significance", "uncertain"))
+  expect_false("small_telescopes" %in% changed$goals$goal)
+  script <- replication_planning_script(changed, goal = "significance", prior = "uncertain")
+  env <- new.env()
+  eval(parse(text = script), envir = env)
+  expect_equal(env$n, goal_n(changed, "significance", "uncertain"))
+})
+
+test_that("an observed r is the true r times the square root of both measures' reliabilities, in simulated data", {
+  set.seed(20261119)
+  n <- 2e5
+  rho <- 0.4
+  x <- stats::rnorm(n)
+  y <- rho * x + stats::rnorm(n, sd = sqrt(1 - rho^2))
+  rel_x <- 0.8
+  rel_y <- 0.6
+  x_obs <- x + stats::rnorm(n, sd = sqrt((1 - rel_x) / rel_x))
+  y_obs <- y + stats::rnorm(n, sd = sqrt((1 - rel_y) / rel_y))
+  expect_equal(stats::cor(x_obs, y_obs), rho * sqrt(rel_x * rel_y), tolerance = 0.01)
 })
 
 test_that("an observed d is the true d times the square root of the measure's reliability, in simulated studies", {

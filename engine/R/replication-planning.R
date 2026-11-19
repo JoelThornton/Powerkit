@@ -199,14 +199,19 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   person), and every goal is judged at those groups' standard error,
 #'   sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
 #'   `bias_corrected` is `NULL` for unequal ones.
-#' @param reliability_original,reliability_replication For `"two_groups"`
-#'   and `"one_sample"`: the outcome measure's reliability in the original
-#'   study and in the replication (both or neither, each above 0 and at
-#'   most 1). An observed d is the true d times the square root of the
-#'   measure's reliability (Schmidt & Hunter, 1996), so the original's
-#'   estimate and standard error are multiplied by
+#' @param reliability_original,reliability_replication For `"two_groups"`,
+#'   `"one_sample"` and `"correlation"`: the outcome measure's reliability
+#'   in the original study and in the replication (both or neither, each
+#'   above 0 and at most 1). An observed d is the true d times the square
+#'   root of the measure's reliability (Schmidt & Hunter, 1996), so the
+#'   original's estimate and standard error are multiplied by
 #'   sqrt(reliability_replication / reliability_original): the effect the
 #'   replication's measure would show, with the original's z unchanged.
+#'   An observed r is the true r times the square root of both measures'
+#'   reliabilities, so for a correlation give the reliability of the
+#'   measure that changed (or, if both changed, the product of the two
+#'   measures' reliabilities in each study); r is scaled, moved back to
+#'   Fisher's z, and its standard error scaled to keep its z.
 #'   Small telescopes and BUCSS work in the original's own units, so they
 #'   are left out when the reliabilities differ.
 #' @return A list: `inputs`; `original` (estimate and standard error on the
@@ -277,8 +282,8 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     if (!all(vapply(reliabilities, function(x) is.numeric(x) && length(x) == 1 && !is.na(x) && x > 0 && x <= 1, logical(1)))) {
       abort_run("Each reliability should be a number above 0 and at most 1, such as 0.8.")
     }
-    if (!design %in% c("two_groups", "one_sample")) {
-      abort_run("A change in the measure's reliability is planned for two separate groups or one group (a d) only.")
+    if (!design %in% c("two_groups", "one_sample", "correlation")) {
+      abort_run("A change in the measure's reliability is planned for two separate groups, one group or a correlation only.")
     }
   }
   attenuation <- if (is.null(reliability_original)) 1 else sqrt(reliability_replication / reliability_original)
@@ -493,10 +498,12 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   if (from_bf) original[c("bf", "t", "bf_from")] <- list(original_bf, converted$t, "bayes_factor")
   # A measure of different reliability: the original's estimate and its
   # standard error in the replication's units (its z is unchanged).
+  # A correlation is attenuated as r and moved back to Fisher's z, its
+  # standard error scaled so that its z stays the same.
   if (attenuated) {
     original$reported <- original$estimate
-    original$estimate <- original$estimate * attenuation
-    original$se <- original$se * attenuation
+    original$estimate <- if (correlation) atanh(tanh(original$estimate) * attenuation) else original$estimate * attenuation
+    original$se <- original$se * original$estimate / original$reported
     original$attenuation <- attenuation
   }
   original$z <- original$estimate / original$se
@@ -1184,7 +1191,10 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
       "# the measure's reliability (Schmidt & Hunter, 1996), so the original's d and its standard error",
       "# in the replication's measure",
       sprintf("attenuation <- sqrt(%s / %s)  # the replication's reliability over the original's", num(i$reliability_replication), num(i$reliability_original)),
-      "to <- to * attenuation; so <- so * attenuation"),
+      if (correlation) c("# An observed r is the true r times the square root of both measures' reliabilities: r is scaled,",
+        "# moved back to Fisher's z, and its standard error scaled to keep its z.",
+        "to_new <- atanh(tanh(to) * attenuation); so <- so * to_new / to; to <- to_new")
+      else "to <- to * attenuation; so <- so * attenuation"),
     if (bayes) sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau))
     else sprintf("original_alpha <- %s; alpha <- %s; power <- %s; tau <- %s", num(i$original_alpha), num(i$alpha), num(i$power), num(i$tau)),
     replication_level_line(i),
