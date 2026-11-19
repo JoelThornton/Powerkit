@@ -13,10 +13,10 @@ test_that("the About panel says it's a prototype and what it does", {
   expect_no_match(html, "everything else you enter stays on your computer", fixed = TRUE)
 })
 
-test_that("About says how many analyses calculate, with the coloured list of every one folded beneath", {
+test_that("About explains where supported analyses calculate", {
   html <- about_html()
   expect_match(html, '<details class="about-plans-fold">', fixed = TRUE)
-  expect_match(html, "Show every analysis it calculates (", fixed = TRUE)
+  expect_match(html, "Show supported analyses and how they run (", fixed = TRUE)
   # Coloured by how each runs, and each opens its card.
   for (how in c("now", "background", "full", "script")) expect_match(html, paste0("about-ep how-", how), fixed = TRUE)
   expect_match(html, 'data-endpoint="E2"', fixed = TRUE)
@@ -87,7 +87,11 @@ test_that("the About panel says what Powerkit doesn't do and how far along it is
 test_that("About counts the analyses as the methods map does, folds the capability table and puts trust first", {
   html <- as.character(about_ui(tree, forms))
   in_families <- length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))
-  expect_match(html, sprintf("of the %d analyses calculate", in_families), fixed = TRUE)
+  how <- about_endpoint_how(forms)
+  expect_match(html, sprintf("supports %d of the %d listed analyses", length(how), in_families), fixed = TRUE)
+  expect_match(html, sprintf("%d can run power in the app after a preview", sum(how == "full")), fixed = TRUE)
+  expect_match(html, sprintf("%d provide a preview here", sum(how == "script")), fixed = TRUE)
+  expect_match(html, "uses Powerkit to finish the calculation", fixed = TRUE)
   expect_match(html, "Every analysis and the tests it offers (", fixed = TRUE)
   expect_lt(regexpr('id="about-trust"', html, fixed = TRUE), regexpr('id="about-capabilities"', html, fixed = TRUE))
   expect_no_match(html, "?:", fixed = TRUE)

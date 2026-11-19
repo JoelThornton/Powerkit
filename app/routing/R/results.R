@@ -1739,7 +1739,7 @@ source_stale_ui <- function(fields, values) {
   div(class = "alert alert-warning source-stale", role = "alert",
     p(tags$strong("Does your reasoning still apply?"), " You changed the effect size after writing it",
       if (!blank(values$source_was) && !blank(now)) sprintf(" (it was %s; it is now %s)", values$source_was, now), ". ",
-      "Your reasoning is kept as you wrote it. Until you confirm it or edit it, the plan can't be saved or exported and there is no write-up."),
+      "Your browser can still keep the form answers and your reasoning as a draft. Confirm or edit the reasoning to save the finished result or export its write-up."),
     actionButton("source_still_applies", "Yes, it still applies", class = "btn btn-outline-primary"),
     span(class = "small", " or edit your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."))
 }
