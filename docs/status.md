@@ -43,12 +43,11 @@ multinomial test (E48) and JASP's A/B test (E5) are decided and queued
 and within-person mediation.
 
 A review of Tools, the exports and the exact tests (19 November 2026)
-found two calculation faults, now fixed: a one-sided exact test of one
-proportion or Fisher's test given no difference ran in the tail pwrss
-chose, not the one asked; and recruitment with attrition was rounded as
-one group on simulated designs with equal groups (E42, the yes/no-X
-mediation routes, E75 between groups). What it left open is `next.md`
-items 30 to 32.
+found that a one-sided exact test of one proportion or Fisher's test,
+given no difference, ran in the tail pwrss chose rather than the one
+asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
+equal tails (the default) and names the rule in the write-up. Which rule
+G*Power uses for a fixed value other than 0.5 is not checked yet.
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 

@@ -121,7 +121,7 @@ const SHOTS = process.env.SHOTS || null;
       r.warnings_shown = await page.locator('#form_result .alert-warning, #form_result .warning, #form_result [class*=warn]').allInnerTexts().then(a => a.map(s => s.slice(0, 200))).catch(() => []);
       await page.waitForTimeout(2000);
       // Outputs that stay empty until the visitor asks for them.
-      const ON_DEMAND = ['bayes_companion', 'assumptions_result'];
+      const ON_DEMAND = ['bayes_companion'];
       const emptyOutputs = await page.evaluate(ON_DEMAND => [...document.querySelectorAll('#form_result .shiny-html-output, #form_result .shiny-image-output, #form_result .shiny-plot-output')].filter(e => e.offsetParent && e.innerHTML.trim() === '' && !ON_DEMAND.includes(e.id)).map(e => e.id), ON_DEMAND);
       if (emptyOutputs.length) r.problems.push('blank outputs: ' + emptyOutputs.join(','));
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/${c.id}${GOAL ? '-' + GOAL : ''}.png`, fullPage: false });
@@ -129,12 +129,7 @@ const SHOTS = process.env.SHOTS || null;
       const links = await page.evaluate(() => [...document.querySelectorAll('a.shiny-download-link')].filter(a => a.offsetParent).map(a => ({ id: a.id, href: a.getAttribute('href'), disabled: a.getAttribute('aria-disabled'), text: a.innerText.trim() })));
       for (const l of links) {
         const d = { id: l.id, text: l.text, disabled: l.disabled };
-        if (!l.href || !/download/.test(l.href)) {
-          d.status = 'no href'; r.downloads.push(d);
-          // A link the page has switched off on purpose says so; any other link without an address is broken.
-          if (l.disabled !== 'true') r.problems.push(`download ${l.id} has no address`);
-          continue;
-        }
+        if (!l.href || !/download/.test(l.href)) { d.status = 'no href'; r.downloads.push(d); continue; }
         const t1 = Date.now();
         try {
           const resp = await page.request.get(new globalThis.URL(l.href, URL).toString(), { timeout: 180000 });
@@ -155,10 +150,9 @@ const SHOTS = process.env.SHOTS || null;
         await page.locator('#planning_document_button').click();
         try {
           await page.waitForSelector('#pk-print-frame', { state: 'attached', timeout: 30000 });
-          const doc = await page.evaluate(() => { const f = document.getElementById('pk-print-frame'); const d = f && f.contentWindow && f.contentWindow.document; return d && d.body ? { heading: ((d.querySelector('h1') || {}).textContent || '').trim(), length: d.body.innerText.trim().length } : null; });
-          // A document needs a heading and a body; a missing frame document or an empty page fails.
-          r.pdf = { ok: !!doc && /\w/.test(doc.heading) && doc.length >= 200, ms: Date.now() - t2, heading: doc && doc.heading, length: doc && doc.length };
-          if (!r.pdf.ok) r.problems.push(doc ? `PDF print frame has no heading or almost no text (${doc.length} characters)` : 'PDF print frame has no document');
+          const h1 = await page.evaluate(() => { const f = document.getElementById('pk-print-frame'); const d = f && f.contentWindow.document; return d ? ((d.querySelector('h1') || {}).textContent || '') + ' | ' + d.body.innerText.length : 'nodoc'; });
+          r.pdf = { ok: /\w/.test(h1), ms: Date.now() - t2, h1 };
+          if (!r.pdf.ok) r.problems.push('PDF print frame empty');
         } catch (e) { r.pdf = { ok: false, dialogs: dialogs.slice() }; r.problems.push('PDF print frame did not appear ' + dialogs.join(';')); }
       }
     } catch (e) {

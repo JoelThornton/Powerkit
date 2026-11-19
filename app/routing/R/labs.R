@@ -778,13 +778,16 @@ picture_alt <- function(picture) {
       power, format(picture$f), format(picture$k), format(picture$n / picture$k), format(picture$alpha)),
     two_proportions = sprintf("Two distributions of the test statistic: power is %s for proportions of %s and %s with %s participants at alpha = %s.",
       power, format(picture$p1), format(picture$p2), format(picture$n), format(picture$alpha)),
-    chisq = sprintf("Two chi-square distributions: power is %s for w = %s with %s participants and %s degrees of freedom at alpha = %s.",
-      power, format(picture$w), format(picture$n), format(picture$df), format(picture$alpha)),
-    regression = sprintf("Two F distributions: power is %s for R-squared = %s with %s predictors and %s participants at alpha = %s.",
-      power, format(picture$r2), format(picture$u), format(picture$n), format(picture$alpha)),
+    chisq = sprintf("Two chi-square distributions: power is %s for w = %s with %s participants and %s at alpha = %s.",
+      power, format(picture$w), format(picture$n), count_words(picture$df, "degree of freedom", "degrees of freedom"), format(picture$alpha)),
+    regression = sprintf("Two F distributions: power is %s for R-squared = %s with %s and %s participants at alpha = %s.",
+      power, format(picture$r2), count_words(picture$u, "predictor", "predictors"), format(picture$n), format(picture$alpha)),
     sprintf("Two t distributions: power is %s for d = %s with %s participants at alpha = %s.",
       power, format(picture$d), format(picture$n), format(picture$alpha)))
 }
+
+# "1 degree of freedom", "3 degrees of freedom".
+count_words <- function(x, one, many) paste(format(x), if (identical(as.numeric(x), 1)) one else many)
 
 # The F and chi-square curves with one degree of freedom (the effect's)
 # rise without limit at 0: that is their shape, so the chart says so.
@@ -874,7 +877,7 @@ picture_numbers <- function(picture) {
   sides_text <- function() if (identical(picture$sides, 1)) "a one-sided test (an effect in the expected direction)" else "a two-sided test"
   source_line <- function(curves) p(class = "small text-muted", sprintf("Power from %s; curves from R's %s.", picture$function_used, curves))
   reaches <- function(effect) {
-    if (identical(picture$sides, 1)) sprintf("An observed %s must reach this threshold in the positive direction.", effect)
+    if (identical(picture$sides, 1)) sprintf("An observed %s must reach this threshold in the direction you expect, shown here as positive; an expected decrease works the same way, mirrored.", effect)
     else sprintf("An observed %s reaches this threshold when its absolute value is at least this large, in either direction.", effect)
   }
   switch(picture_design(picture),

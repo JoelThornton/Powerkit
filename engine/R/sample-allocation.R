@@ -56,20 +56,6 @@ sample_allocation <- function(spec) {
     }
     if (identical(spec$variables$X$type, "between_factor")) return(weights(rep(1, length(spec$variables$X$levels))))
   }
-  # Simulated designs whose people are split into equal groups: mediation
-  # with X in three or more groups, or a yes/no X, and repeated counts,
-  # yes/no answers or ordered categories with X or W between people.
-  if (identical(spec$design, "mediation")) {
-    if (identical(template, "multicategorical")) return(weights(rep(1, length(spec$variables$X$levels))))
-    if (template %in% c("binary_mediator", "binary_or_count_outcome", "ordinal_mediator") &&
-        identical(spec$variables$X$type, "binary")) {
-      return(weights(c(1, 1)))
-    }
-  }
-  if (identical(template, "repeated_glmm")) {
-    if (!is.null(spec$variables$W)) return(weights(rep(1, length(spec$variables$W$levels))))
-    if (identical(spec$variables$X$type, "between_factor")) return(weights(rep(1, length(spec$variables$X$levels))))
-  }
   if (identical(spec$design, "meta_analysis") && identical(template, "subgroups")) {
     return(weights(rep(1, length(spec$population$effects)), "subgroup"))
   }
