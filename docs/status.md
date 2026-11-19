@@ -304,7 +304,9 @@ each area, is at the end of
   two-group replication can have unequal groups (the cards' allocation
   ratio) and, for two groups or one group, an outcome measure of
   different reliability (the original's d attenuated; Schmidt & Hunter,
-  1996).
+  1996). The original can be several studies or a meta-analysis: their
+  pooled estimate with its standard error or interval, without a sample
+  size (small telescopes and BUCSS then left out).
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
   and the significance test can be one-sided. The page's five sections
@@ -342,8 +344,9 @@ each area, is at the end of
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
   and one "Still needed" bar beside the button. Still to come: the rest
-  of item 28 (the three-factor ANOVA, several originals, unequal
-  allocation, reliability, claims resting on several tests).
+  of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
+  an ANOVA original, reliability for pairs and correlations, claims
+  resting on several tests).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

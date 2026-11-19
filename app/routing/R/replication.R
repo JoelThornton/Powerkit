@@ -209,7 +209,7 @@ replication_form_values <- function(values, ep = NULL, plan_values = NULL) {
 # statistic or d_rm) and r on E4, for an original analysed with a test.
 replication_card_effect_field <- function(ep, plan_values) {
   v <- function(id) as.character(plan_values[[id]] %||% "")
-  if (!v("rep_analysis") %in% c("", "test", "both")) return(NULL)
+  if (!v("rep_analysis") %in% c("", "test", "both", "pooled")) return(NULL)
   type <- v("rep_effect_type")
   d_given <- !nzchar(type) || identical(type, "d")
   switch(ep %||% "",
@@ -224,7 +224,9 @@ replication_card_effect_field <- function(ep, plan_values) {
 # (a default-prior t-test) or a posterior.
 replication_analyses_ui <- c("A significance test (a p-value)" = "test",
   "Both: a significance test and a Bayes factor" = "both", "A Bayes factor" = "bayes_factor",
-  "A posterior distribution" = "posterior")
+  "A posterior distribution" = "posterior",
+  "Several studies or a meta-analysis: their pooled estimate" = "pooled")
+replication_pool_from_ui <- c("Its standard error" = "se", "Its confidence interval" = "ci")
 replication_original_priors_ui <- c("Vague (flat, or nearly)" = "vague",
   "A default prior (for example JASP's Cauchy prior, scale 0.707)" = "default",
   "An informative prior (built from earlier findings or a theory)" = "informative")
@@ -457,14 +459,14 @@ replication_criteria_settings <- function(values) {
   # is in the original's own units (the engine leaves it out).
   rel <- replication_reliabilities(values)
   measure_changed <- !is.null(rel) && design %in% c("two_groups", "one_sample", "") && !isTRUE(all.equal(rel[1], rel[2]))
-  if (identical(design, "generic") || measure_changed || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor")))
+  if (identical(design, "generic") || measure_changed || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor", "pooled")))
     available <- setdiff(available, "small_telescopes")
   choice <- replication_resolve_goals(values, available)
   used <- c(choice$goal, choice$also)
   # A bound for agreement or the equivalence test: the researcher's, or
   # d33 from the original's significance test, which a Bayesian original
   # or another design doesn't have.
-  no_d33 <- identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor"))  || measure_changed
+  no_d33 <- identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor", "pooled"))  || measure_changed
   smallest <- nzchar(trimws(as.character(values$rep_smallest %||% "")))
   list(alpha = any(used %in% replication_test_goals), sided = any(used %in% c("significance", "pooled")),
     bf = any(used %in% replication_bf_goals), bound = any(used %in% c("agreement", "negligible")),
@@ -586,6 +588,15 @@ replication_planner_sections <- function() {
             field("rep_cri_lower", "The credible interval's lower end (on the reported scale)"),
             field("rep_cri_upper", "The credible interval's upper end"),
             field("rep_cri_level", "The interval's level (%)", value = "95"))),
+        conditionalPanel("input.rep_analysis == 'pooled' && ['two_groups', 'one_sample', 'paired', 'correlation'].indexOf(input.rep_design) >= 0",
+          rep_note("Give the pooled estimate as d (d_z for pairs) or r, from the paper's own meta-analysis of its studies or a published one, with how sure it is. The replication is planned against that estimate; small telescopes and BUCSS need one original study's test, so they are left out.", label = "Which estimate?"),
+          radioButtons("rep_pool_from", "How sure the pooled estimate is", choices = replication_pool_from_ui, selected = "se", inline = TRUE, width = "100%"),
+          conditionalPanel("input.rep_pool_from == 'se'",
+            field("rep_pool_se", "Its standard error", help = "For d or d_z, as reported; for r, of r itself (powerkit moves it to Fisher's z).")),
+          conditionalPanel("input.rep_pool_from == 'ci'",
+            field("rep_pool_lower", "The confidence interval's lower end"),
+            field("rep_pool_upper", "The confidence interval's upper end"),
+            field("rep_pool_level", "The interval's level (%)", value = "95"))),
         conditionalPanel("input.rep_design == 'generic' && input.rep_analysis != 'posterior'",
           radioButtons("rep_se_from", "How sure the original was of it", choices = replication_se_from_ui, selected = "se", inline = TRUE, width = "100%"),
           conditionalPanel("input.rep_se_from == 'se'",
@@ -598,10 +609,10 @@ replication_planner_sections <- function() {
             field("rep_statistic", "Its z or t statistic", help = "The estimate divided by its standard error, as the paper reported it.")),
           conditionalPanel("input.rep_se_from == 'f'",
             field("rep_f", "Its F statistic", help = "Only an F with one numerator degree of freedom, such as F(1, 118) for a 2 x 2 interaction or one contrast: its square root is the estimate's t. Enter the estimate above, such as the interaction contrast (the difference between the two simple effects)."))),
-        conditionalPanel("input.rep_design == 'two_groups'",
+        conditionalPanel("input.rep_design == 'two_groups' && input.rep_analysis != 'pooled'",
           field("rep_n1", "People in its first group"),
           field("rep_n2", "People in its second group")),
-        conditionalPanel("input.rep_design != 'two_groups'",
+        conditionalPanel("input.rep_design != 'two_groups' && (input.rep_analysis != 'pooled' || input.rep_design == 'generic' || input.rep_design == 'anova')",
           field("rep_n", "People (or pairs) it analysed, in total")),
         conditionalPanel("input.rep_design == 'generic'",
           rep_note("The replication is taken to copy the original's design, so its standard error shrinks with the square root of its sample size. Small telescopes needs the original's own test, so it is planned on the design's card.", label = "How this design is planned")),
@@ -800,7 +811,8 @@ replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref
 
 # Every field the planner keeps, for the file and the write-up.
 replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", "rep_bf_both", "rep_original_prior", "rep_prior_scale",
-  "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
+  "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level",
+  "rep_pool_from", "rep_pool_se", "rep_pool_lower", "rep_pool_upper", "rep_pool_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
   "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
@@ -901,6 +913,17 @@ replication_args <- function(values) {
   if (identical(analysis, "bayes_factor")) {
     args$original_effect <- NULL
     args$original_bf <- num("rep_bf", NA_real_)
+  }
+  if (identical(analysis, "pooled")) {
+    args[c("original_se", "original_ci", "original_ci_level", "original_statistic", "original_n", "original_n1", "original_n2",
+      "original_prior_scale")] <- NULL
+    if (identical(v("rep_pool_from"), "ci")) {
+      args$original_ci <- c(num("rep_pool_lower", NA_real_), num("rep_pool_upper", NA_real_))
+      level <- num("rep_pool_level", 95)
+      args$original_ci_level <- if (!is.na(level) && level > 1) level / 100 else level
+    } else {
+      args$original_se <- num("rep_pool_se", NA_real_)
+    }
   }
   if (identical(analysis, "posterior")) {
     args[c("original_se", "original_ci", "original_ci_level", "original_statistic")] <- NULL
@@ -1045,7 +1068,16 @@ replication_missing <- function(values) {
   if (identical(analysis, "both")) analysis <- "test"
   from_bf <- identical(analysis, "bayes_factor")
   posterior <- identical(analysis, "posterior")
+  pooled <- identical(analysis, "pooled")
+  if (pooled && (generic || identical(values$rep_design, "anova"))) {
+    return("for this design, a pooled estimate is entered as a significance test's estimate with its standard error (choose \u201cA significance test\u201d)")
+  }
   by_se <- generic && !posterior
+  if (pooled) {
+    return(c(if (!v("rep_effect")) "the pooled estimate",
+      if (!identical(values$rep_pool_from, "ci") && !v("rep_pool_se")) "its standard error",
+      if (identical(values$rep_pool_from, "ci") && (!v("rep_pool_lower") || !v("rep_pool_upper"))) "its confidence interval"))
+  }
   missing <- c(
     if (from_bf && !v("rep_bf")) "the original's Bayes factor",
     if (!from_bf && !v("rep_effect")) if (posterior) "the posterior's mean" else "the effect the original study reported",
@@ -1500,7 +1532,7 @@ replication_bucss_validation_text <- paste(
 # 50% and 80% assurance (the engine's plan$bias_corrected).
 replication_bias_corrected_ui <- function(plan) {
   b <- plan$bias_corrected
-  if (is.null(b) && replication_uneven(plan) && !isTRUE(plan$inputs$original_analysis %in% c("bayes_factor", "posterior"))) {
+  if (is.null(b) && replication_uneven(plan) && !isTRUE(plan$inputs$original_analysis %in% c("bayes_factor", "posterior", "pooled"))) {
     return(rep_note("BUCSS's correction for publication bias plans two equal groups, so it is left out for unequal ones. Leave the groups' ratio blank to see it."))
   }
   if (is.null(b)) return(NULL)
@@ -1657,7 +1689,7 @@ replication_main <- function(plan, goal, prior) {
 replication_methods_paragraph <- function(plan, goal, prior) {
   i <- plan$inputs
   m <- replication_main(plan, goal, prior)
-  original <- switch(i$design,
+  original <- if (identical(i$original_analysis, "pooled")) "" else switch(i$design,
     two_groups = sprintf("%s and %s per group", i$original_n1, i$original_n2),
     paired = sprintf("%s pairs", i$original_n), sprintf("%s people", i$original_n))
   scaled <- if (identical(i$design, "generic")) sprintf("; the replication's standard error was the original's (%s%s) scaled by the square root of the ratio of sample sizes, assuming the replication copies the original's design",
@@ -1670,6 +1702,10 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   } else if (identical(i$original_analysis, "posterior")) {
     sprintf("its posterior mean, %s = %s, with its posterior SD standing in for the standard error, from a %s prior, %s",
       plan$effect_name, format(i$original_effect), i$original_prior, original)
+  } else if (identical(i$original_analysis, "pooled")) {
+    sprintf("the pooled estimate of the original studies, %s = %s, with %s", plan$effect_name, format(i$original_effect),
+      if (!is.null(i$original_ci)) sprintf("a %s%% confidence interval from %s to %s", format(100 * i$original_ci_level),
+        format(i$original_ci[1]), format(i$original_ci[2])) else sprintf("a standard error of %s", format(i$original_se)))
   } else if (!is.null(plan$anova_effect)) {
     a <- plan$anova_effect
     sprintf("%s = %s, from its F(1, %s) = %s, the square of the t (%s) of the two-mean comparison it is (Lakens, 2013), %s, with %s people in total",
@@ -1687,7 +1723,8 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   shown <- paste0(shown, replication_attenuation_words(plan))
   belief <- switch(prior,
     as_reported = "assuming the true effect equals the original estimate",
-    uncertain = "with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by the original study)",
+    uncertain = sprintf("with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by %s)",
+      if (identical(i$original_analysis, "pooled")) "the original studies' pooled estimate" else "the original study"),
     shrunk = "with a design prior that shrinks the original estimate towards zero by empirical Bayes")
   varies <- if (i$tau > 0 && !identical(prior, "as_reported")) sprintf(", allowing the true effect to vary between studies with a standard deviation of %s", format(i$tau)) else ""
   if (is.na(m$row$n) && identical(m$row$reason, "any_size")) {
@@ -1894,6 +1931,11 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       if (identical(v("rep_f_from"), "eta")) sprintf("- Reported effect: a partial eta-squared of %s, with %s error degrees of freedom", or_blank(v("rep_eta")), or_blank(v("rep_df_error")))
       else sprintf("- Reported effect: F = %s", or_blank(v("rep_anova_f"))),
       if (!v("rep_anova_kind") %in% c("", "between") && !v("rep_epsilon") %in% c("", "1")) sprintf("- Sphericity correction: epsilon = %s", v("rep_epsilon")))
+    else if (identical(v("rep_analysis"), "pooled")) c(
+      sprintf("- Its pooled estimate: %s", or_blank(v("rep_effect"))),
+      if (identical(v("rep_pool_from"), "ci")) sprintf("- Its %s%% confidence interval: %s to %s", if (nzchar(v("rep_pool_level"))) v("rep_pool_level") else "95",
+        or_blank(v("rep_pool_lower")), or_blank(v("rep_pool_upper")))
+      else sprintf("- Its standard error: %s", or_blank(v("rep_pool_se"))))
     else if (v("rep_analysis") %in% c("bayes_factor", "posterior")) NULL
     else if (identical(v("rep_design"), "generic")) c(
       sprintf("- The effect: %s (%s)", or_blank(v("rep_effect_name")),
@@ -1911,8 +1953,9 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       sprintf("- Reported effect: a repeated-measures d (d_rm or d_av) of %s, with a correlation of %s between the measurements",
         or_blank(v("rep_effect")), or_blank(v("rep_effect_r")))
     else sprintf("- Reported effect: %s", or_blank(v("rep_effect"))),
-    if (two) sprintf("- Group sizes: %s and %s", or_blank(v("rep_n1")), or_blank(v("rep_n2"))) else sprintf("- Sample size: %s", or_blank(v("rep_n"))),
-    if (identical(v("rep_design"), "anova") || !v("rep_analysis") %in% c("bayes_factor", "posterior")) sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))),
+    if (identical(v("rep_analysis"), "pooled")) NULL
+    else if (two) sprintf("- Group sizes: %s and %s", or_blank(v("rep_n1")), or_blank(v("rep_n2"))) else sprintf("- Sample size: %s", or_blank(v("rep_n"))),
+    if (identical(v("rep_design"), "anova") || !v("rep_analysis") %in% c("bayes_factor", "posterior", "pooled")) sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))),
     if (identical(v("rep_published"), "any")) "- Published whatever it found (no publication filter), so BUCSS corrects for uncertainty only", "",
     "## Goals and sample size", "")
   if (is.null(plan)) {

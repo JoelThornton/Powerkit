@@ -75,7 +75,7 @@ replication_scales <- c("none", "log", "fisher_z")
 
 # How the original was analysed: a test (frequentist), a Bayes factor
 # (t-tests only) or a posterior from a vague or default prior.
-replication_analyses <- c("test", "bayes_factor", "posterior")
+replication_analyses <- c("test", "bayes_factor", "posterior", "pooled")
 
 replication_priors <- c(as_reported = "conditional", uncertain = "predictive", shrunk = "EB")
 
@@ -128,8 +128,12 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   `"paired"`: its effect is read from `original_bf` and the sample size)
 #'   or `"posterior"` (a posterior from a vague or default prior, whose mean
 #'   is `original_effect` and whose SD is `original_se`, or whose credible
-#'   interval is `original_ci`). Either Bayesian route leaves out small
-#'   telescopes. For every t-test original the plan adds a default Bayes
+#'   interval is `original_ci`), or `"pooled"` (several original studies
+#'   or a meta-analysis: `original_effect` is their pooled estimate, d or
+#'   r, and `original_se` its standard error or `original_ci` its
+#'   confidence interval at `original_ci_level`; no sample size is
+#'   needed). The Bayesian and pooled routes leave out small telescopes
+#'   and BUCSS, which need one original study's test. For every t-test original the plan adds a default Bayes
 #'   factor t-test (bfpwr): evidence for an effect (`bf_repeat`, the
 #'   original's own test for a Bayesian original) and for no effect
 #'   (`bf_null`).
@@ -314,11 +318,29 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   correlation <- identical(design, "correlation")
   if (!is.character(original_analysis) || length(original_analysis) != 1 ||
       !original_analysis %in% replication_analyses) {
-    abort_run("'original_analysis' should be \"test\", \"bayes_factor\" or \"posterior\".")
+    abort_run("'original_analysis' should be \"test\", \"bayes_factor\", \"posterior\" or \"pooled\".")
   }
   bayes <- !identical(original_analysis, "test")
   from_bf <- identical(original_analysis, "bayes_factor")
   posterior <- identical(original_analysis, "posterior")
+  # Several original studies, or a meta-analysis: their pooled estimate and
+  # its standard error (or confidence interval), with no single study's
+  # sample size; small telescopes and BUCSS need one study's test.
+  pooled <- identical(original_analysis, "pooled")
+  if (pooled) {
+    if (generic) abort_run("Another design already takes the original's estimate with its standard error; give the pooled one there.")
+    if (!is.null(original_statistic) || (is.null(original_se) + is.null(original_ci)) != 1) {
+      abort_run("Give the pooled estimate's standard error or its confidence interval, one of the two.")
+    }
+    if (!is.null(original_se) && (!one_number(original_se) || original_se <= 0)) {
+      abort_run("The pooled estimate's standard error should be a number above 0.")
+    }
+    if (!is.null(original_ci) && (!is.numeric(original_ci) || length(original_ci) != 2 || anyNA(original_ci) ||
+        original_ci[1] >= original_ci[2] || (correlation && any(abs(original_ci) >= 1)))) {
+      abort_run(if (correlation) "The confidence interval should be two correlations between -1 and 1, the lower one first." else
+        "The confidence interval should be two numbers, the lower one first.")
+    }
+  }
   t_test <- design %in% c("two_groups", "one_sample", "paired")
   if (from_bf && !t_test) {
     abort_run(paste("A Bayes factor gives the original's effect only for a t-test (two groups, one group or pairs).",
@@ -341,7 +363,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       !original_effect_type %in% c("d", "t", "d_rm")) {
     abort_run("'original_effect_type' should be \"d\", \"t\" or \"d_rm\".")
   }
-  converting <- !identical(original_effect_type, "d") && !from_bf && !posterior
+  converting <- !identical(original_effect_type, "d") && !from_bf && !posterior && !pooled
   if (converting && !t_test) {
     abort_run("A t statistic or a repeated-measures d is converted for a t-test original only (two groups, one group or pairs).")
   }
@@ -391,7 +413,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       "The original effect should be a standardised effect between -5 and 5, and not 0."
     })
   }
-  if (generic) {
+  if (generic || pooled) {
     NULL
   } else if (identical(design, "two_groups")) {
     if (!whole(original_n1, 2) || !whole(original_n2, 2)) {
@@ -443,7 +465,14 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   }
 
   # The original estimate and its standard error on the analysis scale.
-  if (!generic) original <- if (identical(design, "two_groups")) {
+  if (!generic) original <- if (pooled) {
+    level_z <- stats::qnorm(1 - (1 - original_ci_level) / 2)
+    on <- function(x) if (correlation) atanh(x) else x
+    list(estimate = on(original_effect), n = NA_real_,
+      se = if (!is.null(original_ci)) (on(original_ci[2]) - on(original_ci[1])) / (2 * level_z)
+        else if (correlation) original_se / (1 - original_effect^2) else original_se,
+      from = if (!is.null(original_ci)) "ci" else "se")
+  } else if (identical(design, "two_groups")) {
     list(estimate = original_effect, n = original_n1 + original_n2,
       se = sqrt((original_n1 + original_n2) / (original_n1 * original_n2) +
         original_effect^2 / (2 * (original_n1 + original_n2))))
@@ -1071,7 +1100,8 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     replication_bucss_script(plan$bias_corrected, header = FALSE))
   from_bf <- identical(analysis, "bayes_factor")
   post <- identical(analysis, "posterior")
-  bayes <- from_bf || post
+  pooled <- identical(analysis, "pooled")
+  bayes <- from_bf || post || pooled
   bf_type <- switch(i$design, two_groups = "two.sample", one_sample = "one.sample", paired = "paired", NA_character_)
   # The original's effect: as reported, or read from its Bayes factor.
   to_lines <- if (from_bf) c(
@@ -1086,13 +1116,15 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     num(i$original_reported), num(i$original_r))
   else sprintf("to <- %s", if (correlation) sprintf("atanh(%s)  # Fisher's z", num(i$original_effect)) else num(i$original_effect))
   # Its standard error: from the design, or the posterior's (vague or default prior).
-  so_post <- if (post) {
+  so_post <- if (post || pooled) {
+    what <- if (pooled) "pooled standard error" else "posterior SD"
     if (!is.null(i$original_ci)) {
-      sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% credible interval",
-        tf_call(num(i$original_ci[2])), tf_call(num(i$original_ci[1])), num(i$original_ci_level), num(100 * i$original_ci_level))
+      sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% %s interval",
+        tf_call(num(i$original_ci[2])), tf_call(num(i$original_ci[1])), num(i$original_ci_level), num(100 * i$original_ci_level),
+        if (pooled) "confidence" else "credible")
     } else if (correlation) {
-      sprintf("so <- %s / (1 - %s^2)  # its posterior SD, moved to Fisher's z", num(i$original_se), num(i$original_effect))
-    } else sprintf("so <- %s  # its posterior SD", num(i$original_se))
+      sprintf("so <- %s / (1 - %s^2)  # its %s, moved to Fisher's z", num(i$original_se), num(i$original_effect), what)
+    } else sprintf("so <- %s  # its %s", num(i$original_se), what)
   }
   telescope_call <- switch(i$design,
     two_groups = sprintf("pwr::pwr.t2n.test(n1 = %s, n2 = %s, power = 1/3, sig.level = original_alpha)$d", i$original_n1, i$original_n2),
@@ -1116,6 +1148,7 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     if (!bayes && !is.null(plan$telescope) && uses("small_telescopes")) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
     if (from_bf) "# The original's effect from its Bayes factor and sample size (BayesFactor's ttest.tstat(), inverted).",
     if (post) sprintf("# The original's posterior (%s prior) stands in for its estimate and standard error.", i$original_prior),
+    if (pooled) "# The original: several studies or a meta-analysis, as their pooled estimate and its standard error.",
     if (!is.na(bf_type) && uses(c("bf_repeat", "bf_null"))) sprintf("# %s: bfpwr (Pawel & Held).", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test"),
     sprintf("# Written by powerkit %s on %s.", as.character(utils::packageVersion("powerkit")), format(Sys.Date())),
     "library(BayesRepDesign)",

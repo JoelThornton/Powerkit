@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-19"
+    title: Replicating several studies or a meta-analysis
+    text: >
+      The replication planner can now plan against a pooled estimate: the
+      original paper's own meta-analysis of its studies, or a published
+      one. Choose "Several studies or a meta-analysis" as how the original
+      was analysed and give the estimate with its standard error or
+      confidence interval; no sample size is needed.

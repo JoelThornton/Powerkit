@@ -108,8 +108,12 @@ Bayes factor t-test, for \code{"two_groups"}, \code{"one_sample"} and
 \code{"paired"}: its effect is read from \code{original_bf} and the sample size)
 or \code{"posterior"} (a posterior from a vague or default prior, whose mean
 is \code{original_effect} and whose SD is \code{original_se}, or whose credible
-interval is \code{original_ci}). Either Bayesian route leaves out small
-telescopes. For every t-test original the plan adds a default Bayes
+interval is \code{original_ci}), or \code{"pooled"} (several original studies
+or a meta-analysis: \code{original_effect} is their pooled estimate, d or
+r, and \code{original_se} its standard error or \code{original_ci} its
+confidence interval at \code{original_ci_level}; no sample size is
+needed). The Bayesian and pooled routes leave out small telescopes
+and BUCSS, which need one original study's test. For every t-test original the plan adds a default Bayes
 factor t-test (bfpwr): evidence for an effect (\code{bf_repeat}, the
 original's own test for a Bayesian original) and for no effect
 (\code{bf_null}).}

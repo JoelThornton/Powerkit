@@ -584,3 +584,27 @@ test_that("an observed d is the true d times the square root of the measure's re
   d_observed <- diff(tapply(observed, group, mean)) / pooled
   expect_equal(unname(d_observed), delta * sqrt(rel), tolerance = 0.01)
 })
+
+test_that("several originals or a meta-analysis are planned from their pooled estimate and standard error", {
+  pooled <- replication_planning("two_groups", 0.45, original_analysis = "pooled", original_se = 0.12, smallest_effect = 0.2)
+  expect_equal(pooled$original$estimate, 0.45)
+  expect_equal(pooled$original$se, 0.12)
+  expect_true(is.na(pooled$original$n))
+  # The same as one study whose standard error is 0.12: the goals depend
+  # on the original only through its estimate and standard error.
+  dp <- BayesRepDesign::designPrior(to = 0.45, so = 0.12, tau = 0, type = "predictive")
+  sr <- BayesRepDesign::ssdSig(level = 0.025, dprior = dp, power = 0.8)$sr
+  expect_equal(goal_n(pooled, "significance", "uncertain"), 2 * ceiling(BayesRepDesign::se2n(sr, unitSD = 2) / 2 - 1e-9))
+  # Small telescopes and BUCSS need one study's test.
+  expect_null(pooled$telescope)
+  expect_null(pooled$bias_corrected)
+  # A correlation's interval is moved to Fisher's z.
+  r <- replication_planning("correlation", 0.3, original_analysis = "pooled", original_ci = c(0.2, 0.4))
+  expect_equal(r$original$se, (atanh(0.4) - atanh(0.2)) / (2 * stats::qnorm(0.975)))
+  # The script gives the same number.
+  env <- new.env()
+  eval(parse(text = replication_planning_script(pooled, goal = "significance", prior = "uncertain")), envir = env)
+  expect_equal(env$n, goal_n(pooled, "significance", "uncertain"))
+  expect_error(replication_planning("two_groups", 0.45, original_analysis = "pooled"), "standard error or its confidence interval")
+  expect_error(replication_planning("generic", 0.45, original_n = 100, original_se = 0.1, original_analysis = "pooled"), "Another design")
+})
