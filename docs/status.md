@@ -333,9 +333,14 @@ each area, is at the end of
   Bayes factor's prior for repeating its test). "Not worth replicating"
   goes straight to the write-up, a negative pre-replication report, and
   the planning steps say they aren't needed. The pages' guidance follows
-  the "Show explanations" switch: one sentence in view and the rest under
-  a labelled fold, with even that sentence folded when explanations are
-  off; a field's help sits under its box. The plan
+  the "Show explanations" switch: with explanations on, the guidance is
+  in full view with no info buttons; with them off, it sits behind an
+  info button beside its card's heading or field label (as on the input
+  screens, where a card's heading now takes only its own width so its
+  button sits beside it). The two ways to the sample size (the quick
+  answer and the original's card) sit in their own tinted "Get the
+  sample size" panel, apart from the questions, and the tile choices'
+  descriptions are in normal weight under bold titles. The plan
   asks whether the original was published because it was significant
   (if not, as for a Registered Report, BUCSS corrects for uncertainty
   only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding

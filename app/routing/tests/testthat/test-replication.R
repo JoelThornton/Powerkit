@@ -383,7 +383,7 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
   expect_match(html, 'id="rep_power_usual_3"[^>]*>95%', perl = TRUE)
   # One sentence over the two routes; the references once, folded, linked.
-  expect_match(html, "Two ways to the sample size", fixed = TRUE)
+  expect_match(html, "Two ways, from the answers above", fixed = TRUE)
   expect_identical(lengths(regmatches(html, gregexpr("rep-references", html, fixed = TRUE))), 1L)
   expect_no_match(html, "References: ", fixed = TRUE)
   expect_match(html, "<summary>References \\([0-9]+\\)</summary>")
