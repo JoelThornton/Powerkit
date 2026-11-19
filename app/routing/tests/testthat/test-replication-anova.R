@@ -95,3 +95,11 @@ test_that("an effect with several df shows BUCSS and, when given, the smallest e
     rep_anova_smallest = "0.06")))
   expect_match(text_of(replication_result_ui(within)), "No ANOVA card plans a within-subjects design with two factors", fixed = TRUE)
 })
+
+test_that("an extension that changes the original condition is told how to plan it", {
+  ui <- text_of(replication_planner_sections())
+  expect_match(ui, "the sample size under Goals is for the original condition alone", fixed = TRUE)
+  expect_match(ui, "a three-way interaction", fixed = TRUE)
+  expect_match(ui, "about four times as many people", fixed = TRUE)
+  expect_match(as.character(replication_extension_note(list(name = "x"), card = TRUE)), "Comparing the original condition with a changed version", fixed = TRUE)
+})

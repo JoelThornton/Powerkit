@@ -263,7 +263,7 @@ replication_extension_note <- function(plan, card = FALSE) {
   name <- if (plan_is_replication(plan)) sprintf(" \u201c%s\u201d", plan$name) else ""
   div(class = "status status-soon replication-extension-note",
     p(class = "mb-0", if (card) sprintf(
-      "An extension of the replication plan%s: plan it with the effect you expect for what you added, which has no original estimate. \u201cAdd to plan\u201d keeps it in the plan, reported apart from the original's analysis.", name)
+      "An extension of the replication plan%s: plan it with the effect you expect for what you added, which has no original estimate. Comparing the original condition with a changed version of it? Give the original condition the effect you believe under the plan's Goals, and the changed one the effect you expect. \u201cAdd to plan\u201d keeps it in the plan, reported apart from the original's analysis.", name)
       else sprintf("Choose the analysis for what the replication adds. Its card plans it as an ordinary power analysis, and it is kept in the replication plan%s, reported apart from the original's analysis.", name)))
 }
 

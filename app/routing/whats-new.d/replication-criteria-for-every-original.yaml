@@ -16,3 +16,7 @@ entries:
       If you plan to find out whether the effect is there or not, the plan
       now warns when its sample size gives a null result too little chance
       of showing the effect is absent, and says how many people that needs.
+      If your replication adds a changed version of the original condition,
+      to test whether the effect disappears in it, the planner now explains
+      how to plan the comparison and why it needs about four times as many
+      people.
