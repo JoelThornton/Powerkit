@@ -234,7 +234,7 @@ bfprop_script <- function(spec, result) {
     sprintf("p_sd <- %s # uncertainty about each (SD of a beta design prior; 0 = exactly these)", r_code(inputs$p_sd)),
     sprintf("ratio <- %s # group 2's size divided by group 1's", r_code(inputs$ratio)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
-    sprintf("a <- %s # prior concentration (JASP's default 1)", r_code(inputs$a)),
+    sprintf("a <- %s # prior concentration (the package default, 1)", r_code(inputs$a)),
     sprintf("alternative <- %s # 'greater': group 2's proportion is the higher", r_code(inputs$alternative)),
     bayes_goal_inputs(spec),
     "",

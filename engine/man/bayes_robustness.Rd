@@ -19,9 +19,9 @@ A data frame: \code{prior} (its name), \code{scale}, \code{for_effect},
 \description{
 For a Bayes factor t-test plan, the chance of strong evidence for the
 effect (as planned) and for no effect (if there is none) at a sample
-size, under the plan's own analysis prior and under JASP's three named
-widths of the default Cauchy prior: medium (1/sqrt(2)), wide (1) and
-ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
+size, under the plan's own analysis prior and under the BayesFactor
+package's three named widths of the default Cauchy prior (also JASP's):
+medium (1/sqrt(2)), wide (1) and ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
 through \code{\link[=run_spec]{run_spec()}}) with only the prior's scale changed.
 }
 \examples{
