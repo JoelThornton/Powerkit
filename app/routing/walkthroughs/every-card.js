@@ -16,6 +16,7 @@
 // scripts. It exits with status 1 when any card has a problem.
 const { chromium } = require('playwright');
 const fs = require('fs');
+const { downloadLinkProblem, downloadResponseProblem, printDocumentProblem } = require('./export-checks');
 const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
 const cards = JSON.parse(fs.readFileSync(process.argv[2] || 'cards.json', 'utf8'));
 const OUT = process.argv[3] || 'every-card.json';
@@ -125,35 +126,64 @@ const SHOTS = process.env.SHOTS || null;
       const emptyOutputs = await page.evaluate(ON_DEMAND => [...document.querySelectorAll('#form_result .shiny-html-output, #form_result .shiny-image-output, #form_result .shiny-plot-output')].filter(e => e.offsetParent && e.innerHTML.trim() === '' && !ON_DEMAND.includes(e.id)).map(e => e.id), ON_DEMAND);
       if (emptyOutputs.length) r.problems.push('blank outputs: ' + emptyOutputs.join(','));
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/${c.id}${GOAL ? '-' + GOAL : ''}.png`, fullPage: false });
-      // Downloads.
-      const links = await page.evaluate(() => [...document.querySelectorAll('a.shiny-download-link')].filter(a => a.offsetParent).map(a => ({ id: a.id, href: a.getAttribute('href'), disabled: a.getAttribute('aria-disabled'), text: a.innerText.trim() })));
+      // Open the document-format menu so Word and Markdown are also checked.
+      const formats = page.locator('#planning_document_formats:visible');
+      if (await formats.count()) await formats.click();
+      const links = await page.evaluate(() => [...document.querySelectorAll('a.shiny-download-link')]
+        .filter(a => a.offsetParent)
+        .map(a => ({ id: a.id, href: a.getAttribute('href'),
+          disabled: a.getAttribute('aria-disabled') === 'true' || a.classList.contains('disabled'),
+          text: a.innerText.trim() })));
+      if (await formats.count()) await formats.click();
       for (const l of links) {
         const d = { id: l.id, text: l.text, disabled: l.disabled };
-        if (!l.href || !/download/.test(l.href)) { d.status = 'no href'; r.downloads.push(d); continue; }
+        r.downloads.push(d);
+        if (l.disabled) { d.status = 'disabled'; continue; }
+        const linkProblem = downloadLinkProblem(l);
+        if (linkProblem) { d.status = 'no href'; r.problems.push(`download ${l.id}: ${linkProblem}`); continue; }
         const t1 = Date.now();
         try {
           const resp = await page.request.get(new globalThis.URL(l.href, URL).toString(), { timeout: 180000 });
           d.status = resp.status(); d.ms = Date.now() - t1;
           const body = await resp.body(); d.bytes = body.length;
-          d.type = resp.headers()['content-type'];
-          const head = body.subarray(0, 4000).toString('utf8');
-          if (process.env.SAVE && /script/.test(l.id)) { fs.mkdirSync(process.env.SAVE, { recursive: true }); fs.writeFileSync(`${process.env.SAVE}/${c.id}${GOAL ? '-' + GOAL : ''}-${l.id}.R`, body); }
-          if (d.bytes < 50) r.problems.push(`download ${l.id} tiny (${d.bytes} bytes)`);
-          if (d.status !== 200) r.problems.push(`download ${l.id} HTTP ${d.status}`);
-          if (/Error in |Traceback/.test(head)) r.problems.push(`download ${l.id} contains R error`);
+          const headers = resp.headers();
+          d.type = headers['content-type'];
+          const problem = downloadResponseProblem(d.status, body, headers);
+          if (problem) r.problems.push(`download ${l.id}: ${problem}`);
+          else if (process.env.SAVE && /script/.test(l.id)) {
+            fs.mkdirSync(process.env.SAVE, { recursive: true });
+            fs.writeFileSync(`${process.env.SAVE}/${c.id}${GOAL ? '-' + GOAL : ''}-${l.id}.R`, body);
+          }
         } catch (e) { d.status = 'fail ' + String(e).slice(0, 100); r.problems.push(`download ${l.id} failed`); }
-        r.downloads.push(d);
       }
-      // PDF (print frame)
-      if (await page.locator('#planning_document_button:visible').count()) {
+      // Wait for a new print frame so the preceding card's document cannot pass this check.
+      const print = page.locator('#planning_document_button:visible');
+      if (await print.count()) {
         const t2 = Date.now();
-        await page.locator('#planning_document_button').click();
+        const previous = await page.$('#pk-print-frame');
         try {
-          await page.waitForSelector('#pk-print-frame', { state: 'attached', timeout: 30000 });
-          const h1 = await page.evaluate(() => { const f = document.getElementById('pk-print-frame'); const d = f && f.contentWindow.document; return d ? ((d.querySelector('h1') || {}).textContent || '') + ' | ' + d.body.innerText.length : 'nodoc'; });
-          r.pdf = { ok: /\w/.test(h1), ms: Date.now() - t2, h1 };
-          if (!r.pdf.ok) r.problems.push('PDF print frame empty');
-        } catch (e) { r.pdf = { ok: false, dialogs: dialogs.slice() }; r.problems.push('PDF print frame did not appear ' + dialogs.join(';')); }
+          await print.click();
+          const frame = await page.waitForFunction(previous => {
+            const current = document.getElementById('pk-print-frame');
+            return current && current !== previous ? current : null;
+          }, previous, { timeout: 30000 });
+          const documentResult = await frame.evaluate(f => {
+            const doc = f.contentDocument;
+            if (!doc?.body) return null;
+            const copy = doc.body.cloneNode(true);
+            copy.querySelectorAll('h1, .pk-doc-footer').forEach(el => el.remove());
+            return { heading: doc.querySelector('h1')?.textContent || '', body: copy.textContent };
+          });
+          const problem = printDocumentProblem(documentResult);
+          r.pdf = { ok: !problem, ms: Date.now() - t2, heading: documentResult?.heading || '' };
+          if (problem) r.problems.push(problem);
+          await frame.dispose();
+        } catch (e) {
+          r.pdf = { ok: false, dialogs: dialogs.slice() };
+          r.problems.push('Print document failed: ' + String(e).split('\n')[0]);
+        } finally {
+          await previous?.dispose();
+        }
       }
     } catch (e) {
       r.status = 'crash'; r.message = String(e).slice(0, 400);

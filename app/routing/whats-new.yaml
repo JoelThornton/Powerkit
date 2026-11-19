@@ -7,6 +7,121 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-19"
+    title: powerkit's citation shows its year
+    text: >
+      The reference to powerkit in every reference list and download now
+      gives the year, where it showed "(????)" before, and Superpower's
+      reference no longer lists its DOI link twice.
+  - date: "2026-11-19"
+    title: Replication plans fit every kind of original study
+    text: >
+      Whether the original reported a p-value, a Bayes factor, a posterior or
+      both, the replication plan now suggests criteria that fit it, greys out
+      the ones it can't use, and always reports a criterion that could show
+      the effect is absent, with its chance planned in advance. When that
+      needs the smallest effect that would matter, the planner asks for it
+      before running. The chance at a sample size you could recruit is now
+      shown with the result, and the write-up states the evidence threshold
+      in words.
+      For a conceptual replication of an ANOVA effect with one degree of
+      freedom, "Plan it this way" now really sets the shrunk belief and more
+      variation between studies.
+      If you plan to find out whether the effect is there or not, the plan
+      now warns when its sample size gives a null result too little chance
+      of showing the effect is absent, and says how many people that needs.
+      If your replication adds a changed version of the original condition,
+      to test whether the effect disappears in it, the planner now explains
+      how to plan the comparison and why it needs about four times as many
+      people.
+      You can now enter the proportion of people you expect to drop out,
+      and the replication plan tells you how many to recruit. Write-ups for
+      ANOVAs with two or three factors now name the effect with your
+      factors' names.
+  - date: "2026-11-19"
+    title: Settling a question either way shows both sample sizes
+    text: >
+      When a replication is meant to show either that the effect is there
+      or that it is absent, the plan now gives both numbers: the sample
+      size for showing the effect, and the usually larger one for showing
+      it is absent. It recommends the larger and explains why the two differ.
+  - date: "2026-11-19"
+    title: Replicating several studies or a meta-analysis
+    text: >
+      The replication planner can now plan against a pooled estimate: the
+      original paper's own meta-analysis of its studies, or a published
+      one. Choose "Several studies or a meta-analysis" as how the original
+      was analysed and give the estimate with its standard error or
+      confidence interval; no sample size is needed.
+  - date: "2026-11-19"
+    title: Correlations with a more or less reliable measure
+    text: >
+      A replication of a correlation can now give the reliability of a
+      measure that changes, in the original and in the replication. A less
+      reliable measure shows a smaller correlation, so the plan expects a
+      smaller r and asks for more people.
+  - date: "2026-11-19"
+    title: Replications with a more or less reliable measure
+    text: >
+      If a replication of two groups or one group uses a different outcome
+      measure, give its reliability and the original measure's under "How
+      the replication differs". A less reliable measure shows a smaller
+      effect, so the plan expects a smaller effect and asks for more
+      people, and the write-up says so, with its source.
+  - date: "2026-11-19"
+    title: Replications with unequal groups
+    text: >
+      The replication planner can plan a replication of two groups with
+      unequal group sizes, such as twice as many people in the new
+      condition. Give the ratio under Goals; the plan, its write-up, the
+      number to recruit and the R script give each group's size. Equal
+      groups need the fewest people: twice as many in one group needs
+      about an eighth more people in total.
+  - date: "2026-11-19"
+    title: A study plan's report, without the zip
+    text: >
+      A study plan's page now has a Planning report button: print it or
+      save it as PDF, Word or Markdown, without downloading the whole zip.
+      It also fixes the report for a plan opened from a saved file, which
+      said each analysis's methods paragraph "couldn't be made" and had no
+      references.
+  - date: "2026-11-19"
+    title: Set a study plan's significance level and power once
+    text: >
+      A study plan's page now has settings for every analysis in it: choose
+      the significance level and target power once, and each analysis you
+      add from the plan starts with them (you can still change them on its
+      card). The plan page also lets you add an analysis by searching the
+      list ("I know my analysis") as well as by answering questions.
+  - date: "2026-11-19"
+    title: A study design table in the study plan's document
+    text: >
+      The planning document in a study plan's "Download everything" now
+      starts with a study design table of the kind Registered Reports ask
+      for: one row for each analysis, with its sample size, test, the
+      effect it is powered for and how each outcome would be read. The
+      cells only you can fill (your question, hypothesis and the theory at
+      stake) are marked "(fill in)".
+  - date: "2026-11-18"
+    title: Where each analysis runs
+    text: >
+      About separates calculations that finish in the app from those that
+      use a preview and an R script. It explains which script finishes a
+      calculation and which script reproduces a finished result.
+  - date: "2026-11-18"
+    title: Recruitment for whole groups
+    text: >
+      Recruitment applies attrition within each group for grouped mediation
+      and repeated outcomes. Where the analysis needs equal groups, Powerkit
+      shows nearby sample sizes that split evenly. Recalculate a saved result
+      to update a recruitment figure that used the full sample.
+  - date: "2026-11-18"
+    title: Clearer replication assumptions
+    text: >
+      Compare sample sizes under both publication assumptions when the original
+      study's publication process is unknown. Test estimates and posterior means
+      have separate fields. Conceptual replications can try a sensitivity scenario
+      and see exactly which settings it changes.
   - date: "2026-11-18"
     title: Clearer effect conversion and visualiser results
     text: >
@@ -2495,43 +2610,3 @@ entries:
       Comparing two proportions now offers Fisher's exact test for small
       samples, and one-way ANCOVA (group means adjusted for covariates)
       calculates in the app.
-  - date: "2026-10-18"
-    title: "A methods paragraph you can copy"
-    text: >-
-      The result screen now writes a short and a full methods paragraph for
-      your power analysis, with the citations to use, ready to paste into a
-      preregistration, ethics application or paper.
-  - date: "2026-10-18"
-    title: "One-way ANOVA, regression, one proportion and McNemar's test"
-    text: >-
-      These four analyses now calculate in the app. Welch's t-test can also be
-      calculated by formula as well as by simulation.
-  - date: "2026-10-18"
-    title: "A clearer start, and a clearer result screen"
-    text: >-
-      The first screen now asks about your situation (including a sample
-      size that's already fixed), your aim and the claim you want to make.
-      The effect-size screen asks where your effect size comes from, with a
-      way through if you can't justify one. The result screen gives a plain
-      reading of the answer and shows 80% and 95% power side by side.
-  - date: "2026-10-18"
-    title: "The app is online"
-    text: >-
-      You can use powerkit in a web browser, without installing R. It updates
-      itself each time a change is approved.
-  - date: "2026-10-18"
-    title: "Save your plan and reopen it later"
-    text: >-
-      You can save an analysis to a file, reopen it in the app, and rerun it
-      to get the same result.
-  - date: "2026-10-18"
-    title: "Mediation and moderated mediation"
-    text: >-
-      Mediation models give a quick rough preview of power in the app, then
-      either run the full analysis here (it takes several minutes) or give
-      you an R script to run on your own computer.
-  - date: "2026-10-18"
-    title: "Dropout: how many to recruit"
-    text: >-
-      If you expect some participants to drop out, the result shows both the
-      number you need to analyse and the number to recruit.

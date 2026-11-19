@@ -3,6 +3,46 @@
 # newest entry. Same format and rules as whats-new.yaml; the Updates tab
 # shows these with the rest.
 entries:
+  - date: "2026-10-18"
+    title: "A methods paragraph you can copy"
+    text: >-
+      The result screen now writes a short and a full methods paragraph for
+      your power analysis, with the citations to use, ready to paste into a
+      preregistration, ethics application or paper.
+  - date: "2026-10-18"
+    title: "One-way ANOVA, regression, one proportion and McNemar's test"
+    text: >-
+      These four analyses now calculate in the app. Welch's t-test can also be
+      calculated by formula as well as by simulation.
+  - date: "2026-10-18"
+    title: "A clearer start, and a clearer result screen"
+    text: >-
+      The first screen now asks about your situation (including a sample
+      size that's already fixed), your aim and the claim you want to make.
+      The effect-size screen asks where your effect size comes from, with a
+      way through if you can't justify one. The result screen gives a plain
+      reading of the answer and shows 80% and 95% power side by side.
+  - date: "2026-10-18"
+    title: "The app is online"
+    text: >-
+      You can use powerkit in a web browser, without installing R. It updates
+      itself each time a change is approved.
+  - date: "2026-10-18"
+    title: "Save your plan and reopen it later"
+    text: >-
+      You can save an analysis to a file, reopen it in the app, and rerun it
+      to get the same result.
+  - date: "2026-10-18"
+    title: "Mediation and moderated mediation"
+    text: >-
+      Mediation models give a quick rough preview of power in the app, then
+      either run the full analysis here (it takes several minutes) or give
+      you an R script to run on your own computer.
+  - date: "2026-10-18"
+    title: "Dropout: how many to recruit"
+    text: >-
+      If you expect some participants to drop out, the result shows both the
+      number you need to analyse and the number to recruit.
   - date: "2026-10-17"
     title: "The first working prototype"
     text: >-

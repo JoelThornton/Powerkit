@@ -82,7 +82,29 @@ test_that("the simulated-data code draws the same model", {
 
 test_that("the R script reproduces the run", {
   skip_unless_scripts_can_run()
-  spec <- mcx_spec(n = 60, group = "Loss framed")
-  run <- expect_script_reproduces_power(spec, run_quietly(spec))
+  spec <- mcx_spec(n = 120, group = "Loss framed")
+  spec$options$attrition <- 0.1
+  result <- run_quietly(spec)
+  expect_equal(result$recruitment$groups_analysed, c(40, 40, 40))
+  expect_equal(result$recruitment$groups_recruit, c(45, 45, 45))
+  run <- expect_script_reproduces_power(spec, result)
+  expect_equal(run$reproduced$n_recruit, 135)
   expect_true(any(grepl("do_mc(", run$script, fixed = TRUE)))
+
+  # An older result stays reproducible. Reopening it identifies how to get
+  # the corrected recruitment target with the same analysis inputs.
+  result$recruitment$groups_analysed <- 120
+  result$recruitment$groups_recruit <- 134
+  result$recruitment$n_recruit <- 134
+  reopened <- read_project(write_project(spec, result))
+  expect_match(paste(reopened$notes, collapse = " "), "Recalculate to apply it within each group", fixed = TRUE)
+  expect_equal(reopened$result$recruitment$n_recruit, 134)
+  legacy_script <- export_script(spec, saved_result(reopened))
+  expect_match(legacy_script, "groups_analysed <- n_analysed", fixed = TRUE)
+  expect_match(legacy_script, "powerkit_result$n_recruit <- 134", fixed = TRUE)
+})
+
+test_that("a mediation total must divide into the original equal groups", {
+  expect_spec_problem(mcx_spec(n = 100), "split into 3 equal groups")
+  expect_spec_problem(mcx_spec(n = 100), "The nearest that do: 99 and 102", fixed = TRUE)
 })

@@ -1229,7 +1229,11 @@ add_recruitment_section <- function(lines, spec, result) {
   }
   at <- match("# Compare with powerkit's result ----", lines)
   analysed <- if (identical(spec$goal$type, "sample_size")) "n_required" else "n_total"
-  split <- analysed_groups_code(spec)
+  split <- if (saved_with_ungrouped_recruitment(spec, r)) {
+    c("# The saved result applied attrition to the total.",
+      "# Recalculate in Powerkit to apply attrition within each group.",
+      "groups_analysed <- n_analysed")
+  } else analysed_groups_code(spec)
   section <- c(
     "# Participants to recruit ----",
     "# n is the number analysed. To allow for attrition, each group's analysed",

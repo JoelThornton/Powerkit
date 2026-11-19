@@ -1397,6 +1397,8 @@ server <- function(input, output, session) {
       return()
     }
     if (pick == "home" || kind == "route" || kind == "aim") state$rep_extension_plan <- NULL
+    # Starting again leaves the study plan whose "Add an analysis" led here.
+    if (pick == "home") state$plan_more_target <- NULL
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
@@ -1495,6 +1497,9 @@ server <- function(input, output, session) {
         # The replication plan's notes, in the user's own words, as the reasoning.
         seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
         if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
+      } else if (!is.null(target <- plan_get(state$plan_more_target))) {
+        # A study plan's settings for every analysis, entered once.
+        state$form_values <- plan_settings_form_values(state$form_values, target$settings)
       }
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
@@ -2480,6 +2485,13 @@ server <- function(input, output, session) {
     text <- plan_clean_text(edit$text %||% "", plan_description_max)
     if (!identical(text, plan$description %||% "")) plans_put(plan_edit(plan, description = text))
   })
+  # The plan's settings for every analysis (queue item 29).
+  observeEvent(input$plan_settings_edit, {
+    edit <- input$plan_settings_edit
+    plan <- if (is.character(edit$id) && length(edit$id) == 1L) plan_get(edit$id)
+    if (is.null(plan) || !isTRUE(edit$field %in% c("alpha", "power"))) return()
+    plans_put(plan_edit_settings(plan, edit$field, as.character(edit$value %||% "")))
+  })
   observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
   observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
   observeEvent(input$plan_remove, edit_viewed(function(p) plan_remove_entry(p, input$plan_remove)))
@@ -2598,6 +2610,19 @@ server <- function(input, output, session) {
       div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
     })
   })
+  # The next analysis, chosen from the searchable list of every analysis
+  # (queue item 29), added to this plan.
+  observeEvent(input$plan_more_known, {
+    if (!is.null(plan_get(isolate(state$plans_view)))) {
+      state$current_plan <- isolate(state$plans_view)
+      state$plan_more_target <- isolate(state$plans_view)
+    }
+    cancel_job()
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+    state$start <- list(); state$rep_plan <- NULL; state$rep_extension_plan <- NULL
+    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$ctx <- list()
+    state$route <- "known"; state$skip_screening <- TRUE; state$screen <- "known"
+  })
   observeEvent(input$plan_more, {
     # The next analysis, found by "Help me choose" from the start, added
     # to this plan.
@@ -2636,6 +2661,23 @@ server <- function(input, output, session) {
     },
     contentType = "application/zip"
   )
+  # The plan's planning report on its own, to print, or as Word or
+  # Markdown: the document "Download everything" holds.
+  plan_report_lines <- function() {
+    plan <- plan_get(isolate(state$plans_view))
+    if (is.null(plan) || !length(plan$entries)) stop("The plan has no analyses.")
+    kept <- joint_kept[[plan$id]]
+    joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
+    plan_planning_document(plan, tree, forms, joint = joint)
+  }
+  plan_report_name <- function(ext) sub("\\.powerkit\\.json$", paste0("-planning.", ext), plan_file_name(plan_get(isolate(state$plans_view))))
+  observeEvent(input$plan_document, send_document(session, function() printable_document(plan_report_lines(), powerkit_version())))
+  output$plan_download_docx <- downloadHandler(
+    filename = function() plan_report_name("docx"),
+    content = function(file) docx_document(plan_report_lines(), file, powerkit_version()))
+  output$plan_download_md <- downloadHandler(
+    filename = function() plan_report_name("md"),
+    content = function(file) writeLines(plan_report_lines(), file, useBytes = TRUE))
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
   observeEvent(input$scenario_compare, {
@@ -3064,13 +3106,15 @@ server <- function(input, output, session) {
   # Filling the fields from a plan; until they hold its values, nothing is
   # written back (so one plan's fields never go into another).
   rep_loaded <- reactiveVal(NULL)
+  rep_conceptual_note <- reactiveVal(NULL)
   rep_fill <- function(plan) {
+    rep_conceptual_note(NULL)
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
       if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal", "rep_anova_effect")) updateSelectInput(session, id, selected = v)
       else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
-        "rep_purpose", "rep_prior", "rep_sided", "rep_anova_kind", "rep_f_from", "rep_assurance")) updateRadioButtons(session, id, selected = v)
+        "rep_published", "rep_purpose", "rep_prior", "rep_sided", "rep_anova_kind", "rep_f_from", "rep_assurance")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
       else if (id %in% c("labs_outcome", "rep_keeps")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else updateTextInput(session, id, value = v)
@@ -3178,14 +3222,27 @@ server <- function(input, output, session) {
   # A conceptual replication: the shrunk belief and more variation between
   # studies, set when the researcher asks (never on loading a plan).
   observeEvent(input$rep_use_conceptual, {
-    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r,
-      rep_assurance = input$rep_assurance))
-    if (!is.null(s$rep_prior)) updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
-    if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
-    if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
-    output$rep_conceptual_done <- renderUI(p(class = "small text-success", role = "status",
-      if (identical(input$rep_design, "generic")) "Done: the shrunk belief. For this effect, raise the variation between studies under Goals yourself, on its own scale."
-      else "Done: the shrunk belief and more variation between studies, under Goals. You can change either there."))
+    req(identical(input$rep_keeps, "conceptual"))
+    # Every field, not only the variation boxes: whether an ANOVA effect
+    # has one degree of freedom depends on its levels and effect.
+    before <- stats::setNames(lapply(replication_field_ids, function(id) input[[id]]), replication_field_ids)
+    settings <- replication_conceptual_settings(before)
+    if (!length(settings)) {
+      rep_conceptual_note(list(settings = list(rep_design = before$rep_design),
+        message = "Nothing was changed: this original is planned with BUCSS, which has no setting for a changed procedure. Choose the assurance under Goals, or plan from the smallest effect that would matter."))
+      return()
+    }
+    if (!is.null(settings$rep_prior)) updateRadioButtons(session, "rep_prior", selected = settings$rep_prior)
+    if (!is.null(settings$rep_tau)) updateSelectInput(session, "rep_tau", selected = settings$rep_tau)
+    if (!is.null(settings$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = settings$rep_tau_r)
+    rep_conceptual_note(list(settings = c(list(rep_design = before$rep_design), settings),
+      message = replication_conceptual_summary(before, settings)))
+  })
+  output$rep_conceptual_done <- renderUI({
+    applied <- rep_conceptual_note()
+    req(applied, identical(input$rep_keeps, "conceptual"))
+    req(all(vapply(names(applied$settings), function(id) identical(input[[id]], applied$settings[[id]]), logical(1))))
+    p(class = "small text-success", role = "status", applied$message)
   })
   # A new study: an ordinary study plan instead.
   observeEvent(input$rep_start_study_plan, {
@@ -3369,6 +3426,7 @@ server <- function(input, output, session) {
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
         # Already in a replication plan: the signpost offering one is hidden.
         if (replicating(state$start)) tags$style(".labs-signpost { display: none; }"),
+        if (!replicating(state$start) && !is.null(target <- plan_get(state$plan_more_target))) plan_settings_note(target),
         form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),

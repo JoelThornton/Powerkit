@@ -247,7 +247,8 @@ document_menu <- function(pdf, docx, md, label, name, class = "btn btn-outline-p
 # The download ids inside the menus, which the server keeps ready while the
 # menu is closed (outputOptions(suspendWhenHidden = FALSE) in app.R).
 document_menu_downloads <- c("download_planning_docx", "download_planning_document",
-  "ws_download_planning_docx", "ws_download_planning_md", "rep_docx", "rep_markdown")
+  "ws_download_planning_docx", "ws_download_planning_md", "rep_docx", "rep_markdown",
+  "plan_download_docx", "plan_download_md")
 
 # Sends a built document to the browser, which prints it from a hidden
 # frame; or a plain-English reason if it can't be built.

@@ -18,8 +18,8 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 
 # The planner's starting values, as its screen had them.
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
-  rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
-  rep_original_alpha = "0.05", rep_published = "significant", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
+  rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_pool_from = "se", rep_pool_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
+  rep_original_alpha = "0.05", rep_published = "unknown", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
   rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
   rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided",
   rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_assurance = "0.8")
@@ -41,7 +41,7 @@ replication_clean_fields <- function(fields) {
 
 replication_record <- function(fields = list(), endpoint = NULL) {
   ep <- if (is.character(endpoint) && length(endpoint) == 1L && grepl("^E[0-9]+$", endpoint)) endpoint
-  record <- list(format = replication_plan_format, version = 1L, fields = replication_clean_fields(fields))
+  record <- list(format = replication_plan_format, version = 2L, fields = replication_clean_fields(fields))
   if (!is.null(ep)) record$endpoint <- ep
   record
 }
@@ -49,7 +49,17 @@ replication_record <- function(fields = list(), endpoint = NULL) {
 # A record read from a file or the browser, or NULL when it isn't one.
 replication_normalise <- function(record) {
   if (!is.list(record) || !identical(record$format, replication_plan_format)) return(NULL)
-  replication_record(record$fields %||% list(), record$endpoint)
+  fields <- record$fields %||% list()
+  if (isTRUE((record$version %||% 1L) == 1L)) {
+    # An omitted filter used to select significance. The combined test
+    # estimate / posterior mean was interpreted by the saved analysis.
+    fields$rep_published <- fields$rep_published %||% "significant"
+    if (identical(fields$rep_analysis, "posterior")) {
+      fields$rep_post_mean <- fields$rep_effect
+      fields$rep_effect <- NULL
+    }
+  }
+  replication_record(fields, record$endpoint)
 }
 
 plan_is_replication <- function(plan) is.list(plan$replication)
@@ -62,22 +72,22 @@ new_replication_plan <- function(name = NULL, now = Sys.time()) {
 
 # Every field's value for the screen: the record's, else the starting one.
 replication_values <- function(record) {
-  fields <- record$fields %||% list()
+  fields <- replication_normalise(record)$fields %||% list()
   stats::setNames(lapply(replication_plan_field_ids, function(id) fields[[id]] %||% replication_field_defaults[[id]] %||% ""),
     replication_plan_field_ids)
 }
 
 # What a record holds, for telling two copies of a plan apart.
 replication_content <- function(record) {
-  if (!is.list(record)) return(NULL)
-  r <- replication_record(record$fields, record$endpoint)
+  r <- replication_normalise(record)
+  if (is.null(r)) return(NULL)
   as.character(jsonlite::toJSON(list(r$fields, r$endpoint), auto_unbox = TRUE, null = "null"))
 }
 
 # The fields (and the original's card) as they stand, kept in the plan,
 # which counts as changed only when they do.
 plan_set_replication <- function(plan, fields = NULL, endpoint = NULL, now = Sys.time()) {
-  old <- plan$replication %||% replication_record()
+  old <- replication_normalise(plan$replication) %||% replication_record()
   record <- replication_record(if (is.null(fields)) old$fields else fields,
     if (is.null(endpoint)) old$endpoint else endpoint)
   if (identical(replication_content(old), replication_content(record)) && is.list(plan$replication)) return(plan)
@@ -90,8 +100,10 @@ plan_set_replication <- function(plan, fields = NULL, endpoint = NULL, now = Sys
 # version before this one opens in Labs), with the record and the plan's
 # id, name and description beside it.
 plan_replication_only_text <- function(plan) {
-  record <- replication_record(plan$replication$fields, plan$replication$endpoint)
-  file <- replication_file(record$fields, powerkit_version())
+  record <- replication_normalise(plan$replication)
+  fields <- record$fields
+  if (identical(fields$rep_analysis, "posterior")) fields$rep_effect <- fields$rep_post_mean
+  file <- replication_file(fields, powerkit_version())
   file$replication <- record
   file$study_plan <- list(id = plan$id, name = plan$name, description = plan$description %||% "")
   as.character(jsonlite::toJSON(file, auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA))
@@ -109,7 +121,8 @@ plan_from_replication_text <- function(text, now = Sys.time()) {
   plan <- new_plan(if (is.list(meta)) meta$name else plan_default_name(saved_date, "Replication plan"), now = now)
   if (is.list(meta) && is.character(meta$id) && grepl("^[0-9a-f]{16}$", meta$id)) plan$id <- meta$id
   if (is.list(meta)) plan$description <- plan_clean_text(meta$description %||% "", plan_description_max)
-  plan$replication <- replication_normalise(data$replication) %||% replication_record(data$fields)
+  legacy <- list(format = replication_plan_format, version = 1L, fields = data$fields)
+  plan$replication <- replication_normalise(data$replication) %||% replication_normalise(legacy)
   plan_mark_saved(plan, "file", now = now)
 }
 
@@ -160,7 +173,8 @@ replication_fields_for_card <- function(fields, forms, ep) {
   fields <- fields %||% list()
   e <- replication_card_effect(forms, ep)
   if (is.null(e) || nzchar(trimws(as.character(fields$rep_effect %||% ""))) ||
-      nzchar(trimws(as.character(fields$rep_bf %||% "")))) return(fields)
+      nzchar(trimws(as.character(fields$rep_bf %||% ""))) ||
+      nzchar(trimws(as.character(fields$rep_post_mean %||% "")))) return(fields)
   if (!is.null(e$exact)) {
     fields$rep_design <- e$exact
   } else if (!is.null(e$anova) && !nzchar(trimws(as.character(fields$rep_anova_f %||% ""))) &&
@@ -263,7 +277,7 @@ replication_extension_note <- function(plan, card = FALSE) {
   name <- if (plan_is_replication(plan)) sprintf(" \u201c%s\u201d", plan$name) else ""
   div(class = "status status-soon replication-extension-note",
     p(class = "mb-0", if (card) sprintf(
-      "An extension of the replication plan%s: plan it with the effect you expect for what you added, which has no original estimate. \u201cAdd to plan\u201d keeps it in the plan, reported apart from the original's analysis.", name)
+      "An extension of the replication plan%s: plan it with the effect you expect for what you added, which has no original estimate. Comparing the original condition with a changed version of it? Give the original condition the effect you believe under the plan's Goals, and the changed one the effect you expect. \u201cAdd to plan\u201d keeps it in the plan, reported apart from the original's analysis.", name)
       else sprintf("Choose the analysis for what the replication adds. Its card plans it as an ordinary power analysis, and it is kept in the replication plan%s, reported apart from the original's analysis.", name)))
 }
 

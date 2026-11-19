@@ -457,7 +457,9 @@ About and Updates, not a screen of the plan tab:
       Note: ...                         [Open] [Role ▾] [Note] [Remove]
    2. ...
 
- [Add an analysis] [Save plan] [Copy a link] [Download everything (.zip)]
+ Settings for every analysis in this plan: [Significance level ▾] [Target power ▾]
+
+ [Help me choose an analysis] [I know my analysis] [Save plan] [Copy a link] [Download everything (.zip)]
  Not saved to a file since your last change.
  Delete this plan
 ```
@@ -467,6 +469,14 @@ About and Updates, not a screen of the plan tab:
   wherever shown. Two plans may share a name: each has its own id.
 - **Description.** Free text, optional, up to 2,000 characters, shown
   on the plan page and at the top of the study-wide document.
+- **Settings for every analysis.** A significance level and a target
+  power, each optional, set once on the plan page (queue item 29, 19
+  November 2026). An analysis added from the plan's "Help me choose an
+  analysis" or "I know my analysis" starts with them, as a replication
+  plan's card starts with its Goals (`replication_form_values()`), and
+  its card says so; a value the card already has is kept, and either
+  can be changed on the card for that analysis only. They are kept in
+  the browser and in the plan file (`settings`, written only when set).
 - **Roles.** Each analysis is Primary, Secondary or Check (manipulation
   or quality check); the default is Primary for the first analysis and
   Secondary for the rest, or the role "Plan my whole study" gave it.
@@ -708,10 +718,19 @@ planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
   extension's "Add an extension analysis" opens the list of analyses as
   an ordinary route; its card's "Add to plan" keeps the result in the
   plan marked `extension = TRUE`, reported under "Other analyses in this
-  plan" and never as the original's. A conceptual replication's button
-  sets the shrunk belief and more variation between studies; a new study
-  is offered an ordinary study plan. The extension and conceptual answers
+  plan" and never as the original's. For a conceptual replication, an
+  optional sensitivity scenario uses a shrunk belief and increases
+  between-study variation where a preset is available. The planner
+  reports the before and after values. A new study is offered an ordinary
+  study plan. The extension and conceptual answers
   add a box for the checks that the study still tests the same thing.
+- New replication plans start with the original's publication process
+  set to unknown. When BUCSS is applicable, results, the write-up and the
+  R script compare publication requiring significance with publication
+  regardless of the result. Saved plans carry their previous publication
+  choice forward. The original's test estimate and posterior mean are
+  saved separately, with older values restored according to the saved
+  analysis.
 - Choosing the card also sets the goals table's route (15 November
   2026): the four exact designs keep their own fields; any other card
   with one focal effect asks for that effect (named from `forms.yaml`'s

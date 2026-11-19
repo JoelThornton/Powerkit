@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 18 November 2026.*
+*Last updated: 19 November 2026.*
 
 *Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
@@ -28,6 +28,10 @@ offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
+Replication plans compare BUCSS publication assumptions when the original's
+publication process is unknown. Goals and exports describe what the selected
+criterion can show, including the replication Bayes factor for designs without
+a Bayes factor t-test (Departure 30).
 
 Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the
@@ -109,16 +113,13 @@ each area, is at the end of
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 17) waits on a decision.
 
-- **What calculates:** 77 of the 78 analyses run in the app (80 cards,
-  counting the "none of these fit" and Bayes factor guide cards;
-  `tree.yaml`'s statuses); the other dyadic designs card is a guide to the
-  pair cards. 59 calculate in the app directly (`forms.yaml`'s
-  `calculates`), by a package's formula where one exists, otherwise by
-  simulation with Spower, Superpower, simr, power4mome, metafor or PITS.
-  The rest are simulations too slow for the app: a preview in the app,
-  then a full run or an R script the researcher runs themselves
-  (mediation and moderated mediation, participants and items, multilevel
-  models, Bayes factors of repeated-measures effects). Every design but the
+- **What calculates:** About groups supported analyses by the route in
+  `forms.yaml`. Some finish in the app, immediately or in the background.
+  Others give a preview, then run power in the app or hand off the
+  selected goal to an R script. The
+  [release support inventory](release-support-inventory.json) records
+  the available routes by card. The other dyadic designs card guides
+  researchers to the pair cards. Every design but the
   generic tests is reached from the design finder, and "I know my
   analysis" lists all of them by family with a search. No answer leads to
   "No matching design" unless the user chooses it, apart from a short list
@@ -219,11 +220,17 @@ each area, is at the end of
   been saved to a file, since the browser's copy can be cleared. Each plan
   has an overview (its analyses by role) and "Download everything": one
   zip with the plan file, a study-wide planning document (Markdown and
-  Word), the merged references and each analysis's own files; the zip
+  Word, with a Registered Report study design table: question,
+  hypothesis, sampling plan, analysis plan, what sets the sensitivity,
+  interpretation of each outcome, theory at stake; also on its own from
+  the plan's Planning report button), the merged references and each analysis's own files; the zip
   opens again as the plan. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
-  the guided screens from the plan's page
+  the guided screens from the plan's page. A plan's significance level
+  and target power are set once on its page and start each analysis
+  added from it, and "Help me choose an analysis" and "I know my
+  analysis" both add to it
   ([`saving-projects.md`](saving-projects.md), "Study plans").
 
 - **Experimental: whole-study planning.** The guided plan simulates
@@ -293,6 +300,21 @@ each area, is at the end of
   starts ticked (Departure 30), the default Bayes factor t-test is
   offered for p-value originals, d33 is the equivalence bound when none
   is entered, and the table of every criterion folds under the answer.
+  Since 19 November 2026 the criteria fit every kind of original: the
+  list is grouped into frequentist and Bayesian criteria with those the
+  original can't give greyed out, only the settings the chosen criteria
+  use are asked for, the absence criterion is always one planned for no
+  effect (the Bayes factor t-test for no effect, else the equivalence
+  test), a bound the plan can't default is asked for before the run,
+  "settle it either way" gives both sample sizes (for showing the
+  effect and for showing its absence) and recommends the larger, an expected
+  dropout gives the number to recruit (the cards' rule), and a
+  two-group replication can have unequal groups (the cards' allocation
+  ratio) and, for two groups, one group or a correlation, a measure of
+  different reliability (the original's d attenuated; Schmidt & Hunter,
+  1996). The original can be several studies or a meta-analysis: their
+  pooled estimate with its standard error or interval, without a sample
+  size (small telescopes and BUCSS then left out).
   The write-up adds the study design table Registered Reports ask for,
   the R script runs only the chosen criteria under the chosen belief,
   and the significance test can be one-sided. The page's five sections
@@ -319,7 +341,8 @@ each area, is at the end of
   goes straight to the write-up, a negative pre-replication report, and
   the planning steps say they aren't needed. The pages' guidance follows
   the "Show explanations" switch: one sentence in view and the rest under
-  "More", folded behind info buttons with explanations off. The plan
+  a labelled fold, with even that sentence folded when explanations are
+  off; a field's help sits under its box. The plan
   asks whether the original was published because it was significant
   (if not, as for a Registered Report, BUCSS corrects for uncertainty
   only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding
@@ -329,9 +352,9 @@ each area, is at the end of
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
   and one "Still needed" bar beside the button. Still to come: the rest
-  of item 28 (the three-factor ANOVA, several originals,
-  attrition, unequal allocation, reliability, claims resting on several
-  tests) and study plans' shared settings (29).
+  of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
+  an ANOVA original, reliability for pairs, claims
+  resting on several tests).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

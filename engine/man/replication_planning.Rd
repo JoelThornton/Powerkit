@@ -37,7 +37,10 @@ replication_planning(
   levels_b = NULL,
   effect = NULL,
   original_partial_eta = NULL,
-  original_df_error = NULL
+  original_df_error = NULL,
+  allocation_ratio = 1,
+  reliability_original = NULL,
+  reliability_replication = NULL
 )
 }
 \arguments{
@@ -105,8 +108,12 @@ Bayes factor t-test, for \code{"two_groups"}, \code{"one_sample"} and
 \code{"paired"}: its effect is read from \code{original_bf} and the sample size)
 or \code{"posterior"} (a posterior from a vague or default prior, whose mean
 is \code{original_effect} and whose SD is \code{original_se}, or whose credible
-interval is \code{original_ci}). Either Bayesian route leaves out small
-telescopes. For every t-test original the plan adds a default Bayes
+interval is \code{original_ci}), or \code{"pooled"} (several original studies
+or a meta-analysis: \code{original_effect} is their pooled estimate, d or
+r, and \code{original_se} its standard error or \code{original_ci} its
+confidence interval at \code{original_ci_level}; no sample size is
+needed). The Bayesian and pooled routes leave out small telescopes
+and BUCSS, which need one original study's test. For every t-test original the plan adds a default Bayes
 factor t-test (bfpwr): evidence for an effect (\code{bf_repeat}, the
 original's own test for a Bayesian original) and for no effect
 (\code{bf_null}).}
@@ -156,13 +163,39 @@ Report) corrects BUCSS's sample sizes for uncertainty only; see
 \item{levels_a, levels_b, effect, original_partial_eta, original_df_error}{For an ANOVA design: the factors' levels, the effect, and the
 partial eta-squared with its F test's error degrees of freedom in
 place of \code{original_f}, as for \code{\link[=replication_bucss]{replication_bucss()}}.}
+
+\item{allocation_ratio}{For \code{"two_groups"}: the replication's group 2
+size over group 1's (1, the default, for equal groups), as the cards'
+\code{options > allocation_ratio}. Each total is split into whole groups as
+the cards split it (group 1 is n / (1 + ratio) rounded to the nearest
+person), and every goal is judged at those groups' standard error,
+sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
+\code{bias_corrected} is \code{NULL} for unequal ones.}
+
+\item{reliability_original, reliability_replication}{For \code{"two_groups"},
+\code{"one_sample"} and \code{"correlation"}: the outcome measure's reliability
+in the original study and in the replication (both or neither, each
+above 0 and at most 1). An observed d is the true d times the square
+root of the measure's reliability (Schmidt & Hunter, 1996), so the
+original's estimate and standard error are multiplied by
+sqrt(reliability_replication / reliability_original): the effect the
+replication's measure would show, with the original's z unchanged.
+An observed r is the true r times the square root of both measures'
+reliabilities, so for a correlation give the reliability of the
+measure that changed (or, if both changed, the product of the two
+measures' reliabilities in each study); r is scaled, moved back to
+Fisher's z, and its standard error scaled to keep its z.
+Small telescopes and BUCSS work in the original's own units, so they
+are left out when the reliabilities differ.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
-analysis scale, z and two-sided p); \code{priors} (mean and SD of each
+analysis scale, z and two-sided p; with a change of reliability, also
+\code{reported}, the estimate in the original's units, and \code{attenuation}); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
 planned for no effect), \code{n} (the total sample size needed, \code{NA} when
-not reachable), \code{per_group}, \code{ratio} (n over the original's), \code{limit}
+not reachable), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:
+each group's size), \code{ratio} (n over the original's), \code{limit}
 (the highest chance reachable, when the goal cannot reach \code{power};
 for \code{reason} \code{"any_size"}, the chance with the smallest replication,
 which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
