@@ -228,7 +228,7 @@ replication_analyses_ui <- c("A significance test (a p-value)" = "test",
   "Several studies or a meta-analysis: their pooled estimate" = "pooled")
 replication_pool_from_ui <- c("Its standard error" = "se", "Its confidence interval" = "ci")
 replication_original_priors_ui <- c("Vague (flat, or nearly)" = "vague",
-  "A default prior (for example JASP's Cauchy prior, scale 0.707)" = "default",
+  "A default prior (for example the standard Cauchy prior, scale 0.707)" = "default",
   "An informative prior (built from earlier findings or a theory)" = "informative")
 replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval" = "ci")
 
@@ -564,7 +564,7 @@ replication_planner_sections <- function() {
           rep_note("A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.", label = "Which posterior can I use?", keep = TRUE)),
         conditionalPanel("input.rep_analysis != 'test' && (input.rep_design == 'two_groups' || input.rep_design == 'one_sample' || input.rep_design == 'paired')",
           field("rep_prior_scale", "The scale of its Cauchy prior on the effect", value = "0.707",
-            help = "0.707 is the default in JASP and the BayesFactor package. It is used to read the Bayes factor and to repeat the original's test.")),
+            help = "0.707 (the square root of 2, halved) is the usual default, in the BayesFactor package for R, JASP and jamovi alike. It is used to read the Bayes factor and to repeat the original's test.")),
         conditionalPanel("input.rep_design == 'generic'",
           field("rep_effect_name", "What the effect is",
             help = "For example \u201cthe interaction coefficient\u201d or \u201codds ratio\u201d. The original's card suggests one."),
@@ -1292,6 +1292,14 @@ replication_main_headline <- function(plan) {
     uncertain = "allowing for the uncertainty in the original's estimate",
     shrunk = "if the true effect is shrunk towards zero, as published effects often are")
   aim <- sprintf("%s chance of %s, %s", replication_a_pct(i$power), words, when)
+  both <- replication_either_sizes(plan)
+  if (!is.null(both) && !is.na(m$row$n)) {
+    larger <- max(m$row$n, both$n)
+    return(p(class = "result-headline lead", sprintf(
+      "To settle it either way, the replication needs %s for %s, and %s for %s chance of %s if there is no effect. Planning for the larger, %s, gives at least %s chance of a clear answer whichever is true.",
+      replication_n_words(plan, m$row$n), aim, replication_n_words(plan, both$n), replication_a_pct(i$power),
+      replication_lc(replication_goal_labels[[both$goal]]), replication_n_words(plan, larger), replication_a_pct(i$power))))
+  }
   if (!is.na(m$row$n)) return(p(class = "result-headline lead", sprintf("For %s, the replication needs %s.", aim, replication_n_words(plan, m$row$n))))
   p(class = "result-headline lead", sprintf("For %s: %s. Choose another main criterion under Goals to set the sample size.",
     aim, tolower(replication_cell(plan, m$row))))
@@ -1327,6 +1335,16 @@ replication_validation_text <- paste(
 # anything (a Bayes factor for no effect grows slowly with the sample).
 # Returns the sentence that says so when the absence criterion's chance
 # at the planned sample size is below the chance aimed for, else NULL.
+replication_either_sizes <- function(plan) {
+  ch <- plan$choice
+  if (is.null(ch) || !identical(ch$purpose, "either")) return(NULL)
+  absence <- intersect(c("bf_null", "negligible"), ch$also)[1]
+  if (is.na(absence)) return(NULL)
+  n <- replication_main(plan, absence, ch$prior)$row$n
+  if (is.na(n)) NULL else list(goal = absence, n = n)
+}
+
+# Why "either way" has two sample sizes, under the headline that gives both.
 replication_either_gap <- function(plan) {
   ch <- plan$choice
   if (is.null(ch) || !identical(ch$purpose, "either") || is.null(plan$at_main)) return(NULL)
@@ -1336,9 +1354,9 @@ replication_either_gap <- function(plan) {
   chance <- a$chance[a$goal == absence][1]
   if (is.na(chance) || chance >= plan$inputs$power) return(NULL)
   n <- replication_main(plan, absence, ch$prior)$row$n
-  sprintf("To settle it either way, a null result must be able to show something too: with %s, %s has a %s chance if there is no effect%s. Plan for the larger number, or collect data until the evidence is strong either way (a sequential design).",
-    replication_n_words(plan, plan$at_main$n), replication_lc(replication_goal_labels[[absence]]), replication_pct(chance),
-    if (!is.na(n)) sprintf("; it needs %s for %s chance", replication_n_words(plan, n), replication_a_pct(plan$inputs$power)) else "")
+  sprintf("Why two numbers: the first is planned for showing the effect if it is there, but a null result must be able to show something too. With %s, %s has %s chance if there is no effect, because evidence for no effect builds up more slowly than evidence for an effect%s. Plan for the larger number (enter it under Goals as a sample size you could analyse to see every criterion's chance there), or collect data until the evidence is strong either way (a sequential design).",
+    replication_n_words(plan, plan$at_main$n), replication_lc(replication_goal_labels[[absence]]), replication_a_pct(chance),
+    if (!is.na(n)) sprintf("; it reaches %s chance at %s", replication_a_pct(plan$inputs$power), replication_n_words(plan, n)) else "")
 }
 
 # The main criterion and those also reported, as their chance at the main
@@ -1754,7 +1772,18 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s%s",
     replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n),
     if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "",
-    if (identical(goal, plan$choice$goal)) replication_recruit_sentence(plan) else "")
+    if (identical(goal, plan$choice$goal)) paste0(replication_either_sentence(plan, m$row$n), replication_recruit_sentence(plan)) else "")
+}
+
+# "Settle it either way": the absence criterion's own sample size, after
+# the main one, in the methods paragraph ("" for the other purposes).
+replication_either_sentence <- function(plan, n_main) {
+  both <- replication_either_sizes(plan)
+  if (is.null(both)) return("")
+  sprintf(" To settle the question either way, %s chance of %s if there is no effect needs %s; %s",
+    replication_a_pct(plan$inputs$power), replication_lc(replication_goal_labels[[both$goal]]), replication_n_words(plan, both$n),
+    if (both$n > n_main) sprintf("the larger, %s, gives at least that chance of a clear answer whichever is true.", replication_n_words(plan, both$n))
+    else "the sample size above already gives it.")
 }
 
 # The recruitment target, for the write-up: " Allowing for ..., we will

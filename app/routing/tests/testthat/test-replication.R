@@ -697,10 +697,18 @@ test_that("'there or not' says when a null result could not show anything at the
   plan <- run(either)
   expect_identical(plan$choice[c("goal", "also")], list(goal = "bf_repeat", also = "bf_null"))
   gap <- replication_either_gap(plan)
-  expect_match(gap, "To settle it either way", fixed = TRUE)
+  expect_match(gap, "Why two numbers", fixed = TRUE)
   g <- plan$goals[plan$goals$goal == "bf_null", ]
   expect_match(gap, replication_n_words(plan, g$n[1]), fixed = TRUE)
   expect_match(as.character(replication_main_chances_ui(plan)), "rep-either-gap", fixed = TRUE)
+  # Both sample sizes in the headline and the methods paragraph, the larger recommended.
+  main_n <- plan$goals$n[plan$goals$goal == plan$choice$goal & plan$goals$prior %in% "shrunk"][1]
+  head <- as.character(replication_main_headline(plan))
+  expect_match(head, "To settle it either way, the replication needs", fixed = TRUE)
+  expect_match(head, replication_n_words(plan, g$n[1]), fixed = TRUE)
+  expect_match(head, sprintf("Planning for the larger, %s", replication_n_words(plan, max(main_n, g$n[1]))), fixed = TRUE)
+  expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "To settle the question either way", fixed = TRUE)
+  expect_null(replication_either_sizes(run(modifyList(either, list(rep_purpose = "confirm")))))
   # Not for the other purposes, which plan for what they aim to show.
   expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "confirm")))))
   expect_null(replication_either_gap(run(modifyList(either, list(rep_purpose = "absent")))))

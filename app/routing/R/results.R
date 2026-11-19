@@ -4509,7 +4509,7 @@ bayes_companion_n <- function(spec, result) {
 
 bayes_companion_test_words <- function(spec, comp) {
   switch(spec$template,
-    one_sample_t = , paired_t = , independent_t = sprintf("the Bayes factor t-test (JASP's default prior: a Cauchy distribution with scale %s)", format(signif(comp$priors$prior_scale, 3))),
+    one_sample_t = , paired_t = , independent_t = sprintf("the Bayes factor t-test (the usual default prior: a Cauchy distribution with scale %s, as in the BayesFactor package, JASP and jamovi)", format(signif(comp$priors$prior_scale, 3))),
     correlation = "the Bayes factor test of the correlation (JASP's default prior)",
     oneway_between = sprintf("the Bayes factor ANOVA (JASP's default prior, r scale %s)", format(comp$priors$prior_scale %||% 0.5)),
     "the Bayes factor test (JASP's default prior)")
