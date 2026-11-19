@@ -92,7 +92,38 @@ plan_set_replication <- function(plan, fields = NULL, endpoint = NULL, now = Sys
     if (is.null(endpoint)) old$endpoint else endpoint)
   if (identical(replication_content(old), replication_content(record)) && is.list(plan$replication)) return(plan)
   plan$replication <- record
-  plan_touch(plan, now)
+  plan_touch(plan_auto_name(plan), now)
+}
+
+# A replication plan named after its original study and the kind of
+# replication (19 November 2026), while it still has its starting name or
+# one given this way: "Close replication of Smith et al. (2020)". A name
+# the researcher gives is kept.
+replication_auto_name <- function(fields) {
+  study <- trimws(as.character(fields$rep_study %||% "")[1])
+  if (is.na(study) || !nzchar(study)) return(NULL)
+  study <- gsub("\\s+", " ", study)
+  if (nchar(study) > 70) study <- paste0(trimws(substr(study, 1, 69)), "\u2026")
+  keeps <- as.character(fields$rep_keeps %||% "")[1]
+  switch(if (is.na(keeps)) "" else keeps,
+    close = sprintf("Close replication of %s", study),
+    extension = sprintf("Replication of %s, with an extension", study),
+    conceptual = sprintf("Conceptual replication of %s", study),
+    new = sprintf("New study after %s", study),
+    sprintf("Replication of %s", study))
+}
+plan_name_is_automatic <- function(plan) {
+  isTRUE(plan$name_auto) || grepl("^Replication plan, [0-9]{1,2} [A-Z][a-z]{2} [0-9]{4}$", plan$name %||% "")
+}
+plan_auto_name <- function(plan) {
+  if (!plan_is_replication(plan) || !plan_name_is_automatic(plan)) return(plan)
+  name <- replication_auto_name(replication_normalise(plan$replication)$fields %||% list())
+  if (is.null(name)) return(plan)
+  name <- plan_clean_text(name, plan_name_max)
+  if (identical(name, plan$name)) return(plan)
+  plan$name <- name
+  plan$name_auto <- TRUE
+  plan
 }
 
 # A replication plan with no calculated analysis yet: a plan file needs an
@@ -130,8 +161,40 @@ plan_from_replication_text <- function(text, now = Sys.time()) {
 # in any order. Drawn once with the Study plans page and shown for a
 # replication plan, so typing never redraws it; the server fills its
 # fields from the plan when the plan opens, and keeps them in the plan.
+# The plan's summary card (19 November 2026): what has been filled in so
+# far, as a study plan's page has its overview. Nothing until the
+# original study, a decision or a design choice has been made.
+replication_overview_ui <- function(values, answer = NULL) {
+  v <- function(id) { x <- trimws(as.character(values[[id]] %||% "")[1]); if (is.na(x)) "" else x }
+  design <- v("rep_design")
+  effect <- v("rep_effect")
+  people <- switch(design,
+    two_groups = if (nzchar(v("rep_n1")) && nzchar(v("rep_n2"))) sprintf("%s and %s people", v("rep_n1"), v("rep_n2")) else "",
+    paired = if (nzchar(v("rep_n"))) sprintf("%s pairs", v("rep_n")) else "",
+    if (nzchar(v("rep_n"))) sprintf("%s people", v("rep_n")) else "")
+  symbol <- switch(design, two_groups = "d", one_sample = "d", paired = "d", correlation = "r", "")
+  found <- if (nzchar(effect) && !identical(design, "anova")) {
+    paste(c(if (nzchar(symbol)) sprintf("%s = %s", symbol, effect) else effect, if (nzchar(people)) people), collapse = ", ")
+  } else people
+  rows <- list(
+    "Original study" = v("rep_study"),
+    "Its design" = if (nzchar(design) && nzchar(v("rep_study"))) names(replication_designs_ui)[match(design, replication_designs_ui)] else "",
+    "What it found" = found,
+    "Decision" = if (v("labs_outcome") %in% names(labs_outcomes)) labs_outcomes[[v("labs_outcome")]] else "",
+    "Kind of replication" = if (v("rep_keeps") %in% names(replication_keeps_words)) {
+      w <- replication_keeps_words[[v("rep_keeps")]]; paste0(toupper(substr(w, 1, 1)), substring(w, 2))
+    } else "",
+    "Sample size" = if (!is.null(answer)) sprintf("%s (%s)", answer$n, tolower(answer$goal)) else "")
+  rows <- rows[vapply(rows, function(x) length(x) == 1L && !is.na(x) && nzchar(x), logical(1))]
+  if (!length(rows)) return(NULL)
+  div(class = "rep-overview", role = "region", `aria-label` = "This replication so far",
+    h3(class = "h6 rep-overview-title", "This replication so far"),
+    tags$dl(class = "rep-overview-list", lapply(names(rows), function(k) tagList(tags$dt(k), tags$dd(rows[[k]])))))
+}
+
 replication_workspace_ui <- function(tree) {
   div(class = "replication-workspace",
+    uiOutput("rep_overview"),
     h3(class = "h5", "Planning the replication"),
     p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
     div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
@@ -156,9 +219,10 @@ replication_workspace_ui <- function(tree) {
 replication_next_step_ui <- function() {
   ids <- unname(replication_sections)
   tagList(lapply(seq_len(length(ids) - 1L), function(i) {
-    # After "Not worth replicating", the notes' own button goes to the
-    # write-up instead.
-    conditionalPanel(sprintf("input.rep_section == '%s'%s", ids[[i]], if (i == 1L) " && input.labs_outcome != 'not_worth'" else ""),
+    # Once a decision is chosen, the notes give their own next button
+    # (to the original study, or after "Not worth replicating" to the
+    # write-up), so this one would be a second copy (19 November 2026).
+    conditionalPanel(sprintf("input.rep_section == '%s'%s", ids[[i]], if (i == 1L) " && !input.labs_outcome" else ""),
       div(class = "nav-buttons rep-next-step",
         tags$button(type = "button", class = "btn btn-outline-primary",
           onclick = sprintf("var r = document.querySelector('input[name=rep_section][value=%s]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }", ids[[i + 1L]]),

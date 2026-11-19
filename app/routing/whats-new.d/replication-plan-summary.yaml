@@ -1,0 +1,28 @@
+entries:
+  - date: "2026-11-19"
+    title: Replication plans name themselves and sum up what you've entered
+    text: >
+      A new replication plan takes its name from the original study and the
+      kind of replication, such as "Close replication of Smith (2019)",
+      until you give it a name of your own. A card at the top of the plan
+      sums up what you have entered so far, including the sample size once
+      it is planned. Goals now say which main criterion your answer to
+      "What should the replication show?" gives, and that this criterion
+      sets the sample size. With explanations off, each box has one info
+      button in its corner instead of "More context" links. Delete is a
+      small red button beside the plan's title.
+  - date: "2026-11-19"
+    title: Fields stay clear of the bar at the bottom of the screen
+    text: >
+      Moving through a form with the Tab key no longer leaves a field hidden
+      under the bar with the main button at the bottom of the screen. For an
+      ANOVA original, the assurance choices now run from 50% to 95%; 80%,
+      BUCSS's default, is still the one selected.
+  - date: "2026-11-19"
+    title: Shorter labels in the replication planner
+    text: >
+      The replication planner's labels are shorter, such as "Significance
+      level", "Chance of success (power)" and "Whether the effect is there or
+      not", and read the same with explanations on or off. What the longer
+      labels explained is now in each field's help, and examples are inside
+      the text boxes.

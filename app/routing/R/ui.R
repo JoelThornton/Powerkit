@@ -267,6 +267,32 @@ terms_js <- "
       var ids = visible.concat(other);
       if (ids.length) el.setAttribute('aria-describedby', ids.join(' ')); else el.removeAttribute('aria-describedby');
     });
+    // One info button in the corner of each box that has notes (19 November
+    // 2026), in place of a More context link under each note: with
+    // explanations off it opens or closes every explanation in the box.
+    var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
+    var boxNotes = function(box) {
+      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more'))
+        .filter(function(d) { return d.closest(boxSel) === box; });
+    };
+    document.querySelectorAll(boxSel).forEach(function(box) {
+      var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
+      var hasNote = notes.some(function(n) { return n.classList.contains('rep-note'); });
+      if (!hasNote) { if (btn) btn.remove(); box.classList.remove('box-has-info'); return; }
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'box-info';
+        btn.setAttribute('aria-label', 'Explanations for this part'); btn.title = 'Show or hide the explanations here';
+        btn.innerHTML = '<span aria-hidden=\"true\">i</span>';
+        btn.addEventListener('click', function() {
+          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && n.classList.contains('rep-note'); });
+          ns.forEach(function(n) { n.open = open; });
+          window.pkSyncExplanations(false);
+        });
+        box.appendChild(btn); box.classList.add('box-has-info');
+      }
+      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && n.classList.contains('rep-note'); }) ? 'true' : 'false');
+    });
   };
   window.pkSetTermsMode = function(on) {
     document.documentElement.classList.toggle('terms-mode', !!on);
