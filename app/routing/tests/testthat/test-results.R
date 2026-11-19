@@ -1646,6 +1646,8 @@ test_that("changing the effect size after writing the reasoning flags it, withou
   calc <- run_calculation(build_spec(forms, "E2", fields, stale), seed = forms$default_seed)
   html <- as.character(result_panel_ui(tree, forms, "E2", fields, stale, calc))
   expect_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "keep the form answers and your reasoning as a draft", fixed = TRUE)
+  expect_match(html, "save the finished result or export its write-up", fixed = TRUE)
   expect_match(html, "(it was Cohen's d = 0.4; it is now Cohen's d = 0.6)", fixed = TRUE)
   expect_match(html, "Smallest difference our clinic would act on.", fixed = TRUE)
   expect_match(html, "source_still_applies", fixed = TRUE)
@@ -3022,7 +3024,7 @@ test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCO
   expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
   words <- result_sentences(calc$spec, calc$result)
   expect_match(words[["headline"]], "with a Bayes factor ANCOVA (evidence threshold: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
-  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
+  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354", fixed = TRUE)
   w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
   expect_match(w[["short"]], "If there were no effect, the probability of evidence at the threshold for its absence", fixed = TRUE)
@@ -3039,7 +3041,7 @@ test_that("the factorial ANOVAs' Bayes factor names its test in the write-up, an
   spec$options$nrep <- 100L
   calc <- run_calculation(spec, run, seed = forms$default_seed)
   w <- writeup_text(forms$forms$E7, calc$spec, calc$result, fields, values)
-  expect_match(w[["short"]], "was conducted for a Bayes factor between-participants ANOVA (target effect: interaction) (default Bayes factors", fixed = TRUE)
+  expect_match(w[["short"]], "was conducted for a Bayes factor between-participants ANOVA \\(target effect: the interaction of [^)]+ and [^)]+\\) \\(default Bayes factors")
   expect_match(w[["short"]], "(from 100 simulated studies with no effect)", fixed = TRUE)
   expect_match(bayes_sentence(calc$spec, calc$result)[[1]], "If there were no effect, a study of 200", fixed = TRUE)
 })
@@ -3598,7 +3600,8 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   expect_match(text, "chance of evidence at the threshold", fixed = TRUE)
   w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
-  expect_match(w[["short"]], "as in JASP", fixed = TRUE)
+  expect_match(w[["short"]], "a Cauchy analysis prior of r scale 0.354 on the standardised coefficients, testing", fixed = TRUE)
+  expect_no_match(w[["short"]], "JASP", fixed = TRUE)
 })
 
 test_that("within-person moderation (E41) counts observations, and the result names people and occasions", {
@@ -3689,4 +3692,16 @@ test_that("validating an existing prediction model (E77) shows pmvalsampsize's c
   expect_match(w[["short"]], "validating an existing prediction model", fixed = TRUE)
   expect_match(w[["short"]], "pmvalsampsize (version", fixed = TRUE)
   expect_true(script_reproduces(script(calc$spec, calc$result)))
+})
+
+test_that("a factorial ANOVA's target effect is named with the factors' own names", {
+  spec <- list(target_test = list(effect = "interaction_ABC"),
+    variables = list(A = list(label = "Vignettes"), B = list(label = "Role"), C = list(label = "Message")))
+  expect_identical(anova_effect_words(spec), "the three-way interaction of Vignettes, Role and Message")
+  spec$target_test$effect <- "interaction_AC"
+  expect_identical(anova_effect_words(spec), "the interaction of Vignettes and Message")
+  spec$target_test$effect <- "main_effect_B"
+  expect_identical(anova_effect_words(spec), "the main effect of Role")
+  expect_identical(anova_effect_words(list(target_test = list(effect = "interaction"), variables = list())),
+    "the interaction of the first factor and the second factor")
 })

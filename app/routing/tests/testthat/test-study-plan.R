@@ -25,7 +25,8 @@ test_that("the plan keeps different sample structures separate", {
   expect_no_match(html, "groups needed", fixed = TRUE)
   expect_match(html, "participants needed", fixed = TRUE)
   expect_match(html, "Powerkit doesn't calculate it for these designs yet", fixed = TRUE)
-  expect_match(html, "Add an analysis", fixed = TRUE)
+  expect_match(html, "Help me choose an analysis", fixed = TRUE)
+  expect_match(html, "plan_more_known", fixed = TRUE)
   expect_match(html, "Save plan", fixed = TRUE)
 })
 
@@ -171,4 +172,38 @@ test_that("an analysis calculated from the whole-study plan joins the study plan
   expect_match(html, "with the other analyses of your study plan", fixed = TRUE)
   expect_no_match(html, "plan_add", fixed = TRUE)
   expect_match(as.character(guided_plan_save_ui(3, "Whole-study plan, 13 Nov 2026")), "See the study plan “Whole-study plan, 13 Nov 2026” (3 analyses)", fixed = TRUE)
+})
+
+test_that("a plan's significance level and power are entered once and start each analysis added from it", {
+  plan <- new_plan("Thesis")
+  expect_null(plan_settings_clean(plan$settings))
+  html <- as.character(plan_page_ui(plan))
+  expect_match(html, "Settings for every analysis in this plan", fixed = TRUE)
+  expect_match(html, "plan_settings_edit", fixed = TRUE)
+  plan <- plan_edit_settings(plan, "alpha", "0.01")
+  plan <- plan_edit_settings(plan, "power", "0.9")
+  expect_identical(plan$settings, list(alpha = "0.01", power = "0.9"))
+  expect_match(as.character(plan_page_ui(plan)), "<option value=\"0.01\" selected>", fixed = TRUE)
+  # Not a proportion, or cleared: dropped.
+  expect_identical(plan_edit_settings(plan, "power", "")$settings, list(alpha = "0.01"))
+  expect_identical(plan_edit_settings(plan, "alpha", "5")$settings, list(power = "0.9"))
+  expect_null(plan_edit_settings(plan_edit_settings(plan, "alpha", ""), "power", "")$settings)
+  # A card starts with them, unless it already has its own.
+  expect_identical(plan_settings_form_values(list(), plan$settings)[c("alpha", "power")], list(alpha = "0.01", power = "0.9"))
+  expect_identical(plan_settings_form_values(list(alpha = "0.05"), plan$settings)$alpha, "0.05")
+  expect_identical(plan_settings_form_values(list(n = "3"), NULL), list(n = "3"))
+  note <- as.character(plan_settings_note(plan))
+  expect_match(note, "significance level 0.01 and target power 90%", fixed = TRUE)
+  expect_null(plan_settings_note(new_plan("x")))
+  # A replication plan has its own settings under Goals.
+  rep <- new_plan("R"); rep$replication <- list(fields = list())
+  expect_no_match(as.character(plan_page_ui(rep)), "Settings for every analysis", fixed = TRUE)
+})
+
+test_that("a plan's settings are kept in the browser and in its file", {
+  plan <- plan_edit_settings(new_plan("Empty for now"), "alpha", "0.005")
+  rec <- plan_browser_record(plan)
+  back <- plan_from_browser_record(tree, rec, read = NULL, now = Sys.time())
+  expect_identical(back$settings, list(alpha = "0.005"))
+  expect_identical(plan_settings_numbers(list(alpha = "0.005", power = "0.8")), list(alpha = 0.005, power = 0.8))
 })

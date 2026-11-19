@@ -31,3 +31,45 @@ recruitment_target <- function(spec, n) {
     rule = "each group's analysed n / (1 - attrition), rounded up"
   )
 }
+
+#' Participants to recruit for a replication plan, allowing for attrition
+#'
+#' The replication plan's sample sizes are the numbers analysed. With
+#' attrition `a` (the proportion of those recruited who won't be analysed),
+#' each group's analysed size is divided by `1 - a` and rounded up, and the
+#' groups are added up: the rule every powerkit card uses for its
+#' recruitment target (`options > attrition`). It is a common but crude
+#' heuristic that ignores how missing data will be handled (Rubin, 2025).
+#'
+#' @param n The total number analysed: a whole number.
+#' @param groups The number of equal groups `n` is split into (2 for two
+#'   groups; 1 for one group, pairs or a correlation).
+#' @param allocation_ratio For two groups: group 2's size over group 1's
+#'   (1, the default, for equal groups), split as the cards split a total
+#'   (group 1 is n / (1 + ratio) rounded to the nearest person).
+#' @param attrition The proportion of those recruited who won't be
+#'   analysed, at least 0 and below 1.
+#' @return A list with `attrition`, `n_analysed`, `groups_analysed` (each
+#'   group's analysed size), `n_recruit`, `groups_recruit` and `rule`; or
+#'   `NULL` when `n` is missing.
+#' @examples
+#' replication_recruitment(434, groups = 2, attrition = 0.1)
+#' @export
+replication_recruitment <- function(n, groups = 1, attrition = 0, allocation_ratio = 1) {
+  one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
+  if (!one_number(attrition) || attrition < 0 || attrition >= 1) {
+    abort_run("The expected dropout should be a proportion: at least 0 and below 1, such as 0.1 for 10%.")
+  }
+  if (!one_number(groups) || groups < 1 || groups != round(groups)) abort_run("The number of groups should be a whole number, at least 1.")
+  if (!one_number(allocation_ratio) || allocation_ratio <= 0) abort_run("The group sizes' ratio should be a number above 0.")
+  uneven <- !isTRUE(all.equal(allocation_ratio, 1))
+  if (uneven && groups != 2) abort_run("Unequal group sizes apply to two groups only.")
+  if (!one_number(n) || !is.finite(n)) return(NULL)
+  analysed <- if (uneven) as.numeric(rounded_groups(n, allocation_ratio)) else rep(n / groups, groups)
+  # The small tolerance keeps exact quotients (90 / 0.9) from rounding up
+  # through floating-point error, as recruitment_target() does.
+  recruit <- ceiling(analysed / (1 - attrition) - 1e-9)
+  list(attrition = attrition, n_analysed = n, groups_analysed = analysed,
+    n_recruit = sum(recruit), groups_recruit = recruit,
+    rule = "each group's analysed n / (1 - attrition), rounded up")
+}

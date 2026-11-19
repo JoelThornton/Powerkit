@@ -120,7 +120,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # Bayes factors for replications, from the full-text PDFs (15 November 2026),
   # and Rochon, Gondan and Kieser on preliminary normality tests, from its
   # Crossref and PubMed records (17 November 2026), and BUCSS's two method
-  # papers, from their Crossref records (18 November 2026).
+  # papers, from their Crossref records (18 November 2026), and Schmidt and
+  # Hunter on measurement error, from its Crossref record (19 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -160,7 +161,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Lu2016_bland_altman_n = "verified", HayesPreacher2014_multicategorical = "verified",
       ValeriVanderWeele2013_mediation = "verified",
       VerhagenWagenmakers2014_replication = "verified", Ly2019_replication_bf = "verified",
-      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified", pmsampsize_method = "verified", pmvalsampsize_method = "verified"
+      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified", pmsampsize_method = "verified", pmvalsampsize_method = "verified",
+      Schmidt1996_measurement = "verified"
     )
   )
 })
@@ -327,4 +329,28 @@ test_that("CITATION.cff agrees with the package DESCRIPTION", {
   expect_true(any(lines == paste("version:", version)))
   expect_true(any(lines == "license: GPL-3.0-or-later"))
   expect_true(any(grepl("powerkit: Unified Power Analysis for Common Research Designs", lines, fixed = TRUE)))
+})
+
+test_that("powerkit's own citation has a year when it was installed from its source folder", {
+  meta <- list(Package = "powerkit", Title = "Unified Power Analysis", Version = "1.2.3",
+    `Authors@R` = 'person("A", "Author", role = c("aut", "cre"))', Built = "R 4.5.3; ; 2026-11-19 01:31:01 UTC; unix")
+  text <- format(powerkit_citation(meta), style = "text")
+  expect_match(text, "(2026)", fixed = TRUE)
+  expect_no_match(text, "????", fixed = TRUE)
+  # A dated DESCRIPTION keeps its own year.
+  meta$Date <- "2025-03-01"
+  expect_match(format(powerkit_citation(meta), style = "text"), "(2025)", fixed = TRUE)
+  expect_no_match(paste(export_citations(fake_result("pwr")), collapse = "\n"), "????", fixed = TRUE)
+})
+
+test_that("a package citation doesn't print its DOI's link twice", {
+  cit <- utils::bibentry("Article", title = "A paper", author = "A Author", journal = "J", year = "2021",
+    doi = "10.1177/2515245920951503", url = "https://doi.org/10.1177/2515245920951503")
+  text <- format(without_doi_url(cit), style = "text")
+  expect_identical(lengths(regmatches(text, gregexpr("https://doi.org/", text, fixed = TRUE))), 1L)
+  # A url that isn't the DOI's stays.
+  other <- utils::bibentry("Manual", title = "pkg", author = "A Author", year = "2021",
+    doi = "10.1/x", url = "https://github.com/a/pkg")
+  expect_match(format(without_doi_url(other), style = "text"), "github.com/a/pkg", fixed = TRUE)
+  expect_null(without_doi_url(NULL))
 })

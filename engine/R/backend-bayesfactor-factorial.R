@@ -309,7 +309,7 @@ bffactorial_script <- function(spec, result) {
     sprintf("ratios <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's share of the sample", r_code(as.vector(t(inputs$ratios))), nrow(inputs$ratios)),
     sprintf("term <- %s # %s", r_code(inputs$term), bffactorial_effect_words(inputs$term)),
     sprintf("threshold <- %s # evidence threshold: an inclusion BF at least this", r_code(inputs$threshold)),
-    sprintf("r_scale <- %s # Cauchy prior scale on the standardised effects (JASP's default 0.5)", r_code(inputs$prior_scale)),
+    sprintf("r_scale <- %s # Cauchy prior scale on the standardised effects (the package default, 0.5)", r_code(inputs$prior_scale)),
     sprintf("matched <- %s # FALSE: across all models (JASP's default); TRUE: across matched models", r_code(identical(inputs$inclusion, "matched_models"))),
     switch(goal$type,
       sample_size = sprintf("target_power <- %s # target probability that the inclusion BF reaches the threshold", r_code(goal$power)),

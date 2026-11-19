@@ -4504,3 +4504,159 @@ most conceptual replications and extensions.
 - **50% beside 80% for ANOVA originals.** 80% stays the default, as
   BUCSS's own; the 50% figure (planning for the corrected estimate
   itself) is now stated under the headline, not only in the table.
+
+## 2026-11-18 · Replication plans: an ANOVA original's full goals, and the smallest effect for one with several degrees of freedom
+
+Queue item 28, the first of its remaining parts. Until now an ANOVA
+original had one goal (a significant F test, BUCSS's corrected sample
+size), while a t-test original had every goal, three beliefs, variation
+between studies and its own smallest effect. Nothing about an ANOVA
+justified the difference for most effects researchers replicate.
+
+- **An effect with one numerator degree of freedom goes through every
+  goal.** A factor with two levels, or a 2 x 2 interaction, is a
+  comparison of two means, and its F is the square of that comparison's
+  t, F(1, df) = t² (Lakens, 2013). The engine
+  (`replication_planning()` with `design = "anova_between"`,
+  `"anova_within"` or `"anova_mixed"`) moves the effect to the
+  comparison it is and plans it as that t-test original, t = sqrt(F),
+  converted to d as for any t statistic (Lakens, 2013). Which comparison
+  each effect is:
+  - a between-subjects factor with two levels: two groups, the two
+    marginal means;
+  - a between-subjects 2 x 2 interaction: two groups, d being half the
+    difference between the simple effects (its standard error with N / 4
+    a cell is that of two groups of N / 2);
+  - a within-subjects factor with two levels or 2 x 2 interaction:
+    pairs, each person's difference (or difference of differences), d_z;
+  - in a mixed design, the between-subjects factor with two groups: two
+    groups on each person's mean;
+  - the within-subjects factor with two conditions: pairs, each person's
+    change;
+  - the 2 x 2 interaction: two groups on each person's change.
+  No new maths is involved: the conversions are the published ones the
+  t-test originals already use. BUCSS's correction stays beside the
+  goals and is the ANOVA's own function. For the mixed 2 x 2 interaction
+  it gives the same numbers as the two-group t (the error df are the
+  same), which the tests check. The goals judged against the original's
+  effect work on its estimate and standard error, so the ANOVA's error
+  degrees of freedom matter only to small telescopes and the Bayes
+  factor t-test, through the t-test's df. Where the two differ (a
+  between-subjects factor averaged over another, the mixed design's
+  within-subjects factor with three or more groups), the result says so
+  and by how much. A one-sided test in the original's direction is now
+  allowed for these effects, in BUCSS as for a t-test (its two-sided
+  test at twice the level).
+- **An effect with several degrees of freedom gains a goal from the
+  smallest effect that would matter.** It has no one number for the
+  other goals, so the plan offers two routes to a significant F test,
+  side by side. One is BUCSS's correction of the original, as before.
+  The other is the researcher's smallest effect that would matter, as a
+  partial eta-squared, through the matching ANOVA card's own F test
+  (`replication_anova_smallest()`: `run_spec()` on a spec given by its
+  partial eta-squared, so pwrss's `power.f.ancova()` or
+  `power.f.mixed.anova()`). There is no default value: the smallest
+  effect that matters is the researcher's judgement, and the original's
+  effect is not a guide to it. Within-subjects and mixed designs take it
+  as those analyses report it (`eta_source = "published"`), so no
+  correlation between measurements is asked for. A within-subjects
+  design with two factors has no card that takes a partial
+  eta-squared, so the plan says to plan it from its means on its card.
+- **The design list says where the designs it doesn't name go.**
+  - An ANCOVA's effect with one degree of freedom (the adjusted
+    difference between two groups) is one number, so "Another design"
+    gives it every goal. BUCSS has no ANCOVA function, so there is no
+    corrected figure.
+  - With three or more groups, the one comparison the hypothesis is
+    about is entered the same way.
+  - No published method plans a replication from a MANOVA's result, so
+    a MANOVA is planned as an ordinary power analysis on its card, from
+    the smallest effect that would matter, or its one focal outcome and
+    comparison is replicated as its own design.
+- **A conceptual replication of a 1-df ANOVA original** is planned as
+  any one-number original's is: the shrunk belief and more variation
+  between studies. One with several degrees of freedom still changes no
+  setting, and now points to the smallest-effect goal on the same page.
+
+## 2026-11-19 · Replication plans: the "show it is absent" default and the reliability correction
+
+Two method choices in the replication planner, recommended in the review
+of its criteria, are kept as the defaults.
+
+- **"Show it is absent".** A Bayesian t-test original (a Bayes factor or a
+  posterior, for two groups, one group or pairs) is planned with the Bayes
+  factor t-test for no effect; every other original with the equivalence
+  test against the smallest effect that matters (d33 when none is entered
+  and the original had a significance test). Both are planned for a true
+  effect of zero, so their chance of showing absence is the one planned.
+- **A changed measure's reliability.** When the replication's outcome
+  measure is more or less reliable than the original's, the original's
+  effect is attenuated by the square root of the ratio of the two
+  reliabilities (Schmidt & Hunter, 1996): d directly, r through Fisher's
+  z, the original's z kept the same in both. It is optional, stated on the
+  result and in the methods paragraph, and small telescopes and BUCSS,
+  which work in the original's own units, are left out when it is used.
+
+## 2026-11-19 · Replication plans: criteria that fit every kind of original
+
+A review of the replication plan across every design and every way an
+original can be analysed (a p-value, a Bayes factor, a posterior, or
+both) found combinations whose usual criteria failed or reported nothing
+that could show the effect is absent. The rules are now:
+
+- **The criterion that can show absence is one planned for no effect.**
+  With a Bayes factor main criterion it is the Bayes factor t-test for
+  no effect where the design has one (two groups, one group, pairs, a
+  1-df ANOVA effect); otherwise the equivalence test. This replaces the
+  17 November rule's replication Bayes factor for a correlation or
+  another design: the engine plans that Bayes factor's chance of
+  evidence *for* the original's effect, not its chance of evidence
+  against it, so it could not show absence with a planned chance
+  (conventions.md, Departure 30). An interim version (18 November)
+  reported nothing in its place.
+- **"Confirm" for a Bayesian original whose own test can't be repeated**
+  (a correlation or another design, from a posterior) uses the
+  replication Bayes factor, keeping a Bayesian original's plan Bayesian;
+  it was significance before 18 November.
+- **"Show it is absent" for a Bayesian original** uses the Bayes factor
+  t-test for no effect where the design has one, as "confirm" uses the
+  Bayes factor t-test for an effect. Elsewhere it stays the equivalence
+  test, which for a Bayesian original needs the researcher's smallest
+  effect (d33 rests on a significance test): the planner now asks for it
+  before running, instead of failing after.
+- **Criteria the original can't give are greyed out** in the list (the
+  Bayes factor t-test for a correlation or another design; small
+  telescopes for a Bayesian original or another design), and a Bayes
+  factor original of a correlation or another design is told at once to
+  give its posterior or its test instead (a Bayes factor gives the
+  effect only for a t-test).
+
+Recommendation: these defaults, because each keeps the plan within the
+framework the original was analysed in and every reported criterion has
+a planned chance. The maintainer may prefer the equivalence test for
+every "absent" plan; that is one line in `replication_resolve_goals()`.
+
+## 2026-11-19 · A Bayesian confirmation criterion follows the available design
+
+For a Bayesian original and a confirmation aim, the planner suggests repeating the Bayes factor t-test where that test is available. A Bayesian original with another design suggests the replication Bayes factor. An explicit main criterion stays selected when the original changes.
+
+When the original's publication process is unknown, compare BUCSS sample sizes for publication requiring significance and publication regardless of the result. Saved plans retain their publication assumption.
+
+## 2026-11-19 · Replication plans: "settle it either way" shows both sample sizes
+
+A replication meant to settle a question either way needs two things: a
+good chance of showing the effect if it is there, and a good chance of
+showing it is absent (a Bayes factor for no effect, or an equivalence
+test) if it is not. Evidence for no effect builds up more slowly, so the
+second usually needs many more people than the first. Until now the plan
+gave the first number and warned when the second was out of reach.
+
+The plan now gives both sample sizes in its headline and its methods
+paragraph, says which is larger, and recommends planning for the larger,
+which gives at least the chosen chance of a clear answer whichever is
+true; the note under the result explains why the two differ and offers a
+sequential design as the alternative. The main criterion's sample size
+still sets the plan's other numbers (recruitment, the chances table), so
+nothing changes without the researcher choosing it: they enter the
+larger number as "a sample size you could analyse" under Goals to see
+every criterion's chance there.

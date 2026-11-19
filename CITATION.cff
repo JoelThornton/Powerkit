@@ -6,7 +6,7 @@ message: >-
   (export_citations()) lists them for each result.
 type: software
 title: "powerkit: Unified Power Analysis for Common Research Designs"
-version: 0.78.26
+version: 0.79.1
 authors:
   - family-names: Thornton
     given-names: Joel

@@ -62,7 +62,8 @@ correction undoes.}
 \item{assurance}{The levels of assurance: the chance the planned power
 is reached, from 0.5 (BUCSS's recommended floor) to below 1.}
 
-\item{alternative}{\code{"two.sided"} or, for a t-test or correlation,
+\item{alternative}{\code{"two.sided"} or, for a t-test, a correlation or
+an ANOVA effect with one degree of freedom (F = t^2),
 \code{"one.sided"} in the original's direction, planned as BUCSS's
 two-sided test at \code{2 * alpha}.}
 

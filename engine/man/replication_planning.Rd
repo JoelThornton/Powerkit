@@ -32,13 +32,29 @@ replication_planning(
   original_r = NULL,
   original_f = NULL,
   alternative = "two.sided",
-  publication_filter = TRUE
+  publication_filter = TRUE,
+  levels_a = NULL,
+  levels_b = NULL,
+  effect = NULL,
+  original_partial_eta = NULL,
+  original_df_error = NULL,
+  allocation_ratio = 1,
+  reliability_original = NULL,
+  reliability_replication = NULL
 )
 }
 \arguments{
 \item{design}{\code{"two_groups"}, \code{"one_sample"}, \code{"paired"},
 \code{"correlation"}, or \code{"generic"} for any other design whose focal
-effect is one number.}
+effect is one number.; or \code{"anova_between"}, \code{"anova_within"} or
+\code{"anova_mixed"} for an ANOVA effect with one numerator degree of
+freedom (a factor with two levels, or a 2 x 2 interaction), given by
+its F (\code{original_f}) or partial eta-squared, with \code{original_n},
+\code{levels_a}, \code{levels_b} and \code{effect} as for \code{\link[=replication_bucss]{replication_bucss()}}. Its
+F is the square of a two-group or paired comparison's t (Lakens,
+2013), which is planned as that t-test original; BUCSS's correction
+is the ANOVA's own. An effect with several degrees of freedom is
+refused: see \code{\link[=replication_anova_smallest]{replication_anova_smallest()}}.}
 
 \item{original_effect}{The original study's effect as reported: d, d_z
 or r; for \code{"generic"}, the estimate on its reported scale (a ratio as
@@ -92,8 +108,12 @@ Bayes factor t-test, for \code{"two_groups"}, \code{"one_sample"} and
 \code{"paired"}: its effect is read from \code{original_bf} and the sample size)
 or \code{"posterior"} (a posterior from a vague or default prior, whose mean
 is \code{original_effect} and whose SD is \code{original_se}, or whose credible
-interval is \code{original_ci}). Either Bayesian route leaves out small
-telescopes. For every t-test original the plan adds a default Bayes
+interval is \code{original_ci}), or \code{"pooled"} (several original studies
+or a meta-analysis: \code{original_effect} is their pooled estimate, d or
+r, and \code{original_se} its standard error or \code{original_ci} its
+confidence interval at \code{original_ci_level}; no sample size is
+needed). The Bayesian and pooled routes leave out small telescopes
+and BUCSS, which need one original study's test. For every t-test original the plan adds a default Bayes
 factor t-test (bfpwr): evidence for an effect (\code{bf_repeat}, the
 original's own test for a Bayesian original) and for no effect
 (\code{bf_null}).}
@@ -123,7 +143,8 @@ between the two measurements in the original study.}
 
 \item{original_f}{For a generic design: an F statistic with one
 numerator degree of freedom, whose square root is the estimate's
-|t| (in place of \code{original_statistic}).}
+|t| (in place of \code{original_statistic}). For an ANOVA design, the
+effect's F.}
 
 \item{alternative}{\code{"two.sided"} (the default) or \code{"one.sided"}. The
 significance goal is BayesRepDesign's one-sided test in the original's
@@ -138,13 +159,43 @@ it was significant, for \code{bias_corrected}: \code{FALSE} (an original that
 would have been published whatever it found, such as a Registered
 Report) corrects BUCSS's sample sizes for uncertainty only; see
 \code{\link[=replication_bucss]{replication_bucss()}}. The other goals are the same either way.}
+
+\item{levels_a, levels_b, effect, original_partial_eta, original_df_error}{For an ANOVA design: the factors' levels, the effect, and the
+partial eta-squared with its F test's error degrees of freedom in
+place of \code{original_f}, as for \code{\link[=replication_bucss]{replication_bucss()}}.}
+
+\item{allocation_ratio}{For \code{"two_groups"}: the replication's group 2
+size over group 1's (1, the default, for equal groups), as the cards'
+\code{options > allocation_ratio}. Each total is split into whole groups as
+the cards split it (group 1 is n / (1 + ratio) rounded to the nearest
+person), and every goal is judged at those groups' standard error,
+sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
+\code{bias_corrected} is \code{NULL} for unequal ones.}
+
+\item{reliability_original, reliability_replication}{For \code{"two_groups"},
+\code{"one_sample"} and \code{"correlation"}: the outcome measure's reliability
+in the original study and in the replication (both or neither, each
+above 0 and at most 1). An observed d is the true d times the square
+root of the measure's reliability (Schmidt & Hunter, 1996), so the
+original's estimate and standard error are multiplied by
+sqrt(reliability_replication / reliability_original): the effect the
+replication's measure would show, with the original's z unchanged.
+An observed r is the true r times the square root of both measures'
+reliabilities, so for a correlation give the reliability of the
+measure that changed (or, if both changed, the product of the two
+measures' reliabilities in each study); r is scaled, moved back to
+Fisher's z, and its standard error scaled to keep its z.
+Small telescopes and BUCSS work in the original's own units, so they
+are left out when the reliabilities differ.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
-analysis scale, z and two-sided p); \code{priors} (mean and SD of each
+analysis scale, z and two-sided p; with a change of reliability, also
+\code{reported}, the estimate in the original's units, and \code{attenuation}); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
 planned for no effect), \code{n} (the total sample size needed, \code{NA} when
-not reachable), \code{per_group}, \code{ratio} (n over the original's), \code{limit}
+not reachable), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:
+each group's size), \code{ratio} (n over the original's), \code{limit}
 (the highest chance reachable, when the goal cannot reach \code{power};
 for \code{reason} \code{"any_size"}, the chance with the smallest replication,
 which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
@@ -155,7 +206,10 @@ analysed with a test, \code{\link[=replication_bucss]{replication_bucss()}}'s sa
 significant result at 50\% and 80\% assurance, corrected for
 publication bias and uncertainty; \code{NULL} without BUCSS); \code{sequential} (for a Bayesian t-test original, each belief as
 a design prior for \code{\link[=bayes_sequential]{bayes_sequential()}}); \code{functions_used}; and
-\code{packages}.
+\code{packages}. An ANOVA original adds \code{inputs$anova} (what was entered)
+and \code{anova_effect}: the comparison planned (\code{design}, \code{effect_words}),
+the F and t used, and the ANOVA's and the t-test's error degrees of
+freedom (\code{df_error}, \code{df_t}).
 }
 \description{
 What the Labs replication planner shows: for an original study's effect

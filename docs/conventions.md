@@ -133,7 +133,12 @@ power while matching G\*Power) is folded there instead
   then the replication's sample size for the power aimed for. Used for
   ANOVA originals (between, within and mixed; Anderson & Kelley, 2024,
   `AndersonKelley2024_replication_design`) and beside t-test and
-  correlation originals' goals in replication plans.
+  correlation originals' goals in replication plans. Since 18 November
+  2026 an ANOVA effect with one degree of freedom also goes through the
+  other goals as the two-mean comparison it is (F = t², Lakens, 2013),
+  with BUCSS's ANOVA function beside them; as in BUCSS, its groups are
+  taken as equal (the original's total split in half). A one-sided test
+  of such an effect is planned as for a t-test.
 - **powerkit:** BUCSS's `ss_buc_*()` functions with their defaults: the
   original's significance level as `alpha_prior` (0.05 unless the user
   says otherwise), 80% assurance to start (50%, 90% and 95% shown
@@ -2085,16 +2090,22 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   whether the effect is absent.
 - **powerkit:** the replication plan asks the researcher's purpose, plans
   the sample size for one main criterion, and starts with "Also report:
-  whether the effect is absent" ticked (from 17 November 2026). With a
-  Bayes factor main criterion this is the default Bayes factor for no
-  effect (bfpwr, the original's test run the other way) where the
-  original was a t-test, and the replication Bayes factor (no effect
-  against the original's) for another design; with any other main
-  criterion it is the equivalence test (TOST)
-  against the smallest effect that matters, d33 (Simonsohn, 2015) when
-  none is entered. Its chance at the main criterion's sample size is
-  shown beside the main one. Unticking it gives the single-criterion
-  plan.
+  whether the effect is absent" ticked (from 17 November 2026). It is
+  always a criterion whose chance is planned for a true effect of zero
+  (from 19 November 2026). With a Bayes factor main criterion it is the
+  Bayes factor t-test for no effect (bfpwr) where the design has one
+  (two groups, one group, pairs, or a 1-df ANOVA effect); otherwise,
+  including a correlation or another design with a Bayes factor main
+  criterion, it is the equivalence test (TOST) against the smallest
+  effect that matters, d33 (Simonsohn, 2015) when none is entered and
+  the original had a significance test. A Bayesian original (a Bayes
+  factor or a posterior) has no d33, so there the plan asks for the
+  smallest effect, and says so, before it can add the equivalence test.
+  Its chance at the main criterion's sample size is shown beside the
+  main one. Unticking it gives the single-criterion plan. With the
+  purpose "show it is absent", a Bayesian t-test original's usual main
+  criterion is the Bayes factor t-test for no effect, and any other
+  original's is the equivalence test.
 - **Why:** a replication that fails to reach significance is commonly
   misread as evidence of absence; reporting a criterion that can show
   absence, with its chance planned in advance, lets either result be

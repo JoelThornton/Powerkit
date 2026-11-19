@@ -75,7 +75,7 @@ replication_scales <- c("none", "log", "fisher_z")
 
 # How the original was analysed: a test (frequentist), a Bayes factor
 # (t-tests only) or a posterior from a vague or default prior.
-replication_analyses <- c("test", "bayes_factor", "posterior")
+replication_analyses <- c("test", "bayes_factor", "posterior", "pooled")
 
 replication_priors <- c(as_reported = "conditional", uncertain = "predictive", shrunk = "EB")
 
@@ -96,7 +96,15 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'
 #' @param design `"two_groups"`, `"one_sample"`, `"paired"`,
 #'   `"correlation"`, or `"generic"` for any other design whose focal
-#'   effect is one number.
+#'   effect is one number.; or `"anova_between"`, `"anova_within"` or
+#'   `"anova_mixed"` for an ANOVA effect with one numerator degree of
+#'   freedom (a factor with two levels, or a 2 x 2 interaction), given by
+#'   its F (`original_f`) or partial eta-squared, with `original_n`,
+#'   `levels_a`, `levels_b` and `effect` as for [replication_bucss()]. Its
+#'   F is the square of a two-group or paired comparison's t (Lakens,
+#'   2013), which is planned as that t-test original; BUCSS's correction
+#'   is the ANOVA's own. An effect with several degrees of freedom is
+#'   refused: see [replication_anova_smallest()].
 #' @param original_effect The original study's effect as reported: d, d_z
 #'   or r; for `"generic"`, the estimate on its reported scale (a ratio as
 #'   the ratio, a correlation as r). Not zero (not 1 for a ratio).
@@ -120,8 +128,12 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   `"paired"`: its effect is read from `original_bf` and the sample size)
 #'   or `"posterior"` (a posterior from a vague or default prior, whose mean
 #'   is `original_effect` and whose SD is `original_se`, or whose credible
-#'   interval is `original_ci`). Either Bayesian route leaves out small
-#'   telescopes. For every t-test original the plan adds a default Bayes
+#'   interval is `original_ci`), or `"pooled"` (several original studies
+#'   or a meta-analysis: `original_effect` is their pooled estimate, d or
+#'   r, and `original_se` its standard error or `original_ci` its
+#'   confidence interval at `original_ci_level`; no sample size is
+#'   needed). The Bayesian and pooled routes leave out small telescopes
+#'   and BUCSS, which need one original study's test. For every t-test original the plan adds a default Bayes
 #'   factor t-test (bfpwr): evidence for an effect (`bf_repeat`, the
 #'   original's own test for a Bayesian original) and for no effect
 #'   (`bf_null`).
@@ -145,7 +157,12 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   between the two measurements in the original study.
 #' @param original_f For a generic design: an F statistic with one
 #'   numerator degree of freedom, whose square root is the estimate's
-#'   |t| (in place of `original_statistic`).
+#'   |t| (in place of `original_statistic`). For an ANOVA design, the
+#'   effect's F.
+#' @param levels_a,levels_b,effect,original_partial_eta,original_df_error
+#'   For an ANOVA design: the factors' levels, the effect, and the
+#'   partial eta-squared with its F test's error degrees of freedom in
+#'   place of `original_f`, as for [replication_bucss()].
 #' @param original_alpha The original study's two-sided significance
 #'   level (for small telescopes' d33).
 #' @param alpha The replication's significance level: two-sided by
@@ -175,11 +192,35 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #' @param n A replication sample size (in total, people or pairs) at which
 #'   to give the chance of each goal, or `NULL`.
 #' @param max_n The largest sample size searched.
+#' @param allocation_ratio For `"two_groups"`: the replication's group 2
+#'   size over group 1's (1, the default, for equal groups), as the cards'
+#'   `options > allocation_ratio`. Each total is split into whole groups as
+#'   the cards split it (group 1 is n / (1 + ratio) rounded to the nearest
+#'   person), and every goal is judged at those groups' standard error,
+#'   sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
+#'   `bias_corrected` is `NULL` for unequal ones.
+#' @param reliability_original,reliability_replication For `"two_groups"`,
+#'   `"one_sample"` and `"correlation"`: the outcome measure's reliability
+#'   in the original study and in the replication (both or neither, each
+#'   above 0 and at most 1). An observed d is the true d times the square
+#'   root of the measure's reliability (Schmidt & Hunter, 1996), so the
+#'   original's estimate and standard error are multiplied by
+#'   sqrt(reliability_replication / reliability_original): the effect the
+#'   replication's measure would show, with the original's z unchanged.
+#'   An observed r is the true r times the square root of both measures'
+#'   reliabilities, so for a correlation give the reliability of the
+#'   measure that changed (or, if both changed, the product of the two
+#'   measures' reliabilities in each study); r is scaled, moved back to
+#'   Fisher's z, and its standard error scaled to keep its z.
+#'   Small telescopes and BUCSS work in the original's own units, so they
+#'   are left out when the reliabilities differ.
 #' @return A list: `inputs`; `original` (estimate and standard error on the
-#'   analysis scale, z and two-sided p); `priors` (mean and SD of each
+#'   analysis scale, z and two-sided p; with a change of reliability, also
+#'   `reported`, the estimate in the original's units, and `attenuation`); `priors` (mean and SD of each
 #'   belief); `goals`, a data frame of `goal`, `prior` (`NA` for the goals
 #'   planned for no effect), `n` (the total sample size needed, `NA` when
-#'   not reachable), `per_group`, `ratio` (n over the original's), `limit`
+#'   not reachable), `per_group` (equal groups), `n1` and `n2` (two groups:
+#'   each group's size), `ratio` (n over the original's), `limit`
 #'   (the highest chance reachable, when the goal cannot reach `power`;
 #'   for `reason` `"any_size"`, the chance with the smallest replication,
 #'   which already exceeds `power`) and `reason` (`"not_reachable"`,
@@ -190,7 +231,10 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   significant result at 50% and 80% assurance, corrected for
 #'   publication bias and uncertainty; `NULL` without BUCSS); `sequential` (for a Bayesian t-test original, each belief as
 #'   a design prior for [bayes_sequential()]); `functions_used`; and
-#'   `packages`.
+#'   `packages`. An ANOVA original adds `inputs$anova` (what was entered)
+#'   and `anova_effect`: the comparison planned (`design`, `effect_words`),
+#'   the F and t used, and the ANOVA's and the t-test's error degrees of
+#'   freedom (`df_error`, `df_t`).
 #' @export
 #' @examples
 #' if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
@@ -209,14 +253,67 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
                                  scale = "none", effect_name = NULL, original_analysis = "test",
                                  original_bf = NULL, original_prior_scale = 1 / sqrt(2),
                                  original_prior = NULL, original_effect_type = "d", original_r = NULL,
-                                 original_f = NULL, alternative = "two.sided", publication_filter = TRUE) {
+                                 original_f = NULL, alternative = "two.sided", publication_filter = TRUE,
+                                 levels_a = NULL, levels_b = NULL, effect = NULL, original_partial_eta = NULL,
+                                 original_df_error = NULL, allocation_ratio = 1,
+                                 reliability_original = NULL, reliability_replication = NULL) {
   if (!requireNamespace("BayesRepDesign", quietly = TRUE)) {
     abort_run("The replication planner needs the R package BayesRepDesign. Install it with install.packages(\"BayesRepDesign\").")
+  }
+  # The replication's group sizes: group 2's over group 1's, as the cards'
+  # options > allocation_ratio, for two groups only.
+  if (!is.numeric(allocation_ratio) || length(allocation_ratio) != 1 || !is.finite(allocation_ratio) ||
+      allocation_ratio <= 0 || allocation_ratio > 20) {
+    abort_run("The replication's group sizes should be in a ratio above 0 and at most 20 (group 2's size over group 1's; 1 for equal groups).")
+  }
+  unequal <- !isTRUE(all.equal(allocation_ratio, 1))
+  if (unequal && !identical(design, "two_groups")) {
+    abort_run("Unequal group sizes apply to a replication of two separate groups only.")
+  }
+  # The outcome measure's reliability in each study: an observed d is the
+  # true one times the square root of the measure's reliability (Schmidt &
+  # Hunter, 1996), so the replication's expected d is the original's times
+  # sqrt(reliability_replication / reliability_original).
+  reliabilities <- list(reliability_original, reliability_replication)
+  if (!all(vapply(reliabilities, is.null, logical(1)))) {
+    if (any(vapply(reliabilities, is.null, logical(1)))) {
+      abort_run("Give the outcome measure's reliability in both studies, or in neither.")
+    }
+    if (!all(vapply(reliabilities, function(x) is.numeric(x) && length(x) == 1 && !is.na(x) && x > 0 && x <= 1, logical(1)))) {
+      abort_run("Each reliability should be a number above 0 and at most 1, such as 0.8.")
+    }
+    if (!design %in% c("two_groups", "one_sample", "correlation")) {
+      abort_run("A change in the measure's reliability is planned for two separate groups, one group or a correlation only.")
+    }
+  }
+  attenuation <- if (is.null(reliability_original)) 1 else sqrt(reliability_replication / reliability_original)
+  attenuated <- !isTRUE(all.equal(attenuation, 1))
+  # An ANOVA effect with one degree of freedom: its two-mean comparison,
+  # planned from t = sqrt(F) as a t-test original (replication-anova.R),
+  # with BUCSS's correction from the ANOVA's own function.
+  if (is.character(design) && length(design) == 1 && design %in% replication_anova_designs) {
+    if (!identical(original_analysis, "test")) abort_run("An ANOVA original is planned from its significance test, its F or partial eta-squared.")
+    map <- replication_anova_one_df(design, original_n, levels_a, levels_b, effect, original_f,
+      original_partial_eta, original_df_error)
+    plan <- replication_planning(map$design, original_effect = map$t, original_n = map$n, original_n1 = map$n1,
+      original_n2 = map$n2, original_effect_type = "t", original_alpha = original_alpha, alpha = alpha, power = power,
+      tau = tau, smallest_effect = smallest_effect, threshold = threshold, n = n, max_n = max_n,
+      original_prior_scale = original_prior_scale, alternative = alternative, publication_filter = publication_filter)
+    if (!is.null(plan$bias_corrected)) {
+      plan$bias_corrected <- replication_bucss(design, original_statistic = map$f, original_n = original_n,
+        levels_a = levels_a, levels_b = levels_b, effect = map$effect, original_alpha = original_alpha, alpha = alpha,
+        power = power, assurance = c(0.5, 0.8), alternative = alternative, publication_filter = publication_filter)
+    }
+    plan$inputs$anova <- list(design = design, original_n = original_n, levels_a = levels_a, levels_b = levels_b,
+      effect = map$effect, original_f = if (is.null(original_partial_eta)) original_f,
+      original_partial_eta = original_partial_eta, original_df_error = original_df_error)
+    plan$anova_effect <- map[c("design", "effect", "effect_words", "f", "t", "df_error", "df_t")]
+    return(plan)
   }
   one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
   whole <- function(x, low) one_number(x) && x == round(x) && x >= low && x <= 1e6
   if (!is.character(design) || length(design) != 1 || !design %in% names(replication_designs)) {
-    abort_run("'design' should be \"two_groups\", \"one_sample\", \"paired\", \"correlation\" or \"generic\".")
+    abort_run("'design' should be \"two_groups\", \"one_sample\", \"paired\", \"correlation\", \"generic\", or an ANOVA design (\"anova_between\", \"anova_within\", \"anova_mixed\").")
   }
   if (!is.logical(publication_filter) || length(publication_filter) != 1 || is.na(publication_filter)) {
     abort_run("'publication_filter' should be TRUE (published because it was significant) or FALSE (published whatever it found).")
@@ -226,11 +323,29 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   correlation <- identical(design, "correlation")
   if (!is.character(original_analysis) || length(original_analysis) != 1 ||
       !original_analysis %in% replication_analyses) {
-    abort_run("'original_analysis' should be \"test\", \"bayes_factor\" or \"posterior\".")
+    abort_run("'original_analysis' should be \"test\", \"bayes_factor\", \"posterior\" or \"pooled\".")
   }
   bayes <- !identical(original_analysis, "test")
   from_bf <- identical(original_analysis, "bayes_factor")
   posterior <- identical(original_analysis, "posterior")
+  # Several original studies, or a meta-analysis: their pooled estimate and
+  # its standard error (or confidence interval), with no single study's
+  # sample size; small telescopes and BUCSS need one study's test.
+  pooled <- identical(original_analysis, "pooled")
+  if (pooled) {
+    if (generic) abort_run("Another design already takes the original's estimate with its standard error; give the pooled one there.")
+    if (!is.null(original_statistic) || (is.null(original_se) + is.null(original_ci)) != 1) {
+      abort_run("Give the pooled estimate's standard error or its confidence interval, one of the two.")
+    }
+    if (!is.null(original_se) && (!one_number(original_se) || original_se <= 0)) {
+      abort_run("The pooled estimate's standard error should be a number above 0.")
+    }
+    if (!is.null(original_ci) && (!is.numeric(original_ci) || length(original_ci) != 2 || anyNA(original_ci) ||
+        original_ci[1] >= original_ci[2] || (correlation && any(abs(original_ci) >= 1)))) {
+      abort_run(if (correlation) "The confidence interval should be two correlations between -1 and 1, the lower one first." else
+        "The confidence interval should be two numbers, the lower one first.")
+    }
+  }
   t_test <- design %in% c("two_groups", "one_sample", "paired")
   if (from_bf && !t_test) {
     abort_run(paste("A Bayes factor gives the original's effect only for a t-test (two groups, one group or pairs).",
@@ -253,7 +368,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       !original_effect_type %in% c("d", "t", "d_rm")) {
     abort_run("'original_effect_type' should be \"d\", \"t\" or \"d_rm\".")
   }
-  converting <- !identical(original_effect_type, "d") && !from_bf && !posterior
+  converting <- !identical(original_effect_type, "d") && !from_bf && !posterior && !pooled
   if (converting && !t_test) {
     abort_run("A t statistic or a repeated-measures d is converted for a t-test original only (two groups, one group or pairs).")
   }
@@ -303,7 +418,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       "The original effect should be a standardised effect between -5 and 5, and not 0."
     })
   }
-  if (generic) {
+  if (generic || pooled) {
     NULL
   } else if (identical(design, "two_groups")) {
     if (!whole(original_n1, 2) || !whole(original_n2, 2)) {
@@ -355,7 +470,14 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   }
 
   # The original estimate and its standard error on the analysis scale.
-  if (!generic) original <- if (identical(design, "two_groups")) {
+  if (!generic) original <- if (pooled) {
+    level_z <- stats::qnorm(1 - (1 - original_ci_level) / 2)
+    on <- function(x) if (correlation) atanh(x) else x
+    list(estimate = on(original_effect), n = NA_real_,
+      se = if (!is.null(original_ci)) (on(original_ci[2]) - on(original_ci[1])) / (2 * level_z)
+        else if (correlation) original_se / (1 - original_effect^2) else original_se,
+      from = if (!is.null(original_ci)) "ci" else "se")
+  } else if (identical(design, "two_groups")) {
     list(estimate = original_effect, n = original_n1 + original_n2,
       se = sqrt((original_n1 + original_n2) / (original_n1 * original_n2) +
         original_effect^2 / (2 * (original_n1 + original_n2))))
@@ -374,6 +496,16 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     original$from <- post$from
   }
   if (from_bf) original[c("bf", "t", "bf_from")] <- list(original_bf, converted$t, "bayes_factor")
+  # A measure of different reliability: the original's estimate and its
+  # standard error in the replication's units (its z is unchanged).
+  # A correlation is attenuated as r and moved back to Fisher's z, its
+  # standard error scaled so that its z stays the same.
+  if (attenuated) {
+    original$reported <- original$estimate
+    original$estimate <- if (correlation) atanh(tanh(original$estimate) * attenuation) else original$estimate * attenuation
+    original$se <- original$se * original$estimate / original$reported
+    original$attenuation <- attenuation
+  }
   original$z <- original$estimate / original$se
   original$p <- 2 * stats::pnorm(-abs(original$z))
   on_scale <- if (generic) tf else function(x) if (correlation) atanh(x) else x
@@ -381,10 +513,22 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
 
   # Standard error and sample size, both ways (n is the total). A generic
   # design scales the original's standard error by sqrt(n_original / n).
+  # Unequal groups: each total split into whole groups by the cards' rule
+  # (rounded_groups()), the standard error sqrt(1/n1 + 1/n2) of those
+  # groups, and the smallest total whose groups reach a standard error.
   se_at <- function(n) {
+    if (unequal) {
+      g <- rounded_groups(n, allocation_ratio)
+      return(sqrt(1 / g[1] + 1 / g[2]))
+    }
     if (generic) original$se * sqrt(original$n / n) else if (correlation) 1 / sqrt(n - 3) else rule$unit_sd / sqrt(n)
   }
   n_at <- function(se) {
+    if (unequal) {
+      size <- max(4, floor((1 + allocation_ratio)^2 / allocation_ratio / se^2) - 2)
+      while (se_at(size) > se * (1 + 1e-12)) size <- size + 1
+      return(size)
+    }
     raw <- if (generic) original$n * (original$se / se)^2 else if (correlation) 1 / se^2 + 3 else rule$unit_sd^2 / se^2
     if (identical(design, "two_groups")) 2 * ceiling(raw / 2 - 1e-9) else max(2, ceiling(raw - 1e-9))
   }
@@ -456,6 +600,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # The smallest replication a goal is judged at: two people in each group
   # for two groups, otherwise three (a correlation's standard error needs n > 3).
   min_n <- if (identical(design, "two_groups")) 4 else if (correlation && !generic) 4 else 3
+  if (unequal) while (any(rounded_groups(min_n, allocation_ratio) < 2)) min_n <- min_n + 1
   small_se <- se_at(min_n)
 
   rows <- list()
@@ -482,9 +627,11 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
 
   # Small telescopes: the card's calculation, so both give one number. A
   # generic design plans it on its own card, which knows the original's test.
-  telescopes <- !generic && !bayes
+  # Small telescopes' yardstick is the original's own d33, in its measure's
+  # units, so it is left out when the replication's measure differs.
+  telescopes <- !generic && !bayes && !attenuated
   telescope <- if (telescopes) replication_telescope(design, original_effect, original_n,
-    original_n1, original_n2, original_alpha, alpha, power)
+    original_n1, original_n2, original_alpha, alpha, power, allocation_ratio = allocation_ratio)
   # A t-test original: the default Bayes factor t-test (the original's own
   # test, with its Cauchy prior scale, for an original analysed with Bayes
   # factors; JASP's default scale otherwise), for an effect under each
@@ -494,16 +641,42 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # each group for two groups.
   bf_type <- switch(design, two_groups = "two.sample", one_sample = "one.sample", paired = "paired", NA_character_)
   per_unit <- if (identical(design, "two_groups")) 2 else 1
+  # bfpwr's ntbf01() searches equal groups only: with unequal groups the
+  # chance is its ptbf01() at each total's rounded groups, and the sample
+  # size the smallest total reaching `need`, found by bisection (the
+  # chance rises with the total; a warning, as ntbf01() gives, when the
+  # largest replication can't reach it).
+  bf_unequal <- function(args, n, need) {
+    chance <- function(total) {
+      g <- rounded_groups(total, allocation_ratio)
+      do.call(bfpwr::ptbf01, c(args, list(n1 = g[1], n2 = g[2])))
+    }
+    if (is.null(need)) return(chance(n))
+    lo <- min_n
+    hi <- max_n
+    if (chance(lo) >= need) return(lo / per_unit)
+    if (chance(hi) < need) {
+      warning("The chance can't reach the power asked for within the largest replication.")
+      return(NA_real_)
+    }
+    while (hi - lo > 1) {
+      mid <- floor((lo + hi) / 2)
+      if (chance(mid) >= need) hi <- mid else lo <- mid
+    }
+    hi / per_unit
+  }
   bf_tests <- if (t_test) list(
     bf_repeat = function(dp, n, need = NULL) {
       args <- list(k = 1 / threshold, pscale = original_prior_scale, type = bf_type,
         dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))
+      if (unequal) return(bf_unequal(args, n, need))
       if (is.null(need)) do.call(bfpwr::ptbf01, c(args, list(n = n / per_unit))) else
         do.call(bfpwr::ntbf01, c(args, list(power = need, nrange = c(2, max_n / per_unit))))
     },
     bf_null = function(dp, n, need = NULL) {
       args <- list(k = threshold, pscale = original_prior_scale, type = bf_type, dpm = 0, dpsd = 0,
         lower.tail = FALSE)
+      if (unequal) return(bf_unequal(args, n, need))
       if (is.null(need)) do.call(bfpwr::ptbf01, c(args, list(n = n / per_unit))) else
         do.call(bfpwr::ntbf01, c(args, list(power = need, nrange = c(2, max_n / per_unit))))
     }
@@ -537,7 +710,13 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     limit = NA_real_, reason = NA_character_)
 
   goals <- do.call(rbind, rows)
-  goals$per_group <- if (identical(design, "two_groups")) goals$n / 2 else NA_real_
+  goals$per_group <- if (identical(design, "two_groups") && !unequal) goals$n / 2 else NA_real_
+  # Two groups: each group's size (unequal groups rounded by the cards' rule).
+  if (identical(design, "two_groups")) {
+    split <- vapply(goals$n, function(x) if (is.na(x)) c(NA_real_, NA_real_) else as.numeric(rounded_groups(x, allocation_ratio)), numeric(2))
+    goals$n1 <- split[1, ]
+    goals$n2 <- split[2, ]
+  }
   goals$ratio <- goals$n / original$n
 
   at_n <- if (!is.null(n)) {
@@ -569,7 +748,8 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # 50% and 80% assurance, from the original's t statistic (d moved to t
   # by Lakens, 2013, as above) or r. For an original analysed with a test,
   # whose significance was what got it published; NULL without BUCSS.
-  bias_corrected <- if (!generic && !bayes && requireNamespace("BUCSS", quietly = TRUE)) {
+  # BUCSS plans equal groups only, so it is left out for unequal ones.
+  bias_corrected <- if (!generic && !bayes && !unequal && !attenuated && requireNamespace("BUCSS", quietly = TRUE)) {
     stat <- switch(design,
       two_groups = original_effect / sqrt(1 / original_n1 + 1 / original_n2),
       correlation = original_effect,
@@ -588,7 +768,9 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       original_prior_scale = if (t_test) original_prior_scale, original_prior = original_prior,
       original_effect_type = if (converting) original_effect_type else "d",
       original_reported = if (converting) original_reported, original_r = if (converting) original_r,
-      original_f = original_f, alternative = alternative, publication_filter = publication_filter),
+      original_f = original_f, alternative = alternative, publication_filter = publication_filter,
+      allocation_ratio = allocation_ratio, reliability_original = reliability_original,
+      reliability_replication = reliability_replication),
     effect_name = if (generic) effect_name %||% "estimate" else rule$effect,
     scale = if (generic) switch(scale, log = "log", fisher_z = "Fisher's z", "as reported") else if (correlation) "Fisher's z" else rule$effect,
     original = original,
@@ -612,10 +794,12 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
         format(2 * alpha), format(signif(margin, 4)))),
       if (telescopes) c(small_telescopes = telescope$function_used),
       if (length(bf_tests)) c(
-        bf_repeat = sprintf("bfpwr::ntbf01(k = 1/%s, pscale = %s, type = \"%s\"), design prior from each belief",
-          format(threshold), format(signif(original_prior_scale, 4)), bf_type),
-        bf_null = sprintf("bfpwr::ntbf01(k = %s, pscale = %s, type = \"%s\", dpm = 0, dpsd = 0, lower.tail = FALSE)",
-          format(threshold), format(signif(original_prior_scale, 4)), bf_type))
+        bf_repeat = sprintf("bfpwr::%s(k = 1/%s, pscale = %s, type = \"%s\")%s, design prior from each belief",
+          if (unequal) "ptbf01" else "ntbf01", format(threshold), format(signif(original_prior_scale, 4)), bf_type,
+          if (unequal) " at each total's two groups, the smallest total found by bisection" else ""),
+        bf_null = sprintf("bfpwr::%s(k = %s, pscale = %s, type = \"%s\", dpm = 0, dpsd = 0, lower.tail = FALSE)%s",
+          if (unequal) "ptbf01" else "ntbf01", format(threshold), format(signif(original_prior_scale, 4)), bf_type,
+          if (unequal) " at each total's two groups, the smallest total found by bisection" else ""))
     ),
     packages = c(
       list(list(name = "BayesRepDesign", version = as.character(utils::packageVersion("BayesRepDesign")))),
@@ -693,6 +877,7 @@ replication_generic_original <- function(effect, n, se = NULL, ci = NULL, ci_lev
 replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL) {
   i <- plan$inputs
   post <- identical(i$original_analysis, "posterior")
+  uses <- function(g) is.null(focus) || any(g %in% c(focus$goal, focus$also))
   so_line <- switch(plan$original$from,
     se = sprintf("so <- %s  # its %s, as reported", num(i$original_se), if (post) "posterior SD" else "standard error"),
     ci = sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% %s interval",
@@ -714,8 +899,9 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     sprintf("to <- %s", tf_call(num(i$original_effect))),
     so_line,
     "n_from_se <- function(se) max(2, ceiling(n_original * (so / se)^2 - 1e-9))",
-    sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau)),
-    replication_level_line(i),
+    if (uses(c("significance", "pooled", "agreement", "negligible"))) sprintf("alpha <- %s", num(i$alpha)),
+    sprintf("power <- %s; tau <- %s", num(i$power), num(i$tau)),
+    if (uses(c("significance", "pooled"))) replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -800,9 +986,11 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
     bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
     negligible = "porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)",
     small_telescopes = "telescope_power(n)",
-    bf_repeat = sprintf("bfpwr::ptbf01(k = 1/%s, n = n / %s, pscale = %s, type = \"%s\", dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))",
+    bf_repeat = if (isTRUE(bf$uneven)) sprintf("bf_chance(n, k = 1/%s, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr) else
+      sprintf("bfpwr::ptbf01(k = 1/%s, n = n / %s, pscale = %s, type = \"%s\", dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))",
       thr, bf$per_unit, bf$scale, bf$type),
-    bf_null = sprintf("bfpwr::ptbf01(k = %s, n = n / %s, pscale = %s, type = \"%s\", dpm = 0, dpsd = 0, lower.tail = FALSE)",
+    bf_null = if (isTRUE(bf$uneven)) sprintf("bf_chance(n, k = %s, dpm = 0, dpsd = 0, lower.tail = FALSE)", thr) else
+      sprintf("bfpwr::ptbf01(k = %s, n = n / %s, pscale = %s, type = \"%s\", dpm = 0, dpsd = 0, lower.tail = FALSE)",
       thr, bf$per_unit, bf$scale, bf$type))
   no_effect <- c("negligible", "small_telescopes", "bf_null")
   c("",
@@ -831,7 +1019,7 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
 # Small telescopes for the planner: the small-telescopes card's own spec,
 # run by run_spec(), so the planner and the card agree.
 replication_telescope <- function(design, original_effect, original_n, original_n1, original_n2,
-                                  original_alpha, alpha, power) {
+                                  original_alpha, alpha, power, allocation_ratio = 1) {
   rule <- replication_designs[[design]]
   sizes <- if (identical(design, "two_groups")) list(n1 = original_n1, n2 = original_n2) else list(n = original_n)
   spec <- jsonlite::read_json(system.file("specs", paste0(rule$template, ".json"), package = "powerkit"))
@@ -842,6 +1030,7 @@ replication_telescope <- function(design, original_effect, original_n, original_
   spec$target_test$alpha <- alpha
   spec$goal <- list(type = "sample_size", power = power)
   spec$options$attrition <- NULL
+  if (!isTRUE(all.equal(allocation_ratio, 1))) spec$options$allocation_ratio <- allocation_ratio
   result <- run_spec(spec)
   backend <- telescope_backend(spec)
   st <- result$small_telescopes
@@ -867,6 +1056,10 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #'   sample size.
 #' @param prior The belief about the true effect for `goal` and `also`:
 #'   `"as_reported"`, `"uncertain"` or `"shrunk"`.
+#' @param attrition The expected proportion of those recruited who won't be
+#'   analysed (0, the default, for none). With a `goal`, the script ends by
+#'   working out the number to recruit for its sample size, by
+#'   [replication_recruitment()]'s rule.
 #' @return The script, as one string.
 #' @export
 #' @examples
@@ -875,12 +1068,29 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #'     smallest_effect = 0.2)
 #'   cat(replication_planning_script(plan))
 #' }
-replication_planning_script <- function(plan, goal = NULL, also = character(), prior = "uncertain") {
+replication_planning_script <- function(plan, goal = NULL, also = character(), prior = "uncertain", attrition = 0) {
+  # Allowing for dropout: the main criterion's n is the number analysed,
+  # and the number to recruit follows by replication_recruitment()'s rule.
+  if (is.numeric(attrition) && length(attrition) == 1 && !is.na(attrition) && attrition > 0 && !is.null(goal)) {
+    groups <- if (identical(plan$inputs$design, "two_groups")) 2 else 1
+    uneven <- !isTRUE(all.equal(plan$inputs$allocation_ratio %||% 1, 1))
+    return(paste(c(replication_planning_script(plan, goal, also, prior),
+      "",
+      sprintf("# Allowing for %s%% dropout: each group's analysed size divided by (1 - attrition), rounded up", format(signif(100 * attrition, 4))),
+      "# (a common but crude rule: it ignores how missing data will be handled)",
+      sprintf("attrition <- %s", format(signif(attrition, 8))),
+      if (uneven) "n_recruit <- sum(ceiling(groups(n) / (1 - attrition) - 1e-9))  # in total, each group allowed for"
+      else if (groups == 2) "n_recruit <- 2 * ceiling(n / 2 / (1 - attrition) - 1e-9)  # in total, two equal groups"
+      else "n_recruit <- ceiling(n / (1 - attrition) - 1e-9)",
+      "n_recruit"), collapse = "\n"))
+  }
   i <- plan$inputs
   focus <- replication_script_focus(plan, goal, also, prior)
   num <- function(x) format(signif(x, 8))
   correlation <- identical(i$design, "correlation")
   two <- identical(i$design, "two_groups")
+  ratio <- i$allocation_ratio %||% 1
+  uneven <- two && !isTRUE(all.equal(ratio, 1))
   generic <- identical(i$design, "generic")
   tf_call <- function(x) {
     if (generic) switch(i$scale, log = sprintf("log(%s)", x), fisher_z = sprintf("atanh(%s)", x), x)
@@ -899,7 +1109,8 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     replication_bucss_script(plan$bias_corrected, header = FALSE))
   from_bf <- identical(analysis, "bayes_factor")
   post <- identical(analysis, "posterior")
-  bayes <- from_bf || post
+  pooled <- identical(analysis, "pooled")
+  bayes <- from_bf || post || pooled
   bf_type <- switch(i$design, two_groups = "two.sample", one_sample = "one.sample", paired = "paired", NA_character_)
   # The original's effect: as reported, or read from its Bayes factor.
   to_lines <- if (from_bf) c(
@@ -914,13 +1125,15 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     num(i$original_reported), num(i$original_r))
   else sprintf("to <- %s", if (correlation) sprintf("atanh(%s)  # Fisher's z", num(i$original_effect)) else num(i$original_effect))
   # Its standard error: from the design, or the posterior's (vague or default prior).
-  so_post <- if (post) {
+  so_post <- if (post || pooled) {
+    what <- if (pooled) "pooled standard error" else "posterior SD"
     if (!is.null(i$original_ci)) {
-      sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% credible interval",
-        tf_call(num(i$original_ci[2])), tf_call(num(i$original_ci[1])), num(i$original_ci_level), num(100 * i$original_ci_level))
+      sprintf("so <- (%s - %s) / (2 * qnorm(1 - (1 - %s) / 2))  # from its %s%% %s interval",
+        tf_call(num(i$original_ci[2])), tf_call(num(i$original_ci[1])), num(i$original_ci_level), num(100 * i$original_ci_level),
+        if (pooled) "confidence" else "credible")
     } else if (correlation) {
-      sprintf("so <- %s / (1 - %s^2)  # its posterior SD, moved to Fisher's z", num(i$original_se), num(i$original_effect))
-    } else sprintf("so <- %s  # its posterior SD", num(i$original_se))
+      sprintf("so <- %s / (1 - %s^2)  # its %s, moved to Fisher's z", num(i$original_se), num(i$original_effect), what)
+    } else sprintf("so <- %s  # its %s", num(i$original_se), what)
   }
   telescope_call <- switch(i$design,
     two_groups = sprintf("pwr::pwr.t2n.test(n1 = %s, n2 = %s, power = 1/3, sig.level = original_alpha)$d", i$original_n1, i$original_n2),
@@ -929,6 +1142,8 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
       if (identical(i$design, "paired")) "paired" else "one.sample"))
   telescope_power <- if (correlation) {
     "pwrss::power.z.onecor(rho = 0, null.rho = yardstick, n = n, alpha = alpha, alternative = \"one.sided\", verbose = 0)$power"
+  } else if (uneven) {
+    "{ g <- groups(n); pwrss::power.t.student(d = 0, margin = yardstick, n2 = g[2], n.ratio = g[1] / g[2], alpha = alpha, alternative = \"one.sided\", design = \"independent\", verbose = 0)$power }"
   } else if (two) {
     "pwrss::power.t.student(d = 0, margin = yardstick, n2 = n / 2, n.ratio = 1, alpha = alpha, alternative = \"one.sided\", design = \"independent\", verbose = 0)$power"
   } else {
@@ -939,26 +1154,54 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
   head <- c(
     "# Replication plan, from powerkit's replication plan.",
     "# Every goal judged against the original's effect: BayesRepDesign (Pawel, Consonni & Held, 2026).",
-    if (!bayes && uses("small_telescopes")) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
-    if (from_bf) "# The original's effect from its Bayes factor and sample size (BayesFactor's ttest.tstat(), inverted).",
+    if (!bayes && !is.null(plan$telescope) && uses("small_telescopes")) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
+    if (from_bf) c("# Effect magnitude from the two-sided Bayes factor and sample size (BayesFactor's ttest.tstat(), inverted).",
+      "# The calculation uses a positive orientation. Use the original study to identify the effect's direction."),
     if (post) sprintf("# The original's posterior (%s prior) stands in for its estimate and standard error.", i$original_prior),
+    if (pooled) "# The original: several studies or a meta-analysis, as their pooled estimate and its standard error.",
     if (!is.na(bf_type) && uses(c("bf_repeat", "bf_null"))) sprintf("# %s: bfpwr (Pawel & Held).", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test"),
     sprintf("# Written by powerkit %s on %s.", as.character(utils::packageVersion("powerkit")), format(Sys.Date())),
     "library(BayesRepDesign)",
     "",
     "# The original study",
+    if (!is.null(plan$anova_effect)) c(
+      sprintf("# An ANOVA effect with one degree of freedom: F(1, %s) = %s is the square of a %s t (Lakens, 2013),",
+        format(plan$anova_effect$df_error), num(plan$anova_effect$f), if (two) "two-group" else "paired"),
+      sprintf("# so t = sqrt(F) = %s, the effect being %s.", num(plan$anova_effect$t), plan$anova_effect$effect_words)),
     if (two) c(sprintf("n1 <- %s; n2 <- %s", i$original_n1, i$original_n2),
       to_lines,
       so_post %||% "so <- sqrt((n1 + n2) / (n1 * n2) + to^2 / (2 * (n1 + n2)))  # Pawel et al., eq. 9",
-      "n_from_se <- function(se) 2 * ceiling(se2n(se, unitSD = 2) / 2 - 1e-9)  # two equal groups, in total")
+      if (uneven) c(
+        "",
+        "# The replication's two groups: group 2's size over group 1's, each total split into whole groups as powerkit's cards split it",
+        sprintf("ratio <- %s", num(ratio)),
+        "groups <- function(n) { n1 <- floor(n / (1 + ratio) + 0.5); c(n1, n - n1) }",
+        "se_of <- function(n) { g <- groups(n); sqrt(1 / g[1] + 1 / g[2]) }  # the replication's standard error",
+        "n_from_se <- function(se) {  # the smallest total whose two groups reach a standard error",
+        "  n <- max(4, floor(se2n(se, unitSD = (1 + ratio) / sqrt(ratio))) - 2)",
+        "  while (se_of(n) > se * (1 + 1e-12)) n <- n + 1",
+        "  n",
+        "}",
+        "n_min <- 4; while (any(groups(n_min) < 2)) n_min <- n_min + 1  # the smallest replication: two in each group")
+      else "n_from_se <- function(se) 2 * ceiling(se2n(se, unitSD = 2) / 2 - 1e-9)  # two equal groups, in total")
     else if (correlation) c(to_lines,
       so_post %||% sprintf("so <- 1 / sqrt(%s - 3)", i$original_n),
       "n_from_se <- function(se) ceiling(1 / se^2 + 3 - 1e-9)")
     else c(to_lines, so_post %||% sprintf("so <- 1 / sqrt(%s)", i$original_n),
       "n_from_se <- function(se) ceiling(se2n(se, unitSD = 1) - 1e-9)"),
-    if (bayes) sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau))
-    else sprintf("original_alpha <- %s; alpha <- %s; power <- %s; tau <- %s", num(i$original_alpha), num(i$alpha), num(i$power), num(i$tau)),
-    replication_level_line(i),
+    if (!is.null(plan$original$attenuation)) c(
+      "# The outcome measure's reliability differs: an observed d is the true d times the square root of",
+      "# the measure's reliability (Schmidt & Hunter, 1996), so the original's d and its standard error",
+      "# in the replication's measure",
+      sprintf("attenuation <- sqrt(%s / %s)  # the replication's reliability over the original's", num(i$reliability_replication), num(i$reliability_original)),
+      if (correlation) c("# An observed r is the true r times the square root of both measures' reliabilities: r is scaled,",
+        "# moved back to Fisher's z, and its standard error scaled to keep its z.",
+        "to_new <- atanh(tanh(to) * attenuation); so <- so * to_new / to; to <- to_new")
+      else "to <- to * attenuation; so <- so * attenuation"),
+    if (!bayes && uses("small_telescopes")) sprintf("original_alpha <- %s", num(i$original_alpha)),
+    if (uses(c("significance", "pooled", "agreement", "negligible", "small_telescopes"))) sprintf("alpha <- %s", num(i$alpha)),
+    sprintf("power <- %s; tau <- %s", num(i$power), num(i$tau)),
+    if (uses(c("significance", "pooled"))) replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -970,17 +1213,31 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
   telescope_lines <- c(
     sprintf("yardstick <- sign(%s) * %s", num(i$original_effect), telescope_call),
     sprintf("telescope_power <- function(n) %s", telescope_power))
-  telescope_search <- sprintf("n <- %s; while (telescope_power(n) < power) n <- n + %s", if (two) 6 else 5, if (two) 2 else 1)
-  bf_size_line <- if (!is.na(bf_type)) sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
+  telescope_search <- if (uneven) "n <- n_min; while (telescope_power(n) < power) n <- n + 1" else
+    sprintf("n <- %s; while (telescope_power(n) < power) n <- n + %s", if (two) 6 else 5, if (two) 2 else 1)
+  bf_size_line <- if (uneven) c(
+    "# bfpwr's ntbf01() searches equal groups only: the chance at each total's two groups, and the smallest total by bisection",
+    sprintf("bf_chance <- function(n, ...) { g <- groups(n); bfpwr::ptbf01(n1 = g[1], n2 = g[2], pscale = %s, type = \"two.sample\", ...) }",
+      num(i$original_prior_scale)),
+    "bf_size <- function(power, ...) {",
+    "  lo <- n_min; hi <- 1e5",
+    "  if (bf_chance(lo, ...) >= power) return(lo)",
+    "  if (bf_chance(hi, ...) < power) return(NA)",
+    "  while (hi - lo > 1) { mid <- floor((lo + hi) / 2); if (bf_chance(mid, ...) >= power) hi <- mid else lo <- mid }",
+    "  hi",
+    "}")
+  else if (!is.na(bf_type)) sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
     if (two) "2 * " else "", num(i$original_prior_scale), bf_type)
   if (!is.null(focus)) {
-    se_line <- if (two) "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups"
+    se_line <- if (uneven) NULL
+      else if (two) "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups"
       else if (correlation) "se_of <- function(n) 1 / sqrt(n - 3)  # the replication's standard error, Fisher's z"
       else "se_of <- function(n) 1 / sqrt(n)  # the replication's standard error"
-    return(paste(c(head, replication_focused_lines(plan, focus, num, margin, se_line = se_line,
-      telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
-      bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
-        scale = num(i$original_prior_scale)))), collapse = "\n"))
+    return(paste(c(head, if (length(bucss_lines)) c("local({", bucss_lines, "})"),
+      replication_focused_lines(plan, focus, num, margin, se_line = se_line,
+        telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
+        bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
+          scale = num(i$original_prior_scale), uneven = uneven))), collapse = "\n"))
   }
   c(head,
     "",
@@ -996,13 +1253,13 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     if (!is.null(margin)) c("",
       "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
       "size(ssdTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"), power = power, margin = margin))"),
-    if (!bayes) c("",
+    if (!bayes && !is.null(plan$telescope)) c("",
       "# Small telescopes: the smallest n with this power to show the effect is smaller than d33 when it is 0",
       telescope_lines, telescope_search, "n"),
     if (!is.na(bf_type)) c("",
       sprintf("# %s (BF10 of at least %s), in total%s", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test",
         num(i$threshold),
-        if (two) ", from bfpwr's size per group" else ""),
+        if (uneven) ", searched over totals" else if (two) ", from bfpwr's size per group" else ""),
       bf_size_line,
       sprintf("sapply(priors, function(dp) bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar)))", num(i$threshold)),
       sprintf("# Evidence for no effect (BF01 of at least %s) if there is none", num(i$threshold)),

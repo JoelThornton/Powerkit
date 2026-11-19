@@ -66,6 +66,9 @@ test('calculate, edit, save and reopen an actual project', async ({ page }, info
   await expect(page.locator('#explore_plot img')).toBeVisible();
   const project = info.outputPath('plan.powerkit.json');
   await download(page, 'download_project', project);
+  await expect(page.locator('#keep-status')).toHaveText('Download requested. Check your downloads.');
+  await expect(page.locator('#keep-status')).toHaveAttribute('data-kept', 'no');
+  await expect(page.locator('#download_bundle')).toHaveText('Download analysis and files (.zip)');
   const document = info.outputPath('study-planning.md');
   await download(page, 'download_planning_document', document);
   expect(await fs.readFile(document, 'utf8')).toContain('Does training improve recall?');
@@ -77,6 +80,7 @@ test('calculate, edit, save and reopen an actual project', async ({ page }, info
   expect(bytes.includes(Buffer.from('word/document.xml'))).toBe(true);
   // The PDF button prints a typeset document from a hidden frame: the plan,
   // without powerkit's screens.
+  await expect(page.locator('#planning_document_button')).toHaveText('Print or save PDF');
   await page.locator('#planning_document_button').click();
   const frame = page.frameLocator('#pk-print-frame');
   await expect(frame.locator('h1')).toHaveText('Study planning decision document');

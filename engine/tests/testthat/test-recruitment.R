@@ -89,3 +89,38 @@ test_that("the exported script works out the same number to recruit", {
   spec$options$attrition <- NULL
   expect_no_match(export_script(spec, run_spec(spec)), "Participants to recruit", fixed = TRUE)
 })
+
+test_that("a replication plan's recruitment target divides each group's analysed size by 1 - attrition", {
+  r <- replication_recruitment(434, groups = 2, attrition = 0.1)
+  expect_equal(r$groups_analysed, c(217, 217))
+  expect_equal(r$groups_recruit, c(242, 242))  # 217 / 0.9 = 241.1, rounded up
+  expect_equal(r$n_recruit, 484)
+  # Exact quotients don't round up through floating-point error.
+  expect_equal(replication_recruitment(90, attrition = 0.1)$n_recruit, 100)
+  expect_equal(replication_recruitment(90, attrition = 0)$n_recruit, 90)
+  expect_null(replication_recruitment(NA_real_, attrition = 0.1))
+  expect_error(replication_recruitment(90, attrition = 1), "below 1")
+  expect_error(replication_recruitment(90, attrition = -0.1), "at least 0")
+})
+
+test_that("the replication script works out the number to recruit, by the same rule", {
+  skip_if_not_installed("BayesRepDesign")
+  plan <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, tau = 0.05)
+  script <- replication_planning_script(plan, goal = "significance", prior = "shrunk", attrition = 0.1)
+  expect_match(script, "attrition <- 0.1", fixed = TRUE)
+  expect_match(script, "n_recruit <- 2 * ceiling(n / 2 / (1 - attrition) - 1e-9)", fixed = TRUE)
+  env <- new.env()
+  out <- utils::capture.output(res <- eval(parse(text = script), envir = env))
+  g <- plan$goals[plan$goals$goal == "significance" & plan$goals$prior %in% "shrunk", ]
+  expect_equal(env$n, g$n)
+  expect_equal(env$n_recruit, replication_recruitment(g$n, groups = 2, attrition = 0.1)$n_recruit)
+  expect_no_match(replication_planning_script(plan, goal = "significance", prior = "shrunk"), "attrition", fixed = TRUE)
+})
+
+test_that("replication_recruitment() allows for each of two unequal groups", {
+  r <- replication_recruitment(229, groups = 2, attrition = 0.1, allocation_ratio = 2)
+  expect_equal(r$groups_analysed, c(76, 153))
+  expect_equal(r$groups_recruit, c(85, 170))
+  expect_equal(r$n_recruit, 255)
+  expect_error(replication_recruitment(100, groups = 1, allocation_ratio = 2), "two groups only")
+})

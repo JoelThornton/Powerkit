@@ -338,12 +338,13 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
     # Its own output (filled by the server), so that saving or copying a
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
+    if (!plan_is_replication(plan)) plan_settings_ui(plan),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
     plan_running_ui(running),
     if (k == 0 && !length(running) && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
-        tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
+        tags$li("Press “Help me choose an analysis”, or “I know my analysis” to search the list, and calculate its sample size."),
         tags$li("Under the result, press “Add this to my study plan”."),
         tags$li("Do the same for every analysis your conclusions rest on, then save the plan."))),
     if (k > 0) div(class = "plan-overview",
@@ -367,11 +368,43 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and Powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
       if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
-      if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
+      if (!plan_is_replication(plan)) actionButton("plan_more", "Help me choose an analysis", class = "btn btn-outline-primary"),
+      if (!plan_is_replication(plan)) actionButton("plan_more_known", "I know my analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
-      if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
+      if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
+      if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
+    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan."),
     p(class = "small plan-delete",
       plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )
+}
+
+# The plan's settings for every analysis (queue item 29): the significance
+# level and target power each analysis added from this plan starts with.
+# Kept as soon as one is chosen; the plan's id goes with the choice, so it
+# can only reach this plan (as the description box does).
+plan_settings_ui <- function(plan) {
+  s <- plan_settings_clean(plan$settings) %||% list()
+  choose <- function(field, label, choices, help) {
+    id <- paste0("plan_setting_", field)
+    current <- s[[field]] %||% ""
+    if (nzchar(current) && !current %in% choices) choices <- c(stats::setNames(current, current), choices)
+    div(class = "form-field",
+      tags$label(class = "form-label", `for` = id, label),
+      tags$select(id = id, class = "form-select",
+        onchange = sprintf("Shiny.setInputValue('plan_settings_edit', {id: %s, field: %s, value: this.value}, {priority: 'event'})",
+          js_string(plan$id), js_string(field)),
+        lapply(seq_along(choices), function(k) tags$option(value = choices[[k]], selected = if (identical(unname(choices[[k]]), current)) NA, names(choices)[k]))),
+      p(class = "small text-muted mb-0", help))
+  }
+  div(class = "plan-settings form-group-box",
+    h3(class = "h6", "Settings for every analysis in this plan"),
+    p(class = "small", "Each analysis you add from this plan starts with these, so you enter them once. You can still change them on an analysis's card."),
+    div(class = "row g-3",
+      div(class = "col-sm-6", choose("alpha", "Significance level (alpha)",
+        c("Choose on each card" = "", "0.05, the usual level" = "0.05", "0.01" = "0.01", "0.005" = "0.005"),
+        "If your conclusions rest on several tests, the level after any correction for them.")),
+      div(class = "col-sm-6", choose("power", "Target power",
+        c("Choose on each card" = "", "80%" = "0.8", "90%" = "0.9", "95%" = "0.95"),
+        "For analyses planned for a sample size."))))
 }
