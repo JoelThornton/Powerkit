@@ -7,3 +7,12 @@ entries:
       add from the plan starts with them (you can still change them on its
       card). The plan page also lets you add an analysis by searching the
       list ("I know my analysis") as well as by answering questions.
+  - date: "2026-11-19"
+    title: A study design table in the study plan's document
+    text: >
+      The planning document in a study plan's "Download everything" now
+      starts with a study design table of the kind Registered Reports ask
+      for: one row for each analysis, with its sample size, test, the
+      effect it is powered for and how each outcome would be read. The
+      cells only you can fill (your question, hypothesis and the theory at
+      stake) are marked "(fill in)".

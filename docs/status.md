@@ -212,7 +212,9 @@ each area, is at the end of
   been saved to a file, since the browser's copy can be cleared. Each plan
   has an overview (its analyses by role) and "Download everything": one
   zip with the plan file, a study-wide planning document (Markdown and
-  Word), the merged references and each analysis's own files; the zip
+  Word, with a Registered Report study design table: question,
+  hypothesis, sampling plan, analysis plan, what sets the sensitivity,
+  interpretation of each outcome, theory at stake), the merged references and each analysis's own files; the zip
   opens again as the plan. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens

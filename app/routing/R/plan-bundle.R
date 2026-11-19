@@ -107,6 +107,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
       words <- joint_power_sentence(joint, plan$entries)
       c("## The chance that every analysis is significant", unname(words[["headline"]]), unname(words[["detail"]]), "")
     },
+    plan_design_table_lines(entries, tree, forms),
     "## Methods, analysis by analysis", "", methods,
     "## References", if (length(refs)) unlist(lapply(refs, function(r) c(r, ""))) else c("No references could be gathered from these results.", ""),
     "Each analysis's own files (its analysis file, report, R script and citations) are in the analyses folder of “Download everything”. The study plan file opens every analysis again in Powerkit.")
@@ -192,4 +193,74 @@ write_plan_bundle <- function(plan, file, tree, forms, joint = NULL, engine = en
   zip::zip(file, files = unname(inside), root = dir, mode = "mirror")
   if (!plan_file %in% zip::zip_list(file)$filename) stop("The zip is missing the plan file.")
   invisible(zip::zip_list(file)$filename)
+}
+
+# The study design table Registered Reports ask for (the columns of the
+# replication plan's, replication_design_table()): one row per analysis,
+# in role order, from what its card was given. What only the researcher
+# can say (the question when the card wasn't told it, the hypothesis in
+# the study's terms and the theory at stake) is left "(fill in)".
+plan_design_table_lines <- function(entries, tree, forms) {
+  if (!length(entries)) return(NULL)
+  rows <- vapply(entries, function(e) {
+    cells <- tryCatch(plan_design_row(e, tree, forms), error = function(err) NULL)
+    if (is.null(cells)) cells <- c(e$label, "(fill in)", plan_item_summary(e), e$label, "(fill in)", "(fill in)", "(fill in)")
+    paste0("| ", paste(vapply(cells, md_cell, ""), collapse = " | "), " |")
+  }, "")
+  c("## Study design table", "",
+    "For a Registered Report: one row for each analysis, the primary ones first. Cells marked (fill in) need your study's own words.", "",
+    "| Question | Hypothesis | Sampling plan | Analysis plan | What sets the test's sensitivity | Interpretation given different outcomes | Theory that could be shown wrong by the outcomes |",
+    "|---|---|---|---|---|---|---|", rows, "")
+}
+
+plan_design_row <- function(e, tree, forms) {
+  calc <- plan_entry_calc(e)
+  spec <- calc$spec
+  values <- calc$route$form_values %||% list()
+  id <- calc$route$endpoint
+  fields <- if (!is.null(id) && !is.null(forms$forms[[id]])) form_fields(form_groups(forms, id, k = calc$route$form_k %||% 2L)) else list()
+  question <- if (!blank(values$research_question)) values$research_question else "(fill in)"
+  units <- tryCatch(sample_description(spec)$unit, error = function(err) NULL) %||% "participants"
+  goal <- spec$goal %||% list()
+  sampling <- if (is.numeric(e$n) && length(e$n) == 1 && is.finite(e$n)) {
+    sprintf("%s %s%s.", whole(e$n), units, if (!is.null(goal$power)) sprintf(", for %s power", replication_pct(goal$power)) else "")
+  } else plan_item_summary(e)
+  test <- tryCatch(test_text(spec), error = function(err) e$label)
+  name <- plan_test_name(forms$forms[[id %||% ""]], spec)
+  if (!is.null(name)) test <- sprintf("%s (%s)", name, sub("^an? ", "", test))
+  method <- spec$target_test$method %||% ""
+  bayes <- identical(method, "bayes_factor")
+  thr <- format(spec$target_test$evidence_threshold %||% 10)
+  analysis <- if (bayes) sprintf("%s; a success if the Bayes factor for the effect reaches %s.", test, thr)
+    else if (identical(spec$design, "equivalence_test")) sprintf("%s; a success if both one-sided tests are significant.", test)
+    else if (identical(spec$design, "precision") || identical(spec$design, "prediction_model")) paste0(test, ".")
+    else sprintf("%s; a success if it is significant.", test)
+  effect <- paste(writeup_effect(fields, values), collapse = "; ")
+  source <- writeup_source[[values$just_type %||% ""]] %||% NULL
+  sensitivity <- paste0(if (nzchar(effect)) effect else "The values entered on the card",
+    if (!is.null(source)) paste0(", based on ", source) else "",
+    if (!blank(values$just_source)) sprintf(": \u201c%s\u201d", values$just_source) else "", ".")
+  interpretation <- if (bayes) sprintf("BF10 of %s or more: evidence for the effect. BF01 of %s or more: evidence for no effect. Between: not enough evidence either way.", thr, thr)
+    else if (identical(spec$design, "equivalence_test")) "Both significant: the effect is within the bounds. Otherwise: an effect beyond them is not ruled out."
+    else if (identical(method, "minimum_effect")) "Significant: the effect exceeds the stated threshold. Otherwise: it is not shown to exceed it."
+    else if (identical(spec$design, "precision") || identical(spec$design, "prediction_model")) "Not a test: report the estimate and its interval (fill in what values would change your conclusion)."
+    else "Significant: evidence against no effect. Not significant: the effect is not shown; this test alone cannot show it is absent."
+  c(question, "(fill in)", sampling, analysis, sensitivity, interpretation, "(fill in)")
+}
+
+# The test's name as the methods paragraph gives it ("Welch's
+# independent-samples t-test", "a 2 x 2 ANOVA (target effect: the
+# interaction of A and B)"), or NULL when the card names none.
+plan_test_name <- function(form, spec) {
+  name <- form$methods_name
+  if (is.null(name) || !nzchar(name)) return(NULL)
+  method <- spec$target_test$method %||% ""
+  if (identical(method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
+  if (identical(method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (identical(method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
+  if (is_bayes_test(spec)) name <- bayes_test_name(spec)
+  if (isTRUE(spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three"))) {
+    name <- sprintf("%s (target effect: %s)", name, anova_effect_words(spec))
+  }
+  name
 }

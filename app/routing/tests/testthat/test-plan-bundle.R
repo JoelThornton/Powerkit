@@ -79,6 +79,34 @@ test_that("the study-wide document restates each analysis, ordered by role, with
   }
 })
 
+test_that("the document has a Registered Report study design table, one row for each analysis", {
+  skip_without_engine()
+  a <- calculated_entry("E1")
+  b <- calculated_entry("E2")
+  doc <- plan_planning_document(plan_with(list(a, b)), tree, forms, engine = bundle_engine)
+  start <- which(doc == "## Study design table")
+  expect_length(start, 1L)
+  expect_lt(start, which(doc == "## Methods, analysis by analysis"))
+  header <- grep("^\\| Question \\| Hypothesis \\| Sampling plan \\| Analysis plan", doc)
+  expect_length(header, 1L)
+  rows <- doc[(header + 2):(header + 3)]
+  expect_true(all(startsWith(rows, "| ")))
+  expect_identical(lengths(regmatches(rows, gregexpr(" \\| ", rows))), c(6L, 6L))
+  # Each row names the card's test and the N it found; the study's own
+  # words are left for the researcher.
+  expect_match(rows[[1]], forms$forms$E1$methods_name, fixed = TRUE)
+  expect_match(rows[[1]], whole(a$n), fixed = TRUE)
+  expect_match(rows[[2]], whole(b$n), fixed = TRUE)
+  expect_match(rows[[1]], "(fill in)", fixed = TRUE)
+  expect_match(rows[[1]], "cannot show it is absent", fixed = TRUE)
+})
+
+test_that("the test's name in the design table follows the methods paragraph's", {
+  form <- list(methods_name = "an independent-samples t-test")
+  expect_identical(plan_test_name(form, list(target_test = list(method = "welch_t"))), "Welch's independent-samples t-test")
+  expect_null(plan_test_name(list(), list(target_test = list())))
+})
+
 test_that("the document says when the analyses have no single study-wide N", {
   skip_without_engine()
   a <- calculated_entry("E2")
