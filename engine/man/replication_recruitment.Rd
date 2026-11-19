@@ -4,7 +4,7 @@
 \alias{replication_recruitment}
 \title{Participants to recruit for a replication plan, allowing for attrition}
 \usage{
-replication_recruitment(n, groups = 1, attrition = 0)
+replication_recruitment(n, groups = 1, attrition = 0, allocation_ratio = 1)
 }
 \arguments{
 \item{n}{The total number analysed: a whole number.}
@@ -14,6 +14,10 @@ groups; 1 for one group, pairs or a correlation).}
 
 \item{attrition}{The proportion of those recruited who won't be
 analysed, at least 0 and below 1.}
+
+\item{allocation_ratio}{For two groups: group 2's size over group 1's
+(1, the default, for equal groups), split as the cards split a total
+(group 1 is n / (1 + ratio) rounded to the nearest person).}
 }
 \value{
 A list with \code{attrition}, \code{n_analysed}, \code{groups_analysed} (each

@@ -37,7 +37,8 @@ replication_planning(
   levels_b = NULL,
   effect = NULL,
   original_partial_eta = NULL,
-  original_df_error = NULL
+  original_df_error = NULL,
+  allocation_ratio = 1
 )
 }
 \arguments{
@@ -156,13 +157,22 @@ Report) corrects BUCSS's sample sizes for uncertainty only; see
 \item{levels_a, levels_b, effect, original_partial_eta, original_df_error}{For an ANOVA design: the factors' levels, the effect, and the
 partial eta-squared with its F test's error degrees of freedom in
 place of \code{original_f}, as for \code{\link[=replication_bucss]{replication_bucss()}}.}
+
+\item{allocation_ratio}{For \code{"two_groups"}: the replication's group 2
+size over group 1's (1, the default, for equal groups), as the cards'
+\code{options > allocation_ratio}. Each total is split into whole groups as
+the cards split it (group 1 is n / (1 + ratio) rounded to the nearest
+person), and every goal is judged at those groups' standard error,
+sqrt(1/n1 + 1/n2). BUCSS's correction plans equal groups only, so
+\code{bias_corrected} is \code{NULL} for unequal ones.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
 analysis scale, z and two-sided p); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
 planned for no effect), \code{n} (the total sample size needed, \code{NA} when
-not reachable), \code{per_group}, \code{ratio} (n over the original's), \code{limit}
+not reachable), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:
+each group's size), \code{ratio} (n over the original's), \code{limit}
 (the highest chance reachable, when the goal cannot reach \code{power};
 for \code{reason} \code{"any_size"}, the chance with the smallest replication,
 which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},

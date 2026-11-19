@@ -116,3 +116,11 @@ test_that("the replication script works out the number to recruit, by the same r
   expect_equal(env$n_recruit, replication_recruitment(g$n, groups = 2, attrition = 0.1)$n_recruit)
   expect_no_match(replication_planning_script(plan, goal = "significance", prior = "shrunk"), "attrition", fixed = TRUE)
 })
+
+test_that("replication_recruitment() allows for each of two unequal groups", {
+  r <- replication_recruitment(229, groups = 2, attrition = 0.1, allocation_ratio = 2)
+  expect_equal(r$groups_analysed, c(76, 153))
+  expect_equal(r$groups_recruit, c(85, 170))
+  expect_equal(r$n_recruit, 255)
+  expect_error(replication_recruitment(100, groups = 1, allocation_ratio = 2), "two groups only")
+})

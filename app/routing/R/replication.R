@@ -694,6 +694,9 @@ replication_planner_sections <- function() {
           p(class = "small text-muted", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
         conditionalPanel(replication_one_number_js,
           field("rep_n_at", "Optional: a sample size you could analyse (in total), to see each goal's chance at it")),
+        conditionalPanel("(input.rep_design || 'two_groups') == 'two_groups'",
+          field("rep_ratio", "Optional: unequal groups in the replication, as group 2's size over group 1's, such as 2 for twice as many in group 2",
+            help = "Leave it blank for equal groups, which need the fewest people. Each total is split into whole groups as powerkit's cards split it.")),
         field("rep_attrition", "Optional: the proportion you expect to drop out or be excluded, such as 0.1 for 10%",
           help = "The sample sizes are the numbers analysed. With this, the plan also gives the number to recruit: each group's size divided by 1 minus the proportion, rounded up, the rule powerkit's cards use. It is a crude rule that ignores how missing data will be handled (Rubin, 2025)."),
         NULL),
@@ -789,7 +792,7 @@ replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref
 replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", "rep_bf_both", "rep_original_prior", "rep_prior_scale",
   "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
-  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_attrition", "rep_goal", "rep_prior",
+  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
@@ -841,6 +844,8 @@ replication_args <- function(values) {
   if (identical(design, "two_groups")) {
     args$original_n1 <- num("rep_n1", NA_real_)
     args$original_n2 <- num("rep_n2", NA_real_)
+    ratio <- replication_ratio(values)
+    if (!is.na(ratio) && !isTRUE(all.equal(ratio, 1))) args$allocation_ratio <- ratio
   } else {
     args$original_n <- num("rep_n", NA_real_)
   }
@@ -936,7 +941,16 @@ replication_settings_missing <- function(values) {
     if (!v("rep_power")) "the chance of success to aim for",
     if (isTRUE(settings$bound_needed)) "the smallest effect that would matter",
     if (v("rep_attrition") && is.na(replication_attrition(values)) && !identical(trimws(as.character(values$rep_attrition)), "0"))
-      "the dropout as a proportion between 0 and 1, such as 0.1")
+      "the dropout as a proportion between 0 and 1, such as 0.1",
+    if (v("rep_ratio") && identical(values$rep_design %||% "two_groups", "two_groups") && is.na(replication_ratio(values)))
+      "the groups' ratio as a number above 0 and at most 20, such as 2")
+}
+
+# The replication's group 2 size over group 1's, or NA when none was
+# given or it isn't a number above 0 and at most 20.
+replication_ratio <- function(values) {
+  r <- suppressWarnings(as.numeric(trimws(as.character(values$rep_ratio %||% ""))))
+  if (length(r) != 1 || is.na(r) || r <= 0 || r > 20) NA_real_ else r
 }
 
 # The expected dropout (the proportion of those recruited who won't be
@@ -960,7 +974,8 @@ replication_add_recruitment <- function(plan, values, recruitment = engine_funct
   }
   n <- plan$at_main$n
   if (is.null(n) || is.na(n)) return(plan)
-  plan$recruit <- recruitment(n, groups = if (identical(plan$inputs$design, "two_groups")) 2 else 1, attrition = a)
+  plan$recruit <- recruitment(n, groups = if (identical(plan$inputs$design, "two_groups")) 2 else 1, attrition = a,
+    allocation_ratio = plan$inputs$allocation_ratio %||% 1)
   plan
 }
 
@@ -979,7 +994,9 @@ replication_recruit_words <- function(plan) {
   if (is.null(r)) return(NULL)
   pairs <- identical(plan$inputs$design, "paired") && is.null(plan$anova_effect)
   total <- sprintf("%s %s", format(r$n_recruit, big.mark = ","), if (pairs) "pairs" else "participants")
-  if (length(r$groups_recruit) > 1) total <- sprintf("%s (%s per group)", total, format(r$groups_recruit[1], big.mark = ","))
+  if (length(r$groups_recruit) > 1) total <- if (length(unique(r$groups_recruit)) > 1) {
+    sprintf("%s (%s in group 1, %s in group 2)", total, format(r$groups_recruit[1], big.mark = ","), format(r$groups_recruit[2], big.mark = ","))
+  } else sprintf("%s (%s per group)", total, format(r$groups_recruit[1], big.mark = ","))
   sprintf("%s, allowing for %s dropout", total, sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)))
 }
 
@@ -1095,8 +1112,15 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
   replication_add_recruitment(plan, values)
 }
 
-replication_n_words <- function(plan, n) {
+replication_n_words <- function(plan, n, split = engine_function("replication_recruitment")) {
   if (is.na(n)) return(NA_character_)
+  # Unequal groups: each group's size, split as the engine splits it.
+  ratio <- plan$inputs$allocation_ratio %||% 1
+  if (identical(plan$inputs$design, "two_groups") && is.null(plan$anova_effect) && !isTRUE(all.equal(ratio, 1))) {
+    g <- split(n, groups = 2, allocation_ratio = ratio)$groups_analysed
+    return(sprintf("%s participants (%s in group 1, %s in group 2)", format(n, big.mark = ","),
+      format(g[1], big.mark = ","), format(g[2], big.mark = ",")))
+  }
   # A 1-df ANOVA effect planned as pairs: the same people in each condition.
   if (!is.null(plan$anova_effect) && identical(plan$inputs$design, "paired")) return(sprintf("%s participants", format(n, big.mark = ",")))
   switch(plan$inputs$design,
@@ -1450,6 +1474,9 @@ replication_bucss_validation_text <- paste(
 # 50% and 80% assurance (the engine's plan$bias_corrected).
 replication_bias_corrected_ui <- function(plan) {
   b <- plan$bias_corrected
+  if (is.null(b) && replication_uneven(plan) && !isTRUE(plan$inputs$original_analysis %in% c("bayes_factor", "posterior"))) {
+    return(rep_note("BUCSS's correction for publication bias plans two equal groups, so it is left out for unequal ones. Leave the groups' ratio blank to see it."))
+  }
   if (is.null(b)) return(NULL)
   sz <- b$sizes
   at <- function(a) {
@@ -1891,7 +1918,8 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
         if (bound_used) sprintf(", smallest effect that matters %s%s", format(signif(plan$inputs$smallest_effect, 3)),
           if (identical(ch$bound, "d33")) " (d33, as none was given)" else "") else "",
         if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else "",
-        if (!is.null(plan$recruit)) sprintf(", expected dropout %s", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))) else ""),
+        paste0(if (replication_uneven(plan)) sprintf(", group 2 %s times the size of group 1", format(signif(plan$inputs$allocation_ratio, 4))) else "",
+          if (!is.null(plan$recruit)) sprintf(", expected dropout %s", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))) else "")),
       "", "The sample size each other goal would need, under each belief, is on the plan's Goals screen.", "",
       if (!is.null(plan$choice)) replication_design_table(plan, ch, values$rep_keeps))
   }
@@ -2192,4 +2220,10 @@ replication_sequential_settings <- function(plan, prior = NULL) {
   list(type = row$type, prior_scale = round(row$prior_scale, 3), effect = round(row$effect, 3),
     effect_sd = round(row$effect_sd, 3), n_max = if (is.na(fixed)) NA_real_ else fixed / per,
     threshold = if (threshold %in% bayes_thresholds) threshold)
+}
+
+# Whether the replication has two unequal groups.
+replication_uneven <- function(plan) {
+  identical(plan$inputs$design, "two_groups") && is.null(plan$anova_effect) &&
+    !isTRUE(all.equal(plan$inputs$allocation_ratio %||% 1, 1))
 }

@@ -726,3 +726,31 @@ test_that("an expected dropout gives the number to recruit, in the result, the w
   expect_match(paste(replication_settings_missing(modifyList(v, list(rep_attrition = "10"))), collapse = " "), "dropout as a proportion", fixed = TRUE)
   expect_length(replication_settings_missing(modifyList(v, list(rep_attrition = "0"))), 0)
 })
+
+test_that("unequal groups are planned, named in the result and the write-up, and allowed for in recruitment", {
+  skip_if(!"allocation_ratio" %in% names(formals(engine_function("replication_planning"))), "this engine plans equal groups only")
+  run <- function(v) replication_run(v, engine_function("replication_planning"))
+  v <- modifyList(filled, list(rep_ratio = "2", rep_attrition = "0.1", rep_n_at = ""))
+  expect_identical(replication_args(v)$allocation_ratio, 2)
+  # Blank, 1 or another design: equal groups.
+  expect_null(replication_args(modifyList(v, list(rep_ratio = "")))$allocation_ratio)
+  expect_null(replication_args(modifyList(v, list(rep_ratio = "1")))$allocation_ratio)
+  expect_null(replication_args(modifyList(v, list(rep_design = "paired", rep_n = "30")))$allocation_ratio)
+  plan <- run(v)
+  equal <- run(modifyList(v, list(rep_ratio = "")))
+  expect_gt(plan$at_main$n, equal$at_main$n)
+  g <- engine_function("replication_recruitment")(plan$at_main$n, groups = 2, allocation_ratio = 2)$groups_analysed
+  html <- as.character(replication_result_ui(plan))
+  expect_match(html, sprintf("(%s in group 1, %s in group 2)", g[1], g[2]), fixed = TRUE)
+  expect_match(html, "in group 1, ", fixed = TRUE)
+  expect_equal(plan$recruit$groups_recruit, ceiling(g / 0.9 - 1e-9))
+  expect_match(html, "correction for publication bias plans two equal groups", fixed = TRUE)
+  report <- paste(replication_report(v, plan), collapse = "\n")
+  expect_match(report, "group 2 2 times the size of group 1", fixed = TRUE)
+  expect_match(replication_methods_paragraph(plan, plan$choice$goal, plan$choice$prior), "in group 2", fixed = TRUE)
+  expect_match(replication_script_text(plan, engine_function("replication_planning_script")), "ratio <- 2", fixed = TRUE)
+  # A ratio that isn't a number above 0 is asked for again.
+  expect_match(paste(replication_settings_missing(modifyList(v, list(rep_ratio = "two"))), collapse = " "), "groups' ratio", fixed = TRUE)
+  expect_true(is.na(replication_ratio(list(rep_ratio = "0"))))
+  expect_true("rep_ratio" %in% replication_field_ids)
+})

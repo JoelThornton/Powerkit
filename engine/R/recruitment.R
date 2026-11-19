@@ -44,6 +44,9 @@ recruitment_target <- function(spec, n) {
 #' @param n The total number analysed: a whole number.
 #' @param groups The number of equal groups `n` is split into (2 for two
 #'   groups; 1 for one group, pairs or a correlation).
+#' @param allocation_ratio For two groups: group 2's size over group 1's
+#'   (1, the default, for equal groups), split as the cards split a total
+#'   (group 1 is n / (1 + ratio) rounded to the nearest person).
 #' @param attrition The proportion of those recruited who won't be
 #'   analysed, at least 0 and below 1.
 #' @return A list with `attrition`, `n_analysed`, `groups_analysed` (each
@@ -52,14 +55,17 @@ recruitment_target <- function(spec, n) {
 #' @examples
 #' replication_recruitment(434, groups = 2, attrition = 0.1)
 #' @export
-replication_recruitment <- function(n, groups = 1, attrition = 0) {
+replication_recruitment <- function(n, groups = 1, attrition = 0, allocation_ratio = 1) {
   one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
   if (!one_number(attrition) || attrition < 0 || attrition >= 1) {
     abort_run("The expected dropout should be a proportion: at least 0 and below 1, such as 0.1 for 10%.")
   }
   if (!one_number(groups) || groups < 1 || groups != round(groups)) abort_run("The number of groups should be a whole number, at least 1.")
+  if (!one_number(allocation_ratio) || allocation_ratio <= 0) abort_run("The group sizes' ratio should be a number above 0.")
+  uneven <- !isTRUE(all.equal(allocation_ratio, 1))
+  if (uneven && groups != 2) abort_run("Unequal group sizes apply to two groups only.")
   if (!one_number(n) || !is.finite(n)) return(NULL)
-  analysed <- rep(n / groups, groups)
+  analysed <- if (uneven) as.numeric(rounded_groups(n, allocation_ratio)) else rep(n / groups, groups)
   # The small tolerance keeps exact quotients (90 / 0.9) from rounding up
   # through floating-point error, as recruitment_target() does.
   recruit <- ceiling(analysed / (1 - attrition) - 1e-9)
