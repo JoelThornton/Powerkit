@@ -133,11 +133,16 @@ pwr_inputs <- function(spec) {
         args = function(n) {
           g <- groups(n)
           # pwrss's n.ratio is n1 / n2 (the spec's allocation ratio is
-          # n2 / n1).
+          # n2 / n1). ceil.n = FALSE: pwrss otherwise rounds n2 * n.ratio
+          # up, and 7 / 25 * 25 is a hair above 7, so it scored 8 + 25.
+          # pwrss refuses equal proportions (a difference equal to the
+          # margin, to 1e-6), where the power is alpha; a difference of 2e-6 gives
+          # it to well within 1e-4.
           list(
-            prob1 = pop$p1, prob2 = pop$p2, n2 = g[2], n.ratio = g[1] / g[2],
+            prob1 = pop$p1, prob2 = if (pop$p1 == pop$p2) pop$p2 + 2e-6 else pop$p2,
+            n2 = g[2], n.ratio = g[1] / g[2],
             alternative = if (alternative == "two.sided") "two.sided" else "one.sided",
-            std.error = "pooled", verbose = FALSE
+            std.error = "pooled", ceil.n = FALSE, verbose = FALSE
           )
         }
       )
@@ -271,10 +276,10 @@ pwr_power <- function(inputs, n) {
 pwr_check_run <- function(spec, inputs) {
   args <- inputs$args(1000)
   pop <- spec$population
-  row <- function(parameter, specified, passed) {
+  row <- function(parameter, specified, passed, tolerance = 1.5e-8) {
     data.frame(
       parameter = parameter, specified = specified, recovered = passed,
-      ok = isTRUE(all.equal(specified, passed))
+      ok = isTRUE(all.equal(specified, passed, tolerance = tolerance))
     )
   }
   switch(
@@ -286,7 +291,8 @@ pwr_check_run <- function(spec, inputs) {
     two_proportions = if (identical(inputs$package, "pwrss")) {
       rbind(
         row("p1 passed to pwrss (prob1)", pop$p1, args$prob1),
-        row("p2 passed to pwrss (prob2)", pop$p2, args$prob2)
+        # Equal proportions are passed 2e-6 apart (pwr_inputs()).
+        row("p2 passed to pwrss (prob2)", pop$p2, args$prob2, tolerance = if (pop$p1 == pop$p2) 1e-4 else 1.5e-8)
       )
     } else if (proportions_z_test(spec)) {
       rbind(

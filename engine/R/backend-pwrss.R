@@ -373,8 +373,11 @@ pwrss_inputs <- function(spec) {
         args = function(n) {
           n1 <- floor(n / (1 + ratio) + 0.5)
           n2 <- n - n1
+          # pwrss's power.z.twocors() rounds n2 * n.ratio up even with
+          # ceil.n = FALSE, and 27 / 21 * 21 is a hair above 27, so it
+          # scored 28 + 21; a ratio a hair below n1 / n2 gives n1.
           list(
-            rho1 = pop$r1, rho2 = pop$r2, n.ratio = n1 / n2, n2 = n2,
+            rho1 = pop$r1, rho2 = pop$r2, n.ratio = (n1 - 1e-9) / n2, n2 = n2,
             alpha = alpha, alternative = alternative, ceil.n = FALSE, verbose = 0
           )
         }
