@@ -157,7 +157,7 @@ bfanova_script <- function(spec, result) {
     sprintf("means <- %s # the expected group means", r_code(inputs$means)),
     sprintf("sd <- %s # the SD within each group", r_code(inputs$sd)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
-    sprintf("rscale <- %s # r scale of the Cauchy prior on the fixed effects (the default in BayesFactor and JASP, 0.5)", r_code(inputs$prior_scale)),
+    sprintf("rscale <- %s # r scale of the Cauchy prior on the fixed effects (the package default, 0.5)", r_code(inputs$prior_scale)),
     bayes_goal_inputs(spec),
     "",
     "k <- length(means)",

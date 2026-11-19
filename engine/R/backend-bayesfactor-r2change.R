@@ -224,7 +224,7 @@ bfr2c_script <- function(spec, result) {
     sprintf("p <- %s # predictors in the full model", r_code(inputs$p)),
     sprintf("q <- %s # predictors tested", r_code(inputs$q)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
-    sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (the default in BayesFactor and JASP, 0.354)", r_code(inputs$prior_scale)),
+    sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (the package default, 0.354)", r_code(inputs$prior_scale)),
     bayes_goal_inputs(spec),
     sprintf("replications <- %s # simulated studies per sample size", r_code(prov$nrep)),
     sprintf("seed <- %s # powerkit's seed for this run", r_code(prov$seed)),
