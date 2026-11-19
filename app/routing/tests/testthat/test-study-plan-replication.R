@@ -318,3 +318,34 @@ test_that("every field's starting value on screen is the one a new plan records"
     if (!is.null(shown)) expect_identical(shown, recorded[[id]], label = id)
   }
 })
+
+test_that("a replication plan is named after its original study until the researcher names it", {
+  plan <- new_replication_plan(now = as.POSIXct("2026-11-19 10:00", tz = "UTC"))
+  expect_true(plan_name_is_automatic(plan))
+  plan <- plan_set_replication(plan, fields = list(rep_study = "Smith and Jones (2019)"))
+  expect_identical(plan$name, "Replication of Smith and Jones (2019)")
+  plan <- plan_set_replication(plan, fields = list(rep_study = "Smith and Jones (2019)", rep_keeps = "conceptual"))
+  expect_identical(plan$name, "Conceptual replication of Smith and Jones (2019)")
+  # A name the researcher gives is kept.
+  plan <- plan_edit(plan, name = "My thesis study")
+  plan <- plan_set_replication(plan, fields = list(rep_study = "Brown (2021)", rep_keeps = "close"))
+  expect_identical(plan$name, "My thesis study")
+})
+
+test_that("the replication's summary card shows only what has been filled in", {
+  expect_null(replication_overview_ui(list()))
+  html <- as.character(replication_overview_ui(list(rep_study = "Smith (2019)", rep_design = "two_groups", rep_effect = "0.5",
+    rep_n1 = "40", rep_n2 = "40", rep_keeps = "close"), answer = list(n = "214 participants", goal = "A significant result")))
+  expect_match(html, "This replication so far", fixed = TRUE)
+  expect_match(html, "d = 0.5, 40 and 40 people", fixed = TRUE)
+  expect_match(html, "A close replication", fixed = TRUE)
+  expect_match(html, "214 participants (a significant result)", fixed = TRUE)
+  expect_no_match(html, "Decision", fixed = TRUE)
+})
+
+test_that("the criterion settings say what the purpose suggests and what was chosen instead", {
+  v <- list(rep_design = "two_groups", rep_analysis = "test", rep_purpose = "confirm", rep_goal = "agreement")
+  cr <- replication_criteria_settings(v)
+  expect_identical(cr$chosen, replication_goal_labels[["agreement"]])
+  expect_identical(cr$for_purpose, replication_goal_labels[["significance"]])
+})

@@ -446,7 +446,7 @@ replication_ref_keys <- c("Pawel2026_replication", "Anderson2016_replication", "
 # workspace (replication_workspace_ui(), R/study-plan-replication.R; a Labs tool
 # until 14 November 2026). Their fields are kept in the plan.
 replication_test_goals <- setdiff(names(replication_goal_labels), replication_bf_goals)
-replication_goal_choices <- c(list("Suggested criterion" = "auto"), lapply(
+replication_goal_choices <- c(list("The one your answer above suggests" = "auto"), lapply(
   list("Frequentist criteria" = replication_test_goals, "Bayesian criteria" = replication_bf_goals),
   function(ids) stats::setNames(ids, replication_goal_labels[ids])))
 
@@ -485,7 +485,12 @@ replication_criteria_settings <- function(values) {
   list(alpha = any(used %in% replication_test_goals), sided = any(used %in% c("significance", "pooled")),
     bf = any(used %in% replication_bf_goals), bound = any(used %in% c("agreement", "negligible")),
     bound_needed = choice$goal %in% c("agreement", "negligible") && no_d33 && !smallest,
-    suggested = if (choice$auto) replication_goal_labels[[choice$goal]] else "")
+    suggested = if (choice$auto) replication_goal_labels[[choice$goal]] else "",
+    # What the answer to "What should the replication show?" would pick,
+    # and the criterion chosen instead, if one was (19 November 2026).
+    for_purpose = replication_goal_labels[[replication_resolve_goals(utils::modifyList(values, list(rep_goal = "auto")), available)$goal]],
+    chosen = if (choice$auto) "" else replication_goal_labels[[choice$goal]],
+    purpose = choice$purpose)
 }
 
 # Give longer help a visible label, including when explanations are off.
@@ -693,11 +698,11 @@ replication_planner_sections <- function() {
         conditionalPanel(replication_one_number_js,
           conditionalPanel("input.rep_design == 'anova'",
             p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. With a p-value criterion, BUCSS's correction of the original is shown beside them.")),
-          rep_note("Start with what the replication should show. One main criterion sets the sample size; any others you tick are reported beside it, as their chance at that sample size, so the plan can use p-values, Bayes factors or both (Anderson & Maxwell, 2016). Fix them before collecting data."),
+          rep_note("Your answer to the first question picks the main criterion: the one test whose chance of success sets the replication's sample size. You can choose a different main criterion instead. Any criteria you tick under \u201cAlso report\u201d are given as their chance at that sample size, so the plan can use p-values, Bayes factors or both (Anderson & Maxwell, 2016). Fix them before collecting data."),
           radioButtons("rep_purpose", "What should the replication show?", choices = replication_purposes_ui, selected = "confirm", width = "100%"),
-          selectInput("rep_goal", "Main criterion for the replication", choices = replication_goal_choices,
-            selected = "auto", selectize = FALSE, width = "100%"),
           uiOutput("rep_suggested_goal"),
+          selectInput("rep_goal", "Main criterion (the test that sets the sample size)", choices = replication_goal_choices,
+            selected = "auto", selectize = FALSE, width = "100%"),
           # Criteria the original can't give are greyed out in the list:
           # the Bayes factor t-test needs a t-test design, and small
           # telescopes the original's significance test.
@@ -1533,7 +1538,9 @@ replication_publication_rows <- function(filtered, unfiltered, chosen = NULL) {
     row <- result$sizes[result$sizes$assurance == a, ][1, ]
     if (!is.na(row$n)) return(replication_bucss_n_words(result, row))
     if (identical(row$reason, "not_significant")) return("Original did not meet the significance requirement")
-    "No sample size returned"
+    # The corrected effect is zero at this assurance (19 November 2026:
+    # said, not left as "no sample size returned").
+    "None: once corrected, no effect is left to plan for"
   }
   lapply(filtered$sizes$assurance, function(a) c(
     paste0(replication_pct(a), if (a %in% chosen) " (chosen)" else ""),
@@ -2325,9 +2332,17 @@ replication_server <- function(input, output, session, notes = function() list()
   output$rep_criteria <- criteria
   outputOptions(output, "rep_criteria", suspendWhenHidden = FALSE)
   output$rep_suggested_goal <- renderUI({
-    name <- criteria()$suggested %||% ""
-    if (nzchar(name)) p(class = "small rep-suggested", "Suggested for what the replication should show: ", tags$strong(name, .noWS = "outside"),
-      ". A criterion you choose from the list instead stays chosen when you change the original study.")
+    cr <- criteria()
+    either <- identical(cr$purpose, "either")
+    if (nzchar(cr$chosen %||% "")) {
+      p(class = "rep-suggested", role = "status", "Main criterion, chosen from the list: ", tags$strong(cr$chosen, .noWS = "outside"),
+        ". Your answer above would suggest ", tags$strong(cr$for_purpose, .noWS = "outside"),
+        "; choose \u201cThe one your answer above suggests\u201d to follow it again.")
+    } else if (nzchar(cr$for_purpose %||% "")) {
+      p(class = "rep-suggested", role = "status", "So the main criterion is ", tags$strong(cr$for_purpose, .noWS = "outside"),
+        if (either) ", and the plan also works out the sample size for showing the effect is absent, and recommends the larger. " else ". ",
+        "It sets the sample size. To use another, choose it below.")
+    }
   })
 
   # `usual`: settings to use where the boxes are empty (the quick button).
@@ -2448,7 +2463,16 @@ replication_server <- function(input, output, session, notes = function() list()
 
   # Called when another plan opens: its own table is calculated afresh.
   reset <- function() { plan(NULL); problem(NULL); used(NULL) }
-  invisible(list(reset = reset))
+  # The sample size the plan gives now, in words, for the plan's summary
+  # card; NULL when there is none or the answers have changed since.
+  answer <- reactive({
+    p <- plan()
+    if (is.null(p) || is.null(p$choice) || !identical(used(), replication_calc_key(values()))) return(NULL)
+    m <- replication_main(p, p$choice$goal, p$choice$prior)
+    if (is.na(m$row$n)) return(NULL)
+    list(n = replication_n_words(p, m$row$n), goal = replication_goal_labels[[p$choice$goal]] %||% "")
+  })
+  invisible(list(reset = reset, answer = answer))
 }
 
 # The Labs Bayesian tool's settings for a sequential replication: the

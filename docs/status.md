@@ -362,7 +362,14 @@ each area, is at the end of
   design, several originals); results from earlier answers are marked
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
-  and one "Still needed" bar beside the button. Still to come: the rest
+  and one "Still needed" bar beside the button. Since 19 November 2026 a
+  plan is named after its original study and the kind of replication
+  until the researcher names it, a "This replication so far" card sums up
+  what has been entered (with the sample size once planned), the main
+  criterion's line says which criterion the answer to "What should the
+  replication show?" gives and that it sets the sample size, each box's
+  notes open from one info button in its corner with explanations off,
+  and Delete is a small red button beside the plan's title. Still to come: the rest
   of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
   an ANOVA original, reliability for pairs, claims
   resting on several tests).

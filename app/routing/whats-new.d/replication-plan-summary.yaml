@@ -1,0 +1,13 @@
+entries:
+  - date: "2026-11-19"
+    title: Replication plans name themselves and sum up what you've entered
+    text: >
+      A new replication plan takes its name from the original study and the
+      kind of replication, such as "Close replication of Smith (2019)",
+      until you give it a name of your own. A card at the top of the plan
+      sums up what you have entered so far, including the sample size once
+      it is planned. Goals now say which main criterion your answer to
+      "What should the replication show?" gives, and that this criterion
+      sets the sample size. With explanations off, each box has one info
+      button in its corner instead of "More context" links. Delete is a
+      small red button beside the plan's title.

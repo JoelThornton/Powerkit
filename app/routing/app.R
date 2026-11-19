@@ -319,6 +319,24 @@ app_css <- "
   .rep-route { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
   .rep-route .nav-buttons { flex-wrap: wrap; }
   .rep-route .btn { margin-bottom: 0.4rem; }
+  .rep-suggested { background: #f3f7fb; border-radius: 0.4rem; padding: 0.55rem 0.8rem; font-size: 0.95rem; margin: 0.25rem 0 0.8rem; }
+  /* A replication plan's summary card (19 November 2026). */
+  .rep-overview { background: #fff; border: 1px solid var(--pk-line); border-left: 4px solid var(--pk-navy); border-radius: var(--pk-radius); padding: 0.85rem 1.1rem; margin: 0 0 1.25rem; }
+  .rep-overview-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.5rem; }
+  .rep-overview-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; margin: 0; font-size: 0.95rem; }
+  .rep-overview-list dt { font-weight: 600; color: #4a5868; }
+  .rep-overview-list dd { margin: 0; }
+  @media (max-width: 575px) { .rep-overview-list { grid-template-columns: 1fr; } .rep-overview-list dd { margin-bottom: 0.4rem; } }
+  /* One info button in each box's corner with explanations off (19 November 2026). */
+  .box-has-info { position: relative; }
+  .box-info { display: none; }
+  .terms-mode .box-info { display: inline-flex; position: absolute; top: 0.55rem; right: 0.6rem; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
+  .terms-mode .box-info > span { border: 1px solid currentColor; border-radius: 50%; width: 1.2rem; height: 1.2rem; line-height: 1.1rem; text-align: center; font-weight: bold; }
+  .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
+  .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
+  .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
+  .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
+  .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
   /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
   .plan-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); align-items: start; gap: 0.75rem; margin: 1.25rem 0 0.75rem; }
   .plan-note + .plan-note { margin-top: 0.75rem; }
@@ -326,7 +344,9 @@ app_css <- "
   .plan-action-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem; }
   .plan-action-group .nav-buttons { margin-top: 0; gap: 0.5rem; }
   .plan-action-group .rep-note { margin-top: 0.5rem; }
-  .plan-delete { margin-top: 0.75rem; }
+  .plan-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .plan-header .plan-title { margin-bottom: 0.25rem; }
+  .plan-delete-btn { margin-top: 0.35rem; white-space: nowrap; }
   .plan-note .rep-note-kept p, .plan-note .rep-note p { font-size: inherit; }
   .plan-note .rep-note-kept > p:last-child, .plan-note .explanation-content > p:last-child { margin-bottom: 0; }
   /* A tile's own explanation reads as text, not as part of its name. */
@@ -3197,6 +3217,10 @@ server <- function(input, output, session) {
     }
     updated <- plan_set_replication(plan, fields = values)
     if (!identical(updated$changed, plan$changed)) plans_put(updated)
+  })
+  output$rep_overview <- renderUI({
+    plan <- viewed_plan()
+    if (plan_is_replication(plan)) replication_overview_ui(replication_values(plan$replication), rep_server$answer())
   })
   output$rep_card_status <- renderUI({
     plan <- viewed_plan()
