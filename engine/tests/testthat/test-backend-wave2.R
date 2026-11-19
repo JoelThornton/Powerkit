@@ -320,3 +320,50 @@ test_that("McNemar a priori N matches G*Power's exact option, the smallest N (G*
   spec$goal <- list(type = "power", n = 129)
   expect_equal(round(power_at(spec), 7), 0.8030988)
 })
+
+test_that("a one-sided exact test with no difference runs in the direction asked", {
+  # pwrss takes the tail from the sign of the effect, so with none it picks
+  # one itself. The exact tests are discrete, so the two tails' false-positive
+  # rates differ: checked here by applying binom.test() and fisher.test() to
+  # every possible outcome, independently of pwrss.
+  binom_rate <- function(n, p0, alternative) {
+    x <- 0:n
+    reject <- vapply(x, function(k) stats::binom.test(k, n, p0, alternative = alternative)$p.value <= 0.05, TRUE)
+    sum(stats::dbinom(x[reject], n, p0))
+  }
+  one <- function(alternative) {
+    spec <- wave2_spec("one_proportion", list(type = "power", n = 40))
+    spec$population$p <- 0.2
+    spec$population$p0 <- 0.2
+    spec$target_test$alternative <- alternative
+    spec
+  }
+  expect_equal(power_at(one("less")), binom_rate(40, 0.2, "less"))
+  expect_equal(power_at(one("greater")), binom_rate(40, 0.2, "greater"))
+  expect_gt(abs(power_at(one("less")) - power_at(one("greater"))), 0.01)
+
+  fisher_rate <- function(n1, n2, p, alternative) {
+    rate <- 0
+    for (a in 0:n1) for (b in 0:n2) {
+      # Columns group 1, group 2: "greater" is group 2's proportion higher.
+      table <- matrix(c(n1 - a, a, n2 - b, b), 2)
+      if (stats::fisher.test(table, alternative = alternative)$p.value <= 0.05) {
+        rate <- rate + stats::dbinom(a, n1, p) * stats::dbinom(b, n2, p)
+      }
+    }
+    rate
+  }
+  two <- function(alternative) {
+    spec <- wave2_spec("fisher_exact", list(type = "power", n = 60))
+    spec$population$p1 <- 0.3
+    spec$population$p2 <- 0.3
+    spec$options$allocation_ratio <- 2
+    spec$target_test$alternative <- alternative
+    spec
+  }
+  expect_equal(power_at(two("greater")), fisher_rate(20, 40, 0.3, "greater"))
+  expect_equal(power_at(two("less")), fisher_rate(20, 40, 0.3, "less"))
+  # The R script hands pwrss the same mirrored inputs.
+  expect_match(export_script(two("greater"), run_spec(two("greater"))), "n_swap", fixed = TRUE, all = FALSE)
+  expect_match(export_script(one("less"), run_spec(one("less"))), "p <- 1 - p", fixed = TRUE, all = FALSE)
+})

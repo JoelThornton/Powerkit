@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-19"
+    title: One-sided proportion tests and recruitment with dropout corrected
+    text: >
+      A one-sided test of one proportion or Fisher's exact test, given no
+      difference to check its false-positive rate, now tests the direction
+      you chose; it could test the other one. The number to recruit allowing
+      for dropout is now rounded up in each group for mediation with three or
+      more groups or a yes/no condition, and for repeated yes/no answers,
+      counts or ordered categories compared between groups, so it is never a
+      person short.

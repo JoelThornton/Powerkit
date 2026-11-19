@@ -59,7 +59,7 @@ four-screen design (decided 18 October 2026, `docs/decisions.md`):
 > yet.** Most published-value checks are still to come, and the interface
 > may change.
 
-The app lists every analysis it knows: 70 that run and a few that are
+The app lists every analysis it knows: 77 that run and a few that are
 not in powerkit yet (those cards point to the tools that do the job). An
 analysis that runs is marked either **validated** or **validation in
 progress**. Validated has one meaning, the one defined at the top of the
