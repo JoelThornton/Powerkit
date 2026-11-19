@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-19"
-    title: Design finder describes Bayes factor tests in plain words
-    text: >
-      The design finder's cards ask whether you will analyse with a Bayes
-      factor instead of a p-value, and describe the starting priors as the
-      usual defaults you can change, rather than naming one program's
-      version of the analysis. Dunn's and Conover's follow-up tests are
-      described the same way.

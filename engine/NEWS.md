@@ -1,3 +1,13 @@
+# powerkit 0.79.3
+
+* App: the replication planner's notes and field help follow the
+  explanations switch as one `explanation_ui()` each (open in full with
+  explanations on, behind an info button beside the card legend or field
+  label with them off); the two sample-size routes sit in a separate
+  "Get the sample size" panel; tile descriptions are no longer bold; a
+  `form-group-box` legend takes only its own width so its info button
+  sits beside it on every input screen.
+
 # powerkit 0.79.2
 
 * One-sided exact tests with no difference (the false-positive rate) now run in the direction asked. pwrss takes the tail of `power.exact.oneprop()` and `power.exact.fisher()` from the sign of the effect, so with equal proportions it chose the upper tail for one proportion and group 1's upper tail for Fisher's test, whatever the spec said; with a null proportion other than 0.5, or unequal groups, the two tails' rates differ (2.85% against 4.32% for one proportion at n = 40 against 0.2). The other direction is now passed as its mirror image (the other answer's proportion, or the groups swapped), in the engine and the R script, and is checked against `binom.test()` and `fisher.test()` applied to every possible outcome.

@@ -8,6 +8,24 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-19"
+    title: Design finder describes Bayes factor tests in plain words
+    text: >
+      The design finder's cards ask whether you will analyse with a Bayes
+      factor instead of a p-value, and describe the starting priors as the
+      usual defaults you can change, rather than naming one program's
+      version of the analysis. Dunn's and Conover's follow-up tests are
+      described the same way.
+  - date: "2026-11-19"
+    title: Clearer replication plan pages
+    text: >
+      With "Show explanations" on, a replication plan's guidance is shown
+      in full without info buttons; with it off, the guidance sits behind
+      an info button beside the heading or question it is about, rather
+      than on a line of its own. The two ways to get the sample size now
+      sit in their own panel, apart from the questions, and the choices'
+      descriptions are no longer in bold. On every input screen, a
+      section's info button now sits beside its heading.
+  - date: "2026-11-19"
     title: Exact binomial tests and one-sided proportion tests
     text: >
       The test of one proportion against a fixed value now asks which exact
