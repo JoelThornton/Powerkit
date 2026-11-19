@@ -322,7 +322,7 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
 
 labs_box <- function(f, rows = 3) {
   box <- div(class = "form-field", textAreaInput(f$id, f$ask %||% f$label, rows = rows, width = "100%"),
-    if (!is.null(f$ask)) p(class = "small text-muted", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
+    if (!is.null(f$ask)) p(class = "small text-muted plain-only", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
   if (is.null(f$fold)) box else tags$details(class = "labs-more-question", tags$summary(class = "small", f$fold), box)
 }
 labs_boxes <- function(step) lapply(Filter(function(f) identical(f$step, step), labs_fields), labs_box)
@@ -373,7 +373,7 @@ replication_notes_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   tagList(
-    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
+    p(class = "plain-only", "Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       rep_note("Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),

@@ -32,7 +32,7 @@ test_that("an original analysed with both a test and a Bayes factor plans from t
   expect_length(replication_missing(modifyList(both, list(rep_bf_both = ""))), 0)
   expect_identical(replication_missing(modifyList(both, list(rep_effect = ""))), "the effect the original study reported")
   report <- paste(replication_report(both), collapse = "\n")
-  expect_match(report, "- How it was analysed: both: a significance test and a Bayes factor", fixed = TRUE)
+  expect_match(report, "- How it was analysed: a significance test and a Bayes factor", fixed = TRUE)
   expect_match(report, "- Its Bayes factor (BF10): 3.2", fixed = TRUE)
   expect_match(report, "- Reported effect: 0.5", fixed = TRUE)
   expect_match(report, "- Significance level: 0.05", fixed = TRUE)

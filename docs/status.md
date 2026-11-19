@@ -57,7 +57,7 @@ calculation audit the same day found wrong numbers on several cards
 E5 with unequal groups, E5's Bayes factor, replication searches), package
 faults powerkit passes through (TOSTER on E36, pmsampsize on E77), and
 export and wording errors; each was reproduced and is queued as `next.md`
-items 29 to 34, item 29 first.
+items 30 to 35, item 30 first.
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
@@ -146,7 +146,7 @@ each area, is at the end of
   showing the answer at no, small, medium and large variation;
   precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
-  fifteen designs, with the usual default priors, each stated in the write-up without naming the program it comes from; p-value results of the
+  fifteen designs, with the usual default priors, each stated in the write-up and the design finder without naming the program it comes from; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
   An opt-in switch, "I'll analyse with Bayes factors", at the top of
@@ -237,7 +237,13 @@ each area, is at the end of
   and target power are set once on its page and start each analysis
   added from it, and "Help me choose an analysis" and "I know my
   analysis" both add to it
-  ([`saving-projects.md`](saving-projects.md), "Study plans").
+  ([`saving-projects.md`](saving-projects.md), "Study plans"). The page
+  follows the replication plan's layout: a titled settings card whose
+  help follows the "Show explanations" switch, notes that keep their
+  first sentence in view (a plan without one study-wide N says why:
+  a result without a sample size, different units, or the same unit in
+  different designs), and the buttons in two cards, "Add an analysis"
+  and "Keep or share this plan".
 
 - **Experimental: whole-study planning.** The guided plan simulates
   several analyses of one study together, so the chance all succeed is
@@ -346,9 +352,14 @@ each area, is at the end of
   Bayes factor's prior for repeating its test). "Not worth replicating"
   goes straight to the write-up, a negative pre-replication report, and
   the planning steps say they aren't needed. The pages' guidance follows
-  the "Show explanations" switch: one sentence in view and the rest under
-  a labelled fold, with even that sentence folded when explanations are
-  off; a field's help sits under its box. The plan
+  the "Show explanations" switch: with explanations on, the guidance is
+  in full view with no info buttons; with them off, it sits behind an
+  info button beside its card's heading or field label (as on the input
+  screens, where a card's heading now takes only its own width so its
+  button sits beside it). The two ways to the sample size (the quick
+  answer and the original's card) sit in their own tinted "Get the
+  sample size" panel, apart from the questions, and the tile choices'
+  descriptions are in normal weight under bold titles. The plan
   asks whether the original was published because it was significant
   (if not, as for a Registered Report, BUCSS corrects for uncertainty
   only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding
@@ -357,7 +368,14 @@ each area, is at the end of
   design, several originals); results from earlier answers are marked
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
-  and one "Still needed" bar beside the button. Still to come: the rest
+  and one "Still needed" bar beside the button. Since 19 November 2026 a
+  plan is named after its original study and the kind of replication
+  until the researcher names it, a "This replication so far" card sums up
+  what has been entered (with the sample size once planned), the main
+  criterion's line says which criterion the answer to "What should the
+  replication show?" gives and that it sets the sample size, each box's
+  notes open from one info button in its corner with explanations off,
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 29 applies this to the rest of powerkit). Still to come: the rest
   of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
   an ANOVA original, reliability for pairs, claims
   resting on several tests).

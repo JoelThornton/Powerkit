@@ -1,3 +1,54 @@
+# powerkit 0.79.5
+
+* App: replication plans are named from `rep_study` and `rep_keeps`
+  (`replication_auto_name()`) while the name is the default or was set
+  this way. `plan_edit()` with a name stops the automatic naming. A
+  summary card (`replication_overview_ui()`) shows what has been entered
+  and the current sample size, from the planner server's new `answer`
+  reactive. `replication_criteria_settings()` returns the criterion the
+  purpose gives (`for_purpose`) and any `chosen` instead, which the Goals
+  card states.
+* App: with explanations off, each box with notes (`.form-group-box`,
+  `.rep-routes`, `.rep-answer`, `.plan-action-group` and `.plan-note`)
+  gets one corner info button that opens its notes, replacing the
+  per-note "More context" links.
+* App: the plan's Delete button moves beside the title. Step 1 no longer
+  shows a second "Next" button once a decision is chosen. BUCSS's empty
+  cells now read "None: once corrected, no effect is left to plan for".
+* App: a focused field that would sit under a sticky `.action-bar` is
+  scrolled clear of it (`focus_js`, with `scroll-padding-bottom` on pages
+  that have one), meeting WCAG 2.4.11. `replication_assurances_ui` lists
+  50% first, in the order of the comparison tables; 80% stays selected.
+* App: the replication planner's labels and choices are concise and the
+  same in both modes (decisions.d/concise-labels.md); what they explained
+  is in field help or textarea placeholders, and explanatory paragraphs
+  take the class `plain-only`, hidden with explanations off. A test caps
+  labels and choices at 75 characters. Four criterion labels are shorter
+  (`replication_goal_labels`); `replication_goal_written()` adds the
+  threshold to the replication and sceptical Bayes factors by criterion.
+
+# powerkit 0.79.4
+
+* App: the study plan page follows the replication planner's layout. The
+  settings card is a titled `form-group-box` with help behind info
+  buttons when explanations are off. The incomparable-N and joint-power
+  notes keep their first sentence in view. `plan_incomparable_text()`
+  replaces the fixed note with the reason that applies (no sample size,
+  different units, or the same unit in different designs), on the page
+  and in the planning report. The buttons sit in "Add an analysis" and
+  "Keep or share this plan" cards. A saved time no longer leaves a space
+  before the full stop that follows it.
+
+# powerkit 0.79.3
+
+* App: the replication planner's notes and field help follow the
+  explanations switch as one `explanation_ui()` each (open in full with
+  explanations on, behind an info button beside the card legend or field
+  label with them off); the two sample-size routes sit in a separate
+  "Get the sample size" panel; tile descriptions are no longer bold; a
+  `form-group-box` legend takes only its own width so its info button
+  sits beside it on every input screen.
+
 # powerkit 0.79.2
 
 * One-sided exact tests with no difference (the false-positive rate) now run in the direction asked. pwrss takes the tail of `power.exact.oneprop()` and `power.exact.fisher()` from the sign of the effect, so with equal proportions it chose the upper tail for one proportion and group 1's upper tail for Fisher's test, whatever the spec said; with a null proportion other than 0.5, or unequal groups, the two tails' rates differ (2.85% against 4.32% for one proportion at n = 40 against 0.2). The other direction is now passed as its mirror image (the other answer's proportion, or the groups swapped), in the engine and the R script, and is checked against `binom.test()` and `fisher.test()` applied to every possible outcome.
