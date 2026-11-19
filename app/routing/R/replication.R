@@ -1605,13 +1605,19 @@ replication_sided_words <- function(plan, goal) {
 # in the plan, the question, hypothesis, sampling plan, analysis plan,
 # what sets the test's sensitivity, how each outcome will be read, and the
 # theory (left for the researcher), as Markdown lines.
-replication_design_table <- function(plan, ch) {
+replication_design_table <- function(plan, ch, keeps = NULL) {
   i <- plan$inputs
   thr <- format(i$threshold)
   alpha <- format(i$alpha)
   bound <- if (!is.null(i$smallest_effect)) sprintf("±%s%s", format(signif(i$smallest_effect, 3)),
     if (identical(ch$bound, "d33")) " (d33, the effect the original had a one-in-three chance of detecting)" else ", the smallest effect that matters")
-  question <- switch(ch$purpose %||% "confirm",
+  # A conceptual replication tests the idea in changed conditions, so its
+  # question is about those conditions, not the original effect itself.
+  question <- if (identical(keeps, "conceptual")) switch(ch$purpose %||% "confirm",
+    either = "Is the effect there or not in the changed conditions?",
+    absent = "Is the effect absent, or too small to matter, in the changed conditions?",
+    "Does the effect appear in the changed conditions?")
+  else switch(ch$purpose %||% "confirm",
     either = "Is the original effect there or not?",
     absent = "Is the effect absent, or too small to matter?",
     "Does the original effect replicate?")
@@ -1800,7 +1806,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
           if (identical(ch$bound, "d33")) " (d33, as none was given)" else "") else "",
         if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else ""),
       "", "The sample size each other goal would need, under each belief, is on the plan's Goals screen.", "",
-      if (!is.null(plan$choice)) replication_design_table(plan, ch))
+      if (!is.null(plan$choice)) replication_design_table(plan, ch, values$rep_keeps))
   }
   lines <- c(lines, "## The original's analysis, planned on its card", "",
     if (length(analyses)) analyses else c("_(Not planned yet: under The original study, find the original's design and plan it on its card.)_", ""),

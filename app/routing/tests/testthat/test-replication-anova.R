@@ -29,6 +29,19 @@ test_that("an effect with one degree of freedom is told apart from one with seve
   expect_identical(eta[c("original_partial_eta", "original_df_error")], list(original_partial_eta = 0.115, original_df_error = 118))
   # A conceptual replication of a 1-df effect gets the one-number settings.
   expect_identical(replication_conceptual_settings(anova_values)$rep_prior, "shrunk")
+  # The button passes every field: from the design and variation alone, a
+  # 1-df ANOVA effect can't be told from one with several df, and nothing
+  # was changed while the page said "Done".
+  expect_identical(replication_conceptual_settings(anova_values[c("rep_design", "rep_tau")]), list())
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  button <- regmatches(code, regexpr("observeEvent\\(input\\$rep_use_conceptual[^\n]*\n([^\n]*\n){1,4}", code))
+  expect_match(button, "replication_field_ids", fixed = TRUE)
+  # The study design table asks a conceptual replication's own question.
+  plan <- replication_run(modifyList(anova_values, list(rep_alpha = "0.05", rep_power = "0.8")),
+    getExportedValue("powerkit", "replication_planning"), getExportedValue("powerkit", "replication_bucss"))
+  expect_match(paste(replication_design_table(plan, plan$choice, "conceptual"), collapse = "\n"),
+    "Does the effect appear in the changed conditions?", fixed = TRUE)
+  expect_match(paste(replication_design_table(plan, plan$choice), collapse = "\n"), "Does the original effect replicate?", fixed = TRUE)
 })
 
 test_that("the Goals step shows every goal for a 1-df effect, and BUCSS with the smallest effect otherwise", {

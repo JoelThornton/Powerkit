@@ -3178,8 +3178,14 @@ server <- function(input, output, session) {
   # A conceptual replication: the shrunk belief and more variation between
   # studies, set when the researcher asks (never on loading a plan).
   observeEvent(input$rep_use_conceptual, {
-    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r,
-      rep_assurance = input$rep_assurance))
+    # Every field, not only the variation boxes: whether an ANOVA effect
+    # has one degree of freedom depends on its levels and effect.
+    s <- replication_conceptual_settings(stats::setNames(lapply(replication_field_ids, function(id) input[[id]]), replication_field_ids))
+    if (!length(s)) {
+      output$rep_conceptual_done <- renderUI(p(class = "small", role = "status",
+        "Nothing was changed: this original is planned with BUCSS, which has no setting for a changed procedure. Choose the assurance under Goals, or plan from the smallest effect that would matter."))
+      return()
+    }
     if (!is.null(s$rep_prior)) updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
     if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
     if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
