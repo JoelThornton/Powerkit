@@ -23,9 +23,20 @@ plan_entries_by_role <- function(entries) {
 
 # An analysis in a plan as the calculation its card made, for the
 # functions that build a result's documents.
-plan_entry_calc <- function(entry) {
+plan_entry_calc <- function(entry, saved = engine_function("saved_result")) {
   p <- entry$project %||% list(spec = entry$spec, result = entry$result, route = entry$route)
-  list(status = "ok", spec = p$spec, result = p$result, route = p$route %||% list(), form_consistent = TRUE)
+  result <- p$result
+  # An analysis that came from a plan file holds its project as the file
+  # had it: the result as plain JSON lists (the curve a list of values,
+  # no class). The engine's saved_result() gives back the result itself,
+  # as opening a project does, so the methods and references can be made.
+  if (!is.null(entry$project) && !inherits(result, "powerkit_result")) {
+    project <- p
+    if (!inherits(project, "powerkit_project")) class(project) <- "powerkit_project"
+    full <- tryCatch(saved(project), error = function(e) NULL)
+    if (!is.null(full)) result <- full
+  }
+  list(status = "ok", spec = unclass(p$spec), result = result, route = p$route %||% list(), form_consistent = TRUE)
 }
 
 # The plan's analyses, by spec hash and in order: joint power calculated

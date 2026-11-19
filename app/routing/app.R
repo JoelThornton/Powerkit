@@ -2661,6 +2661,23 @@ server <- function(input, output, session) {
     },
     contentType = "application/zip"
   )
+  # The plan's planning report on its own, to print, or as Word or
+  # Markdown: the document "Download everything" holds.
+  plan_report_lines <- function() {
+    plan <- plan_get(isolate(state$plans_view))
+    if (is.null(plan) || !length(plan$entries)) stop("The plan has no analyses.")
+    kept <- joint_kept[[plan$id]]
+    joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
+    plan_planning_document(plan, tree, forms, joint = joint)
+  }
+  plan_report_name <- function(ext) sub("\\.powerkit\\.json$", paste0("-planning.", ext), plan_file_name(plan_get(isolate(state$plans_view))))
+  observeEvent(input$plan_document, send_document(session, function() printable_document(plan_report_lines(), powerkit_version())))
+  output$plan_download_docx <- downloadHandler(
+    filename = function() plan_report_name("docx"),
+    content = function(file) docx_document(plan_report_lines(), file, powerkit_version()))
+  output$plan_download_md <- downloadHandler(
+    filename = function() plan_report_name("md"),
+    content = function(file) writeLines(plan_report_lines(), file, useBytes = TRUE))
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
   observeEvent(input$scenario_compare, {

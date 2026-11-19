@@ -371,8 +371,9 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
       if (!plan_is_replication(plan)) actionButton("plan_more", "Help me choose an analysis", class = "btn btn-outline-primary"),
       if (!plan_is_replication(plan)) actionButton("plan_more_known", "I know my analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
+      if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. The ZIP adds editable reports, references and R scripts. Open it in Powerkit to return to the whole plan."),
+    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan."),
     p(class = "small plan-delete",
       plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )
