@@ -581,7 +581,7 @@ replication_planner_sections <- function() {
           rep_note("A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.", label = "Which posterior can I use?", keep = TRUE)),
         conditionalPanel("input.rep_analysis != 'test' && (input.rep_design == 'two_groups' || input.rep_design == 'one_sample' || input.rep_design == 'paired')",
           field("rep_prior_scale", "The scale of its Cauchy prior on the effect", value = "0.707",
-            help = "If you entered the original's Bayes factor, give the scale its authors used. For a posterior summary, this sets the prior for the replication's Bayes factor t-test. 0.707 (the square root of 2, halved) is the usual default, in the BayesFactor package for R, JASP and jamovi alike.")),
+            help = "If you entered the original's Bayes factor, give the scale its authors used. For a posterior summary, this sets the prior for the replication's Bayes factor t-test. 0.707 (the square root of 2, halved) is the usual default.")),
         conditionalPanel("input.rep_design == 'generic'",
           field("rep_effect_name", "What the effect is",
             help = "For example \u201cthe interaction coefficient\u201d or \u201codds ratio\u201d. The original's card suggests one."),

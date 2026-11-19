@@ -846,7 +846,7 @@ forms:
       - input: "Pearson's r, Spearman's rho, Kendall's tau or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r (as in JASP's Bayesian correlation), instead of a p-value"},
+             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r, instead of a p-value"},
              default: pearson, default_source: "Pearson's r, the correlation G*Power and pwr plan for",
              help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; Powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
           - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
@@ -935,7 +935,7 @@ forms:
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
              default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1, with 'Indep. multinomial, rows fixed') and BayesFactor's contingencyTableBF()",
-             help: "The prior you will use when you analyse the data: 1 gives every proportion in each group the same weight (JASP's default); larger values expect the groups to be more alike. Use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data: 1 gives every proportion in each group the same weight (the usual default); larger values expect the groups to be more alike. Use the same value as in your analysis plan."}
           - {id: p_sd, label: "How unsure you are about each group's proportion, as an SD (0 = exactly these proportions)", type: number, path: population.p_sd, required: true, min: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the proportions you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
@@ -983,7 +983,7 @@ forms:
       - input: "The chi-square test or a Bayes factor"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson_chi_square: "Pearson's chi-square test (uncorrected)", pearson_chi_square_corrected: "Pearson's chi-square test (continuity-corrected)", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
+             choices: {pearson_chi_square: "Pearson's chi-square test (uncorrected)", pearson_chi_square_corrected: "Pearson's chi-square test (continuity-corrected)", bayes_factor: "Bayes factor test (a contingency table Bayes factor), instead of a p-value, simulated"},
              default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
              help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
              choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. R's chisq.test(correct = TRUE) with a fixed total sample size; row and column totals vary. Powerkit works out its power exactly, over every possible table. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
@@ -1000,7 +1000,7 @@ forms:
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
              default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1) and BayesFactor's contingencyTableBF()",
-             help: "The prior you will use when you analyse the data: 1 is JASP's default; larger values expect the categories to be more alike. Use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data: 1 is the usual default; larger values expect the categories to be more alike. Use the same value as in your analysis plan."}
 
   E7:
     sides: false
@@ -1054,7 +1054,7 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
@@ -1066,10 +1066,10 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
     extra:
@@ -1129,7 +1129,7 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
@@ -1141,10 +1141,10 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
       - input: "The size of each group"
@@ -1211,17 +1211,17 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
@@ -2583,7 +2583,7 @@ forms:
           - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's Bayesian ANOVA ('r scale fixed effects' 0.5), the same as BayesFactor's default (anovaBF(rscaleFixed = 'medium'), 1/2; BayesFactor 0.9.12-4.8)",
-             help: "The prior you will use when you analyse the data. 0.5 is JASP's default; use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data. 0.5 is the usual default; use the same value as in your analysis plan."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},
@@ -2651,7 +2651,7 @@ forms:
                        t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated",
                        wilcoxon_signed_rank: "Pairwise rank comparisons: a Wilcoxon signed-rank test of each pair of conditions, simulated",
                        conover: "Pairwise rank comparisons: Conover's test (JASP's follow-up to Friedman's test), simulated",
-                       bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+                       bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}], wilcoxon_signed_rank: [{path: target_test.effect, value: pairwise}],
                     conover: [{path: target_test.effect, value: pairwise}]},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)",
@@ -2662,10 +2662,10 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
@@ -2754,17 +2754,17 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
@@ -2867,7 +2867,7 @@ forms:
       - input: "The F test or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does",
              choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below. Simulated from the cell means, with equal groups; with a factor everyone is measured in, the full analysis is an R script you run yourself."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
@@ -2875,10 +2875,10 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "The inclusion Bayes factor compares the models that include the effect with those that don't. With three factors, only one of the 18 models has the three-way interaction, so JASP's default across all models and the comparison across matched models can differ more than with two factors."}
     extra:
@@ -2944,17 +2944,17 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
@@ -3016,7 +3016,7 @@ forms:
       - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
@@ -3028,10 +3028,10 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
     extra:
@@ -3104,7 +3104,7 @@ forms:
       - input: "The ANCOVA's F test or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {ancova_f: "ANCOVA (F test)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
+             choices: {ancova_f: "ANCOVA (F test)", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
              default: ancova_f, default_source: "the ANCOVA's F test, the test G*Power's ANCOVA calculates; how the covariates come about is asked above",
              choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
@@ -3118,7 +3118,7 @@ forms:
              default: 0.354, default_source: "JASP's Bayesian ANCOVA, 'r scale covariates' 0.354 (jaspAnova's AdditionalOptions.qml), BayesFactor's 'medium' scale for continuous predictors (sqrt(2)/4)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
-             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "The inclusion Bayes factor compares the models that include the effect with those that don't, including the models with and without each covariate. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
 
@@ -3154,7 +3154,7 @@ forms:
           - {id: r2_test, label: "Test version", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: r2_zero},
              choices: {f_test: "The F test of R-squared (G*Power's R-squared deviation from zero)",
-                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+                       bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
              default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
           # The Bayes factor for an increase or one coefficient (17 November
@@ -3164,7 +3164,7 @@ forms:
           - {id: r2c_test, label: "Test version", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: r2_increase},
              choices: {f_test: "The F test of the increase (G*Power's R-squared increase)",
-                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+                       bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
              default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without the ones you are testing, reaches the threshold you choose below (what BayesFactor's regressionBF() reports for that comparison). Simulated from the two R-squared values."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
@@ -3174,7 +3174,7 @@ forms:
           - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
-             help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data. 0.354 is the usual default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine
@@ -3213,7 +3213,7 @@ forms:
                        ols_hc3: "The t test with HC3 robust standard errors, simulated",
                        ols_hc4: "The t test with HC4 robust standard errors, simulated",
                        quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated",
-                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+                       bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
              default: f_test, default_source: "the usual t test, the test G*Power and pwrss's power.f.regression() compute",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without this one, reaches the threshold you choose. It needs the R-squared without this predictor too. Simulated from the two R-squared values."},
              help: "The usual test assumes the outcome spreads out as much at every value of the predictor. Robust (HC3 or HC4) standard errors keep the test honest when the spread changes; HC4 is the safer of the two when a few people have extreme predictor values. Quantile regression tests a quantile of the outcome, such as the median, and is less affected by extreme outcome values."}
@@ -3255,7 +3255,7 @@ forms:
       - input: "The exact binomial test, or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {exact_binomial: "Exact binomial test, alpha / 2 in each tail", binom_test: "Exact binomial test, p-value as R's binom.test() gives it", bayes_factor: "Bayes factor test (beta prior, as in JASP's Bayesian binomial test), instead of a p-value"},
+             choices: {exact_binomial: "Exact binomial test, alpha / 2 in each tail", binom_test: "Exact binomial test, p-value as R's binom.test() gives it", bayes_factor: "Bayes factor test (beta prior on the proportion), instead of a p-value"},
              default: exact_binomial, default_source: "the exact binomial test pwrss computes (power.exact.oneprop(), pwrss 1.3.3), with alpha / 2 in each tail when two-sided",
              help: "Two-sided, exact binomial tests differ in how they find the p-value. With alpha / 2 in each tail (as pwrss computes it), each tail is tested at half the level. R's binom.test() adds up every count no more likely than the one observed, so its two tails needn't hold half each, and it often needs fewer people (83 against 94 for 20% against 10% at 80% power). Choose the one you will run. One-sided, they are the same test."}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,

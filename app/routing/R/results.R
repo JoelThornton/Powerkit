@@ -2713,42 +2713,41 @@ bayes_settings_text <- function(spec) {
     return(sprintf("evidence threshold: BF10 of at least %s; Beta(%s, %s) prior%s",
       format(tt$evidence_threshold %||% 10), format(tt$prior_a %||% 1), format(tt$prior_b %||% 1),
       if (identical(tt$alternative %||% "two_sided", "two_sided")) "" else if (identical(tt$one_sided_null, "directional"))
-        "; at or below the fixed value against above it" else "; the fixed value against one side, as in JASP"))
+        "; at or below the fixed value against above it" else "; the fixed value against one side"))
   }
   if (is_bayes_correlation(spec)) {
     return(sprintf("evidence threshold: BF10 of at least %s; stretched beta prior of width %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
-      if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
+      if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) " (every correlation equally likely beforehand)" else ""))
   }
   if (is_bayes_proportions(spec)) {
     return(sprintf("evidence threshold: BF10 of at least %s; contingency table Bayes factor, group sizes fixed, prior concentration %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
-      if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
+      ""))
   }
   if (is_bayes_table(spec)) {
     plan <- tt$sampling_plan %||% "rows_fixed"
     return(sprintf("evidence threshold: BF10 of at least %s; contingency table Bayes factor, %s, prior concentration %s%s",
       format(tt$evidence_threshold %||% 10), bayes_plan_words[[plan]], format(signif(tt$prior_concentration %||% 1, 3)),
-      if (identical(plan, "rows_fixed") && isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
+      ""))
   }
   if (is_bayes_anova(spec)) {
     return(sprintf("evidence threshold: BF10 of at least %s; Cauchy prior on the group effects, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
-      if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
+      ""))
   }
   if (is_bayes_factorial(spec)) {
-    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
     return(sprintf("evidence threshold: an inclusion Bayes factor of at least %s, %s; Cauchy prior on the effects, r scale %s%s%s",
       format(tt$evidence_threshold %||% 10),
       if (identical(tt$inclusion, "matched_models")) "across matched models" else "across all models",
       format(signif(tt$prior_scale %||% 0.5, 3)),
       if (is_bayes_ancova(spec)) sprintf(", and on the covariates' slopes, r scale %s", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
-      if (jasp) ", as in JASP" else ""))
+      ""))
   }
   if (is_bayes_regression(spec)) {
     return(sprintf("evidence threshold: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
-      if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else ""))
+      ""))
   }
   sprintf("evidence threshold: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
@@ -2756,7 +2755,7 @@ bayes_settings_text <- function(spec) {
 
 # The inclusion Bayes factor of an effect in a factorial or repeated-measures
 # ANOVA (BayesFactor's anovaBF()) or an ANCOVA (generalTestBF()), simulated:
-# no direction, JASP's r scales by default.
+# no direction, BayesFactor's (and JASP's) r scales by default.
 is_bayes_factorial <- function(spec) {
   is_bayes_test(spec) && isTRUE(spec$template %in% c("2x2_between", "factorial_between", "oneway_within", "factorial_within",
     "2x2_mixed", "mixed", "oneway_ancova", "factorial_ancova", "factorial_three"))
@@ -2764,11 +2763,11 @@ is_bayes_factorial <- function(spec) {
 is_bayes_ancova <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova"))
 
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
-# direction, and JASP's r scale of 0.5 by default.
+# direction, and BayesFactor's (and JASP's) r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
 
 # The Bayes factor for R-squared, an R-squared increase or one coefficient
-# (BayesFactor's linearReg.R2stat()): no direction, and JASP's r scale of
+# (BayesFactor's linearReg.R2stat()): no direction, and its (and JASP's) r scale of
 # 0.354 by default.
 is_bayes_regression <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("r2_zero", "r2_increase", "single_coefficient"))
 
@@ -3863,7 +3862,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_proportions(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and an analysis prior of concentration %s, as in JASP, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and an analysis prior of concentration %s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_table(spec)) {
     tt <- spec$target_test
@@ -3873,25 +3872,24 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   } else if (is_bayes_anova(spec)) {
     tt <- spec$target_test
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
-      format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
+      format(signif(tt$prior_scale %||% 0.5, 3)), "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_factorial(spec)) {
     tt <- spec$target_test
-    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
     test <- sprintf("%s (default Bayes factors with a Cauchy analysis prior of r scale %s on the effects%s%s, testing %s, computed with BayesFactor and simulated with Spower; evidence at the threshold defined as an inclusion Bayes factor of at least %s)",
       name, format(signif(tt$prior_scale %||% 0.5, 3)),
       if (is_bayes_ancova(spec)) sprintf(" and %s on the covariates' standardised slopes", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
-      if (jasp) ", as in JASP" else "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+      "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_regression(spec)) {
     tt <- spec$target_test
     test <- if (identical(spec$template, "r2_zero")) {
       sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
-        format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
+        format(signif(tt$prior_scale %||% 0.354, 3)), "",
         result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
     } else {
       sprintf("%s (the ratio of the JZS Bayes factors of the model with all the predictors and the model without the tested %s, as BayesFactor's regressionBF() reports it, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s; simulated from the two models' R-squared values; the evidence threshold set at BF10 ≥ %s)",
         bayes_test_name(spec), if (identical(spec$template, "single_coefficient") || identical(spec$population$predictors_tested, 1L) || identical(spec$population$predictors_tested, 1)) "predictor" else "predictors",
-        format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
+        format(signif(tt$prior_scale %||% 0.354, 3)), "",
         result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
     }
   } else if (is_bayes_test(spec)) {
@@ -4517,10 +4515,12 @@ bayes_companion_n <- function(spec, result) {
 
 bayes_companion_test_words <- function(spec, comp) {
   switch(spec$template,
-    one_sample_t = , paired_t = , independent_t = sprintf("the Bayes factor t-test (the usual default prior: a Cauchy distribution with scale %s, as in the BayesFactor package, JASP and jamovi)", format(signif(comp$priors$prior_scale, 3))),
-    correlation = "the Bayes factor test of the correlation (JASP's default prior)",
-    oneway_between = sprintf("the Bayes factor ANOVA (JASP's default prior, r scale %s)", format(comp$priors$prior_scale %||% 0.5)),
-    "the Bayes factor test (JASP's default prior)")
+    one_sample_t = , paired_t = , independent_t = sprintf("the Bayes factor t-test (a Cauchy prior with scale %s on the effect size)", format(signif(comp$priors$prior_scale, 3))),
+    correlation = "the Bayes factor test of the correlation (a stretched beta prior of width 1, every correlation equally likely beforehand)",
+    oneway_between = sprintf("the Bayes factor ANOVA (a Cauchy prior with r scale %s on the group effects)", format(comp$priors$prior_scale %||% 0.5)),
+    one_proportion = "the Bayes factor binomial test (a uniform Beta(1, 1) prior)",
+    two_proportions = "the contingency table Bayes factor (prior concentration 1, every proportion equally likely beforehand)",
+    "the Bayes factor test (its default prior)")
 }
 
 bayes_companion_ui <- function(spec, result, comp, writeup = NULL) {
@@ -4686,7 +4686,7 @@ companion_side <- function(spec) {
 with_article <- function(pct) paste(if (grepl("^(8[0-9]?|11|18)%", pct)) "an" else "a", pct)
 
 # Does the prior matter? The plan's chances under its own analysis prior
-# and JASP's three named widths of the default prior (bayes_robustness()),
+# and BayesFactor's three named widths of the default prior (bayes_robustness()),
 # at the same sample size.
 bayes_robustness_ui <- function(spec, rob) {
   if (is.null(rob) || !nrow(rob)) return(NULL)

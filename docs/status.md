@@ -140,7 +140,7 @@ each area, is at the end of
   showing the answer at no, small, medium and large variation;
   precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
-  fifteen designs, with JASP's default priors; p-value results of the
+  fifteen designs, with the usual default priors, each stated in the write-up without naming the program it comes from; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
   An opt-in switch, "I'll analyse with Bayes factors", at the top of

@@ -23,7 +23,7 @@ companion_methods <- list(
 #' the same data would give: evidence for the effect if it is as planned,
 #' evidence for no effect if there is none, and misleading evidence for an
 #' effect if there is none, at each threshold, with the design's Bayes
-#' factor test version and its default priors (JASP's). With `target`, the
+#' factor test version and its default priors. With `target`, the
 #' sample size at which the Bayes factor reaches the same chance of evidence
 #' for the effect, and the larger of the two (enough for both). For the
 #' t-tests, how often the two tests agree.
@@ -187,9 +187,9 @@ companion_agreement_t <- function(spec, b, n, k) {
 #'
 #' For a Bayes factor t-test plan, the chance of strong evidence for the
 #' effect (as planned) and for no effect (if there is none) at a sample
-#' size, under the plan's own analysis prior and under JASP's three named
-#' widths of the default Cauchy prior: medium (1/sqrt(2)), wide (1) and
-#' ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
+#' size, under the plan's own analysis prior and under the BayesFactor
+#' package's three named widths of the default Cauchy prior (also JASP's):
+#' medium (1/sqrt(2)), wide (1) and ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
 #' through [run_spec()]) with only the prior's scale changed.
 #'
 #' @param spec A Bayes factor t-test spec (`target_test > method`
@@ -209,7 +209,7 @@ bayes_robustness <- function(spec, n) {
   if (!bayes_factor_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t")) return(NULL)
   own <- spec$target_test$prior_scale %||% bayes_defaults$prior_scale
   scales <- c(own, 1 / sqrt(2), 1, sqrt(2))
-  names <- c("Your prior", "Medium (JASP's default)", "Wide", "Ultrawide")
+  names <- c("Your prior", "Medium (the usual default)", "Wide", "Ultrawide")
   keep <- c(TRUE, !vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1)))
   # Your own prior, when it is one of the named ones, takes its name.
   named <- vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1))

@@ -8,6 +8,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-19"
+    title: Bayes factor write-ups state the prior, not whose default it is
+    text: >
+      Bayes factor results and methods paragraphs now state each analysis
+      prior and what it means (for example, a Cauchy prior with r scale
+      0.5 on the effects) without saying which program uses it by default.
+      Help text calls a starting value "the usual default", and the test
+      versions are named for what they compute (such as "an inclusion
+      Bayes factor") rather than after a program. The software that
+      computes each result is still cited.
+  - date: "2026-11-19"
     title: powerkit's citation shows its year
     text: >
       The reference to powerkit in every reference list and download now

@@ -37,7 +37,7 @@ test_that("the Bayes factor side reads its chances, the size for both, the agree
 })
 
 test_that("a Bayes factor t-test result shows how the plan changes with the prior's width", {
-  rob <- data.frame(prior = c("Medium (JASP's default), your prior", "Wide"), scale = c(0.707, 1),
+  rob <- data.frame(prior = c("Medium (the usual default), your prior", "Wide"), scale = c(0.707, 1),
     for_effect = c(0.8, 0.78), for_null = c(0, 0.58), misleading = c(0.002, 0.001))
   spec <- list(target_test = list(evidence_threshold = 10))
   html <- as.character(bayes_robustness_ui(spec, rob))
