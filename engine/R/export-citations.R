@@ -236,8 +236,23 @@ same_doi <- function(ref, cit) {
 # A package's own citation(). powerkit's comes from its DESCRIPTION when it
 # isn't installed (as under devtools::load_all()).
 package_citation <- function(package) {
-  if (package == "powerkit") return(powerkit_citation())
-  tryCatch(suppressWarnings(utils::citation(package)), error = function(e) NULL)
+  cit <- if (package == "powerkit") powerkit_citation() else tryCatch(suppressWarnings(utils::citation(package)), error = function(e) NULL)
+  without_doi_url(cit)
+}
+
+# Drop a url that only repeats the entry's DOI (Superpower's citation()
+# gives both), so the reference doesn't print the same link twice.
+without_doi_url <- function(cit) {
+  if (is.null(cit)) return(NULL)
+  for (i in seq_along(cit)) {
+    doi <- cit[[i]]$doi
+    url <- cit[[i]]$url
+    if (!is.null(doi) && !is.null(url) &&
+      tolower(sub("/$", "", url)) %in% tolower(paste0(c("https://doi.org/", "http://doi.org/", "https://dx.doi.org/", "http://dx.doi.org/"), doi))) {
+      cit[i]$url <- NULL
+    }
+  }
+  cit
 }
 
 # powerkit's citation, from its DESCRIPTION. A package installed from its

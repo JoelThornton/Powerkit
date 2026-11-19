@@ -340,3 +340,15 @@ test_that("powerkit's own citation has a year when it was installed from its sou
   expect_match(format(powerkit_citation(meta), style = "text"), "(2025)", fixed = TRUE)
   expect_no_match(paste(export_citations(fake_result("pwr")), collapse = "\n"), "????", fixed = TRUE)
 })
+
+test_that("a package citation doesn't print its DOI's link twice", {
+  cit <- utils::bibentry("Article", title = "A paper", author = "A Author", journal = "J", year = "2021",
+    doi = "10.1177/2515245920951503", url = "https://doi.org/10.1177/2515245920951503")
+  text <- format(without_doi_url(cit), style = "text")
+  expect_identical(lengths(regmatches(text, gregexpr("https://doi.org/", text, fixed = TRUE))), 1L)
+  # A url that isn't the DOI's stays.
+  other <- utils::bibentry("Manual", title = "pkg", author = "A Author", year = "2021",
+    doi = "10.1/x", url = "https://github.com/a/pkg")
+  expect_match(format(without_doi_url(other), style = "text"), "github.com/a/pkg", fixed = TRUE)
+  expect_null(without_doi_url(NULL))
+})
