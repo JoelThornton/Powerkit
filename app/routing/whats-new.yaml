@@ -8,6 +8,17 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-19"
+    title: Clearer study plan pages
+    text: >
+      A study plan's page now looks like a replication plan's. Its settings
+      card has a heading, and its help is behind info buttons when
+      explanations are off. The notes show their first sentence and keep
+      the rest behind an info button. A plan whose analyses can't share one
+      sample size now says why: one has no sample size, they count
+      different things, or they count the same people in different
+      designs. The buttons sit in two cards: one for adding an analysis
+      and one for saving or sharing the plan.
+  - date: "2026-11-19"
     title: Design finder describes Bayes factor tests in plain words
     text: >
       The design finder's cards ask whether you will analyse with a Bayes
