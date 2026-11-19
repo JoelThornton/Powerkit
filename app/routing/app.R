@@ -287,8 +287,8 @@ app_css <- "
   .terms-mode .form-field .rep-field-more > summary { display: inline-flex; position: static; min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; vertical-align: middle; }
   .terms-mode .form-field .rep-field-more > summary::after { content: none; }
   .terms-mode .rep-field-more[open] > .explanation-content { display: block; margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
-  .terms-mode .has-rep-field-more input { margin-top: 0.4rem; }
-  .terms-mode .replication-workspace .rep-field-help { display: none; }
+  .terms-mode .has-rep-field-more input, .terms-mode .has-rep-field-more select { margin-top: 0.4rem; }
+  .terms-mode .rep-field-help { display: none; }
   .replication-workspace .rep-more > summary { color: var(--pk-blue); cursor: pointer; }
   .replication-workspace .rep-note-context { display: none; }
   .terms-mode .replication-workspace .rep-note-lead { display: none; }
@@ -319,6 +319,16 @@ app_css <- "
   .rep-route { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
   .rep-route .nav-buttons { flex-wrap: wrap; }
   .rep-route .btn { margin-bottom: 0.4rem; }
+  /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
+  .plan-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); align-items: start; gap: 0.75rem; margin: 1.25rem 0 0.75rem; }
+  .plan-note + .plan-note { margin-top: 0.75rem; }
+  .plan-action-group { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
+  .plan-action-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem; }
+  .plan-action-group .nav-buttons { margin-top: 0; gap: 0.5rem; }
+  .plan-action-group .rep-note { margin-top: 0.5rem; }
+  .plan-delete { margin-top: 0.75rem; }
+  .plan-note .rep-note-kept p, .plan-note .rep-note p { font-size: inherit; }
+  .plan-note .rep-note-kept > p:last-child, .plan-note .explanation-content > p:last-child { margin-bottom: 0; }
   /* A tile's own explanation reads as text, not as part of its name. */
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(strong) { font-weight: 400; color: #2b3644; }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { font-weight: 650; color: var(--pk-navy); }

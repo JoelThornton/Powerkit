@@ -103,7 +103,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
   }))
   requirement <- if (!is.null(largest)) c(
     sprintf("The largest comparable requirement is N = %s, for %s.", whole(largest$n), largest$label),
-    plan_common_recruitment_caveat) else if (length(entries) > 1) plan_incomparable_note else
+    plan_common_recruitment_caveat) else if (length(entries) > 1) plan_incomparable_text(entries) else
     "The plan has one analysis: its requirement is the plan's."
   refs <- plan_merge_citations(plan_citation_texts(entries, engine))
   c(sprintf("# %s", plan$name), "",

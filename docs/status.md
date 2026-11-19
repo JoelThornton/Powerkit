@@ -231,7 +231,13 @@ each area, is at the end of
   and target power are set once on its page and start each analysis
   added from it, and "Help me choose an analysis" and "I know my
   analysis" both add to it
-  ([`saving-projects.md`](saving-projects.md), "Study plans").
+  ([`saving-projects.md`](saving-projects.md), "Study plans"). The page
+  follows the replication plan's layout: a titled settings card whose
+  help follows the "Show explanations" switch, notes that keep their
+  first sentence in view (a plan without one study-wide N says why:
+  a result without a sample size, different units, or the same unit in
+  different designs), and the buttons in two cards, "Add an analysis"
+  and "Keep or share this plan".
 
 - **Experimental: whole-study planning.** The guided plan simulates
   several analyses of one study together, so the chance all succeed is
