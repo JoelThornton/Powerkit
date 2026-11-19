@@ -10,10 +10,14 @@ test_that("each step has a numbered title, and its questions are in titled cards
     expect_match(html, sprintf("<h3 class=\"form-section-title rep-section-title\">%s</h3>", title), fixed = TRUE)
   }
   for (card in c("Which study, and how it was analysed", "What it reported", "Its significance test, and how it was published",
-    "The quick answer", "What the replication should show", "How much the effect may vary between studies",
+    "What the replication should show", "How much the effect may vary between studies",
     "How sure the replication should be")) {
     expect_match(html, sprintf("<legend class=\"h6\">%s</legend>", card), fixed = TRUE)
   }
+  # The answer routes sit in their own panel, apart from the questions
+  # (19 November 2026).
+  expect_match(html, "<h4 id=\"rep-routes-title\" class=\"rep-routes-title\">Get the sample size</h4>", fixed = TRUE)
+  expect_match(html, "<h5 class=\"h6\">The quick answer</h5>", fixed = TRUE)
   # The button sits in one bar with the status, and the answer in its card.
   expect_match(html, "action-bar rep-run-bar", fixed = TRUE)
   expect_match(html, "id=\"rep_still_needed\"", fixed = TRUE)

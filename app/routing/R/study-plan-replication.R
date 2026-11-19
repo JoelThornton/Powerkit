@@ -240,8 +240,8 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
   i <- replication_original_index(plan)
   entry <- if (!is.na(i)) plan$entries[[i]]
   mismatch <- replication_design_mismatch(plan, forms)
-  div(class = "rep-card-status form-group-box",
-    h4(class = "h6", "Its analysis, on its own card"),
+  div(class = "rep-card-status",
+    h5(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
       rep_note("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
       div(class = "nav-buttons",

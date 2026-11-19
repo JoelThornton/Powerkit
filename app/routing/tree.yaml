@@ -1094,7 +1094,7 @@ endpoints:
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
-      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
+      - "Will you analyse the table with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with the usual default sampling plan and prior, which you can change."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -1277,10 +1277,10 @@ endpoints:
     card_points:
       - "Powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
       - "Expect the groups to vary by different amounts? Welch's F, the test Powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
-      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior."
+      - "Will you analyse the data with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with the usual default prior, which you can change."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
       - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-      - "Comparing pairs with a rank test instead? Choose a Mann-Whitney test of each pair, or Dunn's test, the follow-up JASP offers after the Kruskal-Wallis test, as the test version: whichever you will report."
+      - "Comparing pairs with a rank test instead? Choose a Mann-Whitney test of each pair, or Dunn's test, the usual follow-up to the Kruskal-Wallis test, as the test version: whichever you will report."
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
@@ -1407,7 +1407,7 @@ endpoints:
     card_points:
       - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, as G*Power does, which gives a little more power."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
+      - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
     alternatives: ["a t-test or ANOVA on change scores", "the mixed (group by time) interaction", "a regression with the covariate as a predictor"]
@@ -1423,7 +1423,7 @@ endpoints:
     validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factors for R-squared, an increase and one coefficient agree with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
-      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly for R-squared against 0 and by simulation for an R-squared increase or one coefficient (the model with them against the model without)."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with the usual default prior, exactly for R-squared against 0 and by simulation for an R-squared increase or one coefficient (the model with them against the model without)."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. Powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
@@ -2342,7 +2342,7 @@ endpoints:
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
       - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and the F test is then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise); the MANOVA approach, which doesn't assume sphericity, is shown beside it."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-      - "Comparing pairs with a rank test instead? Choose a Wilcoxon signed-rank test of each pair, or Conover's test, the follow-up JASP offers after Friedman's test, as the test version: whichever you will report."
+      - "Comparing pairs with a rank test instead? Choose a Wilcoxon signed-rank test of each pair, or Conover's test, a common follow-up to Friedman's test, as the test version: whichever you will report."
     inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
@@ -2379,7 +2379,7 @@ endpoints:
       - "Three factors crossed, every combination appearing, such as group (training or control) by time (before or after) by task difficulty (easy or hard). Each factor is either different people at each level or measured in everyone."
       - "Power is for one effect: a factor's main effect, a two-way interaction, or the three-way interaction (whether a two-way interaction depends on the third factor)."
       - "Powerkit assumes equal group sizes, the same SD in every cell and the same correlation between any two conditions a person is measured in. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors. With a factor everyone is measured in, the full analysis is an R script you run yourself."
+      - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change. With a factor everyone is measured in, the full analysis is an R script you run yourself."
     inputs: ["Names of the three factors, their levels and the outcome", "Which factors everyone is measured in", "The expected cell means", "The SD", "The correlation between any two conditions a person is measured in", "Which effect", "The F test or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
@@ -2402,7 +2402,7 @@ endpoints:
     search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
       - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of evidence at the threshold either way."
-      - "Powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
+      - "Powerkit plans this for every design below, with the usual default priors, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; Powerkit uses it for the t-tests."}

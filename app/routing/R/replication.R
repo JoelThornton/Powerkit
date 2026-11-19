@@ -489,15 +489,36 @@ replication_criteria_settings <- function(values) {
 }
 
 # Give longer help a visible label, including when explanations are off.
+rep_note_ids <- new.env()
+rep_note_id <- function(prefix) {
+  n <- (rep_note_ids$n %||% 0L) + 1L
+  rep_note_ids$n <- n
+  sprintf("%s-%d", prefix, n)
+}
+
+# Replication guidance follows the "Show explanations" switch as one copy
+# of the text (19 November 2026): in full with explanations on, with no
+# button; behind an info button with them off, beside the box's heading
+# when the note opens a box. A note with a named question ("Which
+# posterior can I use?") keeps its first sentence in view and the rest
+# under that question, in both modes: the question is a choice to read on.
 rep_note <- function(text, label = "More context", keep = FALSE) {
   lead <- help_lead(text)
   rest <- help_rest(text)
-  div(class = "rep-note",
-    p(class = if (keep || is.null(rest)) "small mb-1" else "small mb-1 rep-note-lead", lead),
-    if (!is.null(rest)) tags$details(class = "rep-more small",
-      tags$summary(label),
-      if (!keep) p(class = "rep-note-context mb-1", lead),
-      p(class = "mb-0", rest)))
+  if (!identical(label, "More context")) {
+    return(div(class = "rep-note rep-note-named",
+      p(class = if (keep || is.null(rest)) "small mb-1" else "small mb-1 rep-note-lead", lead),
+      if (!is.null(rest)) tags$details(class = "rep-more small",
+        tags$summary(label),
+        if (!keep) p(class = "rep-note-context mb-1", lead),
+        p(class = "mb-0", rest))))
+  }
+  if (keep && !is.null(rest)) {
+    return(div(class = "rep-note-kept", p(class = "small mb-1", lead),
+      explanation_ui(rep_note_id("rep-note"), label, class = "rep-note", p(class = "small mb-1", rest))))
+  }
+  explanation_ui(rep_note_id("rep-note"), label, class = "rep-note",
+    p(class = "small mb-1", lead), if (!is.null(rest)) p(class = "small mb-1", rest))
 }
 
 # Number boxes are sized for a number, as the input screens' are; those
@@ -521,9 +542,14 @@ rep_field <- function(id, label, value = "", help = NULL, help_topic = NULL) {
   help_id <- paste0(id, "_help")
   input <- htmltools::tagAppendAttributes(input, `aria-describedby` = help_id, .cssSelector = "input")
   rest <- if (!is.null(help_topic)) help_rest(help)
-  div(class = "form-field", input,
-    p(class = "field-help small text-muted", id = help_id, if (is.null(rest)) help else help_lead(help)),
-    if (!is.null(rest)) tags$details(class = "rep-more small", tags$summary(help_topic), p(class = "mb-0", rest)))
+  # With explanations off the help moves behind an info button beside the
+  # label (19 November 2026), as the input screens' does.
+  more <- explanation_ui(paste0(id, "_info"), label, class = "rep-field-more",
+    p(class = "small mb-1", help))
+  input <- htmltools::tagInsertChildren(input, more, after = 1)
+  div(class = "form-field has-rep-field-more", input,
+    p(class = "field-help small text-muted rep-field-help", id = help_id, if (is.null(rest)) help else help_lead(help)),
+    if (!is.null(rest)) tags$details(class = "rep-more small rep-field-help", tags$summary(help_topic), p(class = "mb-0", rest)))
 }
 
 # A step's title, numbered as the input screens' sections are, and a
@@ -648,13 +674,19 @@ replication_planner_sections <- function() {
       # The simple answer first (colleague review C-14, 12 November
       # 2026): the sample size to find the effect significant again,
       # with the usual settings, before the goals and beliefs.
-      rep_card("The quick answer", class = "rep-quick-card",
-        div(class = "rep-quick",
-          rep_note("Two ways to the sample size: the quick answer here, from the numbers above, or the original's design on its own card, below, with that card's full options and its exact test. The quick answer uses a normal approximation, so for a t-test it can ask for a few people fewer than the card."),
-          actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary",
-            onclick = "var r = document.querySelector('input[name=rep_section][value=goals]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }"),
-          rep_note("It opens Goals and uses an 80% chance of success when that field is blank. For frequentist criteria it also uses a significance level of .05 if you leave that field blank."))),
-      uiOutput("rep_card_status")),
+      # The way to the answer, set apart from the questions above (19
+      # November 2026: as one more card of the same look, it read as
+      # another question).
+      tags$section(class = "rep-routes", `aria-labelledby` = "rep-routes-title",
+        h4(id = "rep-routes-title", class = "rep-routes-title", "Get the sample size"),
+        rep_note("Two ways, from the answers above: the quick answer, or the original's analysis on its own card, with that card's full options and its exact test. The quick answer uses a normal approximation, so for a t-test it can ask for a few people fewer than the card."),
+        div(class = "rep-routes-grid",
+          div(class = "rep-route rep-quick",
+            h5(class = "h6", "The quick answer"),
+            actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary",
+              onclick = "var r = document.querySelector('input[name=rep_section][value=goals]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }"),
+            rep_note("It opens Goals and uses an 80% chance of success when that field is blank. For frequentist criteria it also uses a significance level of .05 if you leave that field blank.")),
+          div(class = "rep-route", uiOutput("rep_card_status"))))),
 
     section("goals",
       rep_card("What the replication should show",

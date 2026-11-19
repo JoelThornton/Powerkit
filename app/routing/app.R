@@ -267,6 +267,28 @@ app_css <- "
     .replication-workspace #rep_threshold.shiny-input-radiogroup .shiny-options-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .replication-workspace .rep-note { margin-bottom: 0.75rem; }
+  /* rep_note(): the text in full with explanations on and no button; with
+     them off, an info button, beside the box's heading when the note opens
+     the box, otherwise a small link naming it (19 November 2026). */
+  .explanation-help.rep-note { display: block; }
+  .explanation-help.rep-note > summary { display: none; }
+  .explanation-help.rep-note > .explanation-content { clear: left; }
+  .terms-mode .explanation-help.rep-note > summary { display: inline-flex; }
+  fieldset.form-group-box > legend.h6 + .explanation-help.rep-note { clear: none; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note { margin: 0; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note > summary { min-width: 32px; min-height: 32px; justify-content: center; font-size: 1rem; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note > summary::after { content: none; }
+  .terms-mode .explanation-help.rep-note[open] > .explanation-content { margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  /* rep_field(): its help below the box with explanations on; with them
+     off, behind an info button beside the label. */
+  .rep-field-more { display: none; }
+  .terms-mode .rep-field-more { display: inline; margin: 0; }
+  .terms-mode .form-field.has-rep-field-more label.control-label { display: inline; min-height: 0; padding-right: 0; margin-right: 0.35rem; }
+  .terms-mode .form-field .rep-field-more > summary { display: inline-flex; position: static; min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; vertical-align: middle; }
+  .terms-mode .form-field .rep-field-more > summary::after { content: none; }
+  .terms-mode .rep-field-more[open] > .explanation-content { display: block; margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  .terms-mode .has-rep-field-more input { margin-top: 0.4rem; }
+  .terms-mode .replication-workspace .rep-field-help { display: none; }
   .replication-workspace .rep-more > summary { color: var(--pk-blue); cursor: pointer; }
   .replication-workspace .rep-note-context { display: none; }
   .terms-mode .replication-workspace .rep-note-lead { display: none; }
@@ -288,7 +310,18 @@ app_css <- "
   .plan-rename, .plan-description-fold { display: inline-block; margin: 0 1.25rem 0.5rem 0; vertical-align: top; }
   .plan-rename[open], .plan-description-fold[open] { display: block; }
   .plan-rename > summary, .plan-description-fold > summary { cursor: pointer; color: var(--pk-blue); min-height: 32px; }
-  .rep-card-status > h4.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
+  .rep-card-status > h5.h6, .rep-route > h5.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
+  /* Where the answer comes from, set apart from the questions (19
+     November 2026): a tinted panel with its own heading and two routes. */
+  .rep-routes { background: #eef4fa; border: 1px solid #c9d9ea; border-left: 4px solid var(--pk-blue); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin: 1.25rem 0 0.9rem; }
+  .rep-routes-title { font-size: 1.1rem; font-weight: 700; color: var(--pk-navy); margin: 0 0 0.4rem; }
+  .rep-routes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); gap: 0.75rem; margin-top: 0.5rem; }
+  .rep-route { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
+  .rep-route .nav-buttons { flex-wrap: wrap; }
+  .rep-route .btn { margin-bottom: 0.4rem; }
+  /* A tile's own explanation reads as text, not as part of its name. */
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(strong) { font-weight: 400; color: #2b3644; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { font-weight: 650; color: var(--pk-navy); }
   .rep-answer:has(.result-panel, table, .alert) { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--pk-shadow); }
   @media (max-width: 600px) { .replication-workspace table.result-table { display: block; overflow-x: auto; white-space: nowrap; } }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
@@ -824,9 +857,12 @@ app_css <- "
                         padding-bottom: 0.45rem; border-bottom: 1px solid var(--pk-line); }
   .form-section:first-of-type .form-section-title { margin-top: 1rem; }
   .form-group-box { padding: 1rem 1.25rem 0.5rem 1.25rem; margin-bottom: 0.9rem; }
-  .form-group-box > legend, .form-group-box legend.h6 { float: left; width: 100%; padding: 0; margin: 0 0 0.6rem 0;
+  /* A box's heading takes only its own width, so its info button sits
+     beside it (19 November 2026: at full width the button dropped to a
+     line of its own); what follows the button clears the heading. */
+  .form-group-box > legend, .form-group-box legend.h6 { float: left; width: auto; max-width: calc(100% - 2.5rem); padding: 0; margin: 0 0.35rem 0.6rem 0;
                                                      font-size: 1rem; font-weight: 650; color: var(--pk-navy); line-height: 1.35; }
-  .form-group-box > legend + * { clear: both; }
+  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: both; }
   .form-section-effect > .form-group-box { border-width: 2px; }
   .form-section-effect > .form-group-box > legend { color: var(--pk-blue); }
   .form-field label, .form-field .control-label { font-weight: 550; color: #1d2733; margin-bottom: 0.3rem; }
