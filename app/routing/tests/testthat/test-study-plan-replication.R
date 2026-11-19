@@ -298,3 +298,23 @@ test_that("conceptual sensitivity reports the precise change and when a setting 
   expect_match(replication_conceptual_summary(before, replication_conceptual_settings(before)),
     "Between-study SD stays at 0.2.", fixed = TRUE)
 })
+
+test_that("every field's starting value on screen is the one a new plan records", {
+  # A plan starts saving the screen's fields only once they match what it
+  # recorded, so a field drawn with a starting value the record lacks
+  # would stop a new replication plan from ever being saved.
+  html <- as.character(replication_workspace_ui(tree))
+  recorded <- replication_values(replication_record())
+  for (id in replication_plan_field_ids) {
+    checked <- regmatches(html, regexpr(sprintf('<input[^>]*name="%s"[^>]*value="[^"]*"[^>]*checked="checked"', id), html))
+    text <- regmatches(html, regexpr(sprintf('<input id="%s"[^>]*>', id), html))
+    select <- regmatches(html, regexpr(sprintf('<select id="%s"[^>]*>.*?</select>', id), html, perl = TRUE))
+    shown <- if (length(checked)) sub('.*value="([^"]*)".*', "\\1", checked)
+      else if (length(text)) (if (grepl('value="', text)) sub('.*value="([^"]*)".*', "\\1", text) else "")
+      else if (length(select)) {
+        option <- regmatches(select, regexpr('<option value="[^"]*" selected>', select))
+        if (length(option)) sub('.*value="([^"]*)".*', "\\1", option)
+      }
+    if (!is.null(shown)) expect_identical(shown, recorded[[id]], label = id)
+  }
+})
