@@ -51,7 +51,13 @@ found that a one-sided exact test of one proportion or Fisher's test,
 given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
 equal tails (the default) and names the rule in the write-up. Which rule
-G*Power uses for a fixed value other than 0.5 is not checked yet.
+G*Power uses for a fixed value other than 0.5 is not checked yet. A
+calculation audit the same day found wrong numbers on several cards
+(study plans with effects of opposite sign, E46's exact interval, E49 and
+E5 with unequal groups, E5's Bayes factor, replication searches), package
+faults powerkit passes through (TOSTER on E36, pmsampsize on E77), and
+export and wording errors; each was reproduced and is queued as `next.md`
+items 29 to 34, item 29 first.
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
