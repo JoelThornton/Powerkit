@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-19"
-    title: A study plan's report, without the zip
-    text: >
-      A study plan's page now has a Planning report button: print it or
-      save it as PDF, Word or Markdown, without downloading the whole zip.
-      It also fixes the report for a plan opened from a saved file, which
-      said each analysis's methods paragraph "couldn't be made" and had no
-      references.

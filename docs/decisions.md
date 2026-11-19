@@ -4577,3 +4577,86 @@ justified the difference for most effects researchers replicate.
   any one-number original's is: the shrunk belief and more variation
   between studies. One with several degrees of freedom still changes no
   setting, and now points to the smallest-effect goal on the same page.
+
+## 2026-11-19 · Replication plans: the "show it is absent" default and the reliability correction
+
+Two method choices in the replication planner, recommended in the review
+of its criteria, are kept as the defaults.
+
+- **"Show it is absent".** A Bayesian t-test original (a Bayes factor or a
+  posterior, for two groups, one group or pairs) is planned with the Bayes
+  factor t-test for no effect; every other original with the equivalence
+  test against the smallest effect that matters (d33 when none is entered
+  and the original had a significance test). Both are planned for a true
+  effect of zero, so their chance of showing absence is the one planned.
+- **A changed measure's reliability.** When the replication's outcome
+  measure is more or less reliable than the original's, the original's
+  effect is attenuated by the square root of the ratio of the two
+  reliabilities (Schmidt & Hunter, 1996): d directly, r through Fisher's
+  z, the original's z kept the same in both. It is optional, stated on the
+  result and in the methods paragraph, and small telescopes and BUCSS,
+  which work in the original's own units, are left out when it is used.
+
+## 2026-11-19 · Replication plans: criteria that fit every kind of original
+
+A review of the replication plan across every design and every way an
+original can be analysed (a p-value, a Bayes factor, a posterior, or
+both) found combinations whose usual criteria failed or reported nothing
+that could show the effect is absent. The rules are now:
+
+- **The criterion that can show absence is one planned for no effect.**
+  With a Bayes factor main criterion it is the Bayes factor t-test for
+  no effect where the design has one (two groups, one group, pairs, a
+  1-df ANOVA effect); otherwise the equivalence test. This replaces the
+  17 November rule's replication Bayes factor for a correlation or
+  another design: the engine plans that Bayes factor's chance of
+  evidence *for* the original's effect, not its chance of evidence
+  against it, so it could not show absence with a planned chance
+  (conventions.md, Departure 30). An interim version (18 November)
+  reported nothing in its place.
+- **"Confirm" for a Bayesian original whose own test can't be repeated**
+  (a correlation or another design, from a posterior) uses the
+  replication Bayes factor, keeping a Bayesian original's plan Bayesian;
+  it was significance before 18 November.
+- **"Show it is absent" for a Bayesian original** uses the Bayes factor
+  t-test for no effect where the design has one, as "confirm" uses the
+  Bayes factor t-test for an effect. Elsewhere it stays the equivalence
+  test, which for a Bayesian original needs the researcher's smallest
+  effect (d33 rests on a significance test): the planner now asks for it
+  before running, instead of failing after.
+- **Criteria the original can't give are greyed out** in the list (the
+  Bayes factor t-test for a correlation or another design; small
+  telescopes for a Bayesian original or another design), and a Bayes
+  factor original of a correlation or another design is told at once to
+  give its posterior or its test instead (a Bayes factor gives the
+  effect only for a t-test).
+
+Recommendation: these defaults, because each keeps the plan within the
+framework the original was analysed in and every reported criterion has
+a planned chance. The maintainer may prefer the equivalence test for
+every "absent" plan; that is one line in `replication_resolve_goals()`.
+
+## 2026-11-19 · A Bayesian confirmation criterion follows the available design
+
+For a Bayesian original and a confirmation aim, the planner suggests repeating the Bayes factor t-test where that test is available. A Bayesian original with another design suggests the replication Bayes factor. An explicit main criterion stays selected when the original changes.
+
+When the original's publication process is unknown, compare BUCSS sample sizes for publication requiring significance and publication regardless of the result. Saved plans retain their publication assumption.
+
+## 2026-11-19 · Replication plans: "settle it either way" shows both sample sizes
+
+A replication meant to settle a question either way needs two things: a
+good chance of showing the effect if it is there, and a good chance of
+showing it is absent (a Bayes factor for no effect, or an equivalence
+test) if it is not. Evidence for no effect builds up more slowly, so the
+second usually needs many more people than the first. Until now the plan
+gave the first number and warned when the second was out of reach.
+
+The plan now gives both sample sizes in its headline and its methods
+paragraph, says which is larger, and recommends planning for the larger,
+which gives at least the chosen chance of a clear answer whichever is
+true; the note under the result explains why the two differ and offers a
+sequential design as the alternative. The main criterion's sample size
+still sets the plan's other numbers (recruitment, the chances table), so
+nothing changes without the researcher choosing it: they enter the
+larger number as "a sample size you could analyse" under Goals to see
+every criterion's chance there.

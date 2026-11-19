@@ -1,1 +1,0 @@
-* Recruitment and sample-size validation retain whole groups for multicategorical or binary-predictor mediation and grouped repeated-outcome models. Reopen and recalculate older results to update recruitment figures that used the total.

@@ -1,8 +1,0 @@
-entries:
-  - date: "2026-11-19"
-    title: Settling a question either way shows both sample sizes
-    text: >
-      When a replication is meant to show either that the effect is there
-      or that it is absent, the plan now gives both numbers: the sample
-      size for showing the effect, and the usually larger one for showing
-      it is absent. It recommends the larger and explains why the two differ.

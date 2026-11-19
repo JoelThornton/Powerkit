@@ -1,8 +1,0 @@
-entries:
-  - date: "2026-11-18"
-    title: Clearer replication assumptions
-    text: >
-      Compare sample sizes under both publication assumptions when the original
-      study's publication process is unknown. Test estimates and posterior means
-      have separate fields. Conceptual replications can try a sensitivity scenario
-      and see exactly which settings it changes.

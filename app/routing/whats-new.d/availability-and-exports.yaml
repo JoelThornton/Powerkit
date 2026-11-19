@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-18"
-    title: Where each analysis runs
-    text: >
-      About separates calculations that finish in the app from those that
-      use a preview and an R script. It explains which script finishes a
-      calculation and which script reproduces a finished result.
