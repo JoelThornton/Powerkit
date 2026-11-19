@@ -3024,7 +3024,7 @@ test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCO
   expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
   words <- result_sentences(calc$spec, calc$result)
   expect_match(words[["headline"]], "with a Bayes factor ANCOVA (evidence threshold: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
-  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
+  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, the default in the BayesFactor package and JASP", fixed = TRUE)
   w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
   expect_match(w[["short"]], "If there were no effect, the probability of evidence at the threshold for its absence", fixed = TRUE)
@@ -3600,7 +3600,7 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   expect_match(text, "chance of evidence at the threshold", fixed = TRUE)
   w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
-  expect_match(w[["short"]], "as in JASP", fixed = TRUE)
+  expect_match(w[["short"]], "the default in the BayesFactor package and JASP", fixed = TRUE)
 })
 
 test_that("within-person moderation (E41) counts observations, and the result names people and occasions", {

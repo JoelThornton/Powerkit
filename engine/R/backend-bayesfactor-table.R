@@ -174,7 +174,7 @@ bftable_script <- function(spec, result) {
     sprintf("probs <- matrix(%s, nrow = %d, byrow = TRUE) # cell probabilities: rows X, columns Y",
       r_code(as.vector(t(inputs$probs))), nrow(inputs$probs)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
-    sprintf("a <- %s # prior concentration (JASP's default 1)", r_code(inputs$a)),
+    sprintf("a <- %s # prior concentration (the default in BayesFactor and JASP, 1)", r_code(inputs$a)),
     switch(goal$type,
       sample_size = sprintf("target_power <- %s # target probability that BF10 reaches the threshold", r_code(goal$power)),
       power = sprintf("n_total <- %s # total sample size (every participant analysed)", r_code(goal$n))),

@@ -175,7 +175,7 @@ bfreg_script <- function(spec, result) {
     sprintf("r2 <- %s # the expected R-squared of the model with all the predictors", r_code(inputs$r2)),
     sprintf("p <- %s # the number of predictors", r_code(inputs$p)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
-    sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (JASP's default 0.354)", r_code(inputs$prior_scale)),
+    sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (the default in BayesFactor and JASP, 0.354)", r_code(inputs$prior_scale)),
     bayes_goal_inputs(spec),
     "",
     "f2 <- r2 / (1 - r2) # Cohen's f-squared",

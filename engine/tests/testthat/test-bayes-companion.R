@@ -73,7 +73,7 @@ test_that("the robustness check reruns the Bayes factor t-test under JASP's thre
   spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor", alternative = "two_sided")
   rob <- bayes_robustness(spec, 100)
   # The default prior is "medium", so it is named as the plan's own.
-  expect_identical(rob$prior, c("Medium (JASP's default), your prior", "Wide", "Ultrawide"))
+  expect_identical(rob$prior, c("Medium (the usual default), your prior", "Wide", "Ultrawide"))
   expect_equal(rob$scale, c(1 / sqrt(2), 1, sqrt(2)))
   for (i in seq_len(nrow(rob))) {
     s <- spec
@@ -87,7 +87,7 @@ test_that("the robustness check reruns the Bayes factor t-test under JASP's thre
   expect_true(all(diff(rob$for_null) >= 0))
   # Another prior is listed first, as the plan's own.
   spec$target_test$prior_scale <- 0.5
-  expect_identical(bayes_robustness(spec, 100)$prior, c("Your prior", "Medium (JASP's default)", "Wide", "Ultrawide"))
+  expect_identical(bayes_robustness(spec, 100)$prior, c("Your prior", "Medium (the usual default)", "Wide", "Ultrawide"))
   # Only for the Bayes factor t-tests.
   expect_null(bayes_robustness(companion_t_spec("one_sample_t"), 100))
 })

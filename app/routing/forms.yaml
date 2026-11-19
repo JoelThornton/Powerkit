@@ -935,7 +935,7 @@ forms:
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
              default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1, with 'Indep. multinomial, rows fixed') and BayesFactor's contingencyTableBF()",
-             help: "The prior you will use when you analyse the data: 1 gives every proportion in each group the same weight (JASP's default); larger values expect the groups to be more alike. Use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data: 1 gives every proportion in each group the same weight (the default in the BayesFactor package and JASP); larger values expect the groups to be more alike. Use the same value as in your analysis plan."}
           - {id: p_sd, label: "How unsure you are about each group's proportion, as an SD (0 = exactly these proportions)", type: number, path: population.p_sd, required: true, min: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the proportions you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
@@ -1066,7 +1066,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -1141,7 +1141,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -1218,7 +1218,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -2583,7 +2583,7 @@ forms:
           - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's Bayesian ANOVA ('r scale fixed effects' 0.5), the same as BayesFactor's default (anovaBF(rscaleFixed = 'medium'), 1/2; BayesFactor 0.9.12-4.8)",
-             help: "The prior you will use when you analyse the data. 0.5 is JASP's default; use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data. 0.5 is the default in the BayesFactor package and JASP; use the same value as in your analysis plan."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},
@@ -2662,7 +2662,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -2761,7 +2761,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -2875,7 +2875,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -2951,7 +2951,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -3028,7 +3028,7 @@ forms:
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
-             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+             default: 0.5, default_source: "BayesFactor's 'medium' r scale for fixed effects, 0.5, which JASP uses (jaspAnova's AdditionalOptions.qml)"}
           - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
@@ -3174,7 +3174,7 @@ forms:
           - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
-             help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
+             help: "The prior you will use when you analyse the data. 0.354 is the default in the BayesFactor package and JASP; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine

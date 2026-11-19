@@ -28,7 +28,7 @@ For a plan made with a p-value, the chances a Bayes factor analysis of
 the same data would give: evidence for the effect if it is as planned,
 evidence for no effect if there is none, and misleading evidence for an
 effect if there is none, at each threshold, with the design's Bayes
-factor test version and its default priors (JASP's). With \code{target}, the
+factor test version and its default priors. With \code{target}, the
 sample size at which the Bayes factor reaches the same chance of evidence
 for the effect, and the larger of the two (enough for both). For the
 t-tests, how often the two tests agree.

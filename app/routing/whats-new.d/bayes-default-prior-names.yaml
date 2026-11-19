@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-19"
+    title: Default priors named where they are the default
+    text: >
+      Bayes factor results, methods paragraphs and help text now say a
+      default prior is the default in the BayesFactor package and JASP,
+      rather than naming JASP alone, for the ANOVA, ANCOVA, regression and
+      contingency table Bayes factors. The correlation's prior of width 1
+      is still called JASP's default, because the BayesFactor package's
+      own default is narrower (1/3).
