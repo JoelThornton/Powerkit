@@ -136,3 +136,84 @@ test_that("an original published whatever it found is corrected for uncertainty 
   expect_error(replication_planning("two_groups", 0.6, original_n1 = 40, original_n2 = 40, publication_filter = "no"),
     "publication_filter", class = "powerkit_error")
 })
+
+# Three factors (queue item 28, 19 November 2026): BUCSS's general
+# functions take the effect's degrees of freedom, so any effect of a
+# three-factor ANOVA can be planned. Every number is BUCSS's own.
+test_that("a three-factor between-subjects effect gives BUCSS's general function's sample sizes", {
+  res <- replication_bucss("anova_between", 9.2, 160, levels_a = 2, levels_b = 2, levels_c = 2,
+    effect = "a_by_b_by_c", power = 0.9)
+  direct <- vapply(c(0.5, 0.8), function(a) {
+    out <- BUCSS::ss_buc_factorial_anova_general(F_observed = 9.2, N = 160, cells = 8, df_numerator = 1,
+      df_denominator = 152, assurance = a, desired_power = 0.9)
+    out$value[out$term == "total_N"]
+  }, numeric(1))
+  expect_equal(res$sizes$n, direct)
+  expect_equal(res$sizes$n, c(232, 792))
+  expect_equal(res$sizes$per_unit, c(29, 99))
+  expect_equal(res$df_effect, 1)
+  expect_match(res$function_used, "ss_buc_factorial_anova_general.*cells = 8.*df_numerator = 1.*df_denominator = 152")
+  expect_equal(res$inputs$levels_c, 2)
+  # The effect's degrees of freedom follow its factors: 2 x 3 x 4, the B by C interaction.
+  bc <- replication_bucss("anova_between", 6, 240, levels_a = 2, levels_b = 3, levels_c = 4, effect = "b_by_c")
+  expect_equal(bc$df_effect, 6)
+  expect_match(bc$function_used, "cells = 24.*df_numerator = 6.*df_denominator = 216")
+  # The script repeats it.
+  expect_match(paste(res$script, collapse = "\n"), "ss_buc_factorial_anova_general(F_observed = 9.2", fixed = TRUE)
+})
+
+test_that("a three-factor within-subjects effect uses BUCSS's general repeated-measures function", {
+  res <- replication_bucss("anova_within", 12, 40, levels_a = 2, levels_b = 3, levels_c = 2, effect = "b_by_c",
+    power = 0.9, epsilon = 0.8)
+  direct <- vapply(c(0.5, 0.8), function(a) {
+    out <- BUCSS::ss_buc_rm_anova_general(F_observed = 12, N = 40, df_numerator = 2, assurance = a,
+      desired_power = 0.9, epsilon = 0.8)
+    out$value[out$term == "necessary_N"]
+  }, numeric(1))
+  expect_equal(res$sizes$n, direct)
+  expect_equal(res$df_effect, 2)
+  expect_true(all(is.na(res$sizes$per_unit)))
+})
+
+test_that("a three-factor mixed design classifies the effect by its between- and within-subjects factors", {
+  # One between-subjects factor (A): A x B x C is between-within, with the within part's degrees of freedom.
+  mixed <- replication_bucss("anova_mixed", 9.2, 120, levels_a = 2, levels_b = 2, levels_c = 2,
+    between_factors = 1, effect = "a_by_b_by_c", power = 0.9)
+  direct <- vapply(c(0.5, 0.8), function(a) {
+    out <- BUCSS::ss_buc_mixed_anova_general(F_observed = 9.2, N = 120, df_numerator = 1, num_groups = 2,
+      effect = "between_within", df_num_within = 1, assurance = a, desired_power = 0.9)
+    out$value[out$term == "total_N"]
+  }, numeric(1))
+  expect_equal(mixed$sizes$n, direct)
+  expect_match(mixed$function_used, "num_groups = 2, effect = \"between_within\", df_num_within = 1")
+  # Two between-subjects factors (A, B): C alone is within-subjects only, and 4 groups.
+  within_only <- replication_bucss("anova_mixed", 9.2, 120, levels_a = 2, levels_b = 2, levels_c = 3,
+    between_factors = 2, effect = "factor_c", power = 0.9)
+  expect_match(within_only$function_used, "df_numerator = 2, num_groups = 4, effect = \"within_only\"")
+  expect_false(grepl("df_num_within", within_only$function_used))
+  expect_equal(within_only$df_effect, 2)
+  # A between-subjects effect only: A x B with two between factors.
+  between_only <- replication_bucss("anova_mixed", 9.2, 120, levels_a = 2, levels_b = 3, levels_c = 2,
+    between_factors = 2, effect = "a_by_b", power = 0.9)
+  expect_match(between_only$function_used, "df_numerator = 2, num_groups = 6, effect = \"between_only\"")
+})
+
+test_that("a partial eta-squared with a third factor is moved to its F with the effect's degrees of freedom", {
+  eta <- replication_bucss("anova_between", original_partial_eta = 0.1, original_df_error = 152, original_n = 160,
+    levels_a = 2, levels_b = 2, levels_c = 2, effect = "factor_c")
+  expect_equal(eta$f, 0.1 / 0.9 * 152 / 1)
+  expect_equal(eta$df_effect, 1)
+})
+
+test_that("three-factor refusals are plain", {
+  expect_error(replication_bucss("anova_between", 5, 80, levels_a = 2, levels_c = 2), "needs a second one", class = "powerkit_error")
+  expect_error(replication_bucss("anova_between", 5, 80, levels_a = 2, levels_b = 2, levels_c = 1), "third factor", class = "powerkit_error")
+  expect_error(replication_bucss("anova_mixed", 5, 80, levels_a = 2, levels_b = 2, levels_c = 2, effect = "factor_a"),
+    "between-subjects factors", class = "powerkit_error")
+  expect_error(replication_bucss("anova_between", 5, 80, levels_a = 2, levels_b = 2, levels_c = 2, effect = "interaction"),
+    "factor_a.*a_by_b_by_c", class = "powerkit_error")
+  expect_error(replication_bucss("anova_between", 5, 8, levels_a = 2, levels_b = 2, levels_c = 2, effect = "factor_a"),
+    "more than its 8 groups", class = "powerkit_error")
+  expect_error(replication_bucss("anova_between", 5, 80, levels_a = 2, levels_b = 2, levels_c = 3, effect = "a_by_b_by_c",
+    alternative = "one.sided"), "no direction", class = "powerkit_error")
+})

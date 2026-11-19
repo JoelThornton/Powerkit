@@ -862,3 +862,24 @@ test_that("tests and Bayesian posteriors each supply their own effect for both r
   expect_null(replication_args(generic)$original_f)
   expect_equal(replication_args(generic)$original_effect, 0.55)
 })
+
+test_that("a three-factor ANOVA original is planned with BUCSS alone", {
+  values <- list(rep_design = "anova", rep_anova_kind = "between", rep_levels_a = "2", rep_levels_b = "2", rep_levels_c = "2",
+    rep_anova_effect = "a_by_b_by_c", rep_n = "120", rep_anova_f = "6.2", rep_f_from = "f")
+  expect_false(replication_anova_one_df(values))
+  expect_true(replication_bucss_only(values))
+  args <- replication_anova_args(values)
+  expect_equal(args$levels_c, 2)
+  expect_equal(args$effect, "a_by_b_by_c")
+  plan <- replication_run(values, engine_function("replication_planning"), engine_function("replication_bucss"),
+    engine_function("replication_anova_smallest"))
+  expect_true(plan$anova)
+  expect_null(plan$smallest)
+  expect_match(replication_bucss_original_words(plan), "2 x 2 x 2 design")
+  # Without a third factor, a third-factor effect falls back to the first factor.
+  values$rep_levels_c <- ""
+  expect_equal(replication_anova_effect_choice(values)$effect, "factor_a")
+  # With one, the two-factor interaction means the first-by-second one.
+  values$rep_levels_c <- "3"; values$rep_anova_effect <- "interaction"
+  expect_equal(replication_anova_effect_choice(values)$effect, "a_by_b")
+})

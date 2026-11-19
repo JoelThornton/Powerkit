@@ -37,6 +37,33 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
   switch(effect, factor_a = a, factor_b = b, interaction = a * b)
 }
 
+# The effects of a three-factor ANOVA, by name.
+replication_bucss_effects_three <- c("factor_a", "factor_b", "factor_c", "a_by_b", "a_by_c", "b_by_c", "a_by_b_by_c")
+
+# A three-factor design's effect: its degrees of freedom, and for BUCSS the
+# number of cells or groups and, in a mixed design, whether the effect is
+# between-subjects only, within-subjects only or both (with the degrees of
+# freedom of its within-subjects part). The factors are lettered A, B, C,
+# the between-subjects ones first in a mixed design.
+replication_bucss_effect_three <- function(design, levels_a, levels_b, levels_c, between_factors, effect) {
+  levels <- c(A = levels_a, B = levels_b, C = levels_c)
+  in_effect <- switch(effect,
+    factor_a = "A", factor_b = "B", factor_c = "C", a_by_b = c("A", "B"), a_by_c = c("A", "C"),
+    b_by_c = c("B", "C"), a_by_b_by_c = c("A", "B", "C"))
+  df <- function(factors) if (length(factors)) prod(levels[factors] - 1) else 1
+  out <- list(df_effect = df(in_effect), cells = prod(levels), groups = 1, kind = NULL, df_within = NULL)
+  if (identical(design, "anova_mixed")) {
+    between <- names(levels)[seq_len(between_factors)]
+    within <- setdiff(names(levels), between)
+    out$groups <- prod(levels[between])
+    out$cells <- out$groups
+    out$kind <- if (!any(in_effect %in% within)) "between_only" else if (!any(in_effect %in% between)) "within_only" else "between_within"
+    out$df_within <- df(intersect(in_effect, within))
+  }
+  if (identical(design, "anova_within")) out$cells <- 1
+  out
+}
+
 #' Plan a replication with BUCSS: sample sizes corrected for publication
 #' bias and uncertainty
 #'
@@ -59,9 +86,17 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
 #'   `levels_a` the first (the between-subjects factor in a mixed design),
 #'   `levels_b` the second (the within-subjects factor in a mixed design;
 #'   `NULL` for a one-factor between or within design).
+#' @param levels_c The levels of a third factor, for a three-factor ANOVA
+#'   (BUCSS's general functions, which take the effect's degrees of
+#'   freedom). `NULL` for one or two factors.
+#' @param between_factors For a three-factor mixed design, how many of the
+#'   factors are between-subjects (1 or 2): the first ones, so with 1, `A`
+#'   is between-subjects and `B` and `C` within-subjects.
 #' @param effect The ANOVA effect the replication tests: `"factor_a"`,
 #'   `"factor_b"` or `"interaction"` for a between or within design;
-#'   `"between"`, `"within"` or `"interaction"` for a mixed design.
+#'   `"between"`, `"within"` or `"interaction"` for a mixed design. For
+#'   three factors: `"factor_a"`, `"factor_b"`, `"factor_c"`, `"a_by_b"`,
+#'   `"a_by_c"`, `"b_by_c"` or `"a_by_b_by_c"`.
 #' @param epsilon For within and mixed designs, the sphericity correction
 #'   (1 assumes sphericity), as BUCSS takes it.
 #' @param original_partial_eta,original_df_error In place of an F for an
@@ -104,7 +139,8 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
 replication_bucss <- function(design, original_statistic = NULL, original_n, levels_a = NULL, levels_b = NULL,
                               effect = NULL, epsilon = 1, original_partial_eta = NULL, original_df_error = NULL,
                               original_alpha = 0.05, alpha = 0.05, power = 0.8, assurance = c(0.5, 0.8),
-                              alternative = "two.sided", publication_filter = TRUE) {
+                              alternative = "two.sided", publication_filter = TRUE,
+                              levels_c = NULL, between_factors = NULL) {
   need_packages("BUCSS")
   one_number <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x)
   whole <- function(x, low) one_number(x) && x == round(x) && x >= low && x <= 1e6
@@ -133,11 +169,21 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   }
   df_effect <- NA_real_
   f_used <- NULL
+  three <- FALSE
+  info3 <- NULL
   if (anova) {
     if (!whole(levels_a, 2)) abort_run("The first factor's number of levels should be a whole number, at least 2.")
     if (!is.null(levels_b) && !whole(levels_b, 2)) abort_run("The second factor's number of levels should be a whole number, at least 2.")
     if (mixed && is.null(levels_b)) abort_run("A mixed design needs the levels of its between-subjects and its within-subjects factor.")
-    effects <- if (mixed) c("between", "within", "interaction") else if (is.null(levels_b)) "factor_a" else c("factor_a", "factor_b", "interaction")
+    three <- !is.null(levels_c)
+    if (three) {
+      if (!whole(levels_c, 2)) abort_run("The third factor's number of levels should be a whole number, at least 2.")
+      if (is.null(levels_b)) abort_run("A third factor needs a second one: give the levels of the second factor too.")
+      if (mixed && !(one_number(between_factors) && between_factors %in% 1:2)) {
+        abort_run("A three-factor mixed design needs the number of between-subjects factors, 1 or 2 (the others are within-subjects).")
+      }
+    }
+    effects <- if (three) replication_bucss_effects_three else if (mixed) c("between", "within", "interaction") else if (is.null(levels_b)) "factor_a" else c("factor_a", "factor_b", "interaction")
     if (is.null(effect) && length(effects) == 1) effect <- effects
     if (!is.character(effect) || length(effect) != 1 || !effect %in% effects) {
       abort_run(sprintf("The effect should be one of %s for this design.", paste0("\"", effects, "\"", collapse = ", ")))
@@ -145,13 +191,14 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
     if (!design %in% "anova_between" && (!one_number(epsilon) || epsilon <= 0 || epsilon > 1)) {
       abort_run("The sphericity correction (epsilon) should be above 0 and at most 1; 1 assumes sphericity.")
     }
-    df_effect <- replication_bucss_df_effect(design, levels_a, levels_b, effect)
+    info3 <- if (three) replication_bucss_effect_three(design, levels_a, levels_b, levels_c, between_factors, effect)
+    df_effect <- if (three) info3$df_effect else replication_bucss_df_effect(design, levels_a, levels_b, effect)
     # One degree of freedom: F = t^2, so a one-sided test in the original's
     # direction is planned as for a t-test, the two-sided test at 2 alpha.
     if (df_effect > 1 && identical(alternative, "one.sided")) {
       abort_run("An F test with several degrees of freedom has no direction, so the replication's test is planned as the F test at its significance level.")
     }
-    cells <- if (identical(design, "anova_between")) levels_a * (levels_b %||% 1) else if (mixed) levels_a else 1
+    cells <- if (three) info3$cells else if (identical(design, "anova_between")) levels_a * (levels_b %||% 1) else if (mixed) levels_a else 1
     if (!whole(original_n, cells + 1)) {
       abort_run(sprintf("The original study's total sample size should be a whole number, more than %s.",
         if (cells > 1) sprintf("its %s groups", cells) else "1"))
@@ -183,12 +230,20 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   }
   alpha_planned <- if (identical(alternative, "one.sided")) 2 * alpha else alpha
   stat <- abs(original_statistic)
-  b_effect <- if (anova) c(factor_a = "factor_A", factor_b = "factor_B", interaction = "interaction",
+  b_effect <- if (anova && !three) c(factor_a = "factor_A", factor_b = "factor_B", interaction = "interaction",
     between = "between", within = "within")[[effect]]
   call_for <- function(a) {
     # No publication filter: alpha_prior = 1 truncates nothing.
     common <- list(alpha_prior = if (publication_filter) original_alpha else 1, alpha_planned = alpha_planned, assurance = a, desired_power = power)
-    spec <- switch(design,
+    spec <- if (anova && three) switch(design,
+      anova_between = list(fun = "ss_buc_factorial_anova_general", args = c(list(F_observed = stat, N = original_n,
+        cells = info3$cells, df_numerator = df_effect, df_denominator = original_n - info3$cells), common)),
+      anova_within = list(fun = "ss_buc_rm_anova_general", args = c(list(F_observed = stat, N = original_n,
+        df_numerator = df_effect), common, list(epsilon = epsilon))),
+      anova_mixed = list(fun = "ss_buc_mixed_anova_general", args = c(list(F_observed = stat, N = original_n,
+        df_numerator = df_effect, num_groups = info3$groups, effect = info3$kind,
+        df_num_within = if (identical(info3$kind, "between_within")) info3$df_within), common, list(epsilon = epsilon)))
+    ) else switch(design,
       two_groups = list(fun = "ss_buc_independent_t", args = c(list(t_observed = stat, N = original_n), common)),
       one_sample = list(fun = "ss_buc_one_sample_t", args = c(list(t_observed = stat, N = original_n), common)),
       paired = list(fun = "ss_buc_paired_t", args = c(list(t_observed = stat, N = original_n), common)),
@@ -233,7 +288,8 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   }, character(1))
   res <- list(
     inputs = list(design = design, original_statistic = original_statistic, original_n = original_n,
-      levels_a = levels_a, levels_b = levels_b, effect = effect, epsilon = if (anova && !identical(design, "anova_between")) epsilon,
+      levels_a = levels_a, levels_b = levels_b, levels_c = levels_c, between_factors = if (three && mixed) between_factors,
+      effect = effect, epsilon = if (anova && !identical(design, "anova_between")) epsilon,
       original_partial_eta = original_partial_eta, original_df_error = original_df_error,
       original_alpha = original_alpha, alpha = alpha, power = power, assurance = sort(unique(assurance)),
       alternative = alternative, publication_filter = publication_filter),
