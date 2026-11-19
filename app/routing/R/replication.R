@@ -60,8 +60,10 @@ replication_anova_effects_ui <- c(
 replication_f_from_ui <- c("Its F" = "f", "Its partial eta-squared, with its F test's error degrees of freedom" = "eta")
 # Assurance: the chance the planned power is reached once the original's
 # effect is corrected for publication bias and uncertainty. 80% is BUCSS's
-# default; 50% plans from the corrected estimate itself.
-replication_assurances_ui <- c("80% (BUCSS's default)" = "0.8", "50% (the corrected estimate itself)" = "0.5",
+# default, and stays the one selected; 50%, which plans from the corrected
+# estimate itself, is listed first so the choices run from least to most
+# cautious, as the comparison tables do (19 November 2026).
+replication_assurances_ui <- c("50% (the corrected estimate itself)" = "0.5", "80% (BUCSS's default)" = "0.8",
   "90%" = "0.9", "95%" = "0.95")
 replication_assurance_levels <- c(0.5, 0.8, 0.9, 0.95)
 

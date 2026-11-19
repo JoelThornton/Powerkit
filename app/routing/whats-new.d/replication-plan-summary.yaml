@@ -11,3 +11,10 @@ entries:
       sets the sample size. With explanations off, each box has one info
       button in its corner instead of "More context" links. Delete is a
       small red button beside the plan's title.
+  - date: "2026-11-19"
+    title: Fields stay clear of the bar at the bottom of the screen
+    text: >
+      Moving through a form with the Tab key no longer leaves a field hidden
+      under the bar with the main button at the bottom of the screen. For an
+      ANOVA original, the assurance choices now run from 50% to 95%; 80%,
+      BUCSS's default, is still the one selected.

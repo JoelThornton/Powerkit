@@ -13,3 +13,7 @@
 * App: the plan's Delete button moves beside the title. Step 1 no longer
   shows a second "Next" button once a decision is chosen. BUCSS's empty
   cells now read "None: once corrected, no effect is left to plan for".
+* App: a focused field that would sit under a sticky `.action-bar` is
+  scrolled clear of it (`focus_js`, with `scroll-padding-bottom` on pages
+  that have one), meeting WCAG 2.4.11. `replication_assurances_ui` lists
+  50% first, in the order of the comparison tables; 80% stays selected.
