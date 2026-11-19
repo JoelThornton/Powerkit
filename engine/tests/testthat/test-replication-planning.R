@@ -496,3 +496,142 @@ test_that("the replication Bayes factors count a success in the original's direc
   expect_match(plan$functions_used[["bf_sceptical"]], "paradox = FALSE", fixed = TRUE)
   expect_match(replication_planning_script(plan), "paradox = FALSE", fixed = TRUE)
 })
+
+test_that("a replication with unequal groups is planned at its groups' standard error", {
+  skip_if_not_installed("bfpwr")
+  equal <- two_groups(n = 200)
+  uneven <- two_groups(n = 200, allocation_ratio = 2)
+  # Two groups in the ratio 2 : 1 need (1 + 2)^2 / (4 * 2) = 9/8 times the
+  # people of equal groups for the same standard error.
+  for (goal in c("significance", "pooled", "negligible", "bf_null")) {
+    expect_equal(goal_n(uneven, goal, if (goal %in% c("negligible", "bf_null")) NA else "uncertain") /
+      goal_n(equal, goal, if (goal %in% c("negligible", "bf_null")) NA else "uncertain"), 9 / 8, tolerance = 0.02, label = goal)
+  }
+  # Each total is split into whole groups as the cards split it.
+  row <- uneven$goals[uneven$goals$goal == "significance" & uneven$goals$prior == "uncertain", ]
+  expect_equal(c(row$n1, row$n2), as.numeric(rounded_groups(row$n, 2)))
+  expect_true(is.na(row$per_group))
+  # The smallest total whose groups reach the goal: one fewer doesn't.
+  sr <- BayesRepDesign::ssdSig(level = 0.025, dprior = BayesRepDesign::designPrior(to = uneven$original$estimate,
+    so = uneven$original$se, tau = 0, type = "predictive"), power = 0.8)$sr
+  g <- rounded_groups(row$n - 1, 2)
+  expect_gt(sqrt(1 / g[1] + 1 / g[2]), sr)
+  # The Bayes factor t-tests use bfpwr's chance at the two groups.
+  bf <- uneven$at_n[uneven$at_n$goal == "bf_null", "chance"]
+  g200 <- rounded_groups(200, 2)
+  expect_equal(bf, bfpwr::ptbf01(k = 10, n1 = g200[1], n2 = g200[2], pscale = 1 / sqrt(2), type = "two.sample",
+    dpm = 0, dpsd = 0, lower.tail = FALSE))
+  # Small telescopes is the card's own calculation with the same ratio.
+  expect_identical(uneven$inputs$allocation_ratio, 2)
+  # BUCSS plans equal groups only.
+  expect_null(uneven$bias_corrected)
+  expect_error(replication_planning("paired", 0.5, original_n = 30, allocation_ratio = 2), "two separate groups")
+  expect_error(two_groups(allocation_ratio = 0), "ratio above 0")
+})
+
+test_that("the script for unequal groups gives the planner's numbers and the number to recruit", {
+  skip_if_not_installed("bfpwr")
+  plan <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, smallest_effect = 0.2,
+    allocation_ratio = 2)
+  for (goal in c("significance", "small_telescopes", "bf_repeat")) {
+    script <- replication_planning_script(plan, goal = goal, also = c("bf_null", "negligible"), prior = "uncertain", attrition = 0.1)
+    expect_match(script, "ratio <- 2", fixed = TRUE)
+    env <- new.env()
+    suppressWarnings(eval(parse(text = script), envir = env))
+    expect_equal(env$n, goal_n(plan, goal, if (goal == "small_telescopes") NA else "uncertain"), label = goal)
+    expect_equal(env$n_recruit, replication_recruitment(env$n, groups = 2, attrition = 0.1, allocation_ratio = 2)$n_recruit)
+  }
+})
+
+test_that("a measure of different reliability plans the d the replication's measure would show", {
+  same <- two_groups()
+  changed <- two_groups(reliability_original = 0.9, reliability_replication = 0.7)
+  a <- sqrt(0.7 / 0.9)
+  expect_equal(changed$original$estimate, same$original$estimate * a)
+  expect_equal(changed$original$se, same$original$se * a)
+  expect_equal(changed$original$z, same$original$z)
+  expect_equal(changed$original$attenuation, a)
+  # A smaller expected effect needs more people; the goals planned for no
+  # effect are judged at zero, as before.
+  expect_gt(goal_n(changed, "significance", "uncertain"), goal_n(same, "significance", "uncertain"))
+  expect_equal(goal_n(changed, "negligible"), goal_n(same, "negligible"))
+  # Small telescopes and BUCSS work in the original's own units.
+  expect_false("small_telescopes" %in% changed$goals$goal)
+  expect_null(changed$bias_corrected)
+  # The script gives the same numbers.
+  script <- replication_planning_script(changed, goal = "significance", prior = "uncertain")
+  expect_match(script, "attenuation <- sqrt(0.7 / 0.9)", fixed = TRUE)
+  env <- new.env()
+  eval(parse(text = script), envir = env)
+  expect_equal(env$n, goal_n(changed, "significance", "uncertain"))
+  expect_error(two_groups(reliability_original = 0.9), "both studies")
+  expect_error(two_groups(reliability_original = 0.9, reliability_replication = 1.2), "at most 1")
+  expect_error(replication_planning("paired", 0.5, original_n = 30, reliability_original = 0.9, reliability_replication = 0.7),
+    "two separate groups, one group or a correlation")
+})
+
+test_that("a correlation measured less reliably is planned from the attenuated r, its z kept", {
+  same <- replication_planning("correlation", 0.3, original_n = 80)
+  changed <- replication_planning("correlation", 0.3, original_n = 80, reliability_original = 0.9, reliability_replication = 0.7)
+  a <- sqrt(0.7 / 0.9)
+  expect_equal(tanh(changed$original$estimate), 0.3 * a)
+  expect_equal(changed$original$z, same$original$z)
+  expect_gt(goal_n(changed, "significance", "uncertain"), goal_n(same, "significance", "uncertain"))
+  expect_false("small_telescopes" %in% changed$goals$goal)
+  script <- replication_planning_script(changed, goal = "significance", prior = "uncertain")
+  env <- new.env()
+  eval(parse(text = script), envir = env)
+  expect_equal(env$n, goal_n(changed, "significance", "uncertain"))
+})
+
+test_that("an observed r is the true r times the square root of both measures' reliabilities, in simulated data", {
+  set.seed(20261119)
+  n <- 2e5
+  rho <- 0.4
+  x <- stats::rnorm(n)
+  y <- rho * x + stats::rnorm(n, sd = sqrt(1 - rho^2))
+  rel_x <- 0.8
+  rel_y <- 0.6
+  x_obs <- x + stats::rnorm(n, sd = sqrt((1 - rel_x) / rel_x))
+  y_obs <- y + stats::rnorm(n, sd = sqrt((1 - rel_y) / rel_y))
+  expect_equal(stats::cor(x_obs, y_obs), rho * sqrt(rel_x * rel_y), tolerance = 0.01)
+})
+
+test_that("an observed d is the true d times the square root of the measure's reliability, in simulated studies", {
+  # Schmidt & Hunter (1996): measurement error adds variance to the
+  # outcome, not to the difference between the groups' means.
+  set.seed(20261119)
+  n <- 2e5
+  delta <- 0.5
+  rel <- 0.7
+  true <- c(stats::rnorm(n), stats::rnorm(n, delta))
+  observed <- true + stats::rnorm(2 * n, sd = sqrt((1 - rel) / rel * stats::var(true[1:n])))
+  group <- rep(1:2, each = n)
+  pooled <- sqrt((stats::var(observed[group == 1]) + stats::var(observed[group == 2])) / 2)
+  d_observed <- diff(tapply(observed, group, mean)) / pooled
+  expect_equal(unname(d_observed), delta * sqrt(rel), tolerance = 0.01)
+})
+
+test_that("several originals or a meta-analysis are planned from their pooled estimate and standard error", {
+  pooled <- replication_planning("two_groups", 0.45, original_analysis = "pooled", original_se = 0.12, smallest_effect = 0.2)
+  expect_equal(pooled$original$estimate, 0.45)
+  expect_equal(pooled$original$se, 0.12)
+  expect_true(is.na(pooled$original$n))
+  # The same as one study whose standard error is 0.12: the goals depend
+  # on the original only through its estimate and standard error.
+  dp <- BayesRepDesign::designPrior(to = 0.45, so = 0.12, tau = 0, type = "predictive")
+  sr <- BayesRepDesign::ssdSig(level = 0.025, dprior = dp, power = 0.8)$sr
+  expect_equal(goal_n(pooled, "significance", "uncertain"), 2 * ceiling(BayesRepDesign::se2n(sr, unitSD = 2) / 2 - 1e-9))
+  # Small telescopes and BUCSS need one study's test.
+  expect_null(pooled$telescope)
+  expect_null(pooled$bias_corrected)
+  # A correlation's interval is moved to Fisher's z.
+  r <- replication_planning("correlation", 0.3, original_analysis = "pooled", original_ci = c(0.2, 0.4))
+  expect_equal(r$original$se, (atanh(0.4) - atanh(0.2)) / (2 * stats::qnorm(0.975)))
+  # The script gives the same number.
+  env <- new.env()
+  eval(parse(text = replication_planning_script(pooled, goal = "significance", prior = "uncertain")), envir = env)
+  expect_equal(env$n, goal_n(pooled, "significance", "uncertain"))
+  expect_error(replication_planning("two_groups", 0.45, original_analysis = "pooled"), "standard error or its confidence interval")
+  expect_error(replication_planning("generic", 0.45, original_n = 100, original_se = 0.1, original_analysis = "pooled"), "Another design")
+})

@@ -236,13 +236,43 @@ same_doi <- function(ref, cit) {
 # A package's own citation(). powerkit's comes from its DESCRIPTION when it
 # isn't installed (as under devtools::load_all()).
 package_citation <- function(package) {
-  cit <- tryCatch(suppressWarnings(utils::citation(package)), error = function(e) NULL)
-  if (is.null(cit) && package == "powerkit") {
-    meta <- as.list(read.dcf(system.file("DESCRIPTION", package = "powerkit"))[1, ])
-    class(meta) <- "packageDescription"
-    cit <- suppressWarnings(utils::citation(auto = meta))
+  cit <- if (package == "powerkit") powerkit_citation() else tryCatch(suppressWarnings(utils::citation(package)), error = function(e) NULL)
+  without_doi_url(cit)
+}
+
+# Drop a url that only repeats the entry's DOI (Superpower's citation()
+# gives both), so the reference doesn't print the same link twice.
+without_doi_url <- function(cit) {
+  if (is.null(cit)) return(NULL)
+  for (i in seq_along(cit)) {
+    doi <- cit[[i]]$doi
+    url <- cit[[i]]$url
+    if (!is.null(doi) && !is.null(url) &&
+      tolower(sub("/$", "", url)) %in% tolower(paste0(c("https://doi.org/", "http://doi.org/", "https://dx.doi.org/", "http://dx.doi.org/"), doi))) {
+      cit[i]$url <- NULL
+    }
   }
   cit
+}
+
+# powerkit's citation, from its DESCRIPTION. A package installed from its
+# source folder (as powerkit is) has no Date/Publication, Date or Packaged
+# field, so citation() can't find a year and prints "(????)"; the year the
+# installed version was built stands in for it.
+powerkit_citation <- function(meta = NULL) {
+  if (is.null(meta)) {
+    path <- system.file("DESCRIPTION", package = "powerkit")
+    if (!nzchar(path)) return(NULL)
+    meta <- as.list(read.dcf(path)[1, ])
+  }
+  meta <- as.list(meta)
+  dated <- any(nzchar(unlist(meta[intersect(c("Date/Publication", "Date", "Packaged"), names(meta))])))
+  if (!dated) {
+    built <- regmatches(meta$Built %||% "", regexpr("[0-9]{4}-[0-9]{2}-[0-9]{2}", meta$Built %||% ""))
+    meta$Date <- if (length(built)) built else format(Sys.Date())
+  }
+  class(meta) <- "packageDescription"
+  tryCatch(suppressWarnings(utils::citation(auto = meta)), error = function(e) NULL)
 }
 
 placeholder_text <- function(key) {

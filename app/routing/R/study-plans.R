@@ -122,7 +122,8 @@ plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
   analyses <- plan_analyses(plan$entries)
   tryCatch(write(analyses, id = plan$id, name = plan$name,
     description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided,
-    replication = if (plan_is_replication(plan)) replication_record(plan$replication$fields, plan$replication$endpoint)),
+    replication = if (plan_is_replication(plan)) replication_normalise(plan$replication),
+    settings = plan_settings_numbers(plan$settings)),
     error = function(e) "")
 }
 
@@ -155,6 +156,7 @@ plan_from_text <- function(tree, text, read = engine_function("read_study_plan")
   plan$description <- plan_clean_text(file$description %||% "", plan_description_max)
   if (is.list(file$guided) && identical(file$guided$format, "powerkit-guided-plan")) plan$guided <- file$guided
   if (!is.null(replication_normalise(file$replication))) plan$replication <- replication_normalise(file$replication)
+  plan$settings <- plan_settings_clean(file$settings)
   for (i in seq_along(file$analyses)) {
     entry <- plan_entry_from_project(tree, file$analyses[[i]])
     role <- file$roles[[i]] %||% NA_character_
@@ -274,7 +276,7 @@ plan_browser_record <- function(plan, write = engine_function("write_study_plan"
   as.character(jsonlite::toJSON(list(format = "powerkit-plan-in-browser", version = 1L,
     id = plan$id, name = plan$name, description = plan$description %||% "",
     changed = num(plan$changed), saved_at = num(plan$saved_at), saved_how = plan$saved_how,
-    file = if (nzchar(text)) text),
+    settings = plan$settings, file = if (nzchar(text)) text),
     auto_unbox = TRUE, digits = NA, null = "null"))
 }
 
@@ -290,6 +292,7 @@ plan_from_browser_record <- function(tree, record, read, now) {
     plan$id <- rec$id
     plan$description <- plan_clean_text(rec$description %||% "", plan_description_max)
   }
+  if (is.null(plan$settings)) plan$settings <- plan_settings_clean(rec$settings)
   time <- function(x) if (is.numeric(x) && length(x) == 1L) as.POSIXct(x, origin = "1970-01-01", tz = "UTC")
   plan$changed <- time(rec$changed) %||% now
   plan$saved_at <- time(rec$saved_at)
@@ -406,4 +409,49 @@ plans_list_ui <- function(plans, current = NULL, running = character()) {
         "Remove every plan from this browser"),
       " (for a shared computer).")
   )
+}
+
+# A plan's settings for every analysis (queue item 29): the significance
+# level and target power each analysis added from the plan starts with,
+# kept as the text a card's box takes ("0.05"), each only when it is a
+# number strictly between 0 and 1. NULL when neither is set.
+plan_settings_clean <- function(x) {
+  if (!is.list(x)) return(NULL)
+  one <- function(v) {
+    if (is.list(v) && length(v) == 1L) v <- v[[1]]
+    n <- suppressWarnings(as.numeric(v))
+    if (length(n) == 1L && !is.na(n) && n > 0 && n < 1) format(n) else NULL
+  }
+  out <- Filter(Negate(is.null), list(alpha = one(x$alpha), power = one(x$power)))
+  if (length(out)) out else NULL
+}
+plan_settings_numbers <- function(settings) {
+  s <- plan_settings_clean(settings)
+  if (is.null(s)) NULL else lapply(s, as.numeric)
+}
+plan_edit_settings <- function(plan, field, value, now = Sys.time()) {
+  if (!field %in% c("alpha", "power")) return(plan)
+  s <- plan$settings %||% list()
+  s[[field]] <- if (nzchar(trimws(value %||% ""))) value
+  plan$settings <- plan_settings_clean(s)
+  plan_touch(plan, now)
+}
+# A card's answers, started with the plan's settings where the card has
+# none of its own yet (as replication_form_values() does for a
+# replication plan's).
+plan_settings_form_values <- function(values, settings) {
+  s <- plan_settings_clean(settings)
+  if (is.null(s)) return(values)
+  for (id in names(s)) if (is.null(values[[id]])) values[[id]] <- s[[id]]
+  values
+}
+# Said on the card when it started with the plan's settings.
+plan_settings_note <- function(plan) {
+  s <- plan_settings_clean(plan$settings)
+  if (is.null(s)) return(NULL)
+  parts <- c(if (!is.null(s$alpha)) sprintf("significance level %s", s$alpha),
+    if (!is.null(s$power)) sprintf("target power %s%%", format(100 * as.numeric(s$power))))
+  div(class = "status status-soon plan-settings-note",
+    p(class = "mb-0", sprintf("From the study plan \u201c%s\u201d: %s, set for every analysis in the plan. Change them here for this analysis only.",
+      plan$name, paste(parts, collapse = " and "))))
 }

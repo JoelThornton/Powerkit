@@ -29,6 +29,19 @@ test_that("an effect with one degree of freedom is told apart from one with seve
   expect_identical(eta[c("original_partial_eta", "original_df_error")], list(original_partial_eta = 0.115, original_df_error = 118))
   # A conceptual replication of a 1-df effect gets the one-number settings.
   expect_identical(replication_conceptual_settings(anova_values)$rep_prior, "shrunk")
+  # The button passes every field: from the design and variation alone, a
+  # 1-df ANOVA effect can't be told from one with several df, and nothing
+  # was changed while the page said "Done".
+  expect_identical(replication_conceptual_settings(anova_values[c("rep_design", "rep_tau")]), list())
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  button <- regmatches(code, regexpr("observeEvent\\(input\\$rep_use_conceptual[^\n]*\n([^\n]*\n){1,4}", code))
+  expect_match(button, "replication_field_ids", fixed = TRUE)
+  # The study design table asks a conceptual replication's own question.
+  plan <- replication_run(modifyList(anova_values, list(rep_alpha = "0.05", rep_power = "0.8")),
+    getExportedValue("powerkit", "replication_planning"), getExportedValue("powerkit", "replication_bucss"))
+  expect_match(paste(replication_design_table(plan, plan$choice, "conceptual"), collapse = "\n"),
+    "Does the effect appear in the changed conditions?", fixed = TRUE)
+  expect_match(paste(replication_design_table(plan, plan$choice), collapse = "\n"), "Does the original effect replicate?", fixed = TRUE)
 })
 
 test_that("the Goals step shows every goal for a 1-df effect, and BUCSS with the smallest effect otherwise", {
@@ -81,4 +94,23 @@ test_that("an effect with several df shows BUCSS and, when given, the smallest e
   within <- run_anova(modifyList(several, list(rep_anova_kind = "within", rep_anova_effect = "interaction", rep_n = "40",
     rep_anova_smallest = "0.06")))
   expect_match(text_of(replication_result_ui(within)), "No ANOVA card plans a within-subjects design with two factors", fixed = TRUE)
+})
+
+test_that("an extension that changes the original condition is told how to plan it", {
+  ui <- text_of(replication_planner_sections())
+  expect_match(ui, "the sample size under Goals is for the original condition alone", fixed = TRUE)
+  expect_match(ui, "a three-way interaction", fixed = TRUE)
+  expect_match(ui, "about four times as many people", fixed = TRUE)
+  expect_match(as.character(replication_extension_note(list(name = "x"), card = TRUE)), "Comparing the original condition with a changed version", fixed = TRUE)
+})
+
+test_that("an ANOVA effect planned with BUCSS gives the number to recruit at the chosen assurance", {
+  skip_if(is.null(engine_function("replication_recruitment")), "this engine has no replication_recruitment()")
+  several <- modifyList(anova_values, list(rep_levels_b = "3", rep_attrition = "0.2", rep_assurance = "0.8"))
+  plan <- run_anova(several)
+  row <- plan$sizes[plan$sizes$assurance == 0.8, ]
+  skip_if(is.na(row$n), "BUCSS couldn't plan this example")
+  expect_equal(plan$recruit$n_analysed, row$n)
+  expect_match(text_of(replication_result_ui(plan)), "allowing for 20% dropout", fixed = TRUE)
+  expect_match(replication_script_text(plan, NULL), "attrition <- 0.2", fixed = TRUE)
 })

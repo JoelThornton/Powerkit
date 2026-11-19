@@ -71,6 +71,7 @@ replication_assurance_levels <- c(0.5, 0.8, 0.9, 0.95)
 # package plans a replication of a MANOVA from its original, so it is an
 # ordinary power analysis from the smallest effect that would matter.
 replication_design_list_note <- paste(
+  "Most other designs can still be planned here, when the effect the replication tests is one number.",
   "An ANCOVA: its adjusted difference between two groups is one number, so enter it under \u201cAnother design\u201d, with its standard error, interval or F (one numerator degree of freedom), and every goal applies. With three or more groups, enter the one comparison the hypothesis is about the same way.",
   "A MANOVA: no published method plans a replication from a MANOVA's result, so plan it as an ordinary power analysis on the MANOVA card, from the smallest effect that would matter to you, or replicate the one outcome and comparison the hypothesis is about as its own design.",
   "Anything else whose focal effect is one number goes under \u201cAnother design\u201d too.")
@@ -208,7 +209,7 @@ replication_form_values <- function(values, ep = NULL, plan_values = NULL) {
 # statistic or d_rm) and r on E4, for an original analysed with a test.
 replication_card_effect_field <- function(ep, plan_values) {
   v <- function(id) as.character(plan_values[[id]] %||% "")
-  if (!v("rep_analysis") %in% c("", "test", "both")) return(NULL)
+  if (!v("rep_analysis") %in% c("", "test", "both", "pooled")) return(NULL)
   type <- v("rep_effect_type")
   d_given <- !nzchar(type) || identical(type, "d")
   switch(ep %||% "",
@@ -223,9 +224,11 @@ replication_card_effect_field <- function(ep, plan_values) {
 # (a default-prior t-test) or a posterior.
 replication_analyses_ui <- c("A significance test (a p-value)" = "test",
   "Both: a significance test and a Bayes factor" = "both", "A Bayes factor" = "bayes_factor",
-  "A posterior distribution" = "posterior")
+  "A posterior distribution" = "posterior",
+  "Several studies or a meta-analysis: their pooled estimate" = "pooled")
+replication_pool_from_ui <- c("Its standard error" = "se", "Its confidence interval" = "ci")
 replication_original_priors_ui <- c("Vague (flat, or nearly)" = "vague",
-  "A default prior (for example JASP's Cauchy prior, scale 0.707)" = "default",
+  "A default prior (for example the standard Cauchy prior, scale 0.707)" = "default",
   "An informative prior (built from earlier findings or a theory)" = "informative")
 replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval" = "ci")
 
@@ -235,9 +238,9 @@ replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval"
 # November 2026).
 replication_taus <- c(
   "None: the same effect in every study" = "0",
-  "Small (0.05)" = "0.05",
-  "Medium (0.125)" = "0.125",
-  "Large (0.20)" = "0.2"
+  "Example: 0.05" = "0.05",
+  "Example: 0.125" = "0.125",
+  "Example: 0.20" = "0.2"
 )
 
 # The same for a correlation, on Fisher's z: Kenny and Judd's rule of 25%
@@ -245,9 +248,9 @@ replication_taus <- c(
 # (E4; docs/conventions.md, "Correlations that vary between studies").
 replication_taus_r <- c(
   "None: the same correlation in every study" = "0",
-  "Small (0.025)" = "0.025",
-  "Medium (0.075)" = "0.075",
-  "Large (0.125)" = "0.125"
+  "Example: 0.025" = "0.025",
+  "Example: 0.075" = "0.075",
+  "Example: 0.125" = "0.125"
 )
 
 # The variation the plan uses, on the effect's own scale: Kenny and
@@ -285,7 +288,7 @@ replication_goal_notes <- c(
   agreement = "Asks whether the two estimates are close, not whether either differs from zero. A small original rarely allows it.",
   bf_replication = "Compares the original's effect with no effect, using the new data.",
   bf_sceptical = "Asks whether the two studies together would persuade someone who doubts the effect. A weak original may never allow it.",
-  bf_repeat = "The test the original used, with its prior, run on the new data alone: the Bayesian counterpart of a significant result again.",
+  bf_repeat = "A Bayes factor t-test on the replication's data alone, with a Cauchy prior for the effect.",
   small_telescopes = "Planned for a true effect of zero. A result below the yardstick says the original was too small to see an effect that size, not that it was a false positive.",
   negligible = "Planned for a true effect of zero. It needs the smallest effect that matters, and usually a large sample.",
   bf_null = "Planned for a true effect of zero. Evidence for no effect needs many more people than evidence for an effect (McLatchie, Warmelink & Tkacheva, 2020)."
@@ -322,11 +325,8 @@ replication_keeps_ui <- c(
 replication_keeps_words <- c(close = "a close replication", extension = "a replication with an extension",
   conceptual = "a conceptual replication", new = "a new study rather than a replication")
 
-# A conceptual replication's settings: the shrunk belief and the next
-# larger variation between studies than the one chosen (the design's
-# medium value at least), as the decision says; for an ANOVA original, a
-# higher assurance. A generic effect's
-# variation is on its own scale, so it is left to the researcher.
+# An optional scenario uses the shrunk belief and the next larger preset
+# (at least medium). A generic effect uses a user-supplied SD.
 replication_conceptual_settings <- function(values) {
   v <- function(id) trimws(as.character(values[[id]] %||% ""))
   design <- if (nzchar(v("rep_design"))) v("rep_design") else "two_groups"
@@ -348,6 +348,22 @@ replication_conceptual_settings <- function(values) {
   out
 }
 
+replication_conceptual_summary <- function(before, after) {
+  if (!length(after)) return(NULL)
+  value <- function(old, new, label) {
+    if (identical(old, new)) sprintf("%s stays at %s.", label, new)
+    else sprintf("%s changed from %s to %s.", label, old, new)
+  }
+  key <- before$rep_prior %||% ""
+  if (!key %in% names(replication_prior_labels)) key <- "uncertain"
+  prior <- replication_prior_labels[[key]]
+  belief <- value(prior, replication_prior_labels[[after$rep_prior]], "Belief")
+  sd <- replication_tau_value(before)
+  new_sd <- replication_tau_value(utils::modifyList(before, after))
+  variation <- if (is.finite(sd) && is.finite(new_sd)) value(format(sd), format(new_sd), "Between-study SD")
+  paste(c(belief, variation, "You can edit these settings under Goals."), collapse = " ")
+}
+
 # The same in the browser, for the note under Goals.
 replication_changes_js <- paste0("input.rep_keeps == 'conceptual' || input.rep_keeps == 'extension' || ",
   paste(sprintf("(input.%s || '').trim() !== ''", c("rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_checks")),
@@ -356,14 +372,14 @@ replication_changes_js <- paste0("input.rep_keeps == 'conceptual' || input.rep_k
 # "Also report": a criterion that can show the effect is absent starts
 # ticked, because a non-significant replication alone can't tell a failed
 # replication from an inconclusive one (decisions.md, 17 November 2026).
-# Was the original published because it was significant? BUCSS's
-# publication filter (alpha_prior), or none (alpha_prior = 1).
+# BUCSS models selection by significance or publication irrespective of the result.
 replication_published_ui <- c(
-  "Yes, or I don't know: most published findings were (BUCSS's usual assumption)" = "significant",
-  "No: it would have been published whatever it found, such as a Registered Report" = "any")
+  "Unknown. Compare both assumptions" = "unknown",
+  "Yes, significance was required" = "significant",
+  "No, it would have been published regardless of the result" = "any")
 
 replication_also_choices <- c(
-  "A criterion that could show the effect is absent (an equivalence test; with a Bayes factor as the main criterion, a Bayes factor for no effect)" = "absence",
+  "A criterion that could show the effect is absent (with a Bayes factor main criterion, the Bayes factor t-test for no effect where the design has one; otherwise an equivalence test)" = "absence",
   stats::setNames(names(replication_goal_labels), replication_goal_labels))
 
 # "Also report" as one text field, and back: the ticks joined by new
@@ -394,15 +410,19 @@ replication_resolve_goals <- function(values, available) {
   if (auto) goal <- switch(purpose,
     confirm = if (!bayes_original) "significance" else if ("bf_repeat" %in% available) "bf_repeat" else "bf_replication",
     either = if ("bf_repeat" %in% available) "bf_repeat" else "bf_replication",
-    absent = "negligible")
+    absent = if (bayes_original && "bf_null" %in% available) "bf_null" else "negligible")
   also <- strsplit(v("rep_also"), "\n")[[1]]
-  # The criterion that can show absence: with a Bayes factor main
-  # criterion, use a Bayes factor t-test for no effect when it is available.
-  absence <- if (goal %in% replication_bf_goals) "bf_null" else "negligible"
+  # The criterion that can show absence, one whose chance is planned for
+  # a true effect of zero: with a Bayes factor main criterion, the Bayes
+  # factor t-test for no effect where the design has it (two groups, one
+  # group, pairs); otherwise the equivalence test, which needs a bound
+  # (the smallest effect that matters, or d33 from the original's test).
+  absence <- if (goal %in% replication_bf_goals && "bf_null" %in% available) "bf_null" else "negligible"
   also <- unique(ifelse(also == "absence", absence, also))
   also <- setdiff(intersect(names(replication_goal_labels), intersect(also, available)), goal)
-  absence_missing <- "absence" %in% strsplit(v("rep_also"), "\\n")[[1]] && !absence %in% c(goal, also)
-  list(goal = goal, also = also, auto = auto, purpose = purpose, absence_missing = absence_missing,
+  absence_requested <- "absence" %in% strsplit(v("rep_also"), "\\n")[[1]]
+  list(goal = goal, also = also, auto = auto, purpose = purpose,
+    absence_missing = absence_requested && !absence %in% c(goal, also),
     prior = if (v("rep_prior") %in% names(replication_prior_labels)) v("rep_prior") else "uncertain")
 }
 
@@ -419,7 +439,8 @@ replication_prior_notes <- c(
 
 replication_ref_keys <- c("Pawel2026_replication", "Anderson2016_replication", "Simonsohn2015_telescopes", "Kenny2019_heterogeneity",
   "VerhagenWagenmakers2014_replication", "Ly2019_replication_bf", "Ly2018_summary_reanalysis", "McLatchie2020_bayes_factors",
-  "bfpwr_method", "Lakens2013_effectsizes", "Anderson2017_bucss", "AndersonKelley2024_replication_design")
+  "bfpwr_method", "Lakens2013_effectsizes", "Anderson2017_bucss", "AndersonKelley2024_replication_design",
+  "Schmidt1996_measurement")
 
 # The replication planner's sections, inside a replication plan's
 # workspace (replication_workspace_ui(), R/study-plan-replication.R; a Labs tool
@@ -429,18 +450,41 @@ replication_goal_choices <- c(list("Suggested criterion" = "auto"), lapply(
   list("Frequentist criteria" = replication_test_goals, "Bayesian criteria" = replication_bf_goals),
   function(ids) stats::setNames(ids, replication_goal_labels[ids])))
 
+replication_goal_options_js <- paste(
+  "(function() { function sync() {",
+  "  var d = $('#rep_design').val() || 'two_groups', a = $('input[name=rep_analysis]:checked').val() || 'test';",
+  "  var bayes = d !== 'anova' && (a === 'bayes_factor' || a === 'posterior');",
+  "  var off = { bf_repeat: d === 'correlation' || d === 'generic', bf_null: d === 'correlation' || d === 'generic',",
+  "    small_telescopes: d === 'generic' || bayes };",
+  "  var g = $('#rep_goal'), current = g.length ? g[0].value : '';",
+  "  g.find('option').each(function() { $(this).prop('disabled', !!off[this.value]); });",
+  "  if (off[current]) g.val('auto').trigger('change');",
+  "}",
+  "$(document).on('shiny:inputchanged', function(e) { if (e.name === 'rep_design' || e.name === 'rep_analysis') setTimeout(sync, 0); });",
+  "$(document).on('shiny:connected', function() { setTimeout(sync, 0); }); })();")
+
 # Determine which inputs the chosen criteria need, without running the engine.
 replication_criteria_settings <- function(values) {
   if (replication_bucss_only(values)) return(list(alpha = TRUE, sided = FALSE, bf = FALSE, bound = FALSE))
   design <- values$rep_design %||% ""
   available <- names(replication_goal_labels)
   if (design %in% c("generic", "correlation")) available <- setdiff(available, c("bf_repeat", "bf_null"))
-  if (identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor")))
+  # A change of the outcome measure's reliability: small telescopes' d33
+  # is in the original's own units (the engine leaves it out).
+  rel <- replication_reliabilities(values)
+  measure_changed <- !is.null(rel) && design %in% c("two_groups", "one_sample", "correlation", "") && !isTRUE(all.equal(rel[1], rel[2]))
+  if (identical(design, "generic") || measure_changed || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor", "pooled")))
     available <- setdiff(available, "small_telescopes")
   choice <- replication_resolve_goals(values, available)
   used <- c(choice$goal, choice$also)
+  # A bound for agreement or the equivalence test: the researcher's, or
+  # d33 from the original's significance test, which a Bayesian original
+  # or another design doesn't have.
+  no_d33 <- identical(design, "generic") || (!replication_is_anova(values) && (values$rep_analysis %||% "") %in% c("posterior", "bayes_factor", "pooled"))  || measure_changed
+  smallest <- nzchar(trimws(as.character(values$rep_smallest %||% "")))
   list(alpha = any(used %in% replication_test_goals), sided = any(used %in% c("significance", "pooled")),
     bf = any(used %in% replication_bf_goals), bound = any(used %in% c("agreement", "negligible")),
+    bound_needed = choice$goal %in% c("agreement", "negligible") && no_d33 && !smallest,
     suggested = if (choice$auto) replication_goal_labels[[choice$goal]] else "")
 }
 
@@ -461,7 +505,7 @@ rep_note <- function(text, label = "More context", keep = FALSE) {
 replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon", "rep_anova_smallest",
   "rep_bf", "rep_bf_both", "rep_prior_scale", "rep_post_sd", "rep_cri_level", "rep_se", "rep_ci_level", "rep_f",
   "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_smallest", "rep_tau_value", "rep_n_at", "rep_alpha", "rep_power")
-replication_signed_fields <- c("rep_effect", "rep_effect_r", "rep_statistic", "rep_cri_lower", "rep_cri_upper",
+replication_signed_fields <- c("rep_effect", "rep_post_mean", "rep_effect_r", "rep_statistic", "rep_cri_lower", "rep_cri_upper",
   "rep_ci_lower", "rep_ci_upper")
 rep_number_input <- function(input, id) {
   if (id %in% replication_number_fields) {
@@ -471,12 +515,15 @@ rep_number_input <- function(input, id) {
   input
 }
 
-rep_field <- function(id, label, value = "", help = NULL) {
+rep_field <- function(id, label, value = "", help = NULL, help_topic = NULL) {
   input <- rep_number_input(textInput(id, label, value = value, width = "100%"), id)
   if (is.null(help)) return(div(class = "form-field", input))
   help_id <- paste0(id, "_help")
   input <- htmltools::tagAppendAttributes(input, `aria-describedby` = help_id, .cssSelector = "input")
-  div(class = "form-field", input, p(class = "field-help small text-muted", id = help_id, help))
+  rest <- if (!is.null(help_topic)) help_rest(help)
+  div(class = "form-field", input,
+    p(class = "field-help small text-muted", id = help_id, if (is.null(rest)) help else help_lead(help)),
+    if (!is.null(rest)) tags$details(class = "rep-more small", tags$summary(help_topic), p(class = "mb-0", rest)))
 }
 
 # A step's title, numbered as the input screens' sections are, and a
@@ -521,9 +568,11 @@ replication_planner_sections <- function() {
             field("rep_epsilon", "The sphericity correction, epsilon (optional)", value = "1",
               help = "1 assumes sphericity, as most papers' F tests do. With a Greenhouse-Geisser or Huynh-Feldt correction, its epsilon, if the paper gives it.")),
           rep_note("An ANOVA effect is planned with BUCSS (Anderson, Kelley & Maxwell, 2017): the replication's sample size for a significant F test, with the original's effect corrected for publication bias and the uncertainty of its estimate. For a one-degree-of-freedom effect with its estimate and standard error, \u201cAnother design\u201d gives the other goals too.")),
-        conditionalPanel("input.rep_analysis == 'bayes_factor' && input.rep_design != 'anova'",
+        conditionalPanel("input.rep_analysis == 'bayes_factor' && (input.rep_design == 'correlation' || input.rep_design == 'generic')",
+          p(class = "small rep-changes-note", role = "note", "A Bayes factor gives the original's effect only for a t-test (two groups, one group or pairs): for this design, choose \u201cA posterior distribution\u201d if its prior was vague or a default one, or \u201cA significance test\u201d with its estimate. If the paper reported both, choose \u201cBoth\u201d.")),
+        conditionalPanel("input.rep_analysis == 'bayes_factor' && (input.rep_design == 'two_groups' || input.rep_design == 'one_sample' || input.rep_design == 'paired')",
           field("rep_bf", "Its Bayes factor for an effect, BF10",
-            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. Powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
+            help = "Enter a two-sided BF10 from a Bayes factor t-test. If the paper gives BF01, take its reciprocal. With the sample size and prior, this gives the effect's magnitude. Use the paper's result to identify the direction.")),
         conditionalPanel("input.rep_analysis == 'both' && input.rep_design != 'anova'",
           field("rep_bf_both", "Its Bayes factor for an effect, BF10 (optional)",
             help = "If the paper gives BF01 (for no effect), enter 1 / BF01. The effect is taken from the significance test below, its most direct report; the Bayes factor and its prior are recorded in the write-up, and the prior's scale is used to repeat the original's Bayes factor test as a goal.")),
@@ -532,7 +581,7 @@ replication_planner_sections <- function() {
           rep_note("A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.", label = "Which posterior can I use?", keep = TRUE)),
         conditionalPanel("input.rep_analysis != 'test' && (input.rep_design == 'two_groups' || input.rep_design == 'one_sample' || input.rep_design == 'paired')",
           field("rep_prior_scale", "The scale of its Cauchy prior on the effect", value = "0.707",
-            help = "0.707 is the default in JASP and the BayesFactor package. It is used to read the Bayes factor and to repeat the original's test.")),
+            help = "If you entered the original's Bayes factor, give the scale its authors used. For a posterior summary, this sets the prior for the replication's Bayes factor t-test. 0.707 (the square root of 2, halved) is the usual default, in the BayesFactor package for R, JASP and jamovi alike.")),
         conditionalPanel("input.rep_design == 'generic'",
           field("rep_effect_name", "What the effect is",
             help = "For example \u201cthe interaction coefficient\u201d or \u201codds ratio\u201d. The original's card suggests one."),
@@ -542,20 +591,30 @@ replication_planner_sections <- function() {
           # The d_rm choice is for pairs only: hidden for other designs.
           tags$script(HTML("$(document).on('shiny:inputchanged', function(e) { if (e.name === 'rep_design') $('input[name=rep_effect_type][value=d_rm]').closest('.radio').toggle(e.value === 'paired'); });")),
           conditionalPanel("input.rep_design == 'paired'", rep_note("For the same people measured twice, papers report several kinds of d, and they can differ by a factor of two or more: d_z divides the mean difference by the SD of the differences, d_rm and d_av by the scores' own SDs. If you're not sure which, give the t statistic (Lakens, 2013).", label = "Which effect size did they report?"))),
-        conditionalPanel("input.rep_analysis != 'bayes_factor' && input.rep_design != 'anova'",
+        conditionalPanel("(input.rep_analysis == 'test' || input.rep_analysis == 'both') && input.rep_design != 'anova'",
           field("rep_effect", "The effect it reported, with its sign",
-            help = "For the first four designs, in the form chosen above: d, d_z or r, or the t statistic (for an F with one numerator df, its square root, with the effect's sign). For another design, the estimate on its own scale, a ratio as the ratio. For a posterior, its mean.")),
+            help = "Enter d, d_z, r or t as selected. For another design, enter the estimate on the reported scale.")),
         conditionalPanel("(input.rep_analysis == 'test' || input.rep_analysis == 'both') && input.rep_design == 'paired' && input.rep_effect_type == 'd_rm'",
           field("rep_effect_r", "The correlation between the two measurements in the original study",
             help = "Often in a table of correlations, or the supplement. Without it, give the t statistic instead.")),
         conditionalPanel("input.rep_analysis == 'posterior' && input.rep_design != 'anova'",
-          radioButtons("rep_post_from", "How sure it was", choices = replication_post_from_ui, selected = "sd", inline = TRUE, width = "100%"),
+          field("rep_post_mean", "Its posterior mean", help = "Enter the mean on the reported scale, with its sign where applicable."),
+          radioButtons("rep_post_from", "How was posterior uncertainty reported?", choices = replication_post_from_ui, selected = "sd", inline = TRUE, width = "100%"),
           conditionalPanel("input.rep_post_from == 'sd'",
             field("rep_post_sd", "Its posterior SD", help = "For d, d_z or r, as reported; for another design, as a standard error would be: a ratio's of its log, a correlation's of Fisher's z.")),
           conditionalPanel("input.rep_post_from == 'ci'",
             field("rep_cri_lower", "The credible interval's lower end (on the reported scale)"),
             field("rep_cri_upper", "The credible interval's upper end"),
             field("rep_cri_level", "The interval's level (%)", value = "95"))),
+        conditionalPanel("input.rep_analysis == 'pooled' && ['two_groups', 'one_sample', 'paired', 'correlation'].indexOf(input.rep_design) >= 0",
+          rep_note("Give the pooled estimate as d (d_z for pairs) or r, from the paper's own meta-analysis of its studies or a published one, with how sure it is. The replication is planned against that estimate; small telescopes and BUCSS need one original study's test, so they are left out.", label = "Which estimate?"),
+          radioButtons("rep_pool_from", "How sure the pooled estimate is", choices = replication_pool_from_ui, selected = "se", inline = TRUE, width = "100%"),
+          conditionalPanel("input.rep_pool_from == 'se'",
+            field("rep_pool_se", "Its standard error", help = "For d or d_z, as reported; for r, of r itself (powerkit moves it to Fisher's z).")),
+          conditionalPanel("input.rep_pool_from == 'ci'",
+            field("rep_pool_lower", "The confidence interval's lower end"),
+            field("rep_pool_upper", "The confidence interval's upper end"),
+            field("rep_pool_level", "The interval's level (%)", value = "95"))),
         conditionalPanel("input.rep_design == 'generic' && input.rep_analysis != 'posterior'",
           radioButtons("rep_se_from", "How sure the original was of it", choices = replication_se_from_ui, selected = "se", inline = TRUE, width = "100%"),
           conditionalPanel("input.rep_se_from == 'se'",
@@ -568,10 +627,10 @@ replication_planner_sections <- function() {
             field("rep_statistic", "Its z or t statistic", help = "The estimate divided by its standard error, as the paper reported it.")),
           conditionalPanel("input.rep_se_from == 'f'",
             field("rep_f", "Its F statistic", help = "Only an F with one numerator degree of freedom, such as F(1, 118) for a 2 x 2 interaction or one contrast: its square root is the estimate's t. Enter the estimate above, such as the interaction contrast (the difference between the two simple effects)."))),
-        conditionalPanel("input.rep_design == 'two_groups'",
+        conditionalPanel("input.rep_design == 'two_groups' && input.rep_analysis != 'pooled'",
           field("rep_n1", "People in its first group"),
           field("rep_n2", "People in its second group")),
-        conditionalPanel("input.rep_design != 'two_groups'",
+        conditionalPanel("input.rep_design != 'two_groups' && (input.rep_analysis != 'pooled' || input.rep_design == 'generic' || input.rep_design == 'anova')",
           field("rep_n", "People (or pairs) it analysed, in total")),
         conditionalPanel("input.rep_design == 'generic'",
           rep_note("The replication is taken to copy the original's design, so its standard error shrinks with the square root of its sample size. Small telescopes needs the original's own test, so it is planned on the design's card.", label = "How this design is planned")),
@@ -581,9 +640,10 @@ replication_planner_sections <- function() {
           field("rep_original_alpha", "Its significance level (two-sided)", value = "0.05"),
           # The publication filter BUCSS corrects for (Anderson, Kelley &
           # Maxwell, 2017): off for an original that faced none.
-          radioButtons("rep_published", "Was it published because it was significant?", choices = replication_published_ui,
-            selected = "significant", width = "100%"),
-          rep_note("BUCSS assumes the original was published because its result was significant, and corrects for that publication bias as well as for the uncertainty in its estimate. A Registered Report, or a journal that publishes whatever a study finds, had no such filter: choose that, and only the uncertainty is corrected for (Anderson, Kelley & Maxwell, 2017). The other goals are the same either way."),
+          conditionalPanel("input.rep_design != 'generic'",
+            radioButtons("rep_published", "Did publication depend on a significant result?", choices = replication_published_ui,
+              selected = "unknown", width = "100%"),
+            p(class = "small text-muted", "This choice affects the BUCSS estimates. A Registered Report accepted before the results were known is an example of publication regardless of the result.")),
         NULL)),
       # The simple answer first (colleague review C-14, 12 November
       # 2026): the sample size to find the effect significant again,
@@ -600,12 +660,16 @@ replication_planner_sections <- function() {
       rep_card("What the replication should show",
         conditionalPanel(replication_one_number_js,
           conditionalPanel("input.rep_design == 'anova'",
-            p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. BUCSS's correction of the original is shown beside them.")),
+            p(class = "small rep-anova-one-df", role = "note", "This ANOVA effect has one degree of freedom, so it is a comparison of two means: its F is the square of that comparison's t (F(1, df) = t\u00b2). So every goal below applies, with its effect as a d (d_z when the same people are compared); the results say which comparison it is. With a p-value criterion, BUCSS's correction of the original is shown beside them.")),
           rep_note("Start with what the replication should show. One main criterion sets the sample size; any others you tick are reported beside it, as their chance at that sample size, so the plan can use p-values, Bayes factors or both (Anderson & Maxwell, 2016). Fix them before collecting data."),
           radioButtons("rep_purpose", "What should the replication show?", choices = replication_purposes_ui, selected = "confirm", width = "100%"),
           selectInput("rep_goal", "Main criterion for the replication", choices = replication_goal_choices,
             selected = "auto", selectize = FALSE, width = "100%"),
           uiOutput("rep_suggested_goal"),
+          # Criteria the original can't give are greyed out in the list:
+          # the Bayes factor t-test needs a t-test design, and small
+          # telescopes the original's significance test.
+          tags$script(HTML(replication_goal_options_js)),
           radioButtons("rep_prior", "What you believe about the true effect", choiceNames = lapply(names(replication_prior_labels), function(p)
             tags$span(tags$strong(replication_prior_labels[[p]]), tags$span(class = "rep-tile-text", replication_prior_notes[[p]]))),
             choiceValues = names(replication_prior_labels), selected = "uncertain", width = "100%"),
@@ -618,24 +682,26 @@ replication_planner_sections <- function() {
           conditionalPanel("output.rep_criteria && output.rep_criteria.bound",
             uiOutput("rep_from_notes_smallest"),
             field("rep_smallest", "The smallest effect that would matter to you (positive: d, d_z or r; for another design, on its own scale, a ratio above 1)",
-              help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015), a bound for when nothing else justifies one; another design needs a number here.")),
+              help = "An effect smaller than this would not matter for the theory or in practice; the equivalence test and agreement are judged against it. Left blank, the plan uses the effect the original study had a one-in-three chance of detecting (d33, Simonsohn, 2015) where the original's test supports it. With other designs, enter a bound for the equivalence test.",
+              help_topic = "How the equivalence bound is used")),
           NULL),
         conditionalPanel(replication_bucss_only_js,
-          p(class = "small", "For an ANOVA effect with several degrees of freedom, plan a significant F test from the original study with BUCSS, or from the smallest effect that would matter to you."),
+          p(class = "small", "For an ANOVA effect with several degrees of freedom, BUCSS plans a significant F test while accounting for uncertainty in the original estimate. It also accounts for selection when publication depended on significance. You can also plan from the smallest effect that would matter."),
           radioButtons("rep_assurance", "Assurance: how sure you want to be that the replication reaches the power below", choices = replication_assurances_ui,
             selected = "0.8", width = "100%"),
           rep_note("The corrected effect is itself uncertain. At 50% assurance the plan uses its best estimate, so the replication reaches the power aimed for about half the time; at 80% it uses a smaller effect, so it reaches it four times in five. More assurance needs more people. When publication is assumed to depend on significance, BUCSS uses the original study's significance level as the threshold.", label = "How assurance works"),
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
-              "You noted changes under How the replication differs. The more a replication changes, the more its true effect can differ from the original's; BUCSS has no setting for variation between studies, so choose a higher assurance here, or plan from the smallest effect that would matter.")),
+              "If the original effect is a weak guide to the changed design, you can plan from the smallest effect that would matter. BUCSS assurance describes uncertainty about the original effect.")),
           field("rep_anova_smallest", "Optional: the smallest effect that would matter to you, as a partial eta-squared",
-            help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.")),
+            help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.",
+            help_topic = "Choosing an ANOVA effect size")),
         NULL),
       conditionalPanel(replication_one_number_js,
         rep_card("How much the effect may vary between studies",
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
-              "You noted changes under How the replication differs. The more a replication changes, the more its true effect can differ from the original's, so allow more variation between studies here, and consider the shrunk belief above; a conceptual replication should use both.")),
+              "If the changes could affect the result, you can compare plans under different beliefs and between-study SDs.")),
           conditionalPanel("input.rep_design != 'correlation' && input.rep_design != 'generic'",
             selectInput("rep_tau", "How much the true effect may vary between studies (an SD in d, or d_z for pairs)", choices = replication_taus, selected = "0.05", selectize = FALSE, width = "100%")),
           conditionalPanel("input.rep_design == 'correlation'",
@@ -644,7 +710,9 @@ replication_planner_sections <- function() {
             field("rep_tau_value", "How much the true effect may vary between studies (optional): an SD on the effect's own scale",
               help = "In the units of the effect you entered: for a ratio, of its log; for a correlation, of Fisher's z. Kenny and Judd's examples are in d, so they can't be used here; a meta-analysis of this effect that reports tau is the best source. Empty plans for no variation.")),
           conditionalPanel("input.rep_design != 'generic'",
-            rep_note("The between-study SD describes how much true effects may vary across samples or settings. The presets illustrate small, medium and large variation (Kenny & Judd, 2019). If comparable studies provide an estimate of this SD, you can use it to judge which setting is closest.", label = "How to interpret the between-study SD")),
+            rep_note(paste("The between-study SD is how much true effects may vary across samples, settings and procedures; assuming none makes a replication look easier than it is.",
+              "The presets are Kenny and Judd's (2019) examples, 0.05, 0.125 and 0.20 in d, a quarter of Cohen's 0.2, 0.5 and 0.8 (for a correlation, the same rule applied to r = .1, .3 and .5, as SDs on Fisher's z):",
+              "illustrations, not estimates for your field. A meta-analysis of this effect that reports tau is the best source; it applies to the uncertain and shrunk beliefs."), label = "How to interpret the between-study SD")),
         NULL)),
       rep_card("How sure the replication should be",
         conditionalPanel("output.rep_criteria && output.rep_criteria.alpha",
@@ -660,9 +728,14 @@ replication_planner_sections <- function() {
         conditionalPanel("output.rep_criteria && output.rep_criteria.bf",
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors",
             choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
-          p(class = "small text-muted", "A larger threshold requires stronger evidence.")),
+          p(class = "small text-muted", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
         conditionalPanel(replication_one_number_js,
-          field("rep_n_at", "Optional: a sample size you could recruit (in total), to see each goal's chance at it")),
+          field("rep_n_at", "Optional: a sample size you could analyse (in total), to see each goal's chance at it")),
+        conditionalPanel("(input.rep_design || 'two_groups') == 'two_groups'",
+          field("rep_ratio", "Optional: unequal groups in the replication, as group 2's size over group 1's, such as 2 for twice as many in group 2",
+            help = "Leave it blank for equal groups, which need the fewest people. Each total is split into whole groups as powerkit's cards split it.")),
+        field("rep_attrition", "Optional: the proportion you expect to drop out or be excluded, such as 0.1 for 10%",
+          help = "The sample sizes are the numbers analysed. With this, the plan also gives the number to recruit: each group's size divided by 1 minus the proportion, rounded up, the rule powerkit's cards use. It is a crude rule that ignores how missing data will be handled (Rubin, 2025)."),
         NULL),
       # One bar for what is still needed and the button, kept in view
       # as the input screens' is.
@@ -676,20 +749,29 @@ replication_planner_sections <- function() {
         radioButtons("rep_keeps", "Which describes your study best?", choices = replication_keeps_ui, selected = character(0), width = "100%"),
         conditionalPanel("input.rep_keeps == 'extension'",
           rep_note("The original comparison is planned as a replication under Goals and on the original's card. Each thing you add (a new condition, a moderator, another measure) is an analysis of its own, with its own effect size: an extension's effect has no original estimate, so it is planned as an ordinary power analysis and reported under its own heading. Plan for whichever needs more people."),
+          rep_note(paste("Adding a changed version of the original condition, to test whether the effect disappears or shrinks in it? Then the sample size under Goals is for the original condition alone: the study's total adds the changed condition's people.",
+            "Whether the effect differs between the two versions is an interaction with the original comparison (with a 2 \u00d7 2 original, a three-way interaction), found under Add an extension analysis.",
+            "Enter the original's effect, at the size you believe under Goals, for the original version, and the effect you expect for the changed one (zero if it disappears).",
+            "Showing that an effect disappears needs about four times as many people as finding it: the interaction is the difference between two effects, each estimated from half the people.")),
           actionButton("rep_add_extension", "Add an extension analysis", class = "btn btn-outline-primary")),
         conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_bucss_only_js),
-          rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. Choose the assurance under Goals from the table of every level in the results, and say why in your write-up; or, if the original's effect is a weak guide to the new procedure, plan from the smallest effect that would matter to you, under Goals.")),
+          rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. BUCSS's assurance allows for the original's sampling error and publication bias, but nothing in it allows for a changed procedure changing the effect, so powerkit changes no setting for you. If the original effect is a weak guide to the changed design, you can plan from the smallest effect that would matter to you, under Goals.")),
         conditionalPanel(paste("input.rep_keeps == 'conceptual' &&", replication_one_number_js),
-          rep_note("With changed materials, measures or people, the true effect can differ more from the original's than in a close replication, and a failure is harder to read: it may mean the idea is wrong, or that the change mattered. So plan from the shrunk belief and allow more variation between studies, and keep the checks below."),
-          actionButton("rep_use_conceptual", "Plan it this way: the shrunk belief and more variation", class = "btn btn-outline-primary"),
+          p(class = "small", "Changing materials, measures or participants can change the effect. You can explore a scenario that shrinks the original estimate towards zero and uses a larger between-study SD where a preset is available."),
+          actionButton("rep_use_conceptual", "Try the sensitivity scenario", class = "btn btn-outline-primary"),
           uiOutput("rep_conceptual_done")),
         conditionalPanel("input.rep_keeps == 'new'",
           rep_note("If the study doesn't test the original comparison, the original's effect doesn't tell you what to expect, and a replication plan's goals don't apply. Plan it as an ordinary study, with the smallest effect that would matter to you or one from earlier work."),
           actionButton("rep_start_study_plan", "Start a study plan instead", class = "btn btn-outline-primary"))),
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "How the replication differs"),
-        rep_note("No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies under Goals."),
+        rep_note("No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. You can explore how different assumptions affect the sample size under Goals."),
         box("rep_diff_people", "The people: who takes part, where and when, and how they differ from the original sample"),
         box("rep_diff_materials", "The materials and measures: what is translated, updated or replaced"),
+        conditionalPanel("['two_groups', 'one_sample', 'correlation', ''].indexOf(input.rep_design || '') >= 0",
+          div(class = "rep-reliability",
+            field("rep_rel_original", "Optional, if the outcome measure changes: its reliability in the original study, such as 0.9"),
+            field("rep_rel_replication", "and the reliability you expect for the replication's measure, such as 0.75",
+              help = "A less reliable measure shows a smaller d for the same true effect: an observed d is the true d times the square root of the measure's reliability (Schmidt & Hunter, 1996). With both, the plan expects the original's d times the square root of the replication's reliability over the original's, so a less reliable measure needs more people. Use the same kind of reliability for both, such as Cronbach's alpha. For a correlation, give the reliability of the measure that changes (an observed r is the true r times the square root of both measures' reliabilities; if both change, give the product of their reliabilities in each study). Small telescopes and BUCSS work in the original's own units, so they are left out."))),
         box("rep_diff_procedure", "The procedure and setting: for example online instead of in the lab"),
         box("rep_diff_analysis", "The analysis: the original's test, and anything added or changed"),
         box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"),
@@ -750,9 +832,10 @@ replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref
 
 # Every field the planner keeps, for the file and the write-up.
 replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", "rep_bf_both", "rep_original_prior", "rep_prior_scale",
-  "rep_post_from", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
+  "rep_post_from", "rep_post_mean", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level",
+  "rep_pool_from", "rep_pool_se", "rep_pool_lower", "rep_pool_upper", "rep_pool_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
-  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_goal", "rep_prior",
+  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
@@ -804,8 +887,15 @@ replication_args <- function(values) {
   if (identical(design, "two_groups")) {
     args$original_n1 <- num("rep_n1", NA_real_)
     args$original_n2 <- num("rep_n2", NA_real_)
+    ratio <- replication_ratio(values)
+    if (!is.na(ratio) && !isTRUE(all.equal(ratio, 1))) args$allocation_ratio <- ratio
   } else {
     args$original_n <- num("rep_n", NA_real_)
+  }
+  rel <- replication_reliabilities(values)
+  if (!is.null(rel) && design %in% c("two_groups", "one_sample", "correlation")) {
+    args$reliability_original <- rel[[1]]
+    args$reliability_replication <- rel[[2]]
   }
   if (identical(design, "generic")) {
     args$scale <- if (v("rep_scale") %in% c("none", "log", "fisher_z")) v("rep_scale") else "none"
@@ -845,8 +935,20 @@ replication_args <- function(values) {
     args$original_effect <- NULL
     args$original_bf <- num("rep_bf", NA_real_)
   }
+  if (identical(analysis, "pooled")) {
+    args[c("original_se", "original_ci", "original_ci_level", "original_statistic", "original_n", "original_n1", "original_n2",
+      "original_prior_scale")] <- NULL
+    if (identical(v("rep_pool_from"), "ci")) {
+      args$original_ci <- c(num("rep_pool_lower", NA_real_), num("rep_pool_upper", NA_real_))
+      level <- num("rep_pool_level", 95)
+      args$original_ci_level <- if (!is.na(level) && level > 1) level / 100 else level
+    } else {
+      args$original_se <- num("rep_pool_se", NA_real_)
+    }
+  }
   if (identical(analysis, "posterior")) {
-    args[c("original_se", "original_ci", "original_ci_level", "original_statistic")] <- NULL
+    args$original_effect <- num("rep_post_mean", NA_real_)
+    args[c("original_se", "original_ci", "original_ci_level", "original_statistic", "original_f")] <- NULL
     args$original_prior <- if (nzchar(v("rep_original_prior"))) v("rep_original_prior") else "default"
     if (identical(v("rep_post_from"), "ci")) {
       args$original_ci <- c(num("rep_cri_lower", NA_real_), num("rep_cri_upper", NA_real_))
@@ -894,8 +996,79 @@ replication_anova_args <- function(values) {
 # what is still to choose, in words.
 replication_settings_missing <- function(values) {
   v <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
-  c(if (replication_criteria_settings(values)$alpha && !v("rep_alpha")) "the significance level",
-    if (!v("rep_power")) "the chance of success to aim for")
+  settings <- replication_criteria_settings(values)
+  c(if (settings$alpha && !v("rep_alpha")) "the significance level",
+    if (!v("rep_power")) "the chance of success to aim for",
+    if (isTRUE(settings$bound_needed)) "the smallest effect that would matter",
+    if (v("rep_attrition") && is.na(replication_attrition(values)) && !identical(trimws(as.character(values$rep_attrition)), "0"))
+      "the dropout as a proportion between 0 and 1, such as 0.1",
+    if (v("rep_ratio") && identical(values$rep_design %||% "two_groups", "two_groups") && is.na(replication_ratio(values)))
+      "the groups' ratio as a number above 0 and at most 20, such as 2",
+    if ((v("rep_rel_original") || v("rep_rel_replication")) && (values$rep_design %||% "two_groups") %in% c("two_groups", "one_sample", "correlation", "") &&
+      is.null(replication_reliabilities(values)))
+      "the measure's reliability in both studies, each a number above 0 and at most 1")
+}
+
+# The outcome measure's reliability in the original and the replication,
+# or NULL unless both are numbers above 0 and at most 1.
+replication_reliabilities <- function(values) {
+  r <- vapply(c("rep_rel_original", "rep_rel_replication"), function(id)
+    suppressWarnings(as.numeric(trimws(as.character(values[[id]] %||% "")))), numeric(1))
+  if (anyNA(r) || any(r <= 0 | r > 1)) NULL else unname(r)
+}
+
+# The replication's group 2 size over group 1's, or NA when none was
+# given or it isn't a number above 0 and at most 20.
+replication_ratio <- function(values) {
+  r <- suppressWarnings(as.numeric(trimws(as.character(values$rep_ratio %||% ""))))
+  if (length(r) != 1 || is.na(r) || r <= 0 || r > 20) NA_real_ else r
+}
+
+# The expected dropout (the proportion of those recruited who won't be
+# analysed), or NA when none was given or it isn't between 0 and 1.
+replication_attrition <- function(values) {
+  a <- suppressWarnings(as.numeric(trimws(as.character(values$rep_attrition %||% ""))))
+  if (length(a) != 1 || is.na(a) || a <= 0 || a >= 1) NA_real_ else a
+}
+
+# The number to recruit for the plan's main sample size, allowing for the
+# expected dropout (the engine's replication_recruitment()), or NULL.
+replication_add_recruitment <- function(plan, values, recruitment = engine_function("replication_recruitment")) {
+  a <- replication_attrition(values)
+  if (is.na(a) || is.null(recruitment)) return(plan)
+  if (!is.null(plan$sizes)) {
+    row <- plan$sizes[plan$sizes$assurance == (plan$chosen_assurance %||% 0.8), , drop = FALSE]
+    if (!nrow(row) || is.na(row$n[1])) return(plan)
+    groups <- if (!is.na(row$per_unit[1]) && row$per_unit[1] > 0) max(1, round(row$n[1] / row$per_unit[1])) else 1
+    plan$recruit <- recruitment(row$n[1], groups = groups, attrition = a)
+    return(plan)
+  }
+  n <- plan$at_main$n
+  if (is.null(n) || is.na(n)) return(plan)
+  plan$recruit <- recruitment(n, groups = if (identical(plan$inputs$design, "two_groups")) 2 else 1, attrition = a,
+    allocation_ratio = plan$inputs$allocation_ratio %||% 1)
+  plan
+}
+
+# The recruitment target, under the headline.
+replication_recruit_ui <- function(plan) {
+  words <- replication_recruit_words(plan)
+  if (is.null(words)) return(NULL)
+  p(class = "rep-recruit", id = "rep-recruit", tags$strong("To recruit: "), paste0(words, "."),
+    tags$span(class = "small text-muted", " Each group's analysed size divided by 1 minus the dropout, rounded up."))
+}
+
+# The recruitment target in words: "484 participants (242 per group),
+# allowing for 10% dropout".
+replication_recruit_words <- function(plan) {
+  r <- plan$recruit
+  if (is.null(r)) return(NULL)
+  pairs <- identical(plan$inputs$design, "paired") && is.null(plan$anova_effect)
+  total <- sprintf("%s %s", format(r$n_recruit, big.mark = ","), if (pairs) "pairs" else "participants")
+  if (length(r$groups_recruit) > 1) total <- if (length(unique(r$groups_recruit)) > 1) {
+    sprintf("%s (%s in group 1, %s in group 2)", total, format(r$groups_recruit[1], big.mark = ","), format(r$groups_recruit[2], big.mark = ","))
+  } else sprintf("%s (%s per group)", total, format(r$groups_recruit[1], big.mark = ","))
+  sprintf("%s, allowing for %s dropout", total, sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)))
 }
 
 replication_missing <- function(values) {
@@ -917,10 +1090,20 @@ replication_missing <- function(values) {
   if (identical(analysis, "both")) analysis <- "test"
   from_bf <- identical(analysis, "bayes_factor")
   posterior <- identical(analysis, "posterior")
+  pooled <- identical(analysis, "pooled")
+  if (pooled && (generic || identical(values$rep_design, "anova"))) {
+    return("for this design, a pooled estimate is entered as a significance test's estimate with its standard error (choose \u201cA significance test\u201d)")
+  }
   by_se <- generic && !posterior
+  if (pooled) {
+    return(c(if (!v("rep_effect")) "the pooled estimate",
+      if (!identical(values$rep_pool_from, "ci") && !v("rep_pool_se")) "its standard error",
+      if (identical(values$rep_pool_from, "ci") && (!v("rep_pool_lower") || !v("rep_pool_upper"))) "its confidence interval"))
+  }
   missing <- c(
     if (from_bf && !v("rep_bf")) "the original's Bayes factor",
-    if (!from_bf && !v("rep_effect")) if (posterior) "the posterior's mean" else "the effect the original study reported",
+    if (posterior && !v("rep_post_mean")) "the posterior's mean",
+    if (!from_bf && !posterior && !v("rep_effect")) "the effect the original study reported",
     if (posterior && !identical(values$rep_post_from, "ci") && !v("rep_post_sd")) "its posterior SD",
     if (posterior && identical(values$rep_post_from, "ci") && (!v("rep_cri_lower") || !v("rep_cri_upper"))) "its credible interval",
     if (by_se && identical(from, "se") && !v("rep_se")) "its standard error",
@@ -952,6 +1135,16 @@ replication_stop <- function(message) {
 # reported (the engine's at_n; the app only chooses which to ask for).
 # Agreement and too small to matter need a bound: left blank, it is d33
 # (Simonsohn, 2015), from the same plan's small-telescopes yardstick.
+# Repeat only the BUCSS call. The other goals do not depend on the publication filter.
+replication_without_filter <- function(result, values, bucss) {
+  if (is.null(result) || !identical(values$rep_published, "unknown")) return(NULL)
+  args <- Filter(Negate(is.null), result$inputs)
+  # The engine records the implied F as well as the effect size used to get it.
+  if (!is.null(args$original_partial_eta)) args$original_statistic <- NULL
+  args$publication_filter <- FALSE
+  do.call(bucss, args)
+}
+
 replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
   args <- replication_args(values)
   settings <- replication_criteria_settings(values)
@@ -973,7 +1166,8 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
         list(smallest_effect = eta, alpha = args$alpha, power = args$power))),
         error = function(e) list(problem = replication_problem(e)))
     }
-    return(plan)
+    plan$without_publication_filter <- replication_without_filter(plan, values, bucss)
+    return(replication_add_recruitment(plan, values))
   }
   plan <- do.call(engine, args)
   bounded <- c("agreement", "negligible")
@@ -1002,16 +1196,24 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
     plan$goals <- plan$goals[plan$goals$goal %in% replication_bf_goals, , drop = FALSE]
     if (!is.null(plan$at_n)) plan$at_n <- plan$at_n[plan$at_n$goal %in% replication_bf_goals, , drop = FALSE]
   }
+  plan$without_publication_filter <- replication_without_filter(plan$bias_corrected, values, bucss)
   main <- replication_main(plan, choice$goal, choice$prior)
   if (!is.na(main$row$n)) {
     at <- do.call(engine, utils::modifyList(args, list(n = main$row$n)))$at_n
     plan$at_main <- list(n = main$row$n, chances = at[at$goal %in% c(choice$goal, choice$also), , drop = FALSE])
   }
-  plan
+  replication_add_recruitment(plan, values)
 }
 
-replication_n_words <- function(plan, n) {
+replication_n_words <- function(plan, n, split = engine_function("replication_recruitment")) {
   if (is.na(n)) return(NA_character_)
+  # Unequal groups: each group's size, split as the engine splits it.
+  ratio <- plan$inputs$allocation_ratio %||% 1
+  if (identical(plan$inputs$design, "two_groups") && is.null(plan$anova_effect) && !isTRUE(all.equal(ratio, 1))) {
+    g <- split(n, groups = 2, allocation_ratio = ratio)$groups_analysed
+    return(sprintf("%s participants (%s in group 1, %s in group 2)", format(n, big.mark = ","),
+      format(g[1], big.mark = ","), format(g[2], big.mark = ",")))
+  }
   # A 1-df ANOVA effect planned as pairs: the same people in each condition.
   if (!is.null(plan$anova_effect) && identical(plan$inputs$design, "paired")) return(sprintf("%s participants", format(n, big.mark = ",")))
   switch(plan$inputs$design,
@@ -1054,7 +1256,7 @@ replication_table_ui <- function(plan) {
     rows <- g[g$goal == goal, ]
     label <- tags$th(scope = "row", replication_goal_labels[[goal]], tags$br(), tags$span(class = "small text-muted", replication_goal_notes[[goal]]))
     if (all(is.na(rows$prior))) {
-      return(tags$tr(label, tags$td(colspan = 3, replication_cell(plan, rows[1, ]), " (planned for no effect)")))
+      return(tags$tr(label, tags$td(colspan = 3, replication_cell(plan, rows[1, ]), ", planned for no effect")))
     }
     tags$tr(label, lapply(names(replication_prior_labels), function(p) tags$td(replication_cell(plan, rows[rows$prior %in% p, ][1, ]))))
   })
@@ -1074,8 +1276,8 @@ replication_chances_ui <- function(plan) {
     tags$tr(label, lapply(names(replication_prior_labels), function(p) tags$td(replication_pct(rows$chance[rows$prior %in% p][1]))))
   })
   tags$table(class = "table table-sm result-table", id = "rep-chances",
-    tags$caption(sprintf("The chance of each goal with %s", replication_n_words(plan, plan$inputs$n))),
-    tags$thead(tags$tr(tags$th(scope = "col", "Goal"),
+    tags$caption(sprintf("The chance of each criterion with %s, the sample size you could analyse", replication_n_words(plan, plan$inputs$n))),
+    tags$thead(tags$tr(tags$th(scope = "col", "Criterion"),
       lapply(replication_prior_labels, function(l) tags$th(scope = "col", l)))),
     tags$tbody(rows))
 }
@@ -1087,11 +1289,21 @@ replication_goal_aims <- c(
   agreement = "a result that agrees with the original's, within the smallest effect that matters",
   bf_replication = "evidence that the original's effect was found again (a replication Bayes factor)",
   bf_sceptical = "evidence for the effect that would convince a sceptic (a sceptical Bayes factor)",
-  bf_repeat = "evidence for the effect from a default Bayes factor t-test",
+  bf_repeat = "evidence for the effect from a Bayes factor t-test",
   small_telescopes = "showing the original study was too small to have detected the effect (small telescopes)",
   negligible = "showing the effect is too small to matter (an equivalence test)",
-  bf_null = "evidence for no effect from a default Bayes factor t-test"
+  bf_null = "evidence for no effect from a Bayes factor t-test"
 )
+
+# A criterion's label for the write-up, where "at your threshold" is
+# replaced by the threshold itself.
+replication_goal_written <- function(goal, threshold = NULL) {
+  label <- replication_goal_labels[[goal]]
+  if (!grepl(", at your threshold,", label, fixed = TRUE)) return(label)
+  label <- sub(", at your threshold,", "", label, fixed = TRUE)
+  if (is.null(threshold) || !length(threshold) || is.na(threshold)) return(label)
+  sub("\\)$", sprintf(" of at least %s)", format(threshold)), label)
+}
 
 # The answer first: the main criterion's sample size, under the chosen
 # belief, in one sentence.
@@ -1099,13 +1311,30 @@ replication_main_headline <- function(plan) {
   ch <- plan$choice
   i <- plan$inputs
   m <- replication_main(plan, ch$goal, ch$prior)
-  level <- if (ch$goal %in% replication_bf_goals) sprintf(" (a Bayes factor of at least %s)", format(i$threshold))
-    else if (ch$goal %in% c("significance", "pooled", "agreement", "negligible", "small_telescopes")) sprintf(" (alpha = %s)", sub("^0", "", format(i$alpha))) else ""
+  words <- replication_goal_aims[[ch$goal]]
+  # The threshold joins the criterion's own bracket where it has one, so
+  # the sentence never has two brackets in a row.
+  bracket <- grepl("\\)$", words)
+  level <- if (ch$goal %in% replication_bf_goals) {
+    if (bracket) sprintf(" of at least %s", format(i$threshold)) else sprintf(" (a Bayes factor of at least %s)", format(i$threshold))
+  } else if (ch$goal %in% c("significance", "pooled", "agreement", "negligible", "small_telescopes")) {
+    if (bracket) sprintf(" at alpha = %s", sub("^0", "", format(i$alpha))) else sprintf(" (alpha = %s)", sub("^0", "", format(i$alpha)))
+  } else ""
+  if (bracket && nzchar(level)) words <- sub("\\)$", paste0(level, ")"), words)
+  else words <- paste0(words, level)
   when <- if (m$no_effect) "if there is no effect" else switch(ch$prior,
     as_reported = "if the true effect is as large as reported",
     uncertain = "allowing for the uncertainty in the original's estimate",
     shrunk = "if the true effect is shrunk towards zero, as published effects often are")
-  aim <- sprintf("%s chance of %s%s, %s", replication_a_pct(i$power), replication_goal_aims[[ch$goal]], level, when)
+  aim <- sprintf("%s chance of %s, %s", replication_a_pct(i$power), words, when)
+  both <- replication_either_sizes(plan)
+  if (!is.null(both) && !is.na(m$row$n)) {
+    larger <- max(m$row$n, both$n)
+    return(p(class = "result-headline lead", sprintf(
+      "To settle it either way, the replication needs %s for %s, and %s for %s chance of %s if there is no effect. Planning for the larger, %s, gives at least %s chance of a clear answer whichever is true.",
+      replication_n_words(plan, m$row$n), aim, replication_n_words(plan, both$n), replication_a_pct(i$power),
+      replication_lc(replication_goal_labels[[both$goal]]), replication_n_words(plan, larger), replication_a_pct(i$power))))
+  }
   if (!is.na(m$row$n)) return(p(class = "result-headline lead", sprintf("For %s, the replication needs %s.", aim, replication_n_words(plan, m$row$n))))
   p(class = "result-headline lead", sprintf("For %s: %s. Choose another main criterion under Goals to set the sample size.",
     aim, tolower(replication_cell(plan, m$row))))
@@ -1118,7 +1347,8 @@ replication_bayes_original_words <- function(plan) {
   scale_words <- if (identical(i$design, "correlation") || identical(i$scale, "fisher_z")) " on Fisher's z scale"
     else if (identical(i$scale, "log")) " on the log scale" else ""
   if (identical(i$original_analysis, "bayes_factor")) {
-    return(sprintf("The original's Bayes factor of %s (BF10), with its sample size and a Cauchy prior of scale %s, comes from a t statistic of %s: an effect of %s with a standard error of %s.",
+    return(sprintf(paste("The original's two-sided BF10 of %s, with its sample size and a Cauchy prior of scale %s, implies an absolute t statistic of %s and an effect magnitude of %s (standard error %s).",
+      "The calculation uses a positive orientation. Use the original study to identify the effect's direction."),
       format(signif(i$original_bf, 3)), format(signif(i$original_prior_scale, 3)), format(signif(o$t, 3)),
       format(signif(o$estimate, 3)), format(signif(o$se, 3))))
   }
@@ -1135,6 +1365,36 @@ replication_validation_text <- paste(
   "Each goal's chance agrees with a separate simulation of the method's model, and small telescopes",
   "with t-tests on simulated people; the check against published examples is still to come.")
 
+# With "whether the effect is there or not", the main criterion is
+# planned for an effect and the absence criterion is only also reported,
+# so the planned sample size can leave a null result unable to show
+# anything (a Bayes factor for no effect grows slowly with the sample).
+# Returns the sentence that says so when the absence criterion's chance
+# at the planned sample size is below the chance aimed for, else NULL.
+replication_either_sizes <- function(plan) {
+  ch <- plan$choice
+  if (is.null(ch) || !identical(ch$purpose, "either")) return(NULL)
+  absence <- intersect(c("bf_null", "negligible"), ch$also)[1]
+  if (is.na(absence)) return(NULL)
+  n <- replication_main(plan, absence, ch$prior)$row$n
+  if (is.na(n)) NULL else list(goal = absence, n = n)
+}
+
+# Why "either way" has two sample sizes, under the headline that gives both.
+replication_either_gap <- function(plan) {
+  ch <- plan$choice
+  if (is.null(ch) || !identical(ch$purpose, "either") || is.null(plan$at_main)) return(NULL)
+  absence <- intersect(c("bf_null", "negligible"), ch$also)[1]
+  if (is.na(absence)) return(NULL)
+  a <- plan$at_main$chances
+  chance <- a$chance[a$goal == absence][1]
+  if (is.na(chance) || chance >= plan$inputs$power) return(NULL)
+  n <- replication_main(plan, absence, ch$prior)$row$n
+  sprintf("Why two numbers: the first is planned for showing the effect if it is there, but a null result must be able to show something too. With %s, %s has %s chance if there is no effect, because evidence for no effect builds up more slowly than evidence for an effect%s. Plan for the larger number (enter it under Goals as a sample size you could analyse to see every criterion's chance there), or collect data until the evidence is strong either way (a sequential design).",
+    replication_n_words(plan, plan$at_main$n), replication_lc(replication_goal_labels[[absence]]), replication_a_pct(chance),
+    if (!is.na(n)) sprintf("; it reaches %s chance at %s", replication_a_pct(plan$inputs$power), replication_n_words(plan, n)) else "")
+}
+
 # The main criterion and those also reported, as their chance at the main
 # criterion's sample size: the chosen belief first, the others beside it.
 replication_main_chances_ui <- function(plan) {
@@ -1143,9 +1403,11 @@ replication_main_chances_ui <- function(plan) {
   notes <- tagList(
     if (identical(ch$bound, "d33")) p(class = "small", sprintf("The smallest effect that matters was left blank, so the equivalence test and agreement use %s = %s, the effect the original study had a one-in-three chance of detecting (Simonsohn, 2015). Enter your own under Goals if you can justify one.",
       plan$telescope$effect_name, format(signif(plan$telescope$effect, 3)))),
-    if (isTRUE(ch$absence_missing)) p(class = "small",
-      if (ch$goal %in% replication_bf_goals) "A Bayes factor for no effect is available here for t-test designs. If an equivalence test fits your study, you can add it under Goals."
-      else "To report an equivalence test, enter the smallest effect under Goals to add it."))
+    if (isTRUE(ch$absence_missing)) p(class = "small rep-changes-note", role = "note",
+      paste(if (ch$goal %in% replication_bf_goals) "This design has no Bayes factor t-test for no effect, so the criterion that could show the effect is absent is the equivalence test."
+        else "The criterion that could show the effect is absent is the equivalence test.",
+        "It needs the smallest effect that would matter, because the default bound (d33) comes from the original's significance test: enter it under Goals to add it.")),
+    if (!is.null(gap <- replication_either_gap(plan))) p(class = "small rep-changes-note", role = "note", id = "rep-either-gap", gap))
   at <- plan$at_main
   if (is.null(at)) return(notes)
   a <- at$chances
@@ -1230,10 +1492,56 @@ replication_bucss_reason_words <- function(res) {
   "Once corrected for publication bias and the uncertainty in its estimate, the original's result leaves no effect to plan for: it is too weak to plan a replication from with BUCSS. Plan from the smallest effect that would matter instead, under Goals."
 }
 
+# Use the same conditions and values in the results and the write-up.
+replication_publication_headers <- function(filtered) c("Assurance",
+  sprintf("Significance required (p < %s)", format(filtered$inputs$original_alpha)), "Publication regardless of result")
+
+replication_publication_rows <- function(filtered, unfiltered, chosen = NULL) {
+  at <- function(result, a) {
+    row <- result$sizes[result$sizes$assurance == a, ][1, ]
+    if (!is.na(row$n)) return(replication_bucss_n_words(result, row))
+    if (identical(row$reason, "not_significant")) return("Original did not meet the significance requirement")
+    "No sample size returned"
+  }
+  lapply(filtered$sizes$assurance, function(a) c(
+    paste0(replication_pct(a), if (a %in% chosen) " (chosen)" else ""),
+    at(filtered, a), at(unfiltered, a)))
+}
+
+replication_publication_intro <- "The publication process is unknown. Each column gives the sample size under a different assumption."
+
+replication_publication_ui <- function(filtered, unfiltered, chosen = NULL) {
+  rows <- replication_publication_rows(filtered, unfiltered, chosen)
+  tagList(p(class = "small", replication_publication_intro),
+    div(class = "table-responsive", tabindex = 0, role = "region", `aria-label` = "BUCSS publication assumptions",
+      tags$table(class = "table table-sm result-table", id = "rep-bucss-comparison",
+        tags$caption(sprintf("BUCSS sample sizes for %s power", replication_pct(filtered$inputs$power))),
+        tags$thead(tags$tr(lapply(replication_publication_headers(filtered), function(h) tags$th(scope = "col", h)))),
+        tags$tbody(lapply(rows, function(row) tags$tr(tags$th(scope = "row", row[1]), tags$td(row[2]), tags$td(row[3])))))))
+}
+
+replication_publication_report <- function(filtered, unfiltered, chosen = NULL) {
+  as_row <- function(row) paste0("| ", paste(row, collapse = " | "), " |")
+  c(replication_publication_intro, "",
+    as_row(replication_publication_headers(filtered)), "|---|---|---|",
+    vapply(replication_publication_rows(filtered, unfiltered, chosen), as_row, character(1)), "")
+}
+
 # An ANOVA original: BUCSS's sample size for a significant F test at the
 # chosen assurance, then every assurance for comparison.
 replication_bucss_result_ui <- function(plan) {
   i <- plan$inputs
+  comparison <- plan$without_publication_filter
+  if (!is.null(comparison)) {
+    return(div(class = "result-panel mt-2", role = "status",
+      p(class = "result-headline lead", sprintf("Sample sizes for the %s F test at %s assurance",
+        replication_anova_effect_words(i), replication_pct(plan$chosen_assurance))),
+      p(class = "small", sprintf("Replication significance level %s. ", format(i$alpha)),
+        tags$span(class = "badge-progress", "Validation in progress"), " ", replication_bucss_validation_text),
+      replication_publication_ui(plan, comparison, plan$chosen_assurance),
+      replication_anova_smallest_ui(plan),
+      p(class = "small text-muted", sprintf("Calculated with BUCSS %s.", plan$packages[[1]]$version))))
+  }
   sz <- plan$sizes
   chosen <- sz[sz$assurance == plan$chosen_assurance, ][1, ]
   aim <- sprintf("a significant F test for the %s (alpha = %s) with %s power, and %s assurance that the power is reached once the original's effect is corrected for %s",
@@ -1255,6 +1563,7 @@ replication_bucss_result_ui <- function(plan) {
   })
   div(class = "result-panel mt-2", role = "status",
     p(class = "result-headline lead", headline),
+    replication_recruit_ui(plan),
     beside,
     p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_bucss_validation_text),
     if (any(!is.na(sz$reason))) p(replication_bucss_reason_words(plan)),
@@ -1323,6 +1632,9 @@ replication_bucss_validation_text <- paste(
 # 50% and 80% assurance (the engine's plan$bias_corrected).
 replication_bias_corrected_ui <- function(plan) {
   b <- plan$bias_corrected
+  if (is.null(b) && replication_uneven(plan) && !isTRUE(plan$inputs$original_analysis %in% c("bayes_factor", "posterior", "pooled"))) {
+    return(rep_note("BUCSS's correction for publication bias plans two equal groups, so it is left out for unequal ones. Leave the groups' ratio blank to see it."))
+  }
   if (is.null(b)) return(NULL)
   sz <- b$sizes
   at <- function(a) {
@@ -1332,6 +1644,10 @@ replication_bias_corrected_ui <- function(plan) {
   two <- identical(plan$inputs$design, "two_groups")
   unequal <- two && !identical(plan$inputs$original_n1, plan$inputs$original_n2)
   div(class = "mt-2", id = "rep-bias-corrected",
+    if (!is.null(plan$without_publication_filter)) tagList(
+      h4(class = "h6", "Planning for a significant result with BUCSS"),
+      replication_publication_ui(b, plan$without_publication_filter))
+    else tagList(
     h4(class = "h6", if (replication_bucss_filtered(b)) "Allowing for publication bias (BUCSS)" else "Allowing for uncertainty (BUCSS)"),
     if (all(!is.na(sz$reason))) p(class = "small", replication_bucss_reason_words(b))
     else p(class = "small", sprintf("Corrected for %s (Anderson, Kelley & Maxwell, 2017), a significant result with %s power needs %s at 50%% assurance (the corrected estimate itself) and %s at 80%% assurance (BUCSS's default). %s",
@@ -1339,13 +1655,13 @@ replication_bias_corrected_ui <- function(plan) {
       replication_pct(plan$inputs$power), at(0.5), at(0.8),
       if (replication_bucss_filtered(b)) "It is another way to allow for published effects being too large, beside the shrunk belief above; say in the write-up which one the sample size uses."
       else "It is another way to allow for the original's uncertainty, beside the belief with its uncertainty above; say in the write-up which one the sample size uses.")),
-    rep_note(paste("Why there are several numbers for one goal: each answers a different question about the original's effect.",
+    if (!all(!is.na(sz$reason))) rep_note(paste("Why there are several numbers for one goal: each answers a different question about the original's effect.",
       "As reported takes it as exact. With its uncertainty allows for its sampling error. Shrunk towards zero, and BUCSS, also allow",
       "for published effects being too large: shrinking pulls the belief towards zero, the more so the weaker the evidence, and BUCSS",
       "undoes the significance filter that got the original published. BUCSS's 50% plans for its corrected estimate; its 80% plans",
       "for an effect the original can't rule out, which grows quickly when the original was near its threshold. None is the right one:",
       "choose the question that fits your study, and say which in the write-up."), label = "Why several numbers"),
-    if (!all(!is.na(sz$reason))) replication_routes_ui(b),
+    if (!all(!is.na(sz$reason))) replication_routes_ui(b)),
     p(class = "small text-muted", paste0(
       "BUCSS's test is two-sided",
       if (identical(plan$inputs$alternative, "one.sided")) ", so the one-sided test is planned as a two-sided test at twice its level" else "",
@@ -1371,6 +1687,7 @@ replication_result_ui <- function(plan) {
   tagList(
     div(class = "result-panel mt-2", role = "status",
       if (is.null(plan$choice)) replication_headline_ui(plan) else replication_main_headline(plan),
+      replication_recruit_ui(plan),
       p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_validation_text),
       replication_anova_one_df_note(plan),
       replication_main_chances_ui(plan),
@@ -1388,16 +1705,19 @@ replication_result_ui <- function(plan) {
         sprintf("Small telescopes' yardstick is the same %s.", plan$telescope$effect_name)
         else sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
           plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
-      else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes is left out: it rests on the original's significance test, and the original was analysed with Bayes factors.")
+      else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes needs the original's significance test. This plan uses a Bayesian summary of the original.")
+      else if (!is.null(plan$original$attenuation)) NULL
       else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
+      # The sample size the researcher could recruit, in view: they asked for it.
+      replication_attenuation_ui(plan),
+      replication_chances_ui(plan),
       replication_bias_corrected_ui(plan),
       tags$details(class = "mt-2", id = "rep-every-goal", open = if (is.null(plan$choice)) NA,
         tags$summary("Every goal under every belief"),
         p(class = "small", "For comparison: the sample size each goal needs, under each belief. The plan's sample size comes from its main criterion alone."),
         replication_table_ui(plan),
         tags$dl(class = "small", lapply(names(replication_prior_labels), function(p) tagList(
-          tags$dt(replication_prior_labels[[p]]), tags$dd(replication_prior_notes[[p]])))),
-        replication_chances_ui(plan)),
+          tags$dt(replication_prior_labels[[p]]), tags$dd(replication_prior_notes[[p]]))))),
       if (!is.null(plan$sequential)) div(class = "mt-2",
         rep_note("The replication could also collect data until its Bayes factor is strong either way, a sequential design. The Bayesian planning tool under Tools works it out, with the belief chosen under Goals as its design prior and the original's prior as the analysis prior."),
         actionButton("rep_to_sequential", "Plan it as a sequential Bayes factor study", class = "btn btn-outline-primary btn-sm")),
@@ -1473,19 +1793,23 @@ replication_main <- function(plan, goal, prior) {
 replication_methods_paragraph <- function(plan, goal, prior) {
   i <- plan$inputs
   m <- replication_main(plan, goal, prior)
-  original <- switch(i$design,
+  original <- if (identical(i$original_analysis, "pooled")) "" else switch(i$design,
     two_groups = sprintf("%s and %s per group", i$original_n1, i$original_n2),
     paired = sprintf("%s pairs", i$original_n), sprintf("%s people", i$original_n))
   scaled <- if (identical(i$design, "generic")) sprintf("; the replication's standard error was the original's (%s%s) scaled by the square root of the ratio of sample sizes, assuming the replication copies the original's design",
     format(signif(plan$original$se, 3)), switch(i$scale %||% "none", log = ", on the log scale", fisher_z = ", on Fisher's z scale", "")) else ""
   bayes <- !identical(i$original_analysis %||% "test", "test")
   shown <- if (identical(i$original_analysis, "bayes_factor")) {
-    sprintf("%s = %s, read from its Bayes factor (BF10 = %s, a default t-test with a Cauchy prior of scale %s; Ly et al., 2018), %s",
-      plan$effect_name, format(signif(plan$original$estimate, 3)), format(signif(i$original_bf, 3)),
+    sprintf("an effect of size |%s| = %s, read from its two-sided Bayes factor (BF10 = %s, a default t-test with a Cauchy prior of scale %s; Ly et al., 2018), its direction taken from the original study, %s",
+      plan$effect_name, format(signif(plan$original$reported %||% plan$original$estimate, 3)), format(signif(i$original_bf, 3)),
       format(signif(i$original_prior_scale, 3)), original)
   } else if (identical(i$original_analysis, "posterior")) {
     sprintf("its posterior mean, %s = %s, with its posterior SD standing in for the standard error, from a %s prior, %s",
       plan$effect_name, format(i$original_effect), i$original_prior, original)
+  } else if (identical(i$original_analysis, "pooled")) {
+    sprintf("the pooled estimate of the original studies, %s = %s, with %s", plan$effect_name, format(i$original_effect),
+      if (!is.null(i$original_ci)) sprintf("a %s%% confidence interval from %s to %s", format(100 * i$original_ci_level),
+        format(i$original_ci[1]), format(i$original_ci[2])) else sprintf("a standard error of %s", format(i$original_se)))
   } else if (!is.null(plan$anova_effect)) {
     a <- plan$anova_effect
     sprintf("%s = %s, from its F(1, %s) = %s, the square of the t (%s) of the two-mean comparison it is (Lakens, 2013), %s, with %s people in total",
@@ -1500,18 +1824,20 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   } else {
     sprintf("%s = %s, %s", plan$effect_name, format(i$original_effect), original)
   }
+  shown <- paste0(shown, replication_attenuation_words(plan))
   belief <- switch(prior,
     as_reported = "assuming the true effect equals the original estimate",
-    uncertain = "with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by the original study)",
+    uncertain = sprintf("with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by %s)",
+      if (identical(i$original_analysis, "pooled")) "the original studies' pooled estimate" else "the original study"),
     shrunk = "with a design prior that shrinks the original estimate towards zero by empirical Bayes")
   varies <- if (i$tau > 0 && !identical(prior, "as_reported")) sprintf(", allowing the true effect to vary between studies with a standard deviation of %s", format(i$tau)) else ""
   if (is.na(m$row$n) && identical(m$row$reason, "any_size")) {
     return(sprintf("The chosen goal (%s) has more than %s chance with a replication of any size, %s, because the original study's result counts towards it; it does not set the replication's sample size, so another goal should.",
-      replication_lc(replication_goal_labels[[goal]]), replication_a_pct(i$power), if (m$no_effect) "planned for no effect" else belief))
+      replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_a_pct(i$power), if (m$no_effect) "planned for no effect" else belief))
   }
   if (is.na(m$row$n)) {
     return(sprintf("The replication's sample size was planned with powerkit's replication planner, but the chosen goal (%s) cannot reach %s chance %s.",
-      replication_lc(replication_goal_labels[[goal]]), replication_a_pct(i$power), if (m$no_effect) "" else belief))
+      replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_a_pct(i$power), if (m$no_effect) "" else belief))
   }
   calc <- if (identical(goal, "bf_repeat")) {
     sprintf("a Bayes factor of at least %s for an effect from a Bayes factor t-test with a Cauchy prior of scale %s on the replication's data, %s%s, with the original estimate (%s), calculated with bfpwr (Pawel & Held, 2025)",
@@ -1527,11 +1853,33 @@ replication_methods_paragraph <- function(plan, goal, prior) {
       format(i$alpha), format(i$smallest_effect))
   } else {
     sprintf("%s%s, %s%s, with the original estimate (%s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign%s",
-      replication_lc(replication_goal_labels[[goal]]), replication_sided_words(plan, goal), belief, varies, shown, scaled)
+      replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_sided_words(plan, goal), belief, varies, shown, scaled)
   }
-  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s",
+  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s%s",
     replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n),
-    if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "")
+    if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "",
+    if (identical(goal, plan$choice$goal)) paste0(replication_either_sentence(plan, m$row$n), replication_recruit_sentence(plan)) else "")
+}
+
+# "Settle it either way": the absence criterion's own sample size, after
+# the main one, in the methods paragraph ("" for the other purposes).
+replication_either_sentence <- function(plan, n_main) {
+  both <- replication_either_sizes(plan)
+  if (is.null(both)) return("")
+  sprintf(" To settle the question either way, %s chance of %s if there is no effect needs %s; %s",
+    replication_a_pct(plan$inputs$power), replication_lc(replication_goal_labels[[both$goal]]), replication_n_words(plan, both$n),
+    if (both$n > n_main) sprintf("the larger, %s, gives at least that chance of a clear answer whichever is true.", replication_n_words(plan, both$n))
+    else "the sample size above already gives it.")
+}
+
+# The recruitment target, for the write-up: " Allowing for ..., we will
+# recruit ...", or "" without a dropout.
+replication_recruit_sentence <- function(plan) {
+  r <- plan$recruit
+  if (is.null(r)) return("")
+  sprintf(" Allowing for an expected dropout of %s, each group's analysed size was divided by %s and rounded up, so we will recruit %s.",
+    sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)), format(signif(1 - r$attrition, 6)),
+    sub(", allowing for .*$", "", replication_recruit_words(plan)))
 }
 
 # How a significance or pooled goal is tested, in words.
@@ -1551,13 +1899,19 @@ replication_sided_words <- function(plan, goal) {
 # in the plan, the question, hypothesis, sampling plan, analysis plan,
 # what sets the test's sensitivity, how each outcome will be read, and the
 # theory (left for the researcher), as Markdown lines.
-replication_design_table <- function(plan, ch) {
+replication_design_table <- function(plan, ch, keeps = NULL) {
   i <- plan$inputs
   thr <- format(i$threshold)
   alpha <- format(i$alpha)
   bound <- if (!is.null(i$smallest_effect)) sprintf("±%s%s", format(signif(i$smallest_effect, 3)),
     if (identical(ch$bound, "d33")) " (d33, the effect the original had a one-in-three chance of detecting)" else ", the smallest effect that matters")
-  question <- switch(ch$purpose %||% "confirm",
+  # A conceptual replication tests the idea in changed conditions, so its
+  # question is about those conditions, not the original effect itself.
+  question <- if (identical(keeps, "conceptual")) switch(ch$purpose %||% "confirm",
+    either = "Is the effect there or not in the changed conditions?",
+    absent = "Is the effect absent, or too small to matter, in the changed conditions?",
+    "Does the effect appear in the changed conditions?")
+  else switch(ch$purpose %||% "confirm",
     either = "Is the original effect there or not?",
     absent = "Is the effect absent, or too small to matter?",
     "Does the original effect replicate?")
@@ -1633,7 +1987,7 @@ replication_also_sentence <- function(plan) {
     if (!nrow(r)) return(NA_character_)
     no_effect <- all(is.na(r$prior))
     chance <- if (no_effect) r$chance[1] else r$chance[r$prior %in% ch$prior][1]
-    sprintf("%s, %s%s", replication_lc(replication_goal_labels[[goal]]), replication_pct(chance), if (no_effect) " if there is no effect" else "")
+    sprintf("%s, %s%s", replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_pct(chance), if (no_effect) " if there is no effect" else "")
   }, character(1))
   parts <- parts[!is.na(parts)]
   if (!length(parts)) return(NULL)
@@ -1659,6 +2013,8 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       report[-1]))
   }
   v <- function(id) trimws(as.character(values[[id]] %||% ""))
+  analysis <- v("rep_analysis")
+  if (replication_is_anova(values) || !analysis %in% replication_analyses_ui) analysis <- "test"
   or_blank <- function(x) if (nzchar(x)) x else "_(not filled in yet)_"
   design_label <- names(replication_designs_ui)[replication_designs_ui == (if (nzchar(v("rep_design"))) v("rep_design") else "two_groups")]
   two <- identical(v("rep_design"), "two_groups") || !nzchar(v("rep_design"))
@@ -1669,17 +2025,18 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     sprintf("- Study: %s", or_blank(v("rep_study"))),
     sprintf("- Design: %s", design_label),
     sprintf("- How it was analysed: %s", replication_lc(names(replication_analyses_ui)[replication_analyses_ui ==
-      (if (v("rep_analysis") %in% replication_analyses_ui) v("rep_analysis") else "test")])),
-    if (identical(v("rep_analysis"), "bayes_factor")) c(
+      analysis])),
+    if (identical(analysis, "bayes_factor")) c(
       sprintf("- Its Bayes factor (BF10): %s", or_blank(v("rep_bf"))),
-      sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale")))),
-    if (identical(v("rep_analysis"), "both") && !identical(v("rep_design"), "anova")) c(
+      sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale"))),
+      "- The two-sided Bayes factor gives the effect's magnitude. Use the original study to identify its direction."),
+    if (identical(analysis, "both") && !identical(v("rep_design"), "anova")) c(
       if (nzchar(v("rep_bf_both"))) sprintf("- Its Bayes factor (BF10): %s", v("rep_bf_both")),
       if (v("rep_design") %in% c("two_groups", "one_sample", "paired", "")) sprintf("- The scale of its Cauchy prior: %s", or_blank(v("rep_prior_scale")))),
     if (identical(v("rep_analysis"), "posterior")) c(
-      sprintf("- Its prior: %s", tolower(names(replication_original_priors_ui)[replication_original_priors_ui ==
+      sprintf("- Its prior: %s", replication_lc(names(replication_original_priors_ui)[replication_original_priors_ui ==
         (if (v("rep_original_prior") %in% replication_original_priors_ui) v("rep_original_prior") else "default")])),
-      sprintf("- Its posterior mean: %s", or_blank(v("rep_effect"))),
+      sprintf("- Its posterior mean: %s", or_blank(v("rep_post_mean"))),
       if (identical(v("rep_post_from"), "ci")) sprintf("- Its %s%% credible interval: %s to %s", if (nzchar(v("rep_cri_level"))) v("rep_cri_level") else "95",
         or_blank(v("rep_cri_lower")), or_blank(v("rep_cri_upper")))
       else sprintf("- Its posterior SD: %s", or_blank(v("rep_post_sd")))),
@@ -1692,6 +2049,11 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       if (identical(v("rep_f_from"), "eta")) sprintf("- Reported effect: a partial eta-squared of %s, with %s error degrees of freedom", or_blank(v("rep_eta")), or_blank(v("rep_df_error")))
       else sprintf("- Reported effect: F = %s", or_blank(v("rep_anova_f"))),
       if (!v("rep_anova_kind") %in% c("", "between") && !v("rep_epsilon") %in% c("", "1")) sprintf("- Sphericity correction: epsilon = %s", v("rep_epsilon")))
+    else if (identical(v("rep_analysis"), "pooled")) c(
+      sprintf("- Its pooled estimate: %s", or_blank(v("rep_effect"))),
+      if (identical(v("rep_pool_from"), "ci")) sprintf("- Its %s%% confidence interval: %s to %s", if (nzchar(v("rep_pool_level"))) v("rep_pool_level") else "95",
+        or_blank(v("rep_pool_lower")), or_blank(v("rep_pool_upper")))
+      else sprintf("- Its standard error: %s", or_blank(v("rep_pool_se"))))
     else if (v("rep_analysis") %in% c("bayes_factor", "posterior")) NULL
     else if (identical(v("rep_design"), "generic")) c(
       sprintf("- The effect: %s (%s)", or_blank(v("rep_effect_name")),
@@ -1709,9 +2071,11 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       sprintf("- Reported effect: a repeated-measures d (d_rm or d_av) of %s, with a correlation of %s between the measurements",
         or_blank(v("rep_effect")), or_blank(v("rep_effect_r")))
     else sprintf("- Reported effect: %s", or_blank(v("rep_effect"))),
-    if (two) sprintf("- Group sizes: %s and %s", or_blank(v("rep_n1")), or_blank(v("rep_n2"))) else sprintf("- Sample size: %s", or_blank(v("rep_n"))),
-    if (identical(v("rep_design"), "anova") || !v("rep_analysis") %in% c("bayes_factor", "posterior")) sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))),
-    if (identical(v("rep_published"), "any")) "- Published whatever it found (no publication filter), so BUCSS corrects for uncertainty only", "",
+    if (identical(v("rep_analysis"), "pooled")) NULL
+    else if (two) sprintf("- Group sizes: %s and %s", or_blank(v("rep_n1")), or_blank(v("rep_n2"))) else sprintf("- Sample size: %s", or_blank(v("rep_n"))),
+    if (identical(v("rep_design"), "anova") || !v("rep_analysis") %in% c("bayes_factor", "posterior", "pooled")) sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))),
+    if (identical(v("rep_published"), "any")) "- Published whatever it found (no publication filter), so BUCSS corrects for uncertainty only",
+    if (!is.null(plan$without_publication_filter)) "- Publication process unknown. BUCSS estimates are reported under both assumptions.", "",
     "## Goals and sample size", "")
   if (is.null(plan)) {
     lines <- c(lines, "_(Not calculated yet: press “Show the sample size” under Goals and sample size.)_", "")
@@ -1721,7 +2085,10 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     ch <- plan$choice %||% replication_resolve_goals(values, unique(plan$goals$goal))
     goal <- if (ch$goal %in% plan$goals$goal) ch$goal else "significance"
     lines <- c(lines, paste(c(replication_methods_paragraph(plan, goal, ch$prior), replication_also_sentence(plan),
-      replication_bias_corrected_sentence(plan)), collapse = " "), "",
+      if (is.null(plan$without_publication_filter)) replication_bias_corrected_sentence(plan)), collapse = " "), "",
+      if (!is.null(plan$without_publication_filter)) c(
+        sprintf("BUCSS sample sizes for a significant result with %s power (Anderson, Kelley & Maxwell, 2017).", replication_pct(plan$inputs$power)), "",
+        replication_publication_report(plan$bias_corrected, plan$without_publication_filter)),
       "| Criterion | Its role | Sample size it needs | Chance with the planned sample size |", "|---|---|---|---|")
     used <- c(goal, setdiff(ch$also, goal))
     a <- plan$at_main$chances
@@ -1731,22 +2098,24 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
         r <- a[a$goal == g, ]
         replication_pct(if (all(is.na(r$prior))) r$chance[1] else r$chance[r$prior %in% ch$prior][1])
       }
-      lines <- c(lines, sprintf("| %s | %s | %s%s | %s |", replication_goal_labels[[g]],
+      lines <- c(lines, sprintf("| %s | %s | %s%s | %s |", replication_goal_written(g, plan$inputs$threshold),
         if (identical(g, goal)) "Main criterion: sets the sample size" else "Also reported",
-        replication_cell(plan, m$row), if (m$no_effect) " (planned for no effect)" else "", chance))
+        replication_cell(plan, m$row), if (m$no_effect) ", planned for no effect" else "", chance))
     }
     bf_used <- any(used %in% replication_bf_goals)
     bound_used <- any(used %in% c("agreement", "negligible"))
     lines <- c(lines, "",
-      sprintf("Settings: %schance aimed for %s, belief about the true effect: %s, variation between studies %s%s%s.",
+      sprintf("Settings: %schance aimed for %s, belief about the true effect: %s, variation between studies %s%s%s%s.",
         if (any(used %in% replication_test_goals)) sprintf("replication significance level %s (%s), ", format(plan$inputs$alpha),
           if (identical(plan$inputs$alternative, "one.sided")) "one-sided, in the original's direction" else "two-sided") else "",
         replication_pct(plan$inputs$power), tolower(replication_prior_labels[[ch$prior]]), format(plan$inputs$tau),
         if (bound_used) sprintf(", smallest effect that matters %s%s", format(signif(plan$inputs$smallest_effect, 3)),
           if (identical(ch$bound, "d33")) " (d33, as none was given)" else "") else "",
-        if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else ""),
+        if (bf_used) sprintf(", evidence threshold a Bayes factor of %s", format(plan$inputs$threshold)) else "",
+        paste0(if (replication_uneven(plan)) sprintf(", group 2 %s times the size of group 1", format(signif(plan$inputs$allocation_ratio, 4))) else "",
+          if (!is.null(plan$recruit)) sprintf(", expected dropout %s", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))) else "")),
       "", "The sample size each other goal would need, under each belief, is on the plan's Goals screen.", "",
-      if (!is.null(plan$choice)) replication_design_table(plan, ch))
+      if (!is.null(plan$choice)) replication_design_table(plan, ch, values$rep_keeps))
   }
   lines <- c(lines, "## The original's analysis, planned on its card", "",
     if (length(analyses)) analyses else c("_(Not planned yet: under The original study, find the original's design and plan it on its card.)_", ""),
@@ -1778,10 +2147,18 @@ replication_bucss_report_lines <- function(plan, values) {
   i <- plan$inputs
   assurance <- plan$chosen_assurance %||% suppressWarnings(as.numeric(values$rep_assurance %||% "0.8"))
   if (is.na(assurance) || !assurance %in% plan$sizes$assurance) assurance <- 0.8
+  smallest <- if (!is.null(plan$smallest$n)) c(sprintf("From the smallest effect that would matter to us, a partial eta-squared of %s, the same F test with %s power needs %s participants (%s, as powerkit's ANOVA card calculates it).",
+    format(plan$smallest$inputs$smallest_effect), replication_pct(plan$smallest$inputs$power), format(plan$smallest$n, big.mark = ","),
+    plan$smallest$function_used), "")
+  if (!is.null(plan$without_publication_filter)) {
+    return(c(sprintf("We used BUCSS (Anderson, Kelley & Maxwell, 2017; Anderson & Kelley, 2024) to plan a significant F test for the %s at alpha %s, with %s power and %s assurance.",
+      replication_anova_effect_words(i), format(i$alpha), replication_pct(i$power), replication_pct(assurance)), "",
+      replication_publication_report(plan, plan$without_publication_filter, assurance), smallest))
+  }
   chosen <- plan$sizes[plan$sizes$assurance == assurance, ][1, ]
   method <- sprintf("We planned the replication's sample size for a significant F test for the %s (alpha = %s) with %s power, correcting the original's effect for %s with BUCSS (Anderson, Kelley & Maxwell, 2017; Anderson & Kelley, 2024) at %s assurance. %s",
     replication_anova_effect_words(i), format(i$alpha), replication_pct(i$power), replication_bucss_corrects(plan), replication_pct(assurance), replication_bucss_original_words(plan))
-  result <- if (is.na(chosen$n)) paste(" ", replication_bucss_reason_words(plan)) else sprintf(" This gives %s.", replication_bucss_n_words(plan, chosen))
+  result <- if (is.na(chosen$n)) paste(" ", replication_bucss_reason_words(plan)) else sprintf(" This gives %s.%s", replication_bucss_n_words(plan, chosen), replication_recruit_sentence(plan))
   c(paste0(method, result), "",
     "| Assurance | Sample size | Its power |", "|---|---|---|",
     vapply(seq_len(nrow(plan$sizes)), function(k) {
@@ -1794,9 +2171,7 @@ replication_bucss_report_lines <- function(plan, values) {
       format(i$alpha), replication_pct(i$power), format(i$original_alpha))
     else sprintf("Settings: replication significance level %s, power aimed for %s; no publication filter, as the original would have been published whatever it found (BUCSS's alpha_prior = 1).",
       format(i$alpha), replication_pct(i$power)), "",
-    if (!is.null(plan$smallest$n)) c(sprintf("From the smallest effect that would matter to us, a partial eta-squared of %s, the same F test with %s power needs %s participants (%s, as powerkit's ANOVA card calculates it).",
-      format(plan$smallest$inputs$smallest_effect), replication_pct(plan$smallest$inputs$power), format(plan$smallest$n, big.mark = ","),
-      plan$smallest$function_used), ""))
+    smallest)
 }
 
 # A t-test or correlation original's BUCSS sample sizes, in the write-up.
@@ -1836,7 +2211,8 @@ replication_ref_keys_used <- function(plan) {
     if (identical(i$original_analysis, "posterior") || "bf_null" %in% goals) "McLatchie2020_bayes_factors",
     if (any(c("bf_repeat", "bf_null") %in% goals)) "bfpwr_method",
     if (isTRUE(i$original_effect_type %in% c("t", "d_rm"))) "Lakens2013_effectsizes",
-    if (!is.null(plan$bias_corrected)) "Anderson2017_bucss")
+    if (!is.null(plan$bias_corrected)) "Anderson2017_bucss",
+    if (!is.null(plan$original$attenuation)) "Schmidt1996_measurement")
   intersect(replication_ref_keys, keys)
 }
 
@@ -1844,7 +2220,25 @@ replication_ref_keys_used <- function(plan) {
 # main criterion's sample size under the chosen belief, and the others'
 # chances at it), otherwise every goal under every belief.
 replication_script_text <- function(plan, script) {
-  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, if (!is.null(plan$smallest$n)) {
+  original <- replication_primary_script(plan, script)
+  comparison <- plan$without_publication_filter
+  if (is.null(comparison)) return(original)
+  heading <- "# Publication process unknown. Compare BUCSS under both assumptions."
+  no_filter <- c("# Publication regardless of the result.", "local({", comparison$script, "})")
+  if (is.null(plan$goals)) {
+    return(paste(c(heading, "# Publication required a significant result.", original, no_filter), collapse = "\n\n"))
+  }
+  paste(c(heading, no_filter, original), collapse = "\n\n")
+}
+
+replication_primary_script <- function(plan, script) {
+  recruit <- if (!is.null(plan$recruit) && !is.null(plan$sizes)) c("",
+    sprintf("# Allowing for %s dropout: each group's analysed size divided by (1 - attrition), rounded up", sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * plan$recruit$attrition))),
+    "# (a common but crude rule: it ignores how missing data will be handled), at the chosen assurance",
+    sprintf("attrition <- %s", format(signif(plan$recruit$attrition, 8))),
+    sprintf("groups_analysed <- c(%s)", paste(format(plan$recruit$groups_analysed), collapse = ", ")),
+    "sum(ceiling(groups_analysed / (1 - attrition) - 1e-9))  # in total")
+  if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, recruit, if (!is.null(plan$smallest$n)) {
     si <- plan$smallest$inputs
     c("", "# From the smallest effect that would matter: the ANOVA card's own F test, through powerkit's engine",
       "library(powerkit)",
@@ -1854,7 +2248,7 @@ replication_script_text <- function(plan, script) {
   }), collapse = "\n"))
   ch <- plan$choice
   if (is.null(ch) || !ch$goal %in% plan$goals$goal) return(script(plan))
-  script(plan, goal = ch$goal, also = intersect(ch$also, plan$goals$goal), prior = ch$prior)
+  script(plan, goal = ch$goal, also = intersect(ch$also, plan$goals$goal), prior = ch$prior, attrition = plan$recruit$attrition %||% 0)
 }
 
 # The run bar's status: what is still needed for the sample size, as the
@@ -1900,8 +2294,8 @@ replication_server <- function(input, output, session, notes = function() list()
   outputOptions(output, "rep_criteria", suspendWhenHidden = FALSE)
   output$rep_suggested_goal <- renderUI({
     name <- criteria()$suggested %||% ""
-    if (nzchar(name)) p(class = "small", "Suggested main criterion: ", tags$strong(name),
-      ". A specific choice stays selected when the original study changes.")
+    if (nzchar(name)) p(class = "small rep-suggested", "Suggested for what the replication should show: ", tags$strong(name, .noWS = "outside"),
+      ". A criterion you choose from the list instead stays chosen when you change the original study.")
   })
 
   # `usual`: settings to use where the boxes are empty (the quick button).
@@ -1916,7 +2310,9 @@ replication_server <- function(input, output, session, notes = function() list()
     }
     settings <- replication_settings_missing(vals)
     if (length(settings)) {
-      problem(sprintf("Choose %s under Goals first: the buttons below each box fill in the usual values.", paste(settings, collapse = " and ")))
+      problem(sprintf("Choose %s under Goals first.%s", paste(settings, collapse = " and "),
+        if (any(c("the significance level", "the chance of success to aim for") %in% settings)) " The buttons below each box fill in the usual values." else
+          " The default bound, d33, needs the original's significance test, which this original doesn't have."))
       return()
     }
     result <- tryCatch(replication_run(vals, engine_function("replication_planning"), engine_function("replication_bucss"),
@@ -2037,4 +2433,46 @@ replication_sequential_settings <- function(plan, prior = NULL) {
   list(type = row$type, prior_scale = round(row$prior_scale, 3), effect = round(row$effect, 3),
     effect_sd = round(row$effect_sd, 3), n_max = if (is.na(fixed)) NA_real_ else fixed / per,
     threshold = if (threshold %in% bayes_thresholds) threshold)
+}
+
+# Whether the replication has two unequal groups.
+replication_uneven <- function(plan) {
+  identical(plan$inputs$design, "two_groups") && is.null(plan$anova_effect) &&
+    !isTRUE(all.equal(plan$inputs$allocation_ratio %||% 1, 1))
+}
+
+# A measure of different reliability: the d the replication's measure
+# would show, in the methods paragraph's words ("" when the same).
+replication_attenuation_words <- function(plan) {
+  a <- plan$original$attenuation
+  if (is.null(a)) return("")
+  i <- plan$inputs
+  r <- identical(i$design, "correlation")
+  e <- if (r) "r" else "d"
+  sprintf(paste0("; as the %s reliability is %s in the original and expected to be %s in the replication, ",
+    "the original's %s was planned as %s, the %s the replication's measure would show (an observed %s is the true %s times the ",
+    "square root of %s; Schmidt & Hunter, 1996)"),
+    if (r) "changed measure's" else "outcome measure's", format(i$reliability_original), format(i$reliability_replication),
+    e, format(signif(replication_attenuated_effect(plan, "estimate"), 3)), e, e, e,
+    if (r) "both measures' reliabilities" else "the measure's reliability")
+}
+
+# The same, on the result screen, with what it leaves out.
+replication_attenuation_ui <- function(plan) {
+  a <- plan$original$attenuation
+  if (is.null(a)) return(NULL)
+  i <- plan$inputs
+  rep_note(sprintf(paste0("Planned for the replication's measure: the original's %s of %s is expected to show as %s with a measure of ",
+    "reliability %s instead of %s (the square root of their ratio, %s; Schmidt & Hunter, 1996). Small telescopes and BUCSS work ",
+    "in the original's own units, so they are left out."),
+    if (identical(i$design, "correlation")) "r" else "d",
+    format(signif(replication_attenuated_effect(plan, "reported"), 3)), format(signif(replication_attenuated_effect(plan, "estimate"), 3)),
+    format(i$reliability_replication), format(i$reliability_original), format(signif(a, 3))))
+}
+
+# The original's effect before ("reported") or after ("estimate") the
+# change of reliability, in its own units (r, not Fisher's z).
+replication_attenuated_effect <- function(plan, which) {
+  x <- plan$original[[which]]
+  if (identical(plan$inputs$design, "correlation")) tanh(x) else x
 }

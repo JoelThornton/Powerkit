@@ -35,6 +35,11 @@ test_that("the plan page offers Download everything once the plan has an analysi
   html <- as.character(plan_page_ui(plan_with(list(list(label = "An analysis", n = 10)))))
   expect_match(html, "download_plan_bundle", fixed = TRUE)
   expect_match(html, "Download plan and files (.zip)", fixed = TRUE)
+  # The planning report on its own: printed, Word or Markdown.
+  for (id in c("plan_document_button", "plan_download_docx", "plan_download_md")) expect_match(html, id, fixed = TRUE)
+  expect_true(all(c("plan_download_docx", "plan_download_md") %in% document_menu_downloads))
+  expect_no_match(as.character(plan_page_ui(new_plan("Empty"))), "plan_document_button", fixed = TRUE)
+  expect_no_match(as.character(plan_page_ui(new_replication_plan("A replication"))), "plan_document_button", fixed = TRUE)
 })
 
 test_that("the zip's name comes from the plan's name", {
@@ -77,6 +82,48 @@ test_that("the study-wide document restates each analysis, ordered by role, with
     calc <- plan_entry_calc(e)
     expect_match(text, substr(planning_methods_text(tree, forms, calc), 1, 60), fixed = TRUE)
   }
+})
+
+test_that("the document has a Registered Report study design table, one row for each analysis", {
+  skip_without_engine()
+  a <- calculated_entry("E1")
+  b <- calculated_entry("E2")
+  doc <- plan_planning_document(plan_with(list(a, b)), tree, forms, engine = bundle_engine)
+  start <- which(doc == "## Study design table")
+  expect_length(start, 1L)
+  expect_lt(start, which(doc == "## Methods, analysis by analysis"))
+  header <- grep("^\\| Question \\| Hypothesis \\| Sampling plan \\| Analysis plan", doc)
+  expect_length(header, 1L)
+  rows <- doc[(header + 2):(header + 3)]
+  expect_true(all(startsWith(rows, "| ")))
+  expect_identical(lengths(regmatches(rows, gregexpr(" \\| ", rows))), c(6L, 6L))
+  # Each row names the card's test and the N it found; the study's own
+  # words are left for the researcher.
+  expect_match(rows[[1]], forms$forms$E1$methods_name, fixed = TRUE)
+  expect_match(rows[[1]], whole(a$n), fixed = TRUE)
+  expect_match(rows[[2]], whole(b$n), fixed = TRUE)
+  expect_match(rows[[1]], "(fill in)", fixed = TRUE)
+  expect_match(rows[[1]], "cannot show it is absent", fixed = TRUE)
+})
+
+test_that("the test's name in the design table follows the methods paragraph's", {
+  form <- list(methods_name = "an independent-samples t-test")
+  expect_identical(plan_test_name(form, list(target_test = list(method = "welch_t"))), "Welch's independent-samples t-test")
+  expect_null(plan_test_name(list(), list(target_test = list())))
+})
+
+test_that("a plan opened from its file gives the same document, methods and references included", {
+  skip_without_engine()
+  plan <- plan_with(list(calculated_entry("E1"), calculated_entry("E2")), name = "Round trip")
+  text <- plan_to_text(plan, write = bundle_engine("write_study_plan"))
+  opened <- plan_from_text(tree, text, read = bundle_engine("read_study_plan"))
+  expect_false(is.null(opened$entries[[1]]$project))
+  # The file holds the result as plain lists; the calc is the result again.
+  expect_s3_class(plan_entry_calc(opened$entries[[1]], saved = bundle_engine("saved_result"))$result, "powerkit_result")
+  doc <- paste(plan_planning_document(opened, tree, forms, engine = bundle_engine), collapse = "\n")
+  expect_no_match(doc, "couldn't be made", fixed = TRUE)
+  expect_no_match(doc, "No references could be gathered", fixed = TRUE)
+  expect_match(doc, "An a priori power analysis was conducted", fixed = TRUE)
 })
 
 test_that("the document says when the analyses have no single study-wide N", {

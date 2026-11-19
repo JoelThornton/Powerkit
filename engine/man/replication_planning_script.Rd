@@ -8,7 +8,8 @@ replication_planning_script(
   plan,
   goal = NULL,
   also = character(),
-  prior = "uncertain"
+  prior = "uncertain",
+  attrition = 0
 )
 }
 \arguments{
@@ -24,6 +25,11 @@ sample size.}
 
 \item{prior}{The belief about the true effect for \code{goal} and \code{also}:
 \code{"as_reported"}, \code{"uncertain"} or \code{"shrunk"}.}
+
+\item{attrition}{The expected proportion of those recruited who won't be
+analysed (0, the default, for none). With a \code{goal}, the script ends by
+working out the number to recruit for its sample size, by
+\code{\link[=replication_recruitment]{replication_recruitment()}}'s rule.}
 }
 \value{
 The script, as one string.
