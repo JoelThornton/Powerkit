@@ -13,7 +13,7 @@
 
 companion_methods <- list(
   one_sample_t = c("t_test"), paired_t = c("t_test"), independent_t = c("student_t", "welch_t"),
-  correlation = c("pearson"), one_proportion = c("exact_binomial"), two_proportions = c("z_test", "fisher_exact"),
+  correlation = c("pearson"), one_proportion = c("exact_binomial", "binom_test"), two_proportions = c("z_test", "fisher_exact"),
   oneway_between = c("anova_f")
 )
 

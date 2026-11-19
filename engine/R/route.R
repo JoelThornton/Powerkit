@@ -125,6 +125,9 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     "factorial_anova/oneway_contrast" = ,
     "basic_test/one_proportion" = if (bayes_factor_test(spec)) {
       bfbin_backend(spec, seed)
+    } else if (binom_test_method(spec)) {
+      # binom.test()'s two-sided p-value, summed exactly (backend-binom-test.R).
+      binom_test_backend(spec, seed)
     } else {
       pwrss_backend(spec, seed)
     },
