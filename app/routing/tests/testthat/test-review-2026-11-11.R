@@ -466,9 +466,9 @@ test_that("the goal and the test's direction are rows of buttons over their menu
 
 test_that("the still-needed line names the answers, and settings read at a glance (C-02, D-18)", {
   expect_identical(needed_name(list(id = "goal", label = "What do you want to find out?")), "your goal")
-  expect_identical(needed_name(list(id = "alpha", label = "Significance level (alpha)")), "significance level")
+  expect_identical(needed_name(list(id = "alpha", label = "Significance level")), "significance level")
   expect_identical(needed_name(list(id = "x", label = "ICC: the share of variance")), "ICC")
-  html <- as.character(field_ui(list(id = "alpha", label = "Significance level (alpha)", type = "number", required = TRUE), NULL))
+  html <- as.character(field_ui(list(id = "alpha", label = "Significance level", type = "number", required = TRUE), NULL))
   expect_match(html, 'data-needed-name="significance level"', fixed = TRUE)
   line <- as.character(settings_summary_ui(list(list(fields = list(
     list(id = "allocation_ratio", label = "Size of group 2 divided by size of group 1", type = "number", default = 1),

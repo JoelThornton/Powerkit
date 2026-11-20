@@ -107,8 +107,8 @@ plan_largest_n <- function(entries) {
 joint_power_ui <- function(entries) {
   div(class = "study-plan-joint-power result-card",
     h3(class = "h5", "The chance that every analysis is significant"),
-    p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated."),
-    numericInput("plan_rho", "Correlation between the outcomes (for example 0.3)", value = NA, min = -0.99, max = 0.99, step = 0.05),
+    p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated: enter their correlation, for example 0.3."),
+    numericInput("plan_rho", "Correlation between the outcomes", value = NA, min = -0.99, max = 0.99, step = 0.05),
     actionButton("plan_joint", "Calculate joint power", class = "btn btn-outline-primary"),
     uiOutput("plan_joint_result"))
 }
@@ -438,7 +438,7 @@ plan_settings_ui <- function(plan) {
     tags$legend(class = "h6", "Settings for every analysis in this plan"),
     rep_note("Each analysis you add from this plan starts with these, so you enter them once. You can still change them on an analysis's card."),
     div(class = "row g-3",
-      div(class = "col-sm-6", choose("alpha", "Significance level (alpha)",
+      div(class = "col-sm-6", choose("alpha", "Significance level",
         c("Choose on each card" = "", "0.05, the usual level" = "0.05", "0.01" = "0.01", "0.005" = "0.005"),
         "If your conclusions rest on several tests, the level after any correction for them.")),
       div(class = "col-sm-6", choose("power", "Target power",

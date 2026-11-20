@@ -6,7 +6,7 @@ field_input_id <- function(f) paste0("f_", f$id)
 compact_field_label <- function(f) {
   if (identical(f$id, "power") && identical(f$label, "Target power")) return("Power (1 - beta)")
   if (identical(f$id, "n") && identical(f$label, "Number of participants analysed")) return("Total analysed N")
-  labels <- c(goal = "Analysis goal", power_reason = "Power rationale", alpha = "Significance level (alpha)",
+  labels <- c(goal = "Analysis goal", power_reason = "Power rationale", alpha = "Significance level",
     alpha_reason = "Alpha rationale", alternative = "Tail(s)", alternative_reason = "One-sided test rationale",
     effect_units = "Effect-size input", d = "Standardised difference (d)", dz = "Standardised change (dz)",
     welch_sd_ratio = "SD ratio (group 2 / group 1)", just_type = "Effect-size source",
