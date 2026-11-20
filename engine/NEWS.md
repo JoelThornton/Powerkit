@@ -1,3 +1,7 @@
+# powerkit 0.79.6
+
+* Queued the findings of the 19 November 2026 calculation audit, each reproduced on 0.79.2, as `docs/next.md` items 30 to 35: wrong numbers (joint power with effects of opposite sign, presize's Clopper-Pearson limit at one expected success, pwrss re-rounding unequal groups on E49 and E5, the Bayes factor search on E5, E46's Wald planner, replication-plan searches, simulated mixed-model steps), TOSTER and pmsampsize faults passed through (E36, E77), and export, label and wording errors.
+
 # powerkit 0.79.5
 
 * App: replication plans are named from `rep_study` and `rep_keeps`
