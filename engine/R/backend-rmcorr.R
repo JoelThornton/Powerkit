@@ -97,10 +97,12 @@ rmcorr_sensitivity <- function(inputs, n, target) {
 rmcorr_details <- function(inputs, n) {
   df <- rmcorr_effective_n(n, inputs$k) - 2
   tail <- if (inputs$alternative == "two_sided") inputs$alpha / 2 else inputs$alpha
+  t_c <- stats::qt(1 - tail, df)
   list(
     statistic = "t",
     df = df,
-    critical = stats::qt(1 - tail, df),
+    # Signed as the test's rejection region: both tails, the upper or the lower.
+    critical = switch(inputs$alternative, two_sided = c(-t_c, t_c), greater = t_c, less = -t_c),
     ncp = NA_real_,
     actual_alpha = NA_real_,
     source = sprintf("pwrss::power.exact.onecor() at the effective sample size %d", as.integer(rmcorr_effective_n(n, inputs$k)))

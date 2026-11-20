@@ -77,3 +77,11 @@ test_that("the citations name Bakdash and Marusich's method", {
   result <- run_spec(rmcorr_spec())
   expect_match(export_citations(result), "Repeated Measures Correlation", fixed = TRUE)
 })
+
+test_that("the critical t is signed as the test's rejection region (audit, 19 November 2026)", {
+  at <- function(alternative, r) run_spec(rmcorr_spec(r = r, goal = list(type = "power", n = 30L), alternative = alternative))$details$critical
+  df <- 30 * 2 + 1 - 2
+  expect_equal(at("less", -0.2), -stats::qt(0.95, df))
+  expect_equal(at("greater", 0.2), stats::qt(0.95, df))
+  expect_equal(at("two_sided", 0.2), c(-1, 1) * stats::qt(0.975, df))
+})

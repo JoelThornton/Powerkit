@@ -105,3 +105,29 @@ test_that("the exported scripts and simulated data sets use glmer", {
   expect_script_reproduces_power(three, run_three())
   expect_true(any(grepl("makeGlmer", simulated_data_code(validate_spec(three), 10, 1), fixed = TRUE)))
 })
+
+test_that("a pair chosen for the likelihood ratio is named and scripted as one (audit, 19 November 2026)", {
+  spec <- validate_spec(binary_three("pairwise", "likelihood_ratio"))
+  expect_match(simr_backend(spec)$functions[["simulation"]], "likelihood ratio of each pair")
+  fake <- fake_result("simr")
+  fake$provenance <- c(fake$provenance, list(method = "simulation", nrep = 100, seed = 4, batch_size = 100,
+    simulations = data.frame(n = 30, rejections = 50, valid = 100)))
+  fake$curve <- data.frame(n = 30, power = 0.5, mcse = 0.05)
+  fake$goal_type <- "power"
+  script <- crossed_conditions_script(spec, fake)
+  expect_false(any(grepl("linearHypothesis", script)))
+  # The script's test gives the engine's p-value on the same fit.
+  start <- grep("^pair_lr <- function", script)
+  end <- grep("^}", script)
+  end <- end[end > start][2]
+  env <- new.env(parent = asNamespace("lme4"))
+  env$conditions <- unlist(spec$variables$X$levels)
+  env$pair <- unlist(spec$target_test$comparison)
+  env$p_adjust <- "holm"
+  eval(parse(text = script[start:end]), envir = env)
+  inputs <- crossed_conditions_inputs(spec)
+  data <- crossed_conditions_design(inputs, 30)
+  data$y <- with_seed(2, stats::simulate(simr_model(inputs, 30))[[1]])
+  fit <- suppressMessages(lme4::glmer(inputs$formula, data = data, family = stats::binomial()))
+  expect_equal(suppressMessages(env$test_p(fit)), suppressMessages(crossed_conditions_test(inputs)(fit)), tolerance = 1e-8)
+})
