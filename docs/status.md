@@ -60,7 +60,9 @@ planned with pwrss, because TOSTER's planning functions give wrong
 answers (Departure 33), and needs at least 10 people per group, as
 TOSTER's test does; two-sided tests of Cronbach's alpha (E69) and of a
 measured predictor of survival (E43) count both tails (Departures 34
-and 35); E77 says when pmsampsize's answer leaves the mean outcome or a
+and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
+maintainer, with TOSTER's and pmsampsize's faults); E77 says when
+pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
 labels and wording (item 30) go with item 28. E75 keeps refusing one
 yes/no answer per condition: in 4,000 simulated studies a cell, the

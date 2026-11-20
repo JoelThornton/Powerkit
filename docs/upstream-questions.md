@@ -58,6 +58,7 @@ below retain their reproduction information and limitations.
 | TOSTER 0.8.6: `power_z_cor(alternative = "equivalence")` | Question below; `test-backend-toster.R`, "Departure 33" | Bypassed: powerkit plans `z_cor_test()` with `pwrss::power.z.test()` on Fisher's z (Departure 33) | Upstream correction; compare with powerkit's power at a nonzero expected correlation before using it again |
 | TOSTER 0.8.6: `power_twoprop(alternative = "equivalence")` | Question below; `test-backend-toster.R`, "Departure 33" | Bypassed: powerkit plans `twoprop_test()` with `pwrss::power.z.twoprops()`, unpooled SE (Departure 33) | Upstream change to the exact two-sided TOST power; compare at unequal proportions |
 | pmsampsize 1.1.3: continuous criterion 4 and survival criterion 3 | Question below; `test-backend-prediction-model.R`, "the precision of the mean or the risk is checked" | Disclosed: powerkit reports the package's n, checks the precision at it, and says on the result and in the methods text when it is not met (with the n that meets the continuous criterion) | Upstream correction; rerun the 8-parameter example (243 against 7,206) and a survival case that misses 0.05 |
+| powerSurvEpi 0.1.5: `powerEpiCont.default()` two-sided power | Question below; `test-backend-survival.R`, "Departure 35" | Corrected: powerkit adds the other tail of the two-sided z test to the package's power (Departure 35) | A powerSurvEpi release that counts both tails, or documents one |
 | PMCMRplus: list-form Jonckheere direction/continuity | `test-backend-trend.R`; list versus score/group calls | Bypassed: scores and group labels passed separately | New version or list-method fix; retain directional and two-sided comparisons |
 
 On a dependency update, inspect the affected rows and run their named checks
@@ -470,6 +471,24 @@ Questions about pmsampsize 1.1.3, from reading its source (20 November
 powerkit reports the package's sample size, checks both precisions at it
 and says on the result when one is not met
 (`engine/R/backend-prediction-model.R`, `prediction_precision()`).
+
+## powerSurvEpi
+
+Questions about powerSurvEpi 0.1.5, from reading its source (20 November
+2026).
+
+1. **`powerEpiCont.default()` counts one tail of a two-sided test.** It
+   takes `alpha` as two-sided (`qnorm(1 - alpha/2)`) but returns
+   `pnorm(sqrt(part2) - ua2)`, the tail in the effect's direction only.
+   At a hazard ratio of 1 it gives alpha / 2 (0.025 at alpha 0.05), and
+   for small effects it understates power: a hazard ratio of 1.05, 100
+   people, 30% events and no other covariates gives 0.045 where the
+   two-sided z test's power is 0.058. For large effects the difference
+   vanishes (0.6029 against 0.6029 at a hazard ratio of 1.5). Would the
+   package add `pnorm(-sqrt(part2) - ua2)`, or say in its help that the
+   power is one tail's?
+
+powerkit adds the other tail (docs/conventions.md, Departure 35).
 
 ## Superpower: corrected mixed-design approximation
 

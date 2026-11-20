@@ -1,3 +1,7 @@
+# powerkit 0.80.4
+
+* `docs/upstream-questions.md` records powerSurvEpi 0.1.5's one-tailed two-sided power in `powerEpiCont.default()` (Departure 35), with a register row and the question for its maintainer.
+
 # powerkit 0.80.3
 
 * E4's exported script passes the smallest positive number for a correlation of exactly 0, as the app does: pwrss's `power.exact.onecor()` stops one-sided at 0 ("object 'pwr' not found"), so the script failed where the app gave alpha (from the 19 November 2026 calculation audit).
