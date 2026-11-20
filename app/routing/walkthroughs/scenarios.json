@@ -8,14 +8,14 @@
   "choose": [
    "A score or scale",
    "People within groups",
-   "Conditions or treatments given to whole groups, or to people within the groups",
+   "A condition or treatment given to groups, or within groups",
    "No: one level of groups (for example, classes, or clinics)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups",
+    "A condition or treatment given to groups, or within groups",
     "No: one level of groups (for example, classes, or clinics)"
    ]
   },
@@ -23,7 +23,7 @@
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups",
+    "A condition or treatment given to groups, or within groups",
     "No: one level of groups (for example, classes, or clinics)"
    ]
   },
@@ -73,14 +73,14 @@
   "choose": [
    "A score or scale",
    "People within groups",
-   "Conditions or treatments given to whole groups, or to people within the groups",
+   "A condition or treatment given to groups, or within groups",
    "No: one level of groups (for example, classes, or clinics)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups",
+    "A condition or treatment given to groups, or within groups",
     "No: one level of groups (for example, classes, or clinics)"
    ]
   },
@@ -88,7 +88,7 @@
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups",
+    "A condition or treatment given to groups, or within groups",
     "No: one level of groups (for example, classes, or clinics)"
    ]
   },
@@ -107,20 +107,20 @@
   "choose": [
    "A score or scale",
    "Pairs",
-   "Something measured on each member, and how it relates to their own and their partner's outcome"
+   "A score on each member, related to their own and their partner's outcome"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Pairs",
-    "Something measured on each member, and how it relates to their own and their partner's outcome"
+    "A score on each member, related to their own and their partner's outcome"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "Pairs",
-    "Something measured on each member, and how it relates to their own and their partner's outcome"
+    "A score on each member, related to their own and their partner's outcome"
    ]
   },
   "reaches": {
@@ -790,8 +790,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [
@@ -832,8 +832,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [
@@ -874,8 +874,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [
@@ -948,8 +948,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [
@@ -990,8 +990,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [
@@ -2424,8 +2424,8 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
-   "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
+   "Something else: spread, structure, item bias, signal detection or types",
+   "Something about latent variables"
   ],
   "known": {
    "answers": [

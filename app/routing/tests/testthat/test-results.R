@@ -2419,7 +2419,7 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   # A wrong number of correlations is reported against the field shown.
   bad <- build_spec(forms, "E54", fields, modifyList(values, list(rs = "0.8, 0.5")))
   check <- check_spec(bad, Filter(function(f) field_applies(f, values), fields))
-  expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
+  expect_match(check$problems, "Correlations between conditions", fixed = TRUE, all = FALSE)
 })
 
 test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {

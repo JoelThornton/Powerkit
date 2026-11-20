@@ -377,7 +377,7 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 29 applies this to the rest of powerkit). Still to come: the rest
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 29 applies this to the rest of powerkit; the input screens' labels over 75 characters are done). Still to come: the rest
   of item 28 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.

@@ -355,8 +355,8 @@ nodes:
     doc_id: D1
     text: "What does your main hypothesis involve?"
     options:
-      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E44, when: {outcome: score}, help: "e.g. each partner's daily stress and both partners' relationship satisfaction."}
-      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "A score on each member, related to their own and their partner's outcome", next: E44, when: {outcome: score}, help: "e.g. each partner's daily stress and both partners' relationship satisfaction."}
+      - {label: "A score on each member, related to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
       - {label: "Conditions given to whole pairs", next: E34, help: "e.g. couples randomised to a programme or a waiting list: a cluster-randomised trial with groups of two."}
       - {label: "Something else, such as a condition given to one member of each pair", next: E65}
   # Counts and ordered categories over many trials (12 November 2026): a
@@ -392,7 +392,7 @@ nodes:
       - {label: "The same people in three or more conditions", next: s4, sets: {times: many_conditions}, help: "e.g. everyone completes three tasks, every cell of a 2 x 2 design, or a trial's groups measured before, after and at follow-up."}
       - {label: "Measurements over time, to see whether a trend changes at a known point", next: E45, help: "e.g. weekly scores before and after a policy change (segmented regression, interrupted time series)."}
       - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
-      - {label: "Two scores measured over time, to see whether each predicts later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
+      - {label: "Two scores over time, each predicting later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
   s4:
     doc_id: S4
     # The goal (detect, equivalence, estimate) is asked once, on the aim
@@ -422,15 +422,15 @@ nodes:
     doc_id: C1
     text: "What does your main hypothesis involve?"
     options:
-      - {label: "Conditions or treatments given to whole groups, or to people within the groups", next: c2, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
-      - {label: "Something measured on each person, or on each group, and how it relates to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
+      - {label: "A condition or treatment given to groups, or within groups", next: c2, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
+      - {label: "Something measured on each person or group, related to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
   # Groups within larger groups (1 November 2026): three levels (E68).
   c2:
     doc_id: C2
     text: "Are the groups themselves part of larger groups that matter for the design?"
     options:
       - {label: "No: one level of groups (for example, classes, or clinics)", next: E34}
-      - {label: "Yes: groups within larger groups (for example, classes within schools, or therapists within clinics)", next: E68, help: "e.g. schools randomised to a programme, with pupils in several classes in each school."}
+      - {label: "Yes: groups within larger groups", next: E68, help: "For example classes within schools, or therapists within clinics. e.g. schools randomised to a programme, with pupils in several classes in each school."}
   # Equivalence for grouped data goes to the grouped card, which says it
   # isn't covered yet: the equivalence card assumes separate people.
   s4_equivalence:
@@ -448,20 +448,20 @@ nodes:
       - {label: "A relationship between two things you measure", next: q2_rel, help: "e.g. daily screen time is related to loneliness."}
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
-      - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
-      - {label: "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people", next: q1_more,
+      - {label: "Both: it works through something that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "Something else: spread, structure, item bias, signal detection or types", next: q1_more,
          help: "Spread of scores (variance tests), structural equation models, differential item functioning, signal detection (d'), exploratory factor analysis and latent profiles."}
   q1_more:
     doc_id: Q1b
     text: "Which of these is closest to what you want to show?"
     help: "Less common aims, each with its own analysis."
     options:
-      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1_by_times,
-         when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
-      - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
-      - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
-      - {label: "That people tell a signal from noise better in one condition or group than another (sensitivity, d', in signal detection)", next: E72, help: "e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
-      - {label: "That a questionnaire's items form the factors you expect, found by exploratory factor analysis", next: E73, help: "e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
+      - {label: "That scores are more spread out in one group than another", next: v1_by_times,
+         when: {outcome: score, times: [once, twice]}, help: "Or more consistent, or compared with a fixed value. e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
+      - {label: "Something about latent variables", help: "That a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM).", next: E37}
+      - {label: "That a test's items work the same in two groups", next: E71, help: "Differential item functioning, in item response theory. e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
+      - {label: "That people detect a signal better in one condition or group", next: E72, help: "Sensitivity, d', in signal detection. e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
+      - {label: "That a questionnaire's items form the factors you expect", next: E73, help: "Found by exploratory factor analysis. e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -500,7 +500,7 @@ nodes:
   # answer the number of groups in F1.
   f2_by_times:
     doc_id: F2
-    text: "How many groups or conditions? (answered by S3 when the people are measured twice or more)"
+    text: "How many groups or conditions?"
     branch_on: times
     routes: {twice: E3, many_conditions: f2a}
   f2a:
@@ -516,21 +516,21 @@ nodes:
       - {label: "Any difference among the conditions", next: E54, when: {times: many_conditions}}
   f3a_by_times:
     doc_id: F3a
-    text: "For each factor: did different people get each level? (answered by S3 unless people did three or more conditions)"
+    text: "For each factor: did different people get each level?"
     branch_on: times
     routes: {once: E21, twice: E55, many_conditions: f3a}
   f3a:
     doc_id: F3a
-    text: "For each factor: did different people get each level, or did everyone get every level?"
-    help: "For example, two groups each measured at three timepoints: the groups are different people, and everyone gets every timepoint."
+    text: "For each factor, did different people get each level?"
+    help: "Or did everyone get every level? For example, two groups each measured at three timepoints: the groups are different people, and everyone gets every timepoint."
     options:
       - {label: "One factor different people, the other everyone got every level", next: E55, when: {times: [twice, many_conditions]}}
       - {label: "Both factors: different people", next: E21, when: {times: once}}
       - {label: "Both factors: everyone got every level", next: E20, when: {times: many_conditions}}
   f4:
     doc_id: F4
-    text: "For each factor: did different people get each level, or did everyone get both? (answered by S3)"
-    help: "Measured once: different people in every group. Twice: one factor between people, the other within. Three or more conditions: everyone got every combination."
+    text: "For each factor, did different people get each level?"
+    help: "Or did everyone get both? Measured once: different people in every group. Twice: one factor between people, the other within. Three or more conditions: everyone got every combination."
     branch_on: times
     routes: {once: f4a_between, twice: f4b, many_conditions: E20}
   f4a_between:
@@ -602,7 +602,7 @@ nodes:
       - {label: "One effect disappears", next: E8}
   q3_cat_by_times:
     doc_id: Q3
-    text: "What are you comparing? (answered by S3 when the same people are measured more than once)"
+    text: "What are you comparing?"
     branch_on: times
     routes: {once: q3_cat, twice: E26, many_conditions: q3_cat_many}
   # Three or more conditions with a yes/no or categorical outcome: one
@@ -614,8 +614,8 @@ nodes:
     options:
       - {label: "Once in each condition, yes or no", next: E78,
          help: "e.g. whether each person attends after no reminder, a text and a call (Cochran's Q)."}
-      - {label: "Another way: several answers in each condition, groups of people compared over the conditions, or more than two categories", next: E75,
-         help: "e.g. a yes/no answer on every trial, or a programme and a control group each asked before and after."}
+      - {label: "Another way", next: E75,
+         help: "Several answers in each condition, groups of people compared over the conditions, or more than two categories. e.g. a yes/no answer on every trial, or a programme and a control group each asked before and after."}
   q3_cat:
     doc_id: Q3
     text: "What are you comparing?"
@@ -633,7 +633,7 @@ nodes:
   # How much scores vary -----------------------------------------------------
   v1_by_times:
     doc_id: V1
-    text: "Whose spread of scores are you comparing? (answered by S3 when the same people are measured twice)"
+    text: "Whose spread of scores are you comparing?"
     branch_on: times
     routes: {once: v1, twice: E57}
   v1:
@@ -695,7 +695,7 @@ nodes:
     text: "Which kind of categorical outcome?"
     options:
       - {label: "Yes/no", next: E27}
-      - {label: "One of several categories, predicted by a score (or controlling for other variables)", next: E70}
+      - {label: "One of several categories, predicted by a score", help: "Optionally controlling for other variables.", next: E70}
       - {label: "One of several categories (and the other variable is categories too)", next: E6}
   q3_rel:
     doc_id: Q3
@@ -709,16 +709,16 @@ nodes:
     doc_id: R2
     text: "What is the other variable like?"
     options:
-      - {label: "A score measured on the same occasions, and the question is whether the two go together within people", next: E76,
-         help: "e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
-      - {label: "Something else: several predictors, a score measured once per person, or a relationship that depends on something", next: E41}
+      - {label: "Two scores measured on the same occasions, within people", next: E76,
+         help: "The question is whether the two go together within people. e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
+      - {label: "Something else: several predictors, or a relationship that depends on something", help: "Including a score measured once per person.", next: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
     options:
       - {label: "A score or scale", next: E4}
-      - {label: "A score, and the question is whether the relationship differs between two separate groups", next: E49}
-      - {label: "Scores, and the question is whether one correlation is stronger than another in the same people", next: E51}
+      - {label: "Whether a relationship differs between two separate groups", next: E49}
+      - {label: "Whether one correlation is stronger than another in the same people", next: E51}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
       - {label: "Several predictors at once, or controlling for other variables", next: E24}
 
@@ -742,11 +742,11 @@ nodes:
     text: "What are the two things whose combination matters?"
     help: "X is the predictor whose effect depends on something; W is what it depends on (the moderator)."
     options:
-      - {label: "Both are groups or conditions (for example, the emotion effect is bigger in the clinical group, or the treatment group improves more over time)", next: f1,
-         help: "A factorial design: the interaction in a mixed or repeated-measures ANOVA."}
-      - {label: "A treatment or group, and a measured score, with the outcome measured before and after", next: E24, when: {times: twice},
+      - {label: "Both are groups or conditions", next: f1,
+         help: "For example the emotion effect is bigger in the clinical group, or the treatment group improves more over time. A factorial design: the interaction in a mixed or repeated-measures ANOVA."}
+      - {label: "A group and a measured score, with the outcome before and after", next: E24, when: {times: twice},
          help: "e.g. the treatment works better for people with more social support. Tested as the X x W product in a regression on the after score that adjusts for the before score."}
-      - {label: "Things measured within each person (for example, daily stress and sleep in a diary study)", next: E41}
+      - {label: "Both are measured within each person", help: "For example daily stress and sleep in a diary study.", next: E41}
   mo1:
     doc_id: MO1
     text: "What is your main predictor (X)?"

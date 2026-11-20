@@ -28,7 +28,7 @@ test_that("a test-retest study answered 'Twice' reaches E41, as the audit says (
   # Since 13 November 2026, R2 asks what the other variable is: the same
   # score measured twice isn't two scores measured together (E76), so a
   # test-retest study answers "Something else".
-  other <- "Something else: several predictors, a score measured once per person, or a relationship that depends on something"
+  other <- "Something else: several predictors, or a relationship that depends on something"
   expect_equal(follow_with_context(tree, c(base, "Twice", rel))$id, "r_within")
   expect_equal(follow_with_context(tree, c(base, "Twice", rel, other))$id, "E41")
   audit <- read_doc("routing-audit.md")
