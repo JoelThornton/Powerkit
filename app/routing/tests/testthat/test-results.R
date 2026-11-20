@@ -3753,7 +3753,7 @@ test_that("the short methods paragraph leaves out the Welch caveats and R's buil
   # The preregistration's sample-size rule is in the full version only.
   expect_match(texts[["full"]], "Sample size rule: data collection stops when [0-9,]+ participants")
   expect_no_match(texts[["short"]], "Sample size rule", fixed = TRUE)
-  values$goal <- "sensitivity"
+  values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
   spec <- build_spec(forms, "E2", fields, values)
   calc <- run_calculation(spec, run, seed = forms$default_seed)
   sens <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
