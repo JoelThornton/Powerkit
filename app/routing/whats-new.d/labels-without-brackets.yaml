@@ -1,0 +1,7 @@
+entries:
+  - date: "2026-11-20"
+    title: Shorter question labels on the input screens
+    text: >
+      About 150 more labels no longer carry an example, a range or a default
+      in brackets. That detail, such as "For example, group", "Between 0 and 1"
+      or "Empty means 0", now sits in the help under the question.

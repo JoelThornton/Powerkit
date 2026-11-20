@@ -247,7 +247,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
   expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
-  expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
+  expect_match(html, "in group 1: 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
   expect_match(html, "download_simulated_data", fixed = TRUE)            # the simulated data set
@@ -3747,4 +3747,15 @@ test_that("the short methods paragraph leaves out the Welch caveats and R's buil
   expect_match(texts[["full"]], "equal population SDs", fixed = TRUE)
   expect_match(texts[["full"]], "observed SDs are equal", fixed = TRUE)
   expect_match(texts[["full"]], "R version [0-9.]+ \\(")
+  # The critical effect size: full version always; short version only for the smallest-effect goal.
+  expect_no_match(texts[["short"]], "critical effect size", fixed = TRUE)
+  expect_match(texts[["full"]], "critical effect size", fixed = TRUE)
+  # The preregistration's sample-size rule is in the full version only.
+  expect_match(texts[["full"]], "Sample size rule: data collection stops when [0-9,]+ participants")
+  expect_no_match(texts[["short"]], "Sample size rule", fixed = TRUE)
+  values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  sens <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_match(sens[["short"]], "critical effect size", fixed = TRUE)
 })

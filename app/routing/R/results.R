@@ -4097,8 +4097,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # Welch caveats that don't change the answer (equal-SD planning, the
   # critical effect's equal-SD condition) stay in the full version only.
   short_main <- setdiff(main, welch_equal_sd_note(spec))
-  welch_critical <- if (!is.null(result$critical_effect)) critical_effect_welch_text(result$critical_effect) else ""
-  if (nzchar(welch_critical)) short_main <- sub(welch_critical, "", short_main, fixed = TRUE)
+  # The critical effect size sentence (Perugini et al., 2025, who name no
+  # section for it) stays in the short paragraph only when the goal is the
+  # smallest detectable effect, where it keeps "detect" from being misread;
+  # the results note and the full version carry it for the other goals.
+  if (!identical(spec$goal$type, "sensitivity")) short_main <- setdiff(short_main, critical_effect_sentence(result))
   short <- paste(c(short_main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size") && is.null(result$n_required$verification)) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
@@ -4108,13 +4111,26 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # paper's paragraph (decided 7 November 2026; docs/conventions.md).
   departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
-    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result)), collapse = " "),
+    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result), sample_rule_text(spec, result)), collapse = " "),
     writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
   tidy <- function(x) gsub("([.!?])\u201d\\.", "\\1\u201d", x)
   c(short = tidy(short), full = tidy(full), ethics = tidy(ethics_text(spec, result, fields, values)))
+}
+
+# The sample-size rule a preregistration asks for (AsPredicted's question is
+# "how many observations will be collected, and the stopping rule"): the
+# number analysed and that the analysis runs once (the recruitment line
+# beside it gives the number recruited).
+# Full version only; it states the plan the power calculation assumes.
+sample_rule_text <- function(spec, result) {
+  if (identical(spec$design, "generic_test") || is_meta(spec)) return(NULL)
+  n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  if (is.null(n) || length(n) != 1 || !is.finite(n)) return(NULL)
+  sprintf("Sample size rule: data collection stops when %s participants%s are in the analysis; the analysis is run once, at that sample size, with no interim looks.",
+    whole(n), group_text(spec, n))
 }
 
 # The ethics-board version (optional feature, 19 October 2026): the same
