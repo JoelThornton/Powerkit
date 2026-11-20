@@ -55,8 +55,14 @@ replication_anova_kinds_ui <- c(
 replication_anova_effects_ui <- c(
   "The first factor's main effect (the between-subjects factor in a mixed design)" = "factor_a",
   "The second factor's main effect (the within-subjects factor in a mixed design)" = "factor_b",
-  "The interaction of the two factors" = "interaction"
+  "The interaction of the two factors" = "interaction",
+  "The third factor's main effect" = "factor_c",
+  "The interaction of the first and second factors" = "a_by_b",
+  "The interaction of the first and third factors" = "a_by_c",
+  "The interaction of the second and third factors" = "b_by_c",
+  "The interaction of all three factors" = "a_by_b_by_c"
 )
+replication_anova_effects_three <- c("factor_a", "factor_b", "factor_c", "a_by_b", "a_by_c", "b_by_c", "a_by_b_by_c")
 replication_f_from_ui <- c("Its F" = "f", "Its partial eta-squared, with its F test's error degrees of freedom" = "eta")
 # Assurance: the chance the planned power is reached once the original's
 # effect is corrected for publication bias and uncertainty. 80% is BUCSS's
@@ -91,11 +97,17 @@ replication_anova_effect_choice <- function(values) {
   kind <- if (v("rep_anova_kind") %in% replication_anova_kinds_ui) v("rep_anova_kind") else "between"
   effect <- if (v("rep_anova_effect") %in% replication_anova_effects_ui) v("rep_anova_effect") else "factor_a"
   if (!nzchar(v("rep_levels_b")) && !identical(kind, "mixed")) effect <- "factor_a"
+  # A third factor changes which effects exist: the two-factor interaction
+  # becomes the first-by-second one, and a third-factor effect needs a third factor.
+  if (nzchar(v("rep_levels_c"))) {
+    if (identical(effect, "interaction")) effect <- "a_by_b"
+  } else if (effect %in% replication_anova_effects_three && !effect %in% c("factor_a", "factor_b")) effect <- "factor_a"
   list(kind = kind, effect = effect)
 }
 
 replication_anova_one_df <- function(values) {
   if (!replication_is_anova(values)) return(FALSE)
+  if (nzchar(trimws(as.character(values$rep_levels_c %||% "")))) return(FALSE)  # three factors: BUCSS only
   level <- function(id) suppressWarnings(as.numeric(trimws(as.character(values[[id]] %||% ""))))
   two <- function(id) isTRUE(level(id) == 2)
   switch(replication_anova_effect_choice(values)$effect,
@@ -108,7 +120,7 @@ replication_anova_one_df <- function(values) {
 replication_bucss_only <- function(values) replication_is_anova(values) && !replication_anova_one_df(values)
 
 # The same in the browser, for the Goals step's panels.
-replication_one_df_js <- paste0("(function () { var a = Number((input.rep_levels_a || '').trim()), bt = (input.rep_levels_b || '').trim(), ",
+replication_one_df_js <- paste0("(function () { if ((input.rep_levels_c || '').trim() !== '') return false; var a = Number((input.rep_levels_a || '').trim()), bt = (input.rep_levels_b || '').trim(), ",
   "b = Number(bt), e = input.rep_anova_effect || 'factor_a'; if (bt === '' && input.rep_anova_kind !== 'mixed') e = 'factor_a'; ",
   "return (e === 'factor_a' && a === 2) || (e === 'factor_b' && bt !== '' && b === 2) || (e === 'interaction' && a === 2 && bt !== '' && b === 2); })()")
 replication_one_number_js <- sprintf("(input.rep_design != 'anova' || %s)", replication_one_df_js)
@@ -530,7 +542,7 @@ rep_note <- function(text, label = "More context", keep = FALSE) {
 
 # Number boxes are sized for a number, as the input screens' are; those
 # that can't be negative also bring up a number keyboard on phones.
-replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon", "rep_anova_smallest",
+replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_levels_c", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon", "rep_anova_smallest",
   "rep_bf", "rep_bf_both", "rep_prior_scale", "rep_post_sd", "rep_cri_level", "rep_se", "rep_ci_level", "rep_f",
   "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_smallest", "rep_tau_value", "rep_n_at", "rep_alpha", "rep_power")
 replication_signed_fields <- c("rep_effect", "rep_post_mean", "rep_effect_r", "rep_statistic", "rep_cri_lower", "rep_cri_upper",
@@ -589,6 +601,10 @@ replication_planner_sections <- function() {
           field("rep_levels_a", "Levels of the first factor", help = "In a mixed design, the between-subjects factor: its number of groups."),
           field("rep_levels_b", "Levels of the second factor",
             help = "In a mixed design, the within-subjects factor: its number of conditions or times. Leave it empty for a design with one factor, such as a one-way ANOVA."),
+          field("rep_levels_c", "Levels of the third factor (optional)",
+            help = "Leave it empty unless the design has three factors. A three-factor design is planned with BUCSS alone, from the effect's F."),
+          conditionalPanel("input.rep_anova_kind == 'mixed' && input.rep_levels_c != ''",
+            radioButtons("rep_between_factors", "How many factors are between-subjects", choices = c("One" = "1", "Two" = "2"), selected = "1", width = "100%")),
           selectInput("rep_anova_effect", "The effect the replication tests", choices = replication_anova_effects_ui, selectize = FALSE, width = "100%"),
           radioButtons("rep_f_from", "What the paper gave for it", choices = replication_f_from_ui, selected = "f", width = "100%"),
           conditionalPanel("input.rep_f_from != 'eta'",
@@ -732,9 +748,10 @@ replication_planner_sections <- function() {
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
               "If the original effect is a weak guide to the changed design, you can plan from the smallest effect that would matter. BUCSS assurance describes uncertainty about the original effect.")),
+          conditionalPanel("(input.rep_levels_c || '').trim() === ''",
           field("rep_anova_smallest", "Optional: the smallest effect that would matter (partial eta-squared)",
             help = "An effect smaller than this would not matter for the theory or in practice. There is no default: it is your judgement, from theory, practice or earlier work, and the original's effect is not a good guide to it. For a repeated-measures or mixed design, give it as those analyses report it (SPSS, R and JASP), so no correlation between measurements is needed. A two-factor within-subjects design is planned from its means on its own card.",
-            help_topic = "Choosing an ANOVA effect size")),
+            help_topic = "Choosing an ANOVA effect size"))),
         NULL),
       conditionalPanel(replication_one_number_js,
         rep_card("How much the effect may vary between studies",
@@ -876,7 +893,7 @@ replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", 
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
   "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
-  "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
+  "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_levels_c", "rep_between_factors", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
 
 # The fields a calculation depends on: a result is out of date once any
@@ -1011,13 +1028,16 @@ replication_anova_args <- function(values) {
     if (is.na(x)) NA_real_ else x
   }
   kind <- if (v("rep_anova_kind") %in% replication_anova_kinds_ui) v("rep_anova_kind") else "between"
-  effect <- if (v("rep_anova_effect") %in% replication_anova_effects_ui) v("rep_anova_effect") else "factor_a"
+  effect <- replication_anova_effect_choice(values)$effect
   levels_b <- num("rep_levels_b")
+  levels_c <- num("rep_levels_c")
   if (is.null(levels_b) && !identical(kind, "mixed")) effect <- "factor_a"
-  if (identical(kind, "mixed")) effect <- c(factor_a = "between", factor_b = "within", interaction = "interaction")[[effect]]
+  if (identical(kind, "mixed") && is.null(levels_c)) effect <- c(factor_a = "between", factor_b = "within", interaction = "interaction")[[effect]]
   assurance <- num("rep_assurance", 0.8)
   args <- list(design = paste0("anova_", kind), original_n = num("rep_n", NA_real_), levels_a = num("rep_levels_a", NA_real_),
-    levels_b = levels_b, effect = effect, original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
+    levels_b = levels_b, levels_c = levels_c,
+    between_factors = if (identical(kind, "mixed") && !is.null(levels_c)) num("rep_between_factors", 1) else NULL,
+    effect = effect, original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
     power = num("rep_power", 0.8), assurance = sort(unique(c(replication_assurance_levels, assurance))))
   if (!identical(kind, "between")) args$epsilon <- num("rep_epsilon", 1)
   if (identical(v("rep_published"), "any")) args$publication_filter <- FALSE
@@ -1200,7 +1220,8 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
     # From the smallest effect that would matter, when given: the ANOVA
     # card's own F test (the engine's replication_anova_smallest()).
     eta <- suppressWarnings(as.numeric(trimws(as.character(values$rep_anova_smallest %||% ""))))
-    if (!is.na(eta) && !is.null(smallest)) {
+    # (No ANOVA card plans a three-factor design from a partial eta-squared.)
+    if (!is.na(eta) && !is.null(smallest) && is.null(args$levels_c)) {
       plan$smallest <- tryCatch(do.call(smallest, c(args[c("design", "levels_a", "levels_b", "effect")],
         list(smallest_effect = eta, alpha = args$alpha, power = args$power))),
         error = function(e) list(problem = replication_problem(e)))
@@ -1642,14 +1663,17 @@ replication_anova_smallest_ui <- function(plan) {
 }
 
 replication_anova_effect_words <- function(i) {
-  switch(i$effect, interaction = "interaction",
+  switch(i$effect, interaction = "interaction", a_by_b = "first-by-second interaction", a_by_c = "first-by-third interaction",
+    b_by_c = "second-by-third interaction", a_by_b_by_c = "three-way interaction", factor_c = "third factor",
     between = "between-subjects factor", within = "within-subjects factor",
     factor_a = if (is.null(i$levels_b)) "factor" else "first factor", factor_b = "second factor")
 }
 
 replication_bucss_original_words <- function(plan) {
   i <- plan$inputs
-  levels <- if (is.null(i$levels_b)) sprintf("one factor with %s levels", i$levels_a) else sprintf("a %s x %s design", i$levels_a, i$levels_b)
+  levels <- if (is.null(i$levels_b)) sprintf("one factor with %s levels", i$levels_a)
+    else if (is.null(i$levels_c)) sprintf("a %s x %s design", i$levels_a, i$levels_b)
+    else sprintf("a %s x %s x %s design", i$levels_a, i$levels_b, i$levels_c)
   from <- if (!is.null(i$original_partial_eta)) sprintf("its partial eta-squared of %s with F(%s, %s), which is an F of %s (Lakens, 2013)",
     format(i$original_partial_eta), format(plan$df_effect), format(i$original_df_error), format(signif(plan$f, 4)))
     else sprintf("its F of %s, with %s numerator degree%s of freedom", format(i$original_statistic), format(plan$df_effect), if (identical(plan$df_effect, 1)) "" else "s")
@@ -2083,7 +2107,8 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     if (identical(v("rep_design"), "anova")) c(
       sprintf("- Who was in each condition: %s", replication_lc(names(replication_anova_kinds_ui)[replication_anova_kinds_ui ==
         (if (v("rep_anova_kind") %in% replication_anova_kinds_ui) v("rep_anova_kind") else "between")])),
-      sprintf("- Levels: %s%s", or_blank(v("rep_levels_a")), if (nzchar(v("rep_levels_b"))) paste(" x", v("rep_levels_b")) else " (one factor)"),
+      sprintf("- Levels: %s%s%s", or_blank(v("rep_levels_a")), if (nzchar(v("rep_levels_b"))) paste(" x", v("rep_levels_b")) else " (one factor)",
+        if (nzchar(v("rep_levels_c"))) paste(" x", v("rep_levels_c")) else ""),
       sprintf("- The effect: %s", replication_lc(names(replication_anova_effects_ui)[replication_anova_effects_ui ==
         (if (v("rep_anova_effect") %in% replication_anova_effects_ui) v("rep_anova_effect") else "factor_a")])),
       if (identical(v("rep_f_from"), "eta")) sprintf("- Reported effect: a partial eta-squared of %s, with %s error degrees of freedom", or_blank(v("rep_eta")), or_blank(v("rep_df_error")))

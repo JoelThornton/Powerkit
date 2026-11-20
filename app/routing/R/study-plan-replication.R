@@ -22,7 +22,7 @@ replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "te
   rep_original_alpha = "0.05", rep_published = "unknown", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
   rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
   rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided",
-  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_assurance = "0.8")
+  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_between_factors = "1", rep_assurance = "0.8")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
