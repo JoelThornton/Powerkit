@@ -1527,6 +1527,22 @@ safeguard_sentence <- function(result) {
 # the engine: what the variation does to power, and how often one study is
 # significant with no average effect.
 
+# What a mediation plan's indirect effect is, and what reading it as
+# causal assumes: randomising X doesn't rule out a common cause of the
+# mediator and the outcome, so the plan states the order of measurement and
+# the common causes adjusted for. The natural indirect effect (regmedint's
+# templates) is causal by definition, so its assumptions are named.
+mediation_causal_sentence <- function(spec) {
+  if (!isTRUE(spec$design %in% c("mediation", "moderated_mediation"))) return(NULL)
+  if (isTRUE(spec$template %in% c("binary_mediator", "binary_or_count_outcome"))) {
+    return(paste("The natural indirect effect is a causal quantity: the estimate is unbiased only if nothing unmeasured affects both X and Y,",
+      "X and the mediator, or the mediator and Y, and no common cause of the mediator and Y is itself changed by X.",
+      "Randomising X addresses only the first two, so the order in which the variables are measured and the common causes of the mediator and Y adjusted for are stated with the analysis."))
+  }
+  paste("The power is for the indirect effect as a statistical path. Reading it as X changing Y through the mediator also assumes the mediator is measured after X",
+    "and before Y and that nothing unmeasured affects both the mediator and Y, which randomising X does not ensure; the order of measurement and the common causes adjusted for are stated with the analysis.")
+}
+
 mediation_analysis_sentence <- function(result) {
   a <- result$mediation_analysis
   if (is.null(a)) return(NULL)
@@ -4087,7 +4103,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   if (identical(spec$goal$unit, "observations")) main <- observation_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
+  main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), mediation_causal_sentence(spec), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
