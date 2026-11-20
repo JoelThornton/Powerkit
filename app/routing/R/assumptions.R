@@ -110,9 +110,10 @@ assumptions_ui <- function(spec, result, candidates) {
           tags$td(numericInput(sprintf("assume_low_%s", f$id), span(class = "visually-hidden", sprintf("Lowest plausible %s", assumption_label(f))), value = NA, width = "100%")),
           tags$td(numericInput(sprintf("assume_high_%s", f$id), span(class = "visually-hidden", sprintf("Highest plausible %s", assumption_label(f))), value = NA, width = "100%"))))))),
     if (length(effect) && length(others)) div(class = "assumption-grid-choice",
-      selectInput("assumptions_grid", "Also show the effect against one assumption together (both need a lowest and a highest value)",
+      selectInput("assumptions_grid", "Also show the effect against one assumption",
         choices = c("No two-way grid" = "", stats::setNames(vapply(others, `[[`, "", "id"), vapply(others, assumption_label, ""))),
-        width = "100%")),
+        width = "100%"),
+      p(class = "small text-muted", "Both assumptions need a lowest and a highest value.")),
     actionButton("assumptions_run", "Compare these assumptions", class = "btn btn-outline-primary"),
     uiOutput("assumptions_result"))
 }
