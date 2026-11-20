@@ -43,8 +43,14 @@ engine-side change alone will fail the app suite.
   the source cited and checked against an independent simulation and, where
   G*Power has the test, its answers. Don't simulate only because no package
   has a formula: a simulation is slower and carries random error.
-- Never edit expected values in engine/tests/testthat/test-validation-*. They are transcribed
-  from published sources by the maintainer. If a test fails, report why.
+- Never edit a value in engine/tests/testthat/test-validation-* that was transcribed
+  from a published source or another tool (a paper, a manual, G*Power's screen):
+  those in tests marked "(published)" or "(G*Power value)", and any value whose
+  comment cites its source. They are the maintainer's; if one fails, report why.
+  The other expected values there (analytic, simulation, formula, Type I error
+  and recorded-size checks) were written with the code: change one only as part
+  of a method change the maintainer has approved, say so in the pull request,
+  and never to make a test pass that should fail.
 - Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer
   (a test with a placeholder may be skipped, not deleted).
 - Every result records: spec hash, seed, backend, R and package versions.

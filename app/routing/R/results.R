@@ -2925,6 +2925,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 34 (both tails for Cronbach's alpha) applies to a two-sided
   # test of alpha.
   if (!identical(spec$template, "cronbach_alpha") || isTRUE(spec$target_test$alternative %in% c("greater", "less"))) keys <- setdiff(keys, "34")
+  # Departure 35 (both tails for a measured score's Cox test) applies to
+  # that template.
+  if (!identical(spec$template, "cox_predictor")) keys <- setdiff(keys, "35")
   # Departure 32 (the Brown-Forsythe test by default for two variances)
   # applies when it is the test planned for.
   if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")

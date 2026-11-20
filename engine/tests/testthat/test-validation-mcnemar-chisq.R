@@ -9,7 +9,10 @@
 #      (|b - c| - correction)^2 / (b + c) on 1 df, without Spower
 #   2. Type I error
 #   3. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 mcnemar_chisq_validation_spec <- function(method, p_first_only, p_second_only, n, seed = 501) {

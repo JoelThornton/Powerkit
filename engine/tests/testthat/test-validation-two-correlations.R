@@ -7,7 +7,10 @@
 #      option)
 #   4. Type I error: equal correlations give alpha by construction (unit
 #      tests)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 two_correlations_spec <- function(r1, r2, alpha, tails, seed, n = NULL,

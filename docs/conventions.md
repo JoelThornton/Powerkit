@@ -2231,6 +2231,28 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
 - **Shown to users:** on the E69 result for a two-sided test of Cronbach's
   alpha (`departures_for()`), and in the methods paragraph.
 
+### 35. A measured score in a Cox regression: a two-sided test counts both tails
+
+- **Established convention:** powerSurvEpi's `powerEpiCont.default()`
+  (Hsieh and Lavori's formula) gives Φ(D − z_(α/2)), D = sqrt(n ln(HR)²
+  var(X) ψ (1 − R²)): only the tail in the effect's direction, though its
+  help calls the test two-sided.
+- **powerkit:** since 20 November 2026 the power adds the other tail,
+  Φ(−D − z_(α/2)), with D recovered from the package's own power as
+  qnorm(power) + z_(α/2) (`backend-survival.R`, `survival_power()`).
+- **Why:** the two-sided Wald test of the Cox coefficient rejects in either
+  tail; as for Cronbach's alpha (Departure 34), the single tail is a
+  sample-size approximation, not the test's power.
+- **Size:** at a hazard ratio of 1 (power at n only; the spec checks
+  refuse it for a sample size), 5.0% against 2.5%. At a hazard ratio of
+  1.05 with 100 people and 30% with the event, 5.8% against 4.5%. At the
+  card's example (hazard ratio 0.75, 350 people) the difference is under
+  0.000001, so sample sizes are unchanged.
+- **Test:** `engine/tests/testthat/test-backend-survival.R`, "Departure
+  35: a measured score's two-sided test counts both tails, by this much".
+- **Shown to users:** on the E43 result for a measured score
+  (`departures_for()`), and in the methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2723,8 +2745,7 @@ Wired into the app on 18 October 2026 (E25, E26).*
   ratio per SD so the score's variance is 1. Its help calls the test
   two-sided, but its power is a single tail, `pnorm(sqrt(...) - z[1 -
   alpha/2])`, so at a hazard ratio of 1 it gives alpha / 2, not alpha;
-  with any effect worth planning for the other tail adds well under 0.001.
-  powerkit reports the package's number. Both formulas agree with
+  powerkit adds the other tail (Departure 35). Both formulas agree with
   simulated log-rank tests and Cox models within 0.02 at the sizes
   tested. Tests: `test-backend-survival.R`; `test-validation-survival.R`
   [powerkit, `docs/decisions.md`].

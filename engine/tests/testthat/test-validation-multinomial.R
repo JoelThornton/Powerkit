@@ -18,7 +18,10 @@
 #      approximation of the same test
 #   4. Type I error with a score predictor and another predictor
 #   5. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 mn_validation_spec <- function(probabilities, second, n, binary = FALSE, x_prob = 0.5, r2 = 0, method = "likelihood_ratio", category = NULL) {

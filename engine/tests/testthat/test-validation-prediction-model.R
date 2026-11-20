@@ -30,7 +30,10 @@
 #      width is reached, so its n can be a little below the exact one
 #      (1,538 against 1,542 at phi = 0.2 and a width of 0.2): criterion 1
 #      is checked to within 1%, criterion 3 exactly.
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 prediction_validation_spec <- function(outcome, population, goal = list()) {
