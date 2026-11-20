@@ -809,7 +809,6 @@ heterogeneity_fields <- function(template) {
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
     return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies?",
-      help = "As an SD on Fisher's z.",
       fold = "The correlation may differ from study to study (optional)",
       type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
       default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
@@ -822,7 +821,6 @@ heterogeneity_fields <- function(template) {
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies?",
-    help = "As an SD in d.",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
     default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
     fold = "The effect may differ from study to study (optional)",
