@@ -1,0 +1,7 @@
+entries:
+  - date: "2026-11-20"
+    title: A shorter methods paragraph
+    text: >
+      The short version of the methods paragraph no longer carries the
+      Welch-test notes about equal SDs or R's build date. They are still in
+      the full version, for a supplement or preregistration.

@@ -292,7 +292,7 @@ whole_study_seconds <- function(forms, plan, nrep) {
 whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NULL) {
   if (!isTRUE(plan$ok)) {
     return(tags$details(class = "plan-more whole-study-entry",
-      tags$summary("Simulating the whole study at once (experimental) isn't available for this plan"),
+      tags$summary("Simulating the whole study isn't available for this plan"),
       p("It covers studies where:"), tags$ul(lapply(plan$reasons, tags$li))))
   }
   div(class = "whole-study-entry whole-study-lead",
@@ -340,15 +340,15 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     })),
     if (length(d_keys)) p(class = "text-muted small", "Cohen's d is the difference between the groups' means in pooled within-group standard deviations, as on the two-group card. Powerkit finds the path that gives this d, from a very large simulated sample, when the simulation runs; the result shows it."),
     h3(class = "h5", "Sample size and precision"),
-    textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
+    textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     if (!is.null(n)) p(class = "text-muted small", "Filled in with the largest sample size calculated on your plan for a main analysis."),
-    textInput("ws_alpha", "Significance level (alpha)", value = values$alpha %||% "0.05", width = "100%"),
+    textInput("ws_alpha", "Significance level", value = values$alpha %||% "0.05", width = "100%"),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about \u00b1%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
       whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
       duration_text(whole_study_seconds(forms, plan, forms$whole_study$quick_nrep)))),
-    textInput("ws_seed", "Random seed (the same seed gives the same result)", value = values$seed %||% as.character(forms$default_seed), width = "100%"),
-    p(class = "text-muted small", "It runs in a separate process: you can cancel it, and leaving this screen stops it."),
+    textInput("ws_seed", "Random seed", value = values$seed %||% as.character(forms$default_seed), width = "100%"),
+    p(class = "text-muted small", "The same seed gives the same result. It runs in a separate process: you can cancel it, and leaving this screen stops it."),
     action_bar(actionButton("ws_run", "Run the simulation", class = "btn btn-primary")),
     uiOutput("ws_result")
   )
@@ -488,7 +488,7 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
         sprintf("The power at N = %s, from %s simulated studies (within about \u00b1%s percentage points; %s on one core)",
           whole(n), whole(ws$full_nrep), whole_study_precision(ws$full_nrep), whole_study_duration(one_run))),
       choiceValues = list("sample_size", "power"), selected = "sample_size", width = "100%"),
-    selectInput("ws_target", "Target power (for the sample size)",
+    selectInput("ws_target", "Target power",
       choices = stats::setNames(as.character(ws$target_powers), paste0(100 * unlist(ws$target_powers), "%")),
       selected = "0.8", width = "100%"),
     p("What you need:"),
@@ -606,7 +606,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
         whole(pv$nrep), whole(r$n))),
       curve),
     div(class = "result-card", id = "ws-inputs",
-      h4(class = "h5", "What your study model means for each analysis's own input screen"),
+      h4(class = "h5", "What your study model means for each analysis"),
       p(class = "small", if (experiment)
         "Each test's effect size (Cohen's f) and its power when it is the only test, calculated exactly from your means (Superpower's ANOVA_exact()), as its own card would give them."
         else "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
@@ -803,25 +803,25 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
     whole_study_name_inputs(plan$roles, labels),
     h3(class = "h5", "Your experiment"),
-    textInput("ws_x_levels", sprintf("Levels of %s (separate them with commas)", labels[["X"]]),
-      value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%"),
-    if (plan$has_w) textInput("ws_w_levels", sprintf("Levels of %s (separate them with commas)", labels[["W"]]),
-      value = value_of("w_levels", whole_study_experiment_default_levels("Group", plan$w_levels)), width = "100%"),
+    textInput("ws_x_levels", sprintf("Levels of %s", labels[["X"]]),
+      value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%", placeholder = "Separate with commas"),
+    if (plan$has_w) textInput("ws_w_levels", sprintf("Levels of %s", labels[["W"]]),
+      value = value_of("w_levels", whole_study_experiment_default_levels("Group", plan$w_levels)), width = "100%", placeholder = "Separate with commas"),
     p(class = "text-muted", "The means you expect, in the outcome's own units. Their pattern sets every effect: equal means in a row and a column mean no effect there, and parallel rows mean no interaction."),
     uiOutput("ws_means_grid"),
-    textInput("ws_sd", sprintf("SD of %s within each cell (the same in every cell)", labels[["Y"]]), value = value_of("sd"), width = "100%"),
+    textInput("ws_sd", sprintf("SD of %s within each cell", labels[["Y"]]), value = value_of("sd"), width = "100%", placeholder = "The same in every cell"),
     if (plan$x_within) textInput("ws_r", sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
       value = value_of("r"), width = "100%"),
     h3(class = "h5", "Sample size and precision"),
-    textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
+    textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     p(class = "text-muted small", if (plan$x_within && !plan$has_w) "Everyone takes part in every condition." else "Split equally between the groups."),
-    textInput("ws_alpha", "Significance level (alpha)", value = value_of("alpha", "0.05"), width = "100%"),
+    textInput("ws_alpha", "Significance level", value = value_of("alpha", "0.05"), width = "100%"),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about ±%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
       whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
       duration_text(whole_study_seconds(forms, plan, forms$whole_study$quick_nrep)))),
-    textInput("ws_seed", "Random seed (the same seed gives the same result)", value = value_of("seed", as.character(forms$default_seed)), width = "100%"),
-    p(class = "text-muted small", "It runs in a separate process: you can cancel it, and leaving this screen stops it."),
+    textInput("ws_seed", "Random seed", value = value_of("seed", as.character(forms$default_seed)), width = "100%"),
+    p(class = "text-muted small", "The same seed gives the same result. It runs in a separate process: you can cancel it, and leaving this screen stops it."),
     action_bar(actionButton("ws_run", "Run the simulation", class = "btn btn-primary")),
     uiOutput("ws_result")
   )

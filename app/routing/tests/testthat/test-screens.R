@@ -257,7 +257,7 @@ test_that("the plan screen offers the experimental whole-study simulation only w
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline")
   html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation", "mediation"), c("compare", "moderation", "mediation"),
     list(compare = "ANCOVA: the outcome adjusting for the baseline"), "any"))
-  expect_match(html, "Simulating the whole study at once \\(experimental\\) isn.{1,5}t available for this plan")
+  expect_match(html, "Simulating the whole study isn.{1,5}t available for this plan")
   expect_false(grepl("guided:simulate", html, fixed = TRUE))
   # The plan the simulation covers leads with it, and folds the separate
   # calculations below.
