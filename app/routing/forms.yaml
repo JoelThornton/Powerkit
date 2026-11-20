@@ -3875,7 +3875,7 @@ forms:
       - input: "Your outcome and its categories, your predictor and what kind of predictor it is"
         fields:
           - {id: Y_label, label: "Outcome (for example, where help was first sought)", type: text, path: variables.Y.label, required: true}
-          - {id: Y_levels, label: "Its categories", type: levels, path: variables.Y.levels, required: true,
+          - {id: Y_levels, label: "The outcome's categories", type: levels, path: variables.Y.levels, required: true,
              help: "Separated by commas: three or more. The first is the one the others are compared with. Put first the category that makes the natural comparison, such as the most common choice or the usual one: the odds ratios and the test of one category compare each other category with it."}
           - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of predictor", type: select, path: variables.X.type, required: true,
