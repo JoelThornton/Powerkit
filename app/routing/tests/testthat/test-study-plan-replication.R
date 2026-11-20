@@ -130,7 +130,7 @@ test_that("a replication plan's write-up comes from its record, and Download eve
   report <- paste(replication_plan_report(plan, tree, forms, engine = function(name) NULL), collapse = "\n")
   expect_match(report, "Smith replication", fixed = TRUE)
   expect_match(report, "Priming slows walking", fixed = TRUE)
-  expect_match(report, "Written with powerkit's replication plan", fixed = TRUE)
+  expect_match(report, "Written with Powerkit's replication plan", fixed = TRUE)
   skip_if(is.null(rep_engine("write_study_plan")), "no engine")
   zip <- tempfile(fileext = ".zip")
   write_plan_bundle(plan, zip, tree, forms, engine = rep_engine)

@@ -2073,7 +2073,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
   if (identical(notes_outcome, "not_worth")) {
     report <- strsplit(labs_report(notes %||% list(), "not_worth", citation = labs_citation()), "\n", fixed = TRUE)[[1]]
     return(c(report[[1]], "",
-      sprintf("Written with powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)),
+      sprintf("Written with Powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)),
       report[-1]))
   }
   v <- function(id) trimws(as.character(values[[id]] %||% ""))
@@ -2083,7 +2083,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
   design_label <- names(replication_designs_ui)[replication_designs_ui == (if (nzchar(v("rep_design"))) v("rep_design") else "two_groups")]
   two <- identical(v("rep_design"), "two_groups") || !nzchar(v("rep_design"))
   lines <- c(if (is.null(title)) "# Replication plan" else paste("# Replication plan:", title), "",
-    sprintf("Written with powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)), "",
+    sprintf("Written with Powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)), "",
     if (!is.null(plan)) c(paste("Validation in progress:", if (!is.null(plan$sizes)) replication_bucss_validation_text else replication_validation_text), ""),
     "## The original study", "",
     sprintf("- Study: %s", or_blank(v("rep_study"))),
