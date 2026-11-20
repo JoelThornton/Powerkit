@@ -1,3 +1,30 @@
+# powerkit 0.80.1
+
+* `joint_power()` keeps each outcome's effect sign: PUMP takes positive effects only, so each outcome's test is turned to face its effect and its correlations with the others take the matching signs (a two-sided test of -d rejects exactly when the reversed outcome's test of +d does). Effects of 0 are passed as 1e-8 so PUMP keeps them and reports complete power; a one-sided test faces the tested direction and an effect against it is refused in plain words. Before, +0.3 and -0.3 correlated 0.8 got the joint power of +0.3 and +0.3 (item 30a of `docs/next.md`, from the 19 November 2026 calculation audit).
+* E46: the Clopper-Pearson limits for a proportion are presize's with one line corrected (presize 0.3.11 sets the upper limit to 1 when n p is 1, not n), giving `binom.test()`'s interval at a whole count; width plans walk to the smallest whole n. A Wald width plan starts where its own check of 5 expected in each outcome passes. The exported script does the same (30b, 30e).
+* E49 and E5's unequal-group z test: pwrss multiplies `n.ratio` back by `n2` and rounds up, and a ratio of whole group sizes can land a hair above the whole number, scoring 27 + 21 as 28 + 21. The z test passes `ceil.n = FALSE`; Fisher's z, whose rounding ignores `ceil.n`, gets a ratio a hair below `n1 / n2`. Equal proportions with unequal groups, which pwrss refuses, are passed 2e-6 apart (power within 1e-5 of alpha). Scripts match (30c, 30h).
+* E5's Bayes factor for two proportions sets `sawtooth`, so the search checks every smaller n (it returned 34 where 30 reaches 80%); its script uses the sawtooth goal section (30d).
+* simr: designs with conditions between participants (E33, E63) search in `valid_n_step()`, the totals the fixed-n check accepts; E63's and E33's scripts use the backend's step, and E68's script searches in pairs of sites when sites are assigned, as the app does (30g).
+
+# powerkit 0.80.0
+
+* App: the start screen's two actions are outlined buttons with icons
+  (`start_more_icon()`), the tester note is a callout and the footer links
+  are muted. Site: `site/index.html`'s "Learn more" list is four cards.
+
+* `replication_bucss()` plans a three-factor ANOVA original (between,
+  within or mixed) through BUCSS's general functions
+  (`ss_buc_factorial_anova_general`, `ss_buc_rm_anova_general`,
+  `ss_buc_mixed_anova_general`). New arguments `levels_c` and
+  `between_factors` (a mixed design's between-subjects factors, 1 or 2);
+  effects `factor_a`, `factor_b`, `factor_c`, `a_by_b`, `a_by_c`, `b_by_c`
+  and `a_by_b_by_c`. An effect's degrees of freedom and a mixed design's
+  between/within split follow from the factors it involves. The smallest-
+  effect route does not cover three factors (no ANOVA card plans one from
+  a partial eta-squared).
+* App: the replication planner takes a third factor's levels, how many
+  factors are between-subjects (mixed designs), and the five new effects.
+
 # powerkit 0.79.6
 
 * Queued the findings of the 19 November 2026 calculation audit, each reproduced on 0.79.2, as `docs/next.md` items 30 to 35: wrong numbers (joint power with effects of opposite sign, presize's Clopper-Pearson limit at one expected success, pwrss re-rounding unequal groups on E49 and E5, the Bayes factor search on E5, E46's Wald planner, replication-plan searches, simulated mixed-model steps), TOSTER and pmsampsize faults passed through (E36, E77), and export, label and wording errors.

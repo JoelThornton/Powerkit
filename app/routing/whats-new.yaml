@@ -7,6 +7,51 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-20"
+    title: Corrected answers in several calculations
+    text: >
+      A study plan's joint power now keeps the direction of each effect, so
+      two related outcomes expected to move in opposite directions are no
+      longer treated as moving the same way; an outcome with no expected
+      effect is kept, and a one-sided test of an effect in the other
+      direction is explained instead of miscounted.
+  - date: "2026-11-20"
+    title: Exact sizes for unequal groups and intervals for rare outcomes
+    text: >
+      Comparing two correlations, or two proportions with the z test, with
+      unequal groups now scores the groups exactly as they are split, where
+      one person could be added to the first group before; the z test also
+      gives an answer when the two proportions are equal. The exact
+      (Clopper-Pearson) interval for a proportion no longer reaches 1 when
+      one success is expected, and a Wald interval plan starts where at
+      least 5 are expected in each outcome.
+  - date: "2026-11-20"
+    title: Smallest sample sizes found where power dips
+    text: >
+      The Bayes factor test of two proportions now finds the smallest sample
+      size when the chance of strong evidence goes up and down as the sample
+      grows. Mixed models with conditions between participants search in
+      totals that split equally between the conditions, and the R script for
+      a trial that assigns whole sites searches in pairs of sites, as the
+      app does.
+  - date: "2026-11-20"
+    title: A tidier start screen and home page
+    text: >
+      On the start screen, "Open a saved file" and "Run Powerkit on your own
+      computer" are now buttons with small icons, the note for people trying
+      the prototype out sits in a soft box, and the footer links are quieter.
+      The public home page lists its guide, download, validation and source
+      links as four short cards.
+  - date: "2026-11-19"
+    title: Replication plans for three-factor ANOVAs
+    text: >
+      A replication of an ANOVA with three factors can now be planned: give
+      the third factor's levels, choose the effect the replication tests
+      (a main effect, a two-way interaction or the three-way interaction)
+      and enter the original's F. The sample size allows for publication
+      bias and the uncertainty of the original's estimate, as for a
+      two-factor ANOVA. A mixed design asks how many of its factors are
+      between-subjects.
   - date: "2026-11-19"
     title: Replication plans name themselves and sum up what you've entered
     text: >
@@ -2616,72 +2661,3 @@ entries:
       tests" under "I know my analysis". You get the power for that
       noncentrality, or the noncentrality you'd need; there is no sample
       size, because the noncentrality already reflects it.
-  - date: "2026-10-19"
-    title: "Asked whether your hypothesis predicts a direction"
-    text: >-
-      For tests that can be one-sided, the input screen now starts by asking
-      whether your hypothesis predicts a direction, instead of filling in a
-      two-sided test for you.
-  - date: "2026-10-19"
-    title: "Planning for a claim that needs every test to be significant"
-    text: >-
-      If your claim needs all of several tests to be significant, powerkit
-      now asks how many and plans each test at a higher power, so that all
-      of them together reach the power you chose. Where it says no
-      correction is needed for separate claims, it now notes that not
-      everyone agrees.
-  - date: "2026-10-19"
-    title: "Check a plan someone shared with you"
-    text: >-
-      Supervisors, reviewers and colleagues can open a saved plan from the
-      start screen and see what it assumes, what it found and which
-      questions are worth asking, such as a missing reason for the effect
-      size or no allowance for drop-out. It doesn't change the file or give
-      a pass or fail.
-  - date: "2026-10-19"
-    title: "A plain-words version of the write-up for ethics applications"
-    text: >-
-      Under the write-up there is now a third box that explains, in words an
-      ethics panel can follow, why you plan this many participants: the
-      effect you planned for and why, and the chance of finding or missing
-      it. It describes the plan; it doesn't judge whether the study is
-      ethical.
-  - date: "2026-10-19"
-    title: "A reason is asked for if you change the significance level or test direction"
-    text: >-
-      The significance level (.05) and a two-sided test stay filled in. If you
-      change either, a box asks why. It's optional, and what you write goes
-      into the write-up.
-  - date: "2026-10-19"
-    title: "Two new analyses: goodness of fit, and comparing two correlations"
-    text: >-
-      You can now plan a chi-square goodness-of-fit test (one group's answers
-      across several categories, compared with expected proportions) and a
-      comparison of the same correlation in two separate groups. Neither has
-      been checked against G*Power yet; their cards say so.
-  - date: "2026-10-19"
-    title: "\"Guess first\": write down your guess before you see the answer"
-    text: >-
-      At the end of each input screen you can write down the sample size or
-      power you expect. The result screen then shows your guess next to the
-      answer. It's a learning aid only: the guess isn't saved in your plan
-      and nothing is collected.
-  - date: "2026-10-19"
-    title: "More analyses can find the smallest effect you could detect"
-    text: >-
-      If you can't justify an effect size, or your sample size is fixed, the
-      app can now find the smallest effect you could detect for two
-      proportions, the chi-square test and interactions in regression. For
-      interactions it uses a quick formula, which the result screen labels.
-  - date: "2026-10-19"
-    title: "The app asks whether your reasoning still applies"
-    text: >-
-      If you change the effect size after explaining why you chose it, the
-      result screen asks whether your reasoning still applies, rather than
-      quietly keeping a reason written for a different number.
-  - date: "2026-10-19"
-    title: "Fisher's exact test and one-way ANCOVA"
-    text: >-
-      Comparing two proportions now offers Fisher's exact test for small
-      samples, and one-way ANCOVA (group means adjusted for covariates)
-      calculates in the app.

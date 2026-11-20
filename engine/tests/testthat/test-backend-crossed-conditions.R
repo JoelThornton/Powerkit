@@ -140,3 +140,36 @@ test_that("conditions between participants run, recover the population, and refu
   spec <- between_conditions_spec("between")
   expect_script_reproduces_power(spec, suppressWarnings(run_spec(spec)))
 })
+
+test_that("sample size searches step in whole groups, in the app and in the script (audit, 19 November 2026)", {
+  script_step <- function(spec) {
+    spec$goal <- list(type = "sample_size", power = 0.8)
+    result <- list(goal_type = "sample_size", provenance = list(simulations = data.frame(n = c(30, 60), rejections = 1, valid = 2)),
+      n_required = list(n = 60, lower = 60, upper = 60))
+    lines <- simulation_goal_section(spec, result, simr_backend(spec)$n_step)
+    as.numeric(sub("n_step <- ([0-9]+).*", "\\1", grep("^n_step <- ", lines, value = TRUE)))
+  }
+  # E63: conditions between participants need a multiple of the 3 conditions.
+  between <- validate_spec(between_conditions_spec("between", goal = list(type = "sample_size", power = 0.8)))
+  expect_identical(as.numeric(simr_backend(between)$n_step), 3)
+  expect_identical(script_step(between), 3)
+  # E33: two conditions between participants.
+  two <- example_spec("crossed_two_condition")
+  two$variables$X$type <- "between_factor"
+  two$population$sd_participant_slope <- NULL
+  two$population$r_participant <- NULL
+  two <- validate_spec(two)
+  expect_identical(as.numeric(simr_backend(two)$n_step), 2)
+  # E68: whole sites assigned to the conditions come in pairs.
+  sites <- validate_spec(example_spec("mixed_three_level"))
+  m <- sites$population$group_size * sites$population$groups_per_site
+  expect_identical(as.numeric(simr_backend(sites)$n_step), 2 * m)
+  sites$goal <- list(type = "sample_size", power = 0.8)
+  fake <- fake_result("simr")
+  fake$provenance <- c(fake$provenance, list(method = "simulation", nrep = 200, seed = 1, batch_size = 100,
+    simulations = data.frame(n = c(2 * m, 4 * m), rejections = c(100, 170), valid = c(200, 200))))
+  fake$n_required <- list(n = 4 * m, lower = 4 * m, upper = 4 * m)
+  fake$curve <- data.frame(n = c(2 * m, 4 * m), power = c(0.5, 0.85), mcse = 0.03)
+  fake$goal_type <- "sample_size"
+  expect_true(any(grepl(sprintf("^n_step <- %s ", 2 * m), three_level_script(sites, fake))))
+})

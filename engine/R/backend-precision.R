@@ -178,20 +178,51 @@ precision_presize_calculate <- function(spec, effect, level, goal) {
       icc = presize::prec_icc(rho = pop$icc, k = pop$raters, n = n, conf.width = conf.width, conf.level = level)
     )))
   }
+  exact_prop <- identical(template, "proportion") && identical(method, "exact")
   if (!is.null(goal$width)) {
     found <- call(conf.width = goal$width)
     n <- if (two) 2L * as.integer(ceiling(found$n1 - 1e-9)) else as.integer(ceiling(found$n - 1e-9))
+    if (identical(template, "proportion") && identical(method, "wald")) {
+      # The Wald interval is offered only with 5 expected in each outcome
+      # (check_precision()), so the search starts where that holds.
+      n <- max(n, as.integer(ceiling(5 / min(pop$p, 1 - pop$p) - 1e-9)))
+    }
+    if (exact_prop) n <- precision_exact_prop_n(pop$p, level, goal$width, n)
   } else {
     n <- as.integer(goal$n)
   }
   # The width at the whole n (presize's search can return a fraction).
   at_n <- call(n = n)
+  if (exact_prop) at_n <- utils::modifyList(at_n, precision_exact_prop(pop$p, n, level))
   # prec_icc() gives the expected width only, not the limits.
   list(
     n = n, lower = at_n$lwr %||% NA_real_, upper = at_n$upr %||% NA_real_, width = at_n$conf.width,
     function_used = paste0("presize::", precision_presize_function(spec)),
     package = "presize"
   )
+}
+
+# presize's Clopper-Pearson limits for a proportion at n (its expected count
+# x = n p, which can be a fraction), with one line corrected: presize 0.3.11
+# sets the upper limit to 1 when x is 1, where the convention (as in
+# binom.test()) is to set it to 1 when x is n, every observation a success.
+precision_exact_prop <- function(p, n, level) {
+  alpha <- (1 - level) / 2
+  x <- p * n
+  lwr <- if (x == 0) 0 else stats::qbeta(alpha, x, n - x + 1)
+  upr <- if (x == n) 1 else stats::qbeta(1 - alpha, x + 1, n - x)
+  list(lwr = lwr, upr = upr, conf.width = upr - lwr)
+}
+
+# The smallest whole n whose corrected Clopper-Pearson interval is no wider
+# than `width`, starting from presize's answer (which can stop at the n
+# where its upper limit was wrongly 1, or step past a smaller n).
+precision_exact_prop_n <- function(p, level, width, start) {
+  fits <- function(n) precision_exact_prop(p, n, level)$conf.width <= width + 1e-12
+  n <- max(as.integer(start), 1L)
+  while (!fits(n)) n <- n + 1L
+  while (n > 1L && fits(n - 1L)) n <- n - 1L
+  n
 }
 
 precision_presize_function <- function(spec) {
@@ -312,7 +343,31 @@ precision_script <- function(spec, result) {
     sprintf("n <- ceiling(%s(%s = effect, conf.width = width, conf.level = conf_level, method = method)$n - 1e-9)",
       if (identical(spec$template, "correlation")) "prec_cor" else "prec_prop", effect_arg)
   }
-  interval <- if (mbess) {
+  prop_method <- if (identical(spec$template, "proportion")) precision_presize_method(spec) else ""
+  if (!is.null(goal$width) && identical(prop_method, "wald")) {
+    find <- c(find, "# The Wald interval needs at least 5 expected in each outcome, so start there.",
+      "n <- max(n, ceiling(5 / min(effect, 1 - effect) - 1e-9))")
+  }
+  exact_lines <- c(
+    "# presize 0.3.11 sets the upper limit to 1 when n * effect is 1; the",
+    "# Clopper-Pearson limits are worked out here with that corrected (1 only",
+    "# when every observation is a success, as in binom.test()).",
+    "cp <- function(n) {",
+    "  x <- effect * n",
+    "  a <- (1 - conf_level) / 2",
+    "  c(lower = if (x == 0) 0 else qbeta(a, x, n - x + 1), upper = if (x == n) 1 else qbeta(1 - a, x + 1, n - x))",
+    "}"
+  )
+  if (identical(prop_method, "exact")) {
+    find <- c(exact_lines, find, if (!is.null(goal$width)) c(
+      "# The smallest whole n whose corrected interval is no wider than wanted.",
+      "fits <- function(n) diff(cp(n)) <= width + 1e-12",
+      "while (!fits(n)) n <- n + 1",
+      "while (n > 1 && fits(n - 1)) n <- n - 1"))
+  }
+  interval <- if (identical(prop_method, "exact")) {
+    c("limits <- cp(n)", "lower <- limits[[\"lower\"]]", "upper <- limits[[\"upper\"]]")
+  } else if (mbess) {
     if (two) {
       c("limits <- ci.smd(smd = effect, n.1 = n / 2, n.2 = n / 2, conf.level = conf_level)",
         "lower <- limits$Lower.Conf.Limit.smd",

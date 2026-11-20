@@ -152,3 +152,16 @@ test_that("plain-word checks for the two-proportion Bayes factor settings", {
   spec <- prop_spec(); spec$target_test$prior_concentration <- 0.5
   expect_error(validate_spec(spec))
 })
+
+test_that("the sample size search finds the smallest n when the chance dips (audit, 19 November 2026)", {
+  # Exact enumeration: 82.4609% at 30, 79.7261% at 32, 82.8572% at 34; the
+  # search used to pass 30 and stop at 34.
+  spec <- prop_spec(p1 = 0.15, p2 = 0.72, threshold = 10, goal = list(type = "sample_size", power = 0.8))
+  at <- function(n) run_spec(prop_spec(p1 = 0.15, p2 = 0.72, threshold = 10, goal = list(type = "power", n = n)))$curve$power
+  expect_equal(c(at(30), at(32), at(34)), c(0.824609, 0.797261, 0.828572), tolerance = 1e-5)
+  result <- run_spec(spec)
+  expect_identical(as.integer(result$n_required$n), 30L)
+  skip_unless_scripts_can_run()
+  run <- run_exported_script(spec, result)
+  expect_equal(run$reproduced, run$powerkit)
+})
