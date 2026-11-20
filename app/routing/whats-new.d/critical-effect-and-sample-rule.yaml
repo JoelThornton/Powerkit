@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-20"
+    title: Shorter methods paragraph, and a sample size rule for preregistration
+    text: >
+      The short methods paragraph now leaves out the critical effect size
+      sentence, except when the goal is the smallest detectable effect. The
+      results screen and the full version still give it. The full version
+      also ends with a sample size rule (how many participants are analysed
+      and that the analysis is run once), the thing a preregistration asks
+      for.
