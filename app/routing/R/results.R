@@ -4088,7 +4088,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # Welch caveats that don't change the answer (equal-SD planning, the
   # critical effect's equal-SD condition) stay in the full version only.
   short_main <- setdiff(main, welch_equal_sd_note(spec))
-  if (!is.null(result$critical_effect)) short_main <- sub(critical_effect_welch_text(result$critical_effect), "", short_main, fixed = TRUE)
+  welch_critical <- if (!is.null(result$critical_effect)) critical_effect_welch_text(result$critical_effect) else ""
+  if (nzchar(welch_critical)) short_main <- sub(welch_critical, "", short_main, fixed = TRUE)
   short <- paste(c(short_main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size") && is.null(result$n_required$verification)) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
