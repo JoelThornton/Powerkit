@@ -3771,7 +3771,11 @@ test_that("the short methods paragraph leaves out the Welch caveats and R's buil
   expect_no_match(texts[["short"]], "critical effect size", fixed = TRUE)
   expect_match(texts[["full"]], "critical effect size", fixed = TRUE)
   # The preregistration's sample-size rule is in the full version only.
-  expect_match(texts[["full"]], "Sample size rule: data collection stops when [0-9,]+ participants")
+  expect_match(texts[["full"]], "Sample size rule: the power calculation is for [0-9,]+ participants")
+  # It asserts no stopping rule the researcher didn't enter: a capped budget
+  # and replacement until each group is full can enter the same numbers.
+  expect_no_match(texts[["full"]], "data collection stops when", fixed = TRUE)
+  expect_match(texts[["full"]], "[State the most that will be recruited, whether people who drop out or are excluded will be replaced, and when data collection stops.]", fixed = TRUE)
   expect_no_match(texts[["short"]], "Sample size rule", fixed = TRUE)
   values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
   spec <- build_spec(forms, "E2", fields, values)
@@ -3791,7 +3795,7 @@ test_that("the sample-size rule and the ethics count give the design the engine 
   equal <- read_example("anova_2x2_between")
   expect_match(sample_rule_text(equal, result_at(120)), "120 participants (30 per cell)", fixed = TRUE)
   # Pairs, with the people in them; time points before and after.
-  expect_match(sample_rule_text(read_example("dyadic_apim"), result_at(150)), "stops when 150 pairs (300 people) are in the analysis", fixed = TRUE)
+  expect_match(sample_rule_text(read_example("dyadic_apim"), result_at(150)), "is for 150 pairs (300 people) in the analysis", fixed = TRUE)
   its <- read_example("its")
   expect_match(analysed_text(its, 24), "24 time points after the intervention (and 24 before it)", fixed = TRUE)
   expect_false(grepl("participants", sample_rule_text(its, result_at(24)), fixed = TRUE))

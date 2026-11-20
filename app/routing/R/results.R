@@ -4133,15 +4133,20 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
 }
 
 # The sample-size rule a preregistration asks for (AsPredicted's question is
-# "how many observations will be collected, and the stopping rule"): the
-# number analysed and that the analysis runs once (the recruitment line
-# beside it gives the number recruited).
-# Full version only; it states the plan the power calculation assumes.
+# "how many observations will be collected, and the stopping rule"). Only
+# what the calculation assumes is stated: the number analysed, in one
+# analysis at that size. The recruitment buffer for attrition (the line
+# beside it) answers a different question from a stopping rule: a capped
+# budget and replacement until every group is full can enter the same
+# numbers, so the cap, replacement and when collection stops are left for
+# the author to state.
+# Full version only.
 sample_rule_text <- function(spec, result) {
   if (identical(spec$design, "generic_test") || is_meta(spec)) return(NULL)
   n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
   if (is.null(n) || length(n) != 1 || !is.finite(n)) return(NULL)
-  sprintf("Sample size rule: data collection stops when %s are in the analysis; the analysis is run once, at that sample size, with no interim looks.",
+  sprintf(paste("Sample size rule: the power calculation is for %s in the analysis, analysed once at that sample size with no interim looks.",
+    "[State the most that will be recruited, whether people who drop out or are excluded will be replaced, and when data collection stops.]"),
     analysed_text(spec, n))
 }
 
