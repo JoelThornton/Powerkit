@@ -4313,7 +4313,7 @@ simr_script <- function(spec, result) {
     "}",
     "",
     batch_section(result, "powerSim()"),
-    simulation_goal_section(spec, result, 1),
+    simulation_goal_section(spec, result, simr_backend(spec)$n_step),
     comparison_section()
   )
 }
