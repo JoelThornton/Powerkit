@@ -8,6 +8,19 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Small wording fixes in the study plan and replication plan files
+    text: >
+      The study plan's design table now starts each analysis plan with a
+      capital letter, and the replication plan says "Powerkit" the same way
+      as the rest of the app.
+  - date: "2026-11-20"
+    title: Shorter analysis names in the design finder, and a clearer report button
+    text: >
+      Eighteen long analysis names and choices in the design finder are
+      shorter, with nothing dropped that told two analyses apart. On a
+      study plan, the report button is now called "Study plan report", the
+      name the report itself carries.
+  - date: "2026-11-20"
     title: Clearer wording in the study planning document
     text: >
       The planning document now says "Why this effect size" and "Group size

@@ -99,7 +99,7 @@ test_that("the document has a Registered Report study design table, one row for 
   expect_identical(lengths(regmatches(rows, gregexpr(" \\| ", rows))), c(6L, 6L))
   # Each row names the card's test and the N it found; the study's own
   # words are left for the researcher.
-  expect_match(rows[[1]], forms$forms$E1$methods_name, fixed = TRUE)
+  expect_match(tolower(rows[[1]]), tolower(forms$forms$E1$methods_name), fixed = TRUE)
   expect_match(rows[[1]], whole(a$n), fixed = TRUE)
   expect_match(rows[[2]], whole(b$n), fixed = TRUE)
   expect_match(rows[[1]], "(fill in)", fixed = TRUE)
