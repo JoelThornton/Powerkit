@@ -20,7 +20,9 @@ replication_bucss(
   power = 0.8,
   assurance = c(0.5, 0.8),
   alternative = "two.sided",
-  publication_filter = TRUE
+  publication_filter = TRUE,
+  levels_c = NULL,
+  between_factors = NULL
 )
 }
 \arguments{
@@ -42,7 +44,9 @@ for \code{"paired"}).}
 
 \item{effect}{The ANOVA effect the replication tests: \code{"factor_a"},
 \code{"factor_b"} or \code{"interaction"} for a between or within design;
-\code{"between"}, \code{"within"} or \code{"interaction"} for a mixed design.}
+\code{"between"}, \code{"within"} or \code{"interaction"} for a mixed design. For
+three factors: \code{"factor_a"}, \code{"factor_b"}, \code{"factor_c"}, \code{"a_by_b"},
+\code{"a_by_c"}, \code{"b_by_c"} or \code{"a_by_b_by_c"}.}
 
 \item{epsilon}{For within and mixed designs, the sphericity correction
 (1 assumes sphericity), as BUCSS takes it.}
@@ -73,6 +77,14 @@ bias at \code{original_alpha}; \code{FALSE}, for an original that would have
 been published whatever it found (a Registered Report, say), passes
 BUCSS \code{alpha_prior = 1}, which leaves only the correction for
 uncertainty (Anderson, Kelley & Maxwell, 2017, p. 1552).}
+
+\item{levels_c}{The levels of a third factor, for a three-factor ANOVA
+(BUCSS's general functions, which take the effect's degrees of
+freedom). \code{NULL} for one or two factors.}
+
+\item{between_factors}{For a three-factor mixed design, how many of the
+factors are between-subjects (1 or 2): the first ones, so with 1, \code{A}
+is between-subjects and \code{B} and \code{C} within-subjects.}
 }
 \value{
 A list: \code{inputs}; \code{design_label} and \code{unit} (BUCSS's names for

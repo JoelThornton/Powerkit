@@ -653,7 +653,7 @@ app_css <- "
   /* The start screen (11 November 2026): what powerkit is, the three ways
      in with room around them, then one quiet row for everything else. */
   h2.start-title { font-size: 2.1rem; margin: 1.5rem 0 0.6rem; }
-  .start-tester { font-size: 0.9rem; color: #5b6673; max-width: 47rem; margin: 1.25rem 0 0; }
+  .start-tester { font-size: 0.9rem; color: #4a5563; max-width: 47rem; margin: 1.5rem 0 0; padding: 0.85rem 1.1rem; background: #eef3f8; border-left: 4px solid var(--pk-blue); border-radius: 10px; }
   .start-lead { font-size: 1.1rem; line-height: 1.55; color: #44505e; max-width: 47rem; margin: 0 0 2.25rem; }
   h3.start-how { font-size: 1.25rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 1rem; }
   .route-choices { gap: 1.25rem; margin: 0; }
@@ -665,9 +665,11 @@ app_css <- "
     .route-tag { position: absolute; top: 1.6rem; right: 1.4rem; margin: 0; } }
   .route-tag { padding: 0.25rem 0.7rem; border-radius: 999px; background: #e8f1f8; color: var(--pk-blue); font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
   .start-recent { margin-top: 1rem; }
+  .pk-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid #c3ccd6; } .pk-footer a:hover, .pk-footer a:focus { color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
   .start-more { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5rem 2.25rem; margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--pk-line); }
   .start-more > * { min-height: 44px; }
-  .start-more-link { padding: 0; display: inline-flex; align-items: center; font-weight: 500; }
+  .start-more-link { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.95rem; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; background: #fff; }
+  .start-more-icon { flex: none; color: var(--pk-blue); }
   .bayes-mode-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.9rem; max-width: 30rem; }
   .bayes-mode-toggle .form-switch { margin: 0; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; padding-left: 0; }
   .bayes-mode-toggle .form-switch .form-check-input { margin: 0; float: none; flex: none; }
@@ -675,7 +677,7 @@ app_css <- "
   .bayes-mode-what > summary::-webkit-details-marker { display: none; }
   .bayes-mode-what[open] { flex-basis: 100%; }
   .bayes-mode-what > p { max-width: 36rem; color: #4a5563; padding-bottom: 0.5rem; }
-  .local-download { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.95rem; color: #4a5563; }
+  .local-download { margin-left: auto; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: #4a5563; }
   @media (max-width: 767px) { .local-download { margin-left: 0; } .route-choices .route-tag { justify-self: start; } h2.start-title { font-size: 1.6rem; margin-top: 0.5rem; } .start-lead { font-size: 1rem; margin-bottom: 1.5rem; } }
   .saved-projects { margin-top: 1.25rem; background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem 0.5rem; }
   .saved-projects[hidden] { display: none; }
@@ -990,7 +992,6 @@ app_css <- "
   details.mismatch[open] > summary::before, .capabilities-fold[open] > summary::before { transform: rotate(45deg); }
   @media (prefers-reduced-motion: reduce) { .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before { transition: none; } }
   /* Text links that are buttons start at the column's edge, like the text around them. */
-  .start-more .start-more-link { border: 0; }
   .known-open-all { padding-left: 0; padding-right: 0; }
   /* The I don't know my effect size link starts at the column's edge when it is
      on a line of its own, and keeps a space when it follows the text. */
@@ -1237,7 +1238,7 @@ ui <- function(req) fluidPage(
       tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
-    tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
+    tags$footer(class = "small text-muted mt-5 pk-footer", "Powerkit helps plan research studies. ",
       # What it can't do is on About (the layout review of 16 November
       # 2026); the longer guide is on the public site.
       tags$a(href = "#", onclick = "var t=document.querySelector('#tabs a[data-value=\"About\"]'); if(t) t.click(); setTimeout(function(){var e=document.getElementById('about-limits'); if(e) e.scrollIntoView();}, 400); return false;",

@@ -52,12 +52,18 @@ given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
 equal tails (the default) and names the rule in the write-up. Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
-calculation audit the same day found wrong numbers on several cards
-(study plans with effects of opposite sign, E46's exact interval, E49 and
-E5 with unequal groups, E5's Bayes factor, replication searches), package
-faults powerkit passes through (TOSTER on E36, pmsampsize on E77), and
-export and wording errors; each was reproduced and is queued as `next.md`
-items 30 to 35, item 30 first.
+calculation audit the same day found wrong numbers on several cards,
+package faults powerkit passed through, and export and wording errors.
+The wrong numbers are fixed except the replication searches (item 30,
+now ready). E36's equivalence of a correlation or two proportions is
+planned with pwrss, because TOSTER's planning functions give wrong
+answers (Departure 33); a two-sided test of Cronbach's alpha counts both
+tails (Departure 34); E77 says when pmsampsize's answer leaves the mean
+outcome or a time-to-event risk less precise than the criteria ask. The
+audit's labels and wording (item 31) go with item 29; E75's one yes/no
+per condition (item 32) needs a larger null check; E69's null-value
+validation test waits for the maintainer to update its expected value
+(item 34).
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
@@ -376,9 +382,9 @@ each area, is at the end of
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
   and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 29 applies this to the rest of powerkit). Still to come: the rest
-  of item 28 (the three-factor ANOVA through BUCSS, unequal groups for
-  an ANOVA original, reliability for pairs, claims
-  resting on several tests).
+  of item 28 (unequal groups for an ANOVA original, reliability for
+  pairs, claims resting on several tests). A three-factor ANOVA original
+  (between, within or mixed) is planned through BUCSS's general functions.
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

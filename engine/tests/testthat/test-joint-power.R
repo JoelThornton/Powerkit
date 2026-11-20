@@ -116,3 +116,54 @@ test_that("groups of equal size given as an SD of 0 are accepted, and unequal si
   ms$population$cluster_size_sd <- 5
   expect_error(joint_power(list(ms, ms), rho = 0.3, n = 400), "equal size only", class = "powerkit_error")
 })
+
+test_that("effects keep their signs: opposite effects of correlated outcomes are rarely significant together", {
+  # Audit, 19 November 2026: +0.3 and -0.3 correlated 0.8 were given the
+  # joint power of +0.3 and +0.3. A two-sided test of -0.3 is the test of
+  # the reversed outcome at +0.3, whose correlation with the other is -0.8.
+  a <- jp_spec("independent_t", 0.3)
+  b <- jp_spec("independent_t", -0.3)
+  opposite <- joint_power(list(a, b), rho = 0.8, n = 200, tnum = 50000L)
+  same <- joint_power(list(a, a), rho = 0.8, n = 200, tnum = 50000L)
+  reversed <- joint_power(list(a, a), rho = -0.8, n = 200, tnum = 50000L)
+  expect_equal(opposite$each, same$each, tolerance = 0.01)
+  expect_equal(opposite$complete, reversed$complete, tolerance = 0.005)
+  expect_lt(opposite$complete, same$complete / 2)
+  # Independent check: both statistics bivariate normal (large df, so the
+  # t is near the normal), each test two-sided at 0.05.
+  ncp <- 0.3 * sqrt(100 * 100 / 200)
+  crit <- stats::qt(0.975, 198)
+  both <- withr::with_seed(2, {
+    z1 <- stats::rnorm(4e5)
+    z2 <- 0.8 * z1 + sqrt(1 - 0.8^2) * stats::rnorm(4e5)
+    function(m) mean(abs(z1 + m[1]) > crit & abs(z2 + m[2]) > crit)
+  })
+  expect_equal(opposite$complete, both(c(ncp, -ncp)), tolerance = 0.01)
+  expect_equal(same$complete, both(c(ncp, ncp)), tolerance = 0.015)
+})
+
+test_that("an effect of 0 is kept, and one-sided tests face the tested direction", {
+  a <- jp_spec("independent_t", 0.3)
+  zero <- example_spec("independent_t")
+  zero$target_test$method <- "student_t"
+  zero$population$d <- 0
+  zero$goal <- list(type = "power", n = 200)
+  r <- joint_power(list(a, zero), rho = 0, n = 200, tnum = 50000L)
+  expect_lt(abs(r$each[[2]] - 0.05), 0.005)
+  expect_false(is.na(r$complete))
+  expect_lt(abs(r$complete - prod(r$each)), 0.005)
+  lower <- function(d) {
+    s <- jp_spec("independent_t", d)
+    s$target_test$alternative <- "less"
+    s
+  }
+  down <- joint_power(list(lower(-0.3), lower(-0.4)), rho = 0.5, n = 200, tnum = 20000L)
+  up <- joint_power(list(a, jp_spec("independent_t", 0.4)) |> lapply(function(s) {
+    s$target_test$alternative <- "greater"
+    s
+  }), rho = 0.5, n = 200, tnum = 20000L)
+  expect_equal(down$each, up$each, tolerance = 0.01)
+  expect_equal(down$each[[1]], pwr::pwr.t.test(n = 100, d = 0.3, alternative = "greater")$power, tolerance = 0.01)
+  expect_error(joint_power(list(lower(-0.3), lower(0.2)), rho = 0.5, n = 200),
+    "tested direction", class = "powerkit_error")
+})
