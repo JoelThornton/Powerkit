@@ -6,13 +6,18 @@
 #' data process. A common recruitment plan still needs those checks.
 #'
 #' @param spec A validated design specification.
+#' @param n Optional: a total sample size, to describe how it is divided.
 #' @return A list with `unit`, `note`, `n_step`, and `compatibility_key`.
-#'   Unknown generic-test units have no compatibility key.
+#'   Unknown generic-test units have no compatibility key. With `n`, also
+#'   `groups`: the number analysed in each group or cell, in the order the
+#'   engine runs them (`NULL` when the sample isn't split into groups), with
+#'   `group_labels` (the groups' level labels, or `NULL` when not known) and
+#'   `group_unit` ("group" or "cell").
 #' @export
 #' @examples
 #' spec <- read_spec(system.file("specs", "cluster_randomised.json", package = "powerkit"))
 #' str(sample_structure(spec), max.level = 1)
-sample_structure <- function(spec) {
+sample_structure <- function(spec, n = NULL) {
   if (!is.list(spec) || is.null(spec$design) || is.null(spec$template)) {
     abort_spec("A sample description needs a validated design specification.")
   }
@@ -47,6 +52,28 @@ sample_structure <- function(spec) {
     note <- sprintf("N counts observations, with each person measured on %s occasions; whole people are retained.", format_number(spec$population$cluster_size))
   }
   if (unknown) note <- "The sample unit is not identified by this generic test; its count is kept separate."
-  list(unit = unit, note = note, n_step = step,
+  out <- list(unit = unit, note = note, n_step = step,
     compatibility_key = if (unknown) NULL else spec_hash(structure))
+  if (!is.null(n) && identical(allocation$kind, "weights")) {
+    out$groups <- analysed_groups(spec, n)
+    out$group_labels <- allocation_labels(spec, length(out$groups), allocation$unit)
+    out$group_unit <- allocation$unit
+  }
+  out
+}
+
+# Labels for the groups or cells of sample_allocation(), in its order, or
+# NULL. Cells of two factors are A's levels crossed with B's, B changing
+# fastest (Superpower's order, as cell_ratio_vector() reads them).
+allocation_labels <- function(spec, k, unit) {
+  levels_of <- function(v) unlist(spec$variables[[v]]$levels)
+  if (identical(unit, "cell") && length(levels_of("A")) * length(levels_of("B")) == k) {
+    cells <- expand.grid(b = levels_of("B"), a = levels_of("A"), stringsAsFactors = FALSE)
+    return(paste(cells$a, cells$b, sep = ", "))
+  }
+  for (v in c("W", "A", "X", "G")) {
+    labels <- levels_of(v)
+    if (length(labels) == k && !identical(spec$variables[[v]]$type, "within_factor")) return(as.character(labels))
+  }
+  NULL
 }

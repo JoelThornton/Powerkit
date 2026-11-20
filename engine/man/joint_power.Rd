@@ -36,7 +36,11 @@ trial (\code{d2.2_m2rc}, with the same group size and ICC) or a multisite
 trial, people randomised within each group (\code{d2.1_m2fr}, the groups'
 effects varying at random, as powertools' \code{multisite.cont()} assumes;
 the same group size and ICCs). Each analysis
-keeps its own effect size; the sample size is the one the study will
+keeps its own effect size and its sign: outcomes whose effects point in
+opposite directions are significant together less often when they are
+positively correlated (PUMP takes positive effects only, so each outcome's
+test is turned to face its effect and its correlations' signs follow);
+the sample size is the one the study will
 recruit, and each analysis is tested at its own significance level with
 no further adjustment, as on its card. PUMP's complete power counts
 replications in which every unadjusted test is significant, whichever

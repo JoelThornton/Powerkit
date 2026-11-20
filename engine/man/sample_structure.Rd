@@ -4,14 +4,20 @@
 \alias{sample_structure}
 \title{Describe what a sample size counts and when counts can be compared}
 \usage{
-sample_structure(spec)
+sample_structure(spec, n = NULL)
 }
 \arguments{
 \item{spec}{A validated design specification.}
+
+\item{n}{Optional: a total sample size, to describe how it is divided.}
 }
 \value{
 A list with \code{unit}, \code{note}, \code{n_step}, and \code{compatibility_key}.
-Unknown generic-test units have no compatibility key.
+Unknown generic-test units have no compatibility key. With \code{n}, also
+\code{groups}: the number analysed in each group or cell, in the order the
+engine runs them (\code{NULL} when the sample isn't split into groups), with
+\code{group_labels} (the groups' level labels, or \code{NULL} when not known) and
+\code{group_unit} ("group" or "cell").
 }
 \description{
 Describes a validated design specification. Equal compatibility keys
