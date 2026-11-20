@@ -5,11 +5,11 @@
 
 routes <- c("choose", "known", "guided")
 screen_score <- c("A score or scale", "Independent people")
-cluster_conditions <- "Conditions or treatments given to whole groups, or to people within the groups"
-MORE <- "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people"
+cluster_conditions <- "A condition or treatment given to groups, or within groups"
+MORE <- "Something else: spread, structure, item bias, signal detection or types"
 TWO_BY_TWO <- "Two, each with exactly two levels (a 2 x 2 design)"
 LARGER <- "Two, crossed, at least one with three or more levels"
-cluster_measured <- "Something measured on each person, or on each group, and how it relates to the outcome"
+cluster_measured <- "Something measured on each person or group, related to the outcome"
 
 # Where a list of answers leads in each route.
 leads_to <- function(labels) vapply(routes, function(r) follow_answers(tree, labels, r), character(1))
@@ -63,11 +63,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   expect_all_routes(c("A score or scale", "People within groups", cluster_measured), "E62")
   # Groups within larger groups (1 November 2026): three levels.
   expect_all_routes(c("A score or scale", "People within groups", cluster_conditions,
-    "Yes: groups within larger groups (for example, classes within schools, or therapists within clinics)"), "E68")
+    "Yes: groups within larger groups"), "E68")
   # Equivalence for grouped data: not the equivalence card, which assumes
   # separate people; the grouped card says it isn't covered yet.
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
-  expect_all_routes(c("A score or scale", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E44")
+  expect_all_routes(c("A score or scale", "Pairs", "A score on each member, related to their own and their partner's outcome"), "E44")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   # Equivalence is chosen on the aim screen, before the screening.
@@ -222,10 +222,10 @@ test_that("dyadic data no longer reach a test that treats partners as independen
   # On main: rel > score > measured once > score > E4 (not reachable by name).
   # Pairs (1 November 2026): actor and partner effects calculate (E44);
   # conditions given to whole pairs are a cluster trial with groups of two.
-  expect_all_routes(c("A score or scale", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E44")
+  expect_all_routes(c("A score or scale", "Pairs", "A score on each member, related to their own and their partner's outcome"), "E44")
   expect_all_routes(c("A score or scale", "Pairs", "Conditions given to whole pairs"), "E34")
   expect_all_routes(c("A score or scale", "Pairs", "Something else, such as a condition given to one member of each pair"), "E65")
-  expect_all_routes(c("Yes/no, or one of several categories", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E65")
+  expect_all_routes(c("Yes/no, or one of several categories", "Pairs", "A score on each member, related to their own and their partner's outcome"), "E65")
 })
 
 test_that("growth curves and diary studies in the guided route reach the longitudinal card", {
@@ -248,7 +248,7 @@ test_that("equivalence in the guided route reaches the equivalence card", {
 
 test_that("SEM with latent variables is named on Q1 and reaches the SEM card", {
   base <- c(screen_score, "Once")
-  expect_identical(follow_answers(tree, c(base, MORE, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)")), "E37")
+  expect_identical(follow_answers(tree, c(base, MORE, "Something about latent variables")), "E37")
 })
 
 test_that("a yes/no outcome with two or more factors reaches its own card, not the two-proportions test", {
@@ -357,18 +357,18 @@ test_that("the guided route sends repeated counts, ratings and yes/no groups to 
 
 test_that("two correlations in the same people reach their own card, not the independent-groups test", {
   base <- c("A score or scale", "Independent people", "Once", "A relationship between two things you measure")
-  expect_identical(follow_answers(tree, c(base, "Scores, and the question is whether one correlation is stronger than another in the same people")), "E51")
-  expect_identical(follow_answers(tree, c(base, "A score, and the question is whether the relationship differs between two separate groups")), "E49")
+  expect_identical(follow_answers(tree, c(base, "Whether one correlation is stronger than another in the same people")), "E51")
+  expect_identical(follow_answers(tree, c(base, "Whether a relationship differs between two separate groups")), "E49")
 })
 
 test_that("a hypothesis about how much scores vary reaches the variance tests, for a score measured once or twice", {
   base <- c("A score or scale", "Independent people", "Once", MORE,
-    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
+    "That scores are more spread out in one group than another")
   expect_identical(follow_answers(tree, c(base, "One group's, against a fixed value (for example, a published norm)")), "E52")
   expect_identical(follow_answers(tree, c(base, "Two groups', with different people in each")), "E53")
   # Measured twice: the same people's spread, the Pitman-Morgan test (E57).
   twice <- c("A score or scale", "Independent people", "Twice", MORE,
-    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
+    "That scores are more spread out in one group than another")
   # Measured twice, the same people's spread is the only answer, so the
   # question is skipped.
   expect_identical(follow_answers(tree, twice), "E57")
@@ -393,7 +393,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "McNemar's test" = list(c(twice(yesno), diff), "E26"),
     "Cochran's Q" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff, "Once in each condition, yes or no"), "E78"),
     "Repeated yes/no, several answers per condition" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff,
-      "Another way: several answers in each condition, groups of people compared over the conditions, or more than two categories"), "E75"),
+      "Another way"), "E75"),
     "One-way ANOVA" = list(c(once(score), diff, "Three or more groups, different people in each", "Any difference among the groups"), "E18"),
     "Three-factor ANOVA, group by time by task" = list(c(twice(score), diff, "Three, crossed (every combination appears)"), "E56"),
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Any difference among the conditions"), "E54"),
@@ -409,7 +409,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
     "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),
     "Analysis of covariance" = list(c(twice(score), diff, TWO_BY_TWO, "Yes: before and after", "Yes, randomly assigned", "ANCOVA: the after score, adjusting for the before score (recommended)"), "E23"),
-    "Factor analysis (confirmatory)" = list(c(once(score), MORE, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"), "E37")
+    "Factor analysis (confirmatory)" = list(c(once(score), MORE, "Something about latent variables"), "E37")
   )
   for (name in names(rows)) expect_identical(follow_answers(tree, rows[[name]][[1]]), rows[[name]][[2]], label = name)
 })
@@ -455,9 +455,9 @@ test_that("a randomised before/after trial is pointed to ANCOVA, keeping the mix
 test_that("a moderation in a before/after trial reaches the regression card, and a group-by-condition one the ANOVA questions", {
   path <- c(screen_score, "Twice", "That an effect depends on something else (moderation)")
   expect_identical(follow_answers(tree, path), "mo_within")
-  expect_identical(follow_answers(tree, c(path, "A treatment or group, and a measured score, with the outcome measured before and after")), "E24")
-  expect_identical(follow_answers(tree, c(path, "Both are groups or conditions (for example, the emotion effect is bigger in the clinical group, or the treatment group improves more over time)")), "f1")
-  expect_identical(follow_answers(tree, c(path, "Things measured within each person (for example, daily stress and sleep in a diary study)")), "E41")
+  expect_identical(follow_answers(tree, c(path, "A group and a measured score, with the outcome before and after")), "E24")
+  expect_identical(follow_answers(tree, c(path, "Both are groups or conditions")), "f1")
+  expect_identical(follow_answers(tree, c(path, "Both are measured within each person")), "E41")
   expect_identical(whole_study_twice_endpoints[["moderation"]], "E24")
 })
 
@@ -471,7 +471,7 @@ test_that("the rarer hypotheses sit behind one choice, and still reach their car
   expect_lte(length(tree$nodes$q1$options), 6)
   expect_identical(follow_answers(tree, c(screen_score, "Once", MORE)), "q1_more")
   expect_identical(follow_answers(tree, c(screen_score, "Twice", MORE,
-    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")), "E57")
+    "That scores are more spread out in one group than another")), "E57")
 })
 
 test_that("no question in the design finder has only one answer for the answers given before it", {

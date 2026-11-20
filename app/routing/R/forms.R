@@ -990,7 +990,7 @@ conversion_fields <- function(template, when = list()) {
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
          path = "effect_justification.conversion.value", shown_if = converting),
     if (isTRUE(template %in% eta_squared_templates)) {
-      list(id = "conv_df1", label = "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", type = "number",
+      list(id = "conv_df1", label = "Its first degrees of freedom (df1)", type = "number", help = "The effect's df: the first number in F(df1, df2).",
            integer = TRUE, min = 1, conversion = TRUE, required = TRUE, path = "effect_justification.conversion.df",
            shown_if = c(converting, list(list(field = "conv_from", is = "F"))))
     },
