@@ -1,3 +1,18 @@
+# powerkit 0.80.5
+
+* App: labels on study plans, the whole-study screen and the variation tool,
+  and the shared "Significance level" label, no longer contain bracketed
+  explanations or "(alpha)" / "(N)"; the explanations moved to notes, help
+  or placeholders. Four labels in `forms.R` (interval width, mean-outcome
+  precision, net-benefit interval width, between-study variation) moved
+  their instructions into `help`; the input guide for number fields now also
+  reads each field's write-up label, so fields with shortened labels keep their
+  guide (queue item 29).
+
+* App: the short methods paragraph leaves out the equal-SD Welch notes and
+  R's build date; the full version keeps them. A Welch plan with unequal SDs
+  still states its ratio in the short version (queue item 29).
+
 # powerkit 0.80.4
 
 * `docs/upstream-questions.md` records powerSurvEpi 0.1.5's one-tailed two-sided power in `powerEpiCont.default()` (Departure 35), with a register row and the question for its maintainer.
