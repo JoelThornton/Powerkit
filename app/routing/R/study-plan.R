@@ -405,9 +405,9 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
         div(class = "nav-buttons",
           if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
           if (saveable) share_link_ui("study_plan"),
-          if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
+          if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Study plan report", "the study plan report"),
           if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
-        if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top of the page, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan.")))
+        if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top of the page, puts the same inside a link. The study plan report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan.")))
   )
 }
 

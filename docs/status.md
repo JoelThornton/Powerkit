@@ -247,7 +247,7 @@ each area, is at the end of
   Word, with a Registered Report study design table: question,
   hypothesis, sampling plan, analysis plan, what sets the sensitivity,
   interpretation of each outcome, theory at stake; also on its own from
-  the plan's Planning report button), the merged references and each analysis's own files; the zip
+  the plan's Study plan report button), the merged references and each analysis's own files; the zip
   opens again as the plan. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
