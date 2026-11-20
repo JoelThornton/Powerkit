@@ -485,6 +485,10 @@ route_icon <- function(id) {
     tags$path(d = path, fill = "currentColor"))
 }
 
+# The small icon at the start of a start-screen button (decorative).
+start_more_icon <- function(path) tags$svg(class = "start-more-icon", viewBox = "0 0 24 24", width = "18", height = "18",
+  `aria-hidden` = "true", focusable = "false", tags$path(d = path, fill = "currentColor"))
+
 start_ui <- function(tree, start = list(), saved_projects = NULL) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
@@ -511,14 +515,16 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
     # row under a divider, a short line each: stacked under the routes in
     # their own styles they had crowded the screen.
     div(class = "start-more",
-      if (!is.null(saved_projects)) tags$button(type = "button", class = "btn btn-link start-more-link", id = "saved_projects_toggle",
+      if (!is.null(saved_projects)) tags$button(type = "button", class = "btn btn-outline-secondary start-more-link", id = "saved_projects_toggle",
         `aria-expanded` = "false", `aria-controls` = "saved_projects_panel",
         onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
           "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
+        start_more_icon("M5 3h9l5 5v13H5V3Zm8 1.5V9h4.5L13 4.5ZM7 12h10v2H7v-2Zm0 4h10v2H7v-2Z"),
         "Open a saved file"),
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
-        tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
+        tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener", class = "btn btn-outline-secondary start-more-link",
+          start_more_icon("M12 3v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6V3h2ZM5 19h14v2H5v-2Z"),
           if (local) "Download and update instructions" else "Run Powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
     # One line for someone trying the prototype out: what to do and where

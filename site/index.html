@@ -27,6 +27,11 @@
     .notice { border-left: 4px solid #a15b00; padding: .75rem 1rem; background: #fff5df; }
     .open { display: inline-block; padding: .75rem 1.25rem; color: white; background: #075a8c; border-radius: .4rem; text-decoration: none; font-weight: 600; }
     .open:hover { background: #054466; } .wait { color: #3d4852; font-size: .95rem; }
+    .cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: .75rem; }
+    .cards a { display: block; height: 100%; box-sizing: border-box; padding: .9rem 1rem; background: #fff; border: 1px solid #cbd3de; border-radius: .6rem; text-decoration: none; color: #17283d; }
+    .cards a:hover { border-color: #075a8c; box-shadow: 0 2px 8px rgba(23,40,61,.08); }
+    .cards strong { display: block; color: #075a8c; }
+    .cards span { display: block; font-size: .92rem; line-height: 1.45; color: #4a5563; margin-top: .2rem; }
     footer { border-top: 1px solid #cbd3de; margin-top: 2rem; padding-top: 1rem; font-size: .95rem; }
   </style>
 </head>
@@ -52,11 +57,11 @@
   </ul>
 
   <h2>Learn more</h2>
-  <ul>
-    <li><a href="guide.html">The guide: choosing the question, finding your design, providing your numbers and reading the result</a></li>
-    <li><a href="download.html">Download Powerkit for your own computer, and choose when to update</a></li>
-    <li><a href="https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md">Validation status</a></li>
-    <li><a href="https://github.com/JoelThornton/Powerkit">Source code</a> (free software, GPL-3)</li>
+  <ul class="cards">
+    <li><a href="guide.html"><strong>The guide</strong><span>Choosing the question, finding your design, providing your numbers and reading the result.</span></a></li>
+    <li><a href="download.html"><strong>Run it on your computer</strong><span>Download Powerkit and choose when to update.</span></a></li>
+    <li><a href="https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md"><strong>Validation status</strong><span>Where each design stands against published examples.</span></a></li>
+    <li><a href="https://github.com/JoelThornton/Powerkit"><strong>Source code</strong><span>Free software, GPL-3.</span></a></li>
   </ul>
   <footer><p>Powerkit is open-source research software in development. Methods, validation evidence, limitations and changes are listed in the app and the <a href="https://github.com/JoelThornton/Powerkit">repository</a>.</p></footer>
 </main></body></html>
