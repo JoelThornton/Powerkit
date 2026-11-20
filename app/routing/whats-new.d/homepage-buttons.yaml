@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-20"
-    title: A tidier start screen and home page
-    text: >
-      On the start screen, "Open a saved file" and "Run Powerkit on your own
-      computer" are now buttons with small icons, the note for people trying
-      the prototype out sits in a soft box, and the footer links are quieter.
-      The public home page lists its guide, download, validation and source
-      links as four short cards.
