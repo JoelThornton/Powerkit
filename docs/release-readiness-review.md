@@ -233,6 +233,14 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   errors and empty states; check that people know what to do when unsure.
 - [ ] Review all result variants, warning visibility, uncertainty, methods,
   technical details and saved-result restoration, including Bayesian routes.
+  Partly done (20 November 2026): the claim, sphericity, attrition,
+  small-count, Welch, group-difference, source, corrected-count and
+  cross-lagged notes were checked against the code and the engine's
+  recorded evidence (the union-bound and product rules, Cochran's
+  expected-count rule, the 1 - .01/10 confirmation level), and a Welch
+  result page, methods paragraphs and planning document were read in
+  full: no claim needed changing. Not yet read: the Bayesian, simulation
+  and multilevel result variants and saved-result restoration.
 - [ ] Review Labs, About, glossary, evidence explanations and citations.
 - [ ] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.
