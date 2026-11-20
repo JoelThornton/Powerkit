@@ -129,10 +129,10 @@ planning_recruitment_lines <- function(result, units) {
 
 input_guide <- function(f) {
   if (!f$type %in% c("number", "numbers", "table")) return(NULL)
-  key <- tolower(paste(f$id, f$label, f$path))
+  key <- tolower(paste(f$id, f$label, f$path, f$writeup_label))
   specialist <- f$id %in% c("ncp", "df", "df1", "df2", "d", "dz", "ni_d", "ni_dz", "w", "eta_squared",
     "bound", "raw_bound", "margin", "raw_margin", "ni_margin", "evidence_threshold", "width", "conf_level", "assurance",
-    "w_from", "w_to", "weights", "scores", "retention", "d1", "d2", "criterion", "trials_signal", "trials_noise", "sd_dprime", "dispersion", "zero_prob", "base_rate", "slope_difference", "difference", "mean_difference",
+    "w_from", "w_to", "weights", "scores", "retention", "d1", "d2", "criterion", "trials_signal", "trials_noise", "sd_dprime", "dispersion", "glmm_dispersion", "med_dispersion", "separation", "b_XW", "meta_tau", "zero_prob", "base_rate", "slope_difference", "difference", "mean_difference",
     "raw_mean", "raw_mean_1", "raw_mean_2", "raw_test_value", "mu0", "means", "m11", "m12", "m21", "m22", "pillai_v") ||
     grepl("^(odds_ratio|zero_odds_ratio|rate_ratio|hazard_ratio|prior_|conv_|irt_|meta_effect|fc_loading)", f$id)
   specific <- if (specialist) additional_input_guide(f) else NULL
@@ -187,7 +187,7 @@ input_guide <- function(f) {
 # Specialized fields use their existing, model-specific help where present.
 # Illustrations explain units and notation; they never populate an input.
 additional_input_guide <- function(f) {
-  key <- tolower(paste(f$id, f$label, f$path))
+  key <- tolower(paste(f$id, f$label, f$path, f$writeup_label, f$help))
   make <- function(meaning, example, source, unknown = NULL) list(
     meaning = f$help %||% meaning, example = example, source = source, unknown = unknown)
   if (identical(f$id, "retention")) return(make("Cumulative shares still observed at each occasion, in the stated time order, not separate dropout percentages. The first is 1 and later shares cannot increase.",
@@ -388,7 +388,7 @@ additional_input_guide <- function(f) {
   if (f$id %in% c("d", "dz", "ni_d", "ni_dz", "w", "eta_squared")) return(make(
     if (f$id == "w") "Cohen's w is an effect size for a population pattern of categorical probabilities, not a raw proportion." else if (f$id == "eta_squared") "Partial eta-squared uses an effect and its error sums of squares; ordinary eta-squared uses total sums of squares. Match the requested definition." else "A standardised mean difference in this screen's stated SD units. d_z uses the SD of within-person differences; other denominators are not interchangeable.",
     if (f$id %in% c("w", "eta_squared")) "0.10 is an illustrative effect-size input, not a recommendation to call your effect small or to assume that value." else "A difference of 0.30 means 0.30 of the SD unit defined by this screen; raw means/SDs are safer when a paper uses another denominator.", "Comparable data with the same effect-size definition, a synthesis, or a justified meaningful difference. A rule-of-thumb value is also a choice you can make: pick \u201cA convention or rule of thumb\u201d as the source and the write-up says so. It says nothing about your own study, so the answer can be far from the sample you need."))
-  if (identical(f$id, "dispersion")) return(make("The overdispersion parameter in the specific negative-binomial definition above; it is not the raw variance or SD and some software reports its inverse.",
+  if (grepl("dispersion$", f$id)) return(make("The overdispersion parameter in the specific negative-binomial definition above; it is not the raw variance or SD and some software reports its inverse.",
     "Do not copy a fitted theta into this k field unchanged: the existing field help states the conversion used by this model.", "A matched negative-binomial fit or comparable count data, using the stated parameterisation and exposure units."))
   if (identical(f$id, "zero_prob")) return(make("The population share in the structural extra-zero component, distinct from all observed zeros; the count component can also produce zeros.",
     "30% observed zero counts does not by itself establish 30% structural zeros.", "A comparable fitted zero-inflated model or a defensible structural scenario; do not substitute the raw fraction of observed zeros."))
@@ -401,9 +401,11 @@ additional_input_guide <- function(f) {
     if (grepl("loading", key)) "A standardised loading of 0.7 is an illustrative item-factor relationship, not a universal recommended loading." else if (grepl("rmsea", key)) "RMSEA 0 represents exact population fit; positive values represent misfit, whose importance needs substantive justification." else if (grepl("quantile", key)) "0.5 is the median; 0.75 is the 75th percentile." else if (grepl("i2", key)) "I-squared of 0.50 is entered as 0.50, not 50." else if (grepl("kappa", key)) "Kappa 0.60 is entered as 0.60, not 60; it is not necessarily 60% raw agreement." else "An intercept shift of 0.3 is in the item SD units named in this field.", "A comparable fitted model or agreement/meta-analysis study, matched to the factor, rating or effect-size definition."))
   if (identical(f$id, "slope_difference")) return(make("The difference between groups' average rates of change, per unit of time in the outcome's units; not a difference at one occasion.",
     "A value of -1 can mean the outcome falls one point more per month in group 2 than group 1, when all times are in months.", "A comparable longitudinal model or a justified clinically/substantively important difference in change rates."))
+  if (identical(f$id, "separation")) return(make("How far apart neighbouring latent profiles are on each indicator, in SD units (Cohen's d). Larger separation makes the profiles easier to tell apart.",
+    "A separation of 1.5 means neighbouring profiles' means differ by 1.5 SDs on every indicator.", "A comparable latent profile analysis, or the smallest separation at which you would still want the profiles recovered."))
   if (identical(f$id, "base_rate")) return(make("The starting expected event count per unit of exposure/time, at the predictor/reference value stated above; not an event probability.",
     "A starting rate of 2 events per month is entered as 2 when the time unit is a month, not as a 20% probability.", "Comparable event counts and exposure/person-time using the same time unit, population and reference condition."))
-  if (grepl("actor|partner|moderation|(^|[ .])w_y|standardised slope", key)) return(make("A conditional regression/path effect in the model described above. Actor, partner and moderator effects are distinct; use the stated raw or standardised units.",
+  if (grepl("actor|partner|moderation|cross-level|(^|[ .])w_y|standardised slope", key)) return(make("A conditional regression/path effect in the model described above. Actor, partner and moderator effects are distinct; use the stated raw or standardised units.",
     "For a continuous score predictor standardised to SD 1, a main-effect slope of 0.20 means 0.20 outcome SDs per predictor SD, conditional on the other terms. Interaction terms require their stated product/coding convention.", "A matched regression/path model and substantive hypothesis, including the component paths and interactions."))
   if (grepl("width|conf_level|assurance", key)) return(make("An interval-planning target. Width, confidence level and assurance of reaching a width are different quantities.",
     if (f$id == "width") "Intervals [-0.2, 0.2] and [0.2, 0.6] are both 0.4 wide; actual interval width can vary across studies." else if (f$id == "assurance") "Assurance 0.80 targets an 80% chance of meeting the width under the specified population; average width alone does not set this chance." else "Confidence level 0.95 describes the procedure's long-run coverage under its assumptions, not a posterior probability for this fixed parameter.", "Your desired estimation precision and coverage/assurance rule, together with the selected interval method."))
