@@ -1,3 +1,14 @@
+# powerkit 0.80.7
+
+* App: the short methods paragraph keeps the critical effect size sentence
+  only for the smallest-effect goal; the results note and full version carry
+  it for the others. The full version adds a sample size rule line for
+  preregistration. Both follow the decisions recorded on queue item 29.
+
+* App: 153 input labels in forms.yaml lost a trailing bracket holding an
+  example, a range, a count or an optional-field default; the text moved
+  into the field's help (queue item 29).
+
 # powerkit 0.80.6
 
 * E75, one yes/no answer per condition: still refused, now with the reason the simulations give. In 4,000 simulated studies a cell with no difference, the logistic random-intercept model's tests rejected too often for a rare answer (the likelihood-ratio test 7.6% for the group-by-condition interaction and 8.5% for the conditions alone, at alpha .05), and the Wald test up to 6.4% when people differ a lot (`validation-log.md`, 20 November 2026; script in `docs/validation/`). The earlier message said the person SD could not be estimated, which is not so.

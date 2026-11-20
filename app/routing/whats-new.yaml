@@ -8,6 +8,21 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Shorter methods paragraph, and a sample size rule for preregistration
+    text: >
+      The short methods paragraph now leaves out the critical effect size
+      sentence, except when the goal is the smallest detectable effect. The
+      results screen and the full version still give it. The full version
+      also ends with a sample size rule (how many participants are analysed
+      and that the analysis is run once), the thing a preregistration asks
+      for.
+  - date: "2026-11-20"
+    title: Shorter question labels on the input screens
+    text: >
+      About 150 more labels no longer carry an example, a range or a default
+      in brackets. That detail, such as "For example, group", "Between 0 and 1"
+      or "Empty means 0", now sits in the help under the question.
+  - date: "2026-11-20"
     title: Why one yes/no answer per condition isn't planned as a mixed model
     text: >
       The card for repeated counts, yes/no answers and ratings still can't
