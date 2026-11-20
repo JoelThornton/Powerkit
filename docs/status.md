@@ -57,7 +57,9 @@ calculation audit the same day found wrong numbers on several cards
 E5 with unequal groups, E5's Bayes factor, replication searches), package
 faults powerkit passes through (TOSTER on E36, pmsampsize on E77), and
 export and wording errors; each was reproduced and is queued as `next.md`
-items 30 to 35, item 30 first.
+items 30 to 35. The wrong numbers are fixed except the replication
+searches (item 30), which wait for the replication planner's open pull
+request.
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
