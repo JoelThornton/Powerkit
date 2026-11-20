@@ -974,7 +974,7 @@ forms:
           - {id: chisq_metric, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {proportion: "As a table of proportions", w: "As an effect size: Cohen's w, as in G*Power"},
              default: proportion, default_source: "the proportions, from which pwr's ES.w2() works out Cohen's w (pwr 1.3-0); pwr.chisq.test() itself takes w"}
-          - {id: probabilities, label: "Proportion in each cell", help: "One line per category of the first variable, with one number per category of the second, separated by commas.", type: table, path: population.probabilities, effect: true, when_empty: no_association,
+          - {id: probabilities, label: "Proportion in each cell", text_layout: "one line per category of the first variable, one number per category of the second, separated by commas", help: "One line per category of the first variable, with one number per category of the second, separated by commas.", type: table, path: population.probabilities, effect: true, when_empty: no_association,
              alternative: {field: chisq_metric, value: w, label: "Give Cohen's w instead"},
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: w, label: "Cohen's w", writeup_label: "Cohen's w", type: number, path: population.w, effect: true, min_exclusive: 0,
@@ -1718,14 +1718,14 @@ forms:
           - {id: glmm_odds_ratios, writeup_label: "odds ratio of a higher category in each condition", label: "Odds ratio of a higher category per condition", type: numbers, per_levels: X_levels, path: population.odds_ratios, effect: true, min_exclusive: 0,
              shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is_not: groups}],
              help: "Each condition's odds of a higher category compared with the first condition, in the same order, the first being 1, for example 1, 1.8. Proportional odds: the same odds ratio at every split of the categories into lower and higher. Above 1 means answers higher on the scale; 1.8 turns the 20% answering in the top category in the first condition into about 31%."}
-          - {id: glmm_rates_groups, writeup_label: "expected count in each group and condition", label: "Expected count per group and condition", type: table, path: population.rates, effect: true,
+          - {id: glmm_rates_groups, writeup_label: "expected count in each group and condition", label: "Expected count per group and condition", text_layout: "one line per group, with one number per condition, separated by commas", type: table, path: population.rates, effect: true,
              rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
              shown_if: [{field: glmm_outcome, is: count}, {field: glmm_groups, is: groups}],
              help: "The expected count per measurement for a typical person: one line per group, with one number per condition, separated by commas. The test looks for groups whose counts change by different ratios: 2 and 2 for the control group with 2 and 1.4 for the programme group is a 30% fall in the programme group only."}
-          - {id: glmm_probabilities_groups, writeup_label: "chance of yes in each group and condition", label: "Chance of 'yes' per group and condition", help: "For a typical person: one line per group, with one number per condition, separated by commas.", type: table, path: population.probabilities, effect: true,
+          - {id: glmm_probabilities_groups, writeup_label: "chance of yes in each group and condition", label: "Chance of 'yes' per group and condition", text_layout: "one line per group, with one number per condition, separated by commas", help: "For a typical person: one line per group, with one number per condition, separated by commas.", type: table, path: population.probabilities, effect: true,
              rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
              shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is: groups}]}
-          - {id: glmm_odds_ratios_groups, writeup_label: "odds ratio of a higher category in each group and condition", label: "Each group's odds ratios across conditions", type: table, path: population.odds_ratios, effect: true,
+          - {id: glmm_odds_ratios_groups, writeup_label: "odds ratio of a higher category in each group and condition", label: "Each group's odds ratios across conditions", text_layout: "one line per group, with one number per condition, the very first 1", type: table, path: population.odds_ratios, effect: true,
              rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
              shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is: groups}],
              help: "Odds of a higher category in each condition, compared with the first group in the first condition. One line per group, with one number per condition; the very first is 1. 1, 1 for the comparison group and 1, 2 for the other: the second group's odds of a higher answer double between the conditions while the first group's stay the same."}
@@ -2723,7 +2723,7 @@ forms:
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, writeup_label: "cell means", label: "Means for each group and timepoint", help: "One line per group, with one number per timepoint or condition, separated by commas.", type: table, path: population.means, effect: true,
+          - {id: means, writeup_label: "cell means", label: "Means for each group and timepoint", text_layout: "one line per group, with one number per timepoint or condition, separated by commas", help: "One line per group, with one number per timepoint or condition, separated by commas.", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition"}
       - input: "The SD"
         fields:
@@ -2733,7 +2733,7 @@ forms:
              help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail, so Powerkit plans for the Greenhouse-Geisser corrected F tests unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
-          - {id: sds, writeup_label: "cell SDs", label: "SDs for each group and timepoint", help: "One line per group, with one number per timepoint or condition, separated by commas, in the means' units.", type: table, path: population.sd, effect: true,
+          - {id: sds, writeup_label: "cell SDs", label: "SDs for each group and timepoint", text_layout: "one line per group, with one number per timepoint or condition, separated by commas (in the means' units)", help: "One line per group, with one number per timepoint or condition, separated by commas, in the means' units.", type: table, path: population.sd, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two timepoints or conditions"
         fields:
@@ -2841,7 +2841,7 @@ forms:
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, writeup_label: "cell means", label: "Means in each cell", help: "One line for each combination of the first and second factors (the first factor's first level with each of the second factor's levels, then its second level, and so on), with one number per level of the third factor, separated by commas.", type: table, path: population.means, effect: true,
+          - {id: means, writeup_label: "cell means", label: "Means in each cell", text_layout: "one line for each combination of the first and second factors (first factor's first level with each of the second factor's levels, then its second level, and so on), with one number per level of the third factor, separated by commas", help: "One line for each combination of the first and second factors (the first factor's first level with each of the second factor's levels, then its second level, and so on), with one number per level of the third factor, separated by commas.", type: table, path: population.means, effect: true,
              rows_from: [A_levels, B_levels], nest_by: B_levels, cols_from: C_levels,
              rows_name: "combination of the first and second factors", cols_name: "level of the third factor"}
       - input: "The SD"
@@ -2913,7 +2913,7 @@ forms:
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, writeup_label: "cell means", label: "Means in each cell", help: "One line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
+          - {id: means, writeup_label: "cell means", text_layout: "one line per group, with one number per outcome, separated by commas", label: "Means in each cell", help: "One line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
       - input: "The SD"
         fields:
@@ -2923,7 +2923,7 @@ forms:
              help: "When they differ, sphericity can fail, so Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
-          - {id: sds, writeup_label: "cell SDs", label: "SDs in each cell", help: "One line per level of the first factor, with one number per level of the second, separated by commas, in the means' units.", type: table, path: population.sd, effect: true,
+          - {id: sds, writeup_label: "cell SDs", label: "SDs in each cell", text_layout: "one line per level of the first factor, with one number per level of the second, separated by commas (in the means' units)", help: "One line per level of the first factor, with one number per level of the second, separated by commas, in the means' units.", type: table, path: population.sd, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two conditions"
         fields:
@@ -3004,7 +3004,7 @@ forms:
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, writeup_label: "cell means", label: "Means in each cell", help: "One line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
+          - {id: means, writeup_label: "cell means", text_layout: "one line per group, with one number per outcome, separated by commas", label: "Means in each cell", help: "One line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
       - input: "The SD"
         fields:
@@ -3077,7 +3077,7 @@ forms:
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
           - {id: means, writeup_label: "adjusted group means", label: "Adjusted means for each group", help: "Means adjusted for the covariates: one for each group, in the same order, separated by commas.", type: numbers, per_levels: A_levels, path: population.means, effect: true,
              shown_if: {field: factors, is_not: factorial_ancova}}
-          - {id: cell_means, writeup_label: "adjusted cell means", label: "Adjusted means in each cell", help: "Means adjusted for the covariates: one line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
+          - {id: cell_means, writeup_label: "adjusted cell means", label: "Adjusted means in each cell", text_layout: "one line per level of the first factor, with one number per level of the second, separated by commas", help: "Means adjusted for the covariates: one line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor",
              shown_if: {field: factors, is: factorial_ancova}}
           - {id: sd, writeup_label: "SD", label: "SD of the outcome within groups", help: "Before adjusting. The same in every group; 1 if the means are in SD units.", type: number, path: population.sd, effect: true, min_exclusive: 0}
@@ -3514,7 +3514,7 @@ forms:
           - {id: Y_label, label: "Yes/no outcome (for example, booked a flu jab)", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion of 'yes' in each combination"
         fields:
-          - {id: probabilities, writeup_label: "proportions of 'yes' in each cell", label: "Proportion of 'yes' in each cell", help: "From 0 to 1: one line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.probabilities, effect: true,
+          - {id: probabilities, writeup_label: "proportions of 'yes' in each cell", label: "Proportion of 'yes' in each cell", text_layout: "one line per level of the first factor, with one number per level of the second, separated by commas", help: "From 0 to 1: one line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.probabilities, effect: true,
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
       - input: "Which effect"
         fields:
@@ -3685,11 +3685,11 @@ forms:
           - {id: pillai_v, label: "Pillai's V of the effect you test", writeup_label: "Pillai's V", type: number, path: population.pillai_v, effect: true, min_exclusive: 0,
              help: "Pillai's trace, as G*Power's MANOVA tests take it: between 0 and the smaller of the number of outcomes and the number of groups minus 1 (for an interaction, its degrees of freedom). Powerkit treats it as the true effect, as G*Power does; a published V is that study's estimate and tends to be too large. Power is by the formula of Faul et al. (2007), as in G*Power; the outcomes' SDs and correlation aren't needed.",
              shown_if: {field: manova_metric, is: pillai_v}}
-          - {id: means, writeup_label: "group means", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
+          - {id: means, writeup_label: "group means", text_layout: "one line per group, with one number per outcome, separated by commas", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome",
              alternative: {field: manova_metric, value: pillai_v, label: "Give Pillai's V instead"},
              shown_if: [{field: manova_factors, is_not: two}, {field: manova_metric, is_not: pillai_v}]}
-          - {id: cell_means, writeup_label: "group means", label: "Means in each cell", help: "One line per combination of the two factors (the first factor's levels slowest: first with first, first with second, and so on), with one number per outcome.", type: table, path: population.means, effect: true,
+          - {id: cell_means, writeup_label: "group means", label: "Means in each cell", text_layout: "one line per combination of the two factors (the first factor's levels slowest: first with first, first with second, ...), with one number per outcome", help: "One line per combination of the two factors (the first factor's levels slowest: first with first, first with second, and so on), with one number per outcome.", type: table, path: population.means, effect: true,
              rows_from: [A_levels, B_levels], cols_from: Y_labels, rows_name: "combination", cols_name: "outcome",
              alternative: {field: manova_metric, value: pillai_v, label: "Give Pillai's V instead"},
              shown_if: [{field: manova_factors, is: two}, {field: manova_metric, is_not: pillai_v}]}
