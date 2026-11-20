@@ -4125,6 +4125,21 @@ sample_rule_text <- function(spec, result) {
 # result in plain words for a lay ethics panel, saying why this many
 # participants. It only words the engine's result, like the write-up, and
 # passes no verdict on whether the study is ethical.
+# What counts as success for a design with no significance test, in
+# words, or NULL: every factor's loadings recovered (E73), or the BIC
+# choosing the expected number of profiles (E58).
+no_test_success <- function(spec) {
+  if (identical(spec$template, "efa")) {
+    return(sprintf("recovers every factor's loadings (Tucker's congruence of at least %s for each factor)",
+      format(spec$target_test$congruence %||% 0.95)))
+  }
+  if (identical(spec$template, "lpa")) {
+    k <- as.integer(spec$population$profiles)
+    return(sprintf("finds the %d profiles we expect (the BIC choosing %d among models with 1 to %d profiles)", k, k, k + 1L))
+  }
+  NULL
+}
+
 ethics_text <- function(spec, result, fields, values) {
   # Generic tests (E50) have no participants to describe.
   if (identical(spec$design, "generic_test")) return(NA_character_)
@@ -4174,6 +4189,17 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
+  # The test of not-close fit: a significant result shows the model fits
+  # closely (MacCallum, Browne and Sugawara, 1996), the reverse of the
+  # other fit tests.
+  if (is_sem_fit(spec) && identical(spec$target_test$method, "chi_square_not_close_fit")) chance <- function(p) sprintf(
+    "If the model's RMSEA in the population is %s, the chance that a study of this size shows it fits closely (that its RMSEA is below %s: a statistically significant test of not-close fit, using a %s threshold) is %s, and the chance that it fails to show this is %s. If the model fits less well, that chance is lower.",
+    format(spec$population$rmsea), format(spec$population$rmsea_null %||% 0.05), alpha, percent(p), percent(1 - p))
+  # Factor recovery (E73) and the number of profiles (E58) have no
+  # significance test: success is what the simulation counts.
+  if (!is.null(success <- no_test_success(spec))) chance <- function(p) sprintf(
+    "If the population is as we expect, the chance that a study of this size %s is %s, and the chance that it doesn't is %s.",
+    success, percent(p), percent(1 - p))
   # Small telescopes: the replication is planned for an effect of 0, to
   # show the effect is smaller than the original study could detect.
   if (!is.null(st <- result$small_telescopes)) {
@@ -4215,6 +4241,9 @@ ethics_text <- function(spec, result, fields, values) {
         } else if (identical(s$effect_name, "rmsea")) {
           sprintf("A power analysis shows the smallest misfit a study of this size would detect %s of the time (using a %s threshold for statistical significance) is a population RMSEA of %s. Smaller misfit would more often be missed.",
             percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 3))
+        } else if (!is.null(success <- no_test_success(spec))) {
+          sprintf("A power analysis shows the smallest effect for which a study of this size %s %s of the time is %s.",
+            success, percent(spec$goal$power), size)
         } else if (identical(s$effect_name, "bound")) {
           sprintf("A power analysis shows the narrowest equivalence bounds a study of this size could show %s of the time (each one-sided test using a %s threshold) are \u00b1%s, %s. Narrower bounds would more often fail to show equivalence.",
             percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 2), s$effect_description)
