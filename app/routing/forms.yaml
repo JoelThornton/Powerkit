@@ -1915,7 +1915,7 @@ forms:
       - input: "Two groups: who has had the event by a given time, and how long people are followed"
         shown_if: {field: question, is: log_rank}
         fields:
-          - {id: lr_time, writeup_label: "time", label: "Time by which most events have happened", type: number, path: population.time, required: true, min_exclusive: 0,
+          - {id: lr_time, writeup_label: "time", label: "Time at which the event shares are known", type: number, path: population.time, required: true, min_exclusive: 0,
              shown_if: {field: question, is: log_rank},
              help: "A time by which you know roughly how many have had the event, for example 12 for 12 months. Use the same unit (days, weeks, months) for every time on this screen."}
           - {id: p_event1, writeup_label: "proportion with the event in group 1", label: "Proportion of group 1 who have had the event by then (0 to 1)", type: number, path: population.p_event.1, effect: true, baseline: true, min_exclusive: 0, max_exclusive: 1,
