@@ -57,7 +57,7 @@ test_that("Not worth replicating goes to the write-up, which is the negative pre
   report <- replication_report(list(), NULL, notes, "not_worth", version = "0.1.0")
   expect_identical(report[[1]], "# Pre-replication of: Smith (2010)")
   text <- paste(report, collapse = "\n")
-  expect_match(text, "Written with powerkit's replication plan, version 0.1.0", fixed = TRUE)
+  expect_match(text, "Written with Powerkit's replication plan, version 0.1.0", fixed = TRUE)
   expect_match(text, "Too small a sample.", fixed = TRUE)
   # None of the planning sections.
   expect_no_match(text, "## Goals and sample size", fixed = TRUE)

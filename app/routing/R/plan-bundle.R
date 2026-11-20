@@ -239,6 +239,7 @@ plan_design_row <- function(e, tree, forms) {
   test <- tryCatch(test_text(spec), error = function(err) e$label)
   name <- plan_test_name(forms$forms[[id %||% ""]], spec)
   if (!is.null(name)) test <- sprintf("%s (%s)", name, sub("^an? ", "", test))
+  test <- paste0(toupper(substr(test, 1, 1)), substring(test, 2))
   method <- spec$target_test$method %||% ""
   bayes <- identical(method, "bayes_factor")
   thr <- format(spec$target_test$evidence_threshold %||% 10)

@@ -95,7 +95,7 @@ settings:
   - key: rank_based_tests
     ref: "Judgement call 3.8; open question 5"
     question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should Powerkit handle them?"
-    options: {efficiency: "Adjust the t-test calculation by an efficiency factor for an assumed distribution (G*Power's approach), recorded as the convention", simulate: "Simulate the rank test (Spower's p_wilcox.test(), p_kruskal.test()) from an assumed distribution", label: "Give the parametric figure and say plainly that it only approximates the rank-based test", honest: "Honest cards for rank-based tests until one of the above is built"}
+    options: {efficiency: "Adjust the t-test calculation by an efficiency factor for an assumed distribution (G*Power's approach), recorded as the convention", simulate: "Simulate the rank test (Spower's p_wilcox.test(), p_kruskal.test()) from an assumed distribution", label: "Give the parametric figure, noting it only approximates the rank-based test", honest: "Honest cards for rank-based tests until one of the above is built"}
     value: label
     shown_at: [E1, E2, E3, E4, E18]
   - key: fisher_exact
@@ -272,8 +272,8 @@ start_questions:
       replicate: {label: "Replicate a published finding", help: "Starts a replication plan: notes on whether to replicate, the original study, the goals a replication can have, and the sample size for each."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
-      prediction_model: {label: "Develop a model that predicts an outcome for each person (a risk score or prognostic model)", help: "For example, a model that predicts who will relapse from their age, symptoms and history. The sample size comes from criteria that keep the model from overfitting, not from power.", next: E77}
-      reliability: {label: "Show that a measure is reliable, that raters agree, or that two methods of measurement agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), that raters choose the same category (kappa), or that a new device agrees with the standard one (Bland-Altman limits of agreement).", next: E69}
+      prediction_model: {label: "Develop a model that predicts an outcome for each person", help: "For example, a model that predicts who will relapse from their age, symptoms and history. The sample size comes from criteria that keep the model from overfitting, not from power.", next: E77}
+      reliability: {label: "Show that a measure is reliable or that raters or methods agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), that raters choose the same category (kappa), or that a new device agrees with the standard one (Bland-Altman limits of agreement).", next: E69}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
 routes:
@@ -711,7 +711,7 @@ nodes:
     options:
       - {label: "Two scores measured on the same occasions, within people", next: E76,
          help: "The question is whether the two go together within people. e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
-      - {label: "Something else: several predictors, or a relationship that depends on something", help: "Including a score measured once per person.", next: E41}
+      - {label: "Something else, such as several predictors or a moderated relationship", help: "Including a score measured once per person.", next: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
@@ -1534,7 +1534,7 @@ endpoints:
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     technical_name: "Ordinal regression"
-    plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+    plain_name: "An outcome in ordered categories, such as one Likert item"
     search_words: "proportional odds cumulative logit ordered logistic regression polr likert rating item whitehead"
     template: "ordinal_regression / ordinal_two_groups"
     backend: "powertools: propodds() (proportional odds, Whitehead's method)"
@@ -1688,7 +1688,7 @@ endpoints:
   E37:
     doc_name: "CFA, SEM model fit, measurement invariance, factor correlations and latent paths"
     technical_name: "Structural equation modelling (SEM)"
-    plain_name: "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+    plain_name: "Latent-variable models: fit, invariance, correlations and paths"
     search_words: "structural equation modelling sem cfa confirmatory factor analysis mimic multiple indicators multiple causes latent regression lavaan"
     template: "sem / model_fit, invariance, factor_correlation, latent_regression"
     backend: "semPower: semPower.postHoc() with an RMSEA for model fit (the chi-square test of exact fit, with semPower.getDf() for a CFA's degrees of freedom); semPower.powerMI() for measurement invariance across groups and semPower.powerLI() over occasions, semPower.powerCFA() for a factor correlation and semPower.powerRegression() for a latent slope (the chi-square difference test, by formula); WebPower's wp.sem.rmsea() for the tests of close and not-close fit"
@@ -1788,7 +1788,7 @@ endpoints:
   E76:
     doc_name: "Repeated-measures correlation (two scores measured together on several occasions)"
     technical_name: "Repeated-measures correlation (rmcorr)"
-    plain_name: "Do two scores go together within people, when each person is measured several times?"
+    plain_name: "Do two scores go together within people, measured several times?"
     search_words: "repeated measures correlation rmcorr within-person correlation within person diary experience sampling esm daily ambulatory repeated observations"
     template: "basic_test / repeated_measures_correlation"
     backend: "pwrss: power.exact.onecor() at the effective sample size N(k - 1) + 1, the repeated-measures correlation's degrees of freedom (Bakdash and Marusich, 2017; the rmcorr package)"
@@ -1806,7 +1806,7 @@ endpoints:
   E75:
     doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
     technical_name: "Generalised linear mixed models: repeated measures"
-    plain_name: "The same people measured more than once, with a count, ordered categories or yes/no"
+    plain_name: "The same people measured again, with a count, ordered categories or yes/no"
     search_words: "cochran cochran's q yes/no three conditions repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized glmer glmer.nb random intercept overdispersion cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
     template: "mixed_model / repeated_glmm"
     backend: "simr: powerSim() on glmer's y ~ cond + (1 | person) (with groups, y ~ group * cond + (1 | person)), Poisson or logistic; Spower with lme4's glmer.nb() for a negative binomial count, or with ordinal's clmm() for ordered categories; the likelihood-ratio or Wald test of the conditions, or of the group-by-condition interaction; Spower with Cochran's Q (stats::friedman.test() on the 0/1 answers) for one yes/no answer in each of three or more conditions (simulation)"
@@ -1831,7 +1831,7 @@ endpoints:
     doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
     technical_name: "Multilevel regression"
     search_words: "multilevel model hlm hierarchical linear model linear mixed model lmm lme4 lmer random slopes cross-level interaction"
-    plain_name: "People in groups: how something measured on each person, or on each group, relates to the outcome"
+    plain_name: "People in groups: how a person or group measure relates to the outcome"
     template: "mixed_model / two_level"
     backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | group), each effect tested with lmerTest's Satterthwaite t test or pbkrtest's Kenward-Roger test (simulation)"
     method: "Simulation"
@@ -1869,7 +1869,7 @@ endpoints:
   E67:
     doc_name: "Crossed participants and stimuli: a predictor measured on each item"
     technical_name: "Crossed random-effects model: item-level predictor"
-    plain_name: "Each person responds to many items that differ on a score (such as word frequency)"
+    plain_name: "Each person responds to many items that differ on a score"
     search_words: "mixed model random effects items stimuli item predictor word frequency continuous predictor trials linear mixed model lmm lme4 lmer generalised linear mixed model generalized glmm glmer logistic mixed model"
     template: "mixed_model / item_predictor"
     backend: "simr: powerSim() on y ~ x + (1 + x | participant) + (1 | item), testing x with lmerTest's Satterthwaite t test (or Kenward-Roger's), or glmer's tests for a yes/no outcome (simulation)"
@@ -1924,7 +1924,7 @@ endpoints:
   E58:
     doc_name: "Latent profile or latent class analysis (how many types of people, and who belongs to which)"
     technical_name: "Latent profile and latent class analysis"
-    plain_name: "Finding types or profiles of people (latent profile or latent class analysis)"
+    plain_name: "Finding types of people (latent profile or latent class analysis)"
     search_words: "latent profile analysis lpa latent class analysis lca mixture model clusters types subgroups profiles class enumeration bic mclust person-centred"
     template: "mixture / lpa"
     backend: "Spower: powerkit's experiment around mclust (latent profile models with equal variances and local independence, fitted with 1 to k + 1 profiles, the BIC choosing among them), simulated"
@@ -1943,7 +1943,7 @@ endpoints:
   E74:
     doc_name: "Random-intercept cross-lagged panel model (RI-CLPM)"
     technical_name: "Random-intercept cross-lagged panel model (RI-CLPM)"
-    plain_name: "Whether two scores measured over time predict each other's later changes, within people"
+    plain_name: "Do two scores predict each other's later changes, within people?"
     search_words: "cross-lagged panel model riclpm ri-clpm random intercept cross lagged clpm longitudinal panel waves reciprocal effects within-person lagged effects autoregressive hamaker sem"
     template: "panel / riclpm"
     backend: "Spower: powerkit's experiment around powRICLPM's powRICLPM() (each study simulated and the model fitted by lavaan's maximum likelihood; the lagged effect's Wald z test), simulated"
@@ -1978,7 +1978,7 @@ endpoints:
   E71:
     doc_name: "Differential item functioning (DIF) in a 2PL IRT model, two groups"
     technical_name: "Differential item functioning (2PL IRT)"
-    plain_name: "Whether a test's items work the same way in two groups (differential item functioning)"
+    plain_name: "Whether items work the same in two groups (differential item functioning)"
     search_words: "irt item response theory dif differential item functioning 2pl two-parameter logistic measurement bias item bias translation multigroup rasch item fairness"
     template: "irt / dif"
     backend: "irtpwr: irtpwr() with its DIF preset (the likelihood-ratio, Wald, score or gradient test of nested multigroup 2PL models, by its analytical method)"
@@ -2051,7 +2051,7 @@ endpoints:
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     technical_name: "Actor–partner interdependence model (APIM)"
-    plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"
+    plain_name: "Pairs of people: how scores relate to their own and their partner's outcome"
     search_words: "dyadic dyads couples APIM actor partner interdependence pairs moderation relationship length dyad-level moderator"
     template: "dyadic / apim"
     backend: "power4mome: power4test() on the APIM, fitted with lavaan, the effect tested with test_parameters() (simulation)"
@@ -2075,7 +2075,7 @@ endpoints:
     status: not_in_powerkit
     generic: true
     established_tools: true
-    card_text: "Two pair designs have cards of their own. For how each member's score relates to their own and their partner's outcome, when the outcome is a score, use \"Pairs of people: how each one's score relates to their own and their partner's outcome\". For conditions given to whole pairs, such as couples randomised to a programme, use \"People nested in groups (classes, teams, clinics)\" with groups of two. If you matched the pairs yourself and compare them on one score, as with twins, use \"Compare the same people in two conditions (or before and after)\". Powerkit doesn't yet cover actor and partner effects on a yes/no, count or ordered outcome, or a condition given to one member of each pair. For those, dyadic methods are needed: treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (couples assigned to different conditions) or within dyads (each partner's own stress)."
+    card_text: "Two pair designs have cards of their own. For how each member's score relates to their own and their partner's outcome, when the outcome is a score, use \"Pairs of people: how scores relate to their own and their partner's outcome\". For conditions given to whole pairs, such as couples randomised to a programme, use \"People nested in groups (classes, teams, clinics)\" with groups of two. If you matched the pairs yourself and compare them on one score, as with twins, use \"Compare the same people in two conditions (or before and after)\". Powerkit doesn't yet cover actor and partner effects on a yes/no, count or ordered outcome, or a condition given to one member of each pair. For those, dyadic methods are needed: treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (couples assigned to different conditions) or within dyads (each partner's own stress)."
     tier: later
   E45:
     doc_name: "Many measurements over time: segmented regression or interrupted time series"
@@ -2189,7 +2189,7 @@ endpoints:
   E50:
     doc_name: "Generic t, F, chi-square and z tests (from a noncentrality parameter)"
     technical_name: "Generic t, F, chi-square and z tests"
-    plain_name: "I already have the noncentrality parameter and degrees of freedom for my test"
+    plain_name: "I have the noncentrality parameter and degrees of freedom"
     template: "generic_test / t, f, chi_square or z"
     backend: "pwrss: power.t.test(), power.f.test(), power.chisq.test() or power.z.test() (by formula)"
     method: "Formula (no simulation)"
@@ -2306,7 +2306,7 @@ endpoints:
   E61:
     doc_name: "A planned meta-analysis: the test of the average effect"
     technical_name: "Meta-analysis"
-    plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
+    plain_name: "Will a meta-analysis of the studies I expect detect the average effect?"
     search_words: "meta analysis random effects moderator subgroup classical meta-analysis cochrane meta-analyses cochrans q heterogeneity i squared tau metafor"
     template: "meta_analysis / mean_effect, subgroups, dependent_effects, meta_regression or heterogeneity"
     backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
@@ -2351,7 +2351,7 @@ endpoints:
     rank_test_simulated: true
     doc_name: "Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints)"
     technical_name: "Mixed ANOVA"
-    plain_name: "Groups of different people, each measured in every condition or at every timepoint"
+    plain_name: "Groups of different people, each measured in every condition or time"
     search_words: "repeated measures split plot group by time anova mixed anova cohen's f eta squared partial eta-squared"
     template: "factorial_anova / mixed"
     backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
@@ -2700,7 +2700,7 @@ analysis_families:
   - {id: spread, technical_label: "Variance tests", label: "Spread of scores (variances)", short: "Spread of scores", endpoints: [E52, E53, E57]}
   - {id: equivalence, technical_label: "Equivalence and non-inferiority", label: "Showing there's no meaningful effect (equivalence, non-inferiority)", short: "Equivalence", endpoints: [E36]}
   - {id: meta, technical_label: "Meta-analysis", label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, technical_label: "Other analyses", label: "Other: time-to-event, signal detection, reliability, precision, prediction models, Bayes factors and generic tests", short: "Other", endpoints: [E43, E72, E69, E46, E77, E-bayes, E50]}
+  - {id: other, technical_label: "Other analyses", label: "Other: time-to-event, reliability, prediction, Bayes factors and more", short: "Other", endpoints: [E43, E72, E69, E46, E77, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}

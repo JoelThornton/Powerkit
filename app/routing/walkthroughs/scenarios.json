@@ -368,7 +368,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+   "pick": "An outcome in ordered categories, such as one Likert item"
   },
   "guided": {
    "answers": [
@@ -799,7 +799,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+   "pick": "Latent-variable models: fit, invariance, correlations and paths"
   },
   "guided": {
    "answers": [
@@ -841,7 +841,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+   "pick": "Latent-variable models: fit, invariance, correlations and paths"
   },
   "guided": {
    "answers": [
@@ -883,7 +883,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+   "pick": "Latent-variable models: fit, invariance, correlations and paths"
   },
   "guided": {
    "answers": [
@@ -957,7 +957,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+   "pick": "Latent-variable models: fit, invariance, correlations and paths"
   },
   "guided": {
    "answers": [
@@ -1919,7 +1919,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+   "pick": "An outcome in ordered categories, such as one Likert item"
   },
   "guided": {
    "answers": [
@@ -2433,7 +2433,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+   "pick": "Latent-variable models: fit, invariance, correlations and paths"
   },
   "guided": {
    "answers": [
