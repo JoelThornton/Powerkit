@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Repeated yes/no answers use the likelihood-ratio test
+    text: >
+      When people give a yes/no answer several times, the card now plans the
+      likelihood-ratio test only. The Wald test it also offered found a
+      difference a little too often when there was none.
+  - date: "2026-11-20"
     title: Small wording fixes in the study plan and replication plan files
     text: >
       The study plan's design table now starts each analysis plan with a

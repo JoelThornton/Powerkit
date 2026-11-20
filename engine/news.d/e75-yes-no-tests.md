@@ -1,1 +1,0 @@
-* E75: a yes/no outcome is tested by the likelihood ratio only; a spec asking for the Wald test is refused with a plain message (it ran about 6.2% at alpha .05 with no difference when people differ a lot; `validation-log.md`, 20 November 2026). Counts and ordered categories keep both tests. Adaptive quadrature was tested and not adopted (decisions.md, 20 November 2026).
