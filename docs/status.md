@@ -62,8 +62,13 @@ TOSTER's test does; two-sided tests of Cronbach's alpha (E69) and of a
 measured predictor of survival (E43) count both tails (Departures 34
 and 35); E77 says when pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
-labels and wording (item 30) go with item 28; E75's one yes/no per
-condition (item 31) needs a larger null check. Validation expectations
+labels and wording (item 30) go with item 28. E75 keeps refusing one
+yes/no answer per condition: in 4,000 simulated studies a cell, the
+mixed model's tests found a difference too often when there was none
+(for a rare answer, 7.6% for the group-by-time test and 8.5% for the
+conditions alone; `validation-log.md`, 20 November 2026); with two or more answers
+per condition the likelihood-ratio test, the default, stays near 5% and
+the card's help says the Wald test ran about 6%. Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,

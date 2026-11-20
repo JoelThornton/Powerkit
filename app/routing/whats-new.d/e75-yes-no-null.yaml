@@ -1,0 +1,12 @@
+entries:
+  - date: "2026-11-20"
+    title: Why one yes/no answer per condition isn't planned as a mixed model
+    text: >
+      The card for repeated counts, yes/no answers and ratings still can't
+      plan a mixed model when each person answers yes or no once in each
+      condition, and now says why: in simulations its tests found a
+      difference too often when there was none, up to 8.5% of studies at a
+      5% significance level when "yes" is rare. With several answers per
+      condition the default likelihood-ratio test stays close to 5%; the
+      help for the test now says that the Wald test can run at about 6%
+      when people differ a lot.

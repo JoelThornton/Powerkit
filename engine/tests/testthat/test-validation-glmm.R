@@ -151,7 +151,13 @@ test_that("repeated measures: Type I error near alpha with no difference", {
   # Ordered categories, the likelihood-ratio test.
   ordered <- engine_power(glmm_validation_spec("ordinal", "within_factor", c("A", "B"), c(1, 1), 0.8, 2,
     "likelihood_ratio", 40, seed = 7506, categories = c(0.2, 0.3, 0.3, 0.2)))
-  expect_lt(abs(ordered$power - 0.05), band)
+  expect_lt(abs(ordered$power - 0.05), band)  # Yes/no, the likelihood-ratio test (the default), a rare answer and
+  # people who differ a lot: where 4,000 simulated studies with one answer
+  # per condition gave 7.6% (validation-log.md, 20 November 2026), two
+  # answers per condition stayed near alpha.
+  yes_no <- engine_power(glmm_validation_spec("binary", "within_factor", c("A", "B"), c(0.1, 0.1), 1.5, 2,
+    "likelihood_ratio", 60, seed = 7507))
+  expect_lt(abs(yes_no$power - 0.05), band)
 })
 
 # Two or more groups measured more than once: the group-by-condition
@@ -271,7 +277,11 @@ test_that("repeated measures by group: Type I error near alpha when the groups c
   expect_lt(abs(poisson$power - 0.05), band)
   ordered <- engine_power(glmm_interaction_spec("ordinal", c("G1", "G2"), c("A", "B"), list(c(1, 1.5), c(1.2, 1.8)), 0.5, 2,
     "likelihood_ratio", 80, seed = 7514, categories = c(0.3, 0.4, 0.3)))
-  expect_lt(abs(ordered$power - 0.05), band)
+  expect_lt(abs(ordered$power - 0.05), band)  # Yes/no: both groups' odds rise by the same ratio (0.3 to 0.4, and 0.2
+  # to 0.28, each odds times 14/9), two answers per condition.
+  yes_no <- engine_power(glmm_interaction_spec("binary", c("G1", "G2"), c("A", "B"), list(c(0.3, 0.4), c(0.2, 0.28)), 1.5, 2,
+    "likelihood_ratio", 60, seed = 7515))
+  expect_lt(abs(yes_no$power - 0.05), band)
 })
 
 test_that("repeated measures: matches a published example (published)", {
