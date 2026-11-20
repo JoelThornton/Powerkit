@@ -494,6 +494,23 @@ test_that("two proportions with unequal groups find the smallest detectable prop
   }
 })
 
+test_that("the exported script runs for a one-sided correlation test at r = 0 (audit, 19 November 2026)", {
+  # pwrss stops ("object 'pwr' not found") at a correlation of exactly 0
+  # one-sided; the app passes the smallest positive number, and so must the
+  # script.
+  skip_unless_scripts_can_run()
+  spec <- example_spec("correlation")
+  spec$population$r <- 0
+  spec$goal <- list(type = "power", n = 80L)
+  for (alternative in c("greater", "less", "two_sided")) {
+    spec$target_test$alternative <- alternative
+    result <- run_quietly(spec)
+    expect_equal(result$curve$power, 0.05, tolerance = 1e-6)
+    run <- run_exported_script(spec, result)
+    expect_equal(run$reproduced, run$powerkit, tolerance = 1e-8, info = alternative)
+  }
+})
+
 test_that("unequal groups are scored as allocated, not with group 1 rounded up inside pwrss", {
   # Audit, 19 November 2026. pwrss multiplies n.ratio back by n2 and rounds
   # up, and 7 / 25 * 25 and 27 / 21 * 21 are each a hair above the whole

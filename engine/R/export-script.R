@@ -74,6 +74,8 @@ export_script <- function(spec, result, file = NULL) {
     },
     pwrss = if (rmcorr_test(spec)) {
       rmcorr_script(spec, result)
+    } else if (spec$template %in% c("tost_correlation", "tost_two_proportions")) {
+      toster_script(spec, result)
     } else if (mediation_joint_test(spec)) {
       mediation_joint_script(spec, result)
     } else if (spec$design == "generic_test") {
@@ -1636,7 +1638,10 @@ exact_correlation_script_lines <- function(inputs) {
     c(
       "  power.exact.onecor( # the exact distribution of r, as G*Power",
       paste0("    ", ensure_commas(c(
-        "rho = r", "null.rho = 0", "n = n_total",
+        if (identical(args$rho, .Machine$double.eps)) {
+          "rho = .Machine$double.eps # pwrss stops at a correlation of exactly 0, where the power is alpha"
+        } else "rho = r",
+        "null.rho = 0", "n = n_total",
         sprintf("alpha = %s", sig),
         sprintf("alternative = %s", r_code(alternative)),
         "verbose = 0"

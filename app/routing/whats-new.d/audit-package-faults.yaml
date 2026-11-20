@@ -1,0 +1,19 @@
+entries:
+  - date: "2026-11-20"
+    title: Correct power where a package was wrong
+    text: >
+      The equivalence test of a correlation or of two proportions now gives
+      the power of the test you will run. The package's own planning
+      functions ignored the expected correlation, or understated power when
+      the proportions differ, so earlier answers could be far off; the
+      result says how they differ. A two-sided test of Cronbach's alpha now
+      counts both tails, so with no difference its power is your alpha;
+      sample sizes don't change. A two-sided test of a measured predictor
+      of survival now counts both tails too, so its power is no longer
+      slightly understated for small effects. The equivalence test of two
+      proportions now needs at least 10 people in each group, the fewest
+      the test itself accepts. For a prediction model of a continuous or
+      time-to-event outcome, the result now says when the sample size
+      doesn't estimate the mean outcome, or the outcome's risk, as
+      precisely as the criteria ask, and for a continuous outcome how many
+      people would.

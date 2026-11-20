@@ -20,7 +20,10 @@
 # success region needs the Lambert W function and is left to the published
 # example below, and the Bayes factor goals planned with bfpwr (for or
 # against an effect), which the bayes chunk validates on their own cards.
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 replication_of <- function(...) engine_function("replication_planning")(...)

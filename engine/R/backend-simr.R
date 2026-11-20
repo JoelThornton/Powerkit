@@ -591,7 +591,9 @@ crossed_conditions_inputs <- function(spec) {
     alpha = spec$target_test$alpha,
     design = crossed_conditions_design,
     test_label = if (binary) {
-      if (pairwise) "car::linearHypothesis() (Wald), adjusted by stats::p.adjust()" else
+      if (pairwise && identical(simr_method(spec), "lr")) {
+        "the likelihood ratio of each pair (lme4::glmer() refitted with the pair's conditions merged, compared by anova()), adjusted by stats::p.adjust()"
+      } else if (pairwise) "car::linearHypothesis() (Wald), adjusted by stats::p.adjust()" else
         sprintf("simr::fixed(\"cond\", \"%s\")", simr_method(spec))
     } else if (pairwise) sprintf("lmerTest::contest() (%s), adjusted by stats::p.adjust()", simr_ddf(spec)) else
       sprintf("lmerTest's anova() (%s F)", simr_ddf(spec))
@@ -791,7 +793,27 @@ crossed_conditions_script <- function(spec, result) {
     },
     "}",
     "",
-    if (inputs$binary && inputs$pairwise) c(
+    if (inputs$binary && inputs$pairwise && identical(inputs$method, "lr")) c(
+      "# The chosen pair's likelihood-ratio test, adjusted for all the pairs:",
+      "# the model against the same model with the pair's two conditions",
+      "# sharing their fixed effect (the random-effect terms keep every",
+      "# condition), compared by anova().",
+      "pair_lr <- function(fit, ij) {",
+      "  data <- model.frame(fit)",
+      "  data$cond_merged <- data$cond",
+      "  levels(data$cond_merged)[ij[2]] <- levels(data$cond_merged)[ij[1]]",
+      sprintf("  full <- glmer(%s, data = data, family = binomial)", deparse1(inputs$formula)),
+      sprintf("  restricted <- glmer(%s, data = data, family = binomial)",
+        paste("y ~ cond_merged", sub("^y ~ cond", "", deparse1(inputs$formula)))),
+      "  anova(restricted, full)[[\"Pr(>Chisq)\"]][2]",
+      "}",
+      "test_p <- function(fit) {",
+      "  pairs <- combn(length(conditions), 2)",
+      "  p <- apply(pairs, 2, function(ij) pair_lr(fit, ij))",
+      "  at <- sort(match(pair, conditions))",
+      "  p.adjust(p, p_adjust)[[which(pairs[1, ] == at[1] & pairs[2, ] == at[2])]]",
+      "}"
+    ) else if (inputs$binary && inputs$pairwise) c(
       "# The chosen pair's Wald test (car), adjusted for all the pairs.",
       "test_p <- function(fit) {",
       "  k <- length(conditions)",

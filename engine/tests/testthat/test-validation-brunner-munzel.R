@@ -9,7 +9,10 @@
 #   2. Type I error with unequal spreads and unequal groups, where the
 #      Mann-Whitney test does not hold its level
 #   3. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 bm_validation_spec <- function(d, sd_ratio, shape, n, ratio = 1, method = "brunner_munzel") {

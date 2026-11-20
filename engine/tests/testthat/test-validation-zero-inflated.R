@@ -15,7 +15,10 @@
 #      binomial counts is conservative (recorded, not a fault of the
 #      translation: an independent loop gives the same)
 #   3. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 zi_validation_spec <- function(rate_ratio, base_rate, zero_prob, zero_odds_ratio, n, dispersion = NULL, effect = "rate_ratio") {

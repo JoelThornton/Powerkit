@@ -11,7 +11,10 @@
 # allowed 0.02 beyond its Monte Carlo error, the allowance used for the
 # other normal-theory formulas (helper-crosscheck.R; docs/decisions.md,
 # 2 November 2026).
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 survival_reps <- 2000L

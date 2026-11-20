@@ -8,7 +8,10 @@
 #      formula; one-sided: the definition, integrated numerically), and the
 #      share passing the threshold compared with powerkit's exact chance
 #   3. the no-effect side, simulated the same way at rho = 0
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 cor_validation_spec <- function(n, r, alternative = "two_sided", r_sd = NULL, threshold = 10, width = 1) {

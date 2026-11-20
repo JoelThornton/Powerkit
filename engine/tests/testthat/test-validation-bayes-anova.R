@@ -6,7 +6,10 @@
 #      and the share passing the threshold compared with powerkit's exact
 #      chance
 #   3. the no-effect side, simulated the same way with equal means
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 anova_bf_validation_spec <- function(n, means, sd = 1, threshold = 10, scale = 0.5) {

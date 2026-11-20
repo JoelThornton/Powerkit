@@ -12,7 +12,10 @@
 #      simulated power (simulatedPower = TRUE), which fits the models to
 #      simulated data with lavaan
 #   4. Type I error: power is alpha when the restriction holds (unit tests)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 sem_latent_validation_spec <- function(template, population, alpha, seed, n = NULL, target_power = NULL,

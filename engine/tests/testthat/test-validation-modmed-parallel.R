@@ -7,7 +7,10 @@
 #      a source and transcribe
 #   3. direct-call agreement with power4mome
 #   4. Type I error
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 parallel_modmed_spec <- function(template, paths, path, seed, n = NULL, residual = 0.3,

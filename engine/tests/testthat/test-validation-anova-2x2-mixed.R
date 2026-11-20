@@ -4,7 +4,10 @@
 #   2. published examples: Superpower vignette and paper
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 # `means` is a 2x2 matrix (rows = levels of A, between; columns = levels of

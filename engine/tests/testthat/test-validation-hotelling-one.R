@@ -10,7 +10,10 @@
 #      distance between the means and the fixed values (stats::mahalanobis()),
 #      through pwrss's generic F test
 #   3. Type I error (simulation)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 hotelling_one_validation_spec <- function(means, mu0, sds, r, seed, n = NULL, target_power = NULL, alpha = 0.05) {
