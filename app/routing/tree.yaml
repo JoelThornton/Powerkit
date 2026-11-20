@@ -1673,7 +1673,7 @@ endpoints:
     plain_name: "Show that an effect is too small to matter (equivalence)"
     search_words: "tost equivalence non inferiority"
     template: "equivalence_test / tost_independent, tost_paired, tost_one_sample, tost_correlation, tost_two_proportions, noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions"
-    backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula); TOSTER's z tests for a correlation (Fisher's z) and two proportions (unpooled standard error), planned by pwrss's power.z.test() and power.z.twoprops() with alternative two.one.sided (Departure 33: TOSTER's power_z_cor() and power_twoprop() give wrong answers); pwrss's power.t.student() and power.z.twoprops() with a margin for non-inferiority (one-sided)"
+    backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula); TOSTER's z tests for a correlation (Fisher's z) and two proportions (unpooled standard error), planned by pwrss's power.z.test() and power.z.twoprops() with alternative two.one.sided (TOSTER's own power_z_cor() and power_twoprop() give wrong answers); pwrss's power.t.student() and power.z.twoprops() with a margin for non-inferiority (one-sided)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-toster.R, note: "Matches TOSTER called directly in the engine's tests, agrees with a large-sample approximation written out in base R, and keeps the chance of wrongly claiming equivalence at or below alpha. Not yet checked against a published example."}
