@@ -1,3 +1,14 @@
+# powerkit 0.80.2
+
+* App: 28 design-finder choices and questions in `tree.yaml` longer than 75
+  characters were shortened, with their detail moved to the choice's help;
+  the routing tests and the walkthrough scenarios follow the new labels
+  (queue item 29).
+
+* App: 181 input-screen labels in `forms.yaml` longer than 75 characters were
+  shortened to the quantity's name; the format instructions moved into each
+  field's `help` (queue item 29, decisions.md, 19 November 2026).
+
 # powerkit 0.80.1
 
 * `joint_power()` keeps each outcome's effect sign: PUMP takes positive effects only, so each outcome's test is turned to face its effect and its correlations with the others take the matching signs (a two-sided test of -d rejects exactly when the reversed outcome's test of +d does). Effects of 0 are passed as 1e-8 so PUMP keeps them and reports complete power; a one-sided test faces the tested direction and an effect against it is refused in plain words. Before, +0.3 and -0.3 correlated 0.8 got the joint power of +0.3 and +0.3 (item 30a of `docs/next.md`, from the 19 November 2026 calculation audit).

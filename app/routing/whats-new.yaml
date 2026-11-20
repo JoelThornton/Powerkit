@@ -8,6 +8,19 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Shorter choices in "Help me choose"
+    text: >
+      The longest choices in the questions that find your analysis now say the
+      main idea in a few words. The examples and the detail they carried are
+      in the note under each choice, which shows with explanations on.
+  - date: "2026-11-20"
+    title: Shorter labels on the input screens
+    text: >
+      Long labels on the input screens, mostly the boxes for means,
+      proportions, correlations and SDs, now say what the number is in a few
+      words. How to enter it (the order, commas, whether it is optional) is in
+      the help under the box, which shows with explanations on.
+  - date: "2026-11-20"
     title: Corrected answers in several calculations
     text: >
       A study plan's joint power now keeps the direction of each effect, so
