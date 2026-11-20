@@ -336,6 +336,16 @@ progress_text <- function(elapsed, usual) {
 # --- Numbers in words --------------------------------------------------------------
 
 percent <- function(p) sprintf("%.0f%%", 100 * p)
+# Power for the result's main figure: a whole percentage, with as many
+# decimals as it takes (up to three) not to show a power just below or
+# above a usual target (80%, 90%, 95%) as that target: 79.52% and 80.15%
+# both round to 80%, and one meets a requirement of 80% while the other
+# doesn't.
+power_figure <- function(p, targets = c(0.8, 0.9, 0.95)) {
+  d <- 0L
+  while (d < 3L && any(abs(p - targets) > 1e-12 & round(100 * p, d) == round(100 * targets, d))) d <- d + 1L
+  sprintf("%.*f%%", d, 100 * p)
+}
 alpha_text <- function(a) sub("^0", "", format(a, nsmall = 2))
 whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
@@ -691,10 +701,10 @@ meta_sentences <- function(spec, result) {
     c(
       headline = if (subgroups || regression || heterogeneity) {
         sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would %s, with %s.",
-          whole(row$n), percent(row$power), effect, round(100 * row$power), finding, test)
+          whole(row$n), power_figure(row$power), effect, round(100 * row$power), finding, test)
       } else {
         sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
-          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+          whole(row$n), power_figure(row$power), effect, round(100 * row$power), test)
       },
       detail = paste(source, caution)
     )
@@ -770,7 +780,7 @@ noninf_sentences <- function(spec, result) {
     row <- result$curve[1, ]
     c(
       headline = sprintf("With %s participants in total%s, the study has %s power: if the true difference is the one you entered, about %d in 100 studies like this would %s, with %s.",
-        whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), shown, test),
+        whole(row$n), group_text(spec, row$n), power_figure(row$power), round(100 * row$power), shown, test),
       detail = paste("This power is", source, closer)
     )
   }
@@ -810,7 +820,7 @@ equivalence_sentences <- function(spec, result) {
     row <- result$curve[1, ]
     c(
       headline = sprintf("With %s participants in total%s, the study has %s power: if the true %s is the one you entered, about %d in 100 studies like this would %s, with %s.",
-        whole(row$n), group_text(spec, row$n), percent(row$power), what, round(100 * row$power), shown, test),
+        whole(row$n), group_text(spec, row$n), power_figure(row$power), what, round(100 * row$power), shown, test),
       detail = paste("This power is", source, closer)
     )
   }
@@ -1271,7 +1281,7 @@ goal_sentences <- function(spec, result) {
       c(
         headline = sprintf(
           "With %s participants in total%s, the study has %s power: if the true effect is the one you entered, about %d in 100 studies like this would get a significant result with %s.",
-          whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), test
+          whole(row$n), group_text(spec, row$n), power_figure(row$power), round(100 * row$power), test
         ),
         detail = if (simulated(result)) {
           sprintf(
@@ -3152,7 +3162,7 @@ result_figure <- function(spec, result) {
     },
     power = {
       row <- result$curve[1, ]
-      if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
+      if (is.null(row$power) || is.na(row$power)) NULL else list(value = power_figure(row$power), label = "power",
         # The generic tests have no sample size: the noncentrality carries it.
         sub = if (is.null(row$n) || is.na(row$n)) "for the noncentrality you entered" else sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
     },

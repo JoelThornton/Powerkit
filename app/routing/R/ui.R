@@ -699,7 +699,10 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE, note 
       p(id = "known_count", class = "known-count-line", role = "status", `aria-live` = "polite",
         sprintf("%d analyses in %d groups.", sum(vapply(families, function(f) length(intersect(unlist(f$endpoints), names(eps))), 1L)), length(families)))),
     p(id = "known_none", class = "known-none", hidden = NA,
-      "No analysis matches those words. Try fewer words or another name for the test, open the groups below, or ",
+      "No analysis matches those words. Try fewer words or another name for the test, ",
+      tags$button(type = "button", class = "btn btn-link known-inline-link", id = "known_clear",
+        onclick = "var box = document.getElementById('known_search'); box.value = ''; powerkitFilterAnalyses(''); box.focus();",
+        "clear the search and browse all analyses", .noWS = "after"), ", or ",
       tags$button(type = "button", class = "btn btn-link known-inline-link",
         onclick = "Shiny.setInputValue('pick', 'route:choose', {priority: 'event'})", "answer a few questions instead"), "."),
     if (length(shortcuts) > 0) {
