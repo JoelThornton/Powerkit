@@ -12,7 +12,10 @@
 #      F test; Shieh's method (measured covariates) has no simulation yet
 #   4. Type I error: an effect of 0 gives alpha by construction (unit
 #      tests)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 # `means` is a matrix of adjusted cell means (rows = levels of A, columns =

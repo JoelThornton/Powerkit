@@ -4708,3 +4708,30 @@ mode-swapped names gave two boxes the same heading. Instead:
 
 The replication planner follows this from 19 November 2026; queue item
 29 applies it to the rest of powerkit.
+
+## 2026-11-20 · Package faults from the calculation audit, and both tails for two-sided z tests
+
+- **E36, equivalence of a correlation or two proportions:** planned with
+  pwrss for the tests TOSTER runs, not with TOSTER's planning functions,
+  which give wrong answers (docs/conventions.md, Departure 33). Two
+  proportions need 10 people a group, `twoprop_test()`'s own minimum.
+- **E69 and E43, two-sided z tests whose package formula counts one tail**
+  (statpsych's for Cronbach's alpha, powerSurvEpi's for a measured score in
+  a Cox regression): powerkit counts both tails, the two-sided test's
+  power (Departures 34 and 35). Sample sizes are unchanged in practice.
+- **E77:** pmsampsize's answer is reported, with a check of the precision
+  criteria it does not enforce.
+- **E75, one yes/no per condition:** kept refused until a larger null
+  check (`next.md`).
+
+## 2026-11-20 · Which validation expectations agents may change
+
+The validation files mix values transcribed from published sources or
+G*Power, which the maintainer owns, with analytic, simulation and Type I
+error checks written with the code. The rule in CLAUDE.md now protects
+the first kind outright; the second may change only as part of a method
+change the maintainer has approved, stated in the pull request. Two
+checks written with the code were wrong under the old rule and are
+corrected: E69's null-value test expected the one-tail 0.025 (simulated
+scales reject 5.2%), and the minimum-effect simulation still simulated
+the test planned before 12 November 2026.

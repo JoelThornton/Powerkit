@@ -94,3 +94,17 @@ test_that("the exported script reproduces the result", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, label = goal$type)
   }
 })
+
+test_that("the check run reads group 2's shares at full precision (audit, 19 November 2026)", {
+  # Shares 0.005, 0.20, 0.795 with an odds ratio of 2: powertools prints
+  # group 2's shares to 3 decimals, which can't show the odds ratio at the
+  # first cut-point, and the check failed on a valid design.
+  spec <- example_spec("ordinal_two_groups")
+  spec$variables$Y$levels <- list("None", "Mild", "Moderate")
+  spec$population$probabilities <- list(0.005, 0.2, 0.795)
+  spec$population$odds_ratio <- 2
+  spec$goal <- list(type = "power", n = 200L)
+  check <- run_spec(validate_spec(spec))$check_run
+  expect_true(all(check$ok))
+  expect_equal(check$recovered[grepl("cut-point", check$parameter)], c(2, 2), tolerance = 1e-6)
+})

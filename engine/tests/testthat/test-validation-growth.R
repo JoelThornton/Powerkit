@@ -10,7 +10,10 @@
 #   2. published example: Diggle et al. (2002), the table that
 #      diggle.linear.power()'s help reproduces; placeholder for the
 #      maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 growth_validation_spec <- function(times, delta, s_i, s_s, r, s_e, n) {

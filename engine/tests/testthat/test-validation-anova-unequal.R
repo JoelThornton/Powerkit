@@ -9,7 +9,10 @@
 #   2. published examples: placeholders below, for the maintainer
 #   3. direct-call agreement with Superpower
 #   4. Type I error
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 unequal_validation_spec <- function(means, cell_ratio, effect, seed, n = NULL, sd = 1, target_power = NULL, alpha = 0.05) {

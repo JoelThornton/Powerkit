@@ -10,7 +10,10 @@
 #      agrees with pwrss's formula
 #   4. Type I error: below; with the true effect at the margin, the
 #      rejection rate is alpha
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 met_validation_spec <- function(d, margin, n, template = "independent_t", alternative = "greater") {
@@ -24,18 +27,20 @@ met_validation_spec <- function(d, margin, n, template = "independent_t", altern
   spec
 }
 
-# Simulated two-group studies: the t statistic of the mean difference
-# against the 1 - alpha quantile of the noncentral t at the margin.
+# Simulated two-group studies analysed by the test powerkit plans since 12
+# November 2026: the t-test of the mean difference against the margin,
+# t.test(mu = margin), one-sided. (Until 20 November 2026 this simulated
+# the earlier test, the t statistic against the noncentral t at the margin,
+# and passed only because the difference, under a point of power, was
+# inside the tolerance.)
 simulated_met_power <- function(d, margin, n_per_group, nrep, seed, alpha = 0.05) {
   set.seed(seed)
-  df <- 2 * n_per_group - 2
-  critical <- stats::qt(1 - alpha, df, ncp = margin / sqrt(2 / n_per_group))
-  t <- replicate(nrep, {
+  hits <- replicate(nrep, {
     y1 <- stats::rnorm(n_per_group)
     y2 <- stats::rnorm(n_per_group, mean = d)
-    stats::t.test(y2, y1, var.equal = TRUE)$statistic
+    stats::t.test(y2, y1, mu = margin, var.equal = TRUE, alternative = "greater")$p.value < alpha
   })
-  mean(t > critical)
+  mean(hits)
 }
 
 test_that("minimum-effect test, two groups: matches a published example (published)", {

@@ -8070,7 +8070,7 @@
       }
     },
     "template_tost_correlation": {
-      "description": "Equivalence (TOST) for a correlation: is the correlation between -bound and +bound? Two one-sided z tests on Fisher's z scale, by TOSTER::power_z_cor(alternative = 'equivalence') (an approximation, as for the correlation test). goal > n is the number of people.",
+      "description": "Equivalence (TOST) for a correlation: is the correlation between -bound and +bound? Two one-sided z tests on Fisher's z scale (TOSTER's z_cor_test()), planned by pwrss::power.z.test(alternative = 'two.one.sided') (an approximation, as for the correlation test; Departure 33). goal > n is the number of people.",
       "properties": {
         "variables": {
           "required": [
@@ -8125,7 +8125,7 @@
       }
     },
     "template_tost_two_proportions": {
-      "description": "Equivalence (TOST) for two proportions: is the difference p2 - p1 between -bound and +bound? Two one-sided z tests, by TOSTER::power_twoprop(alternative = 'equivalence'). Equal groups (TOSTER takes one group size). goal > n is the total number of people, split equally.",
+      "description": "Equivalence (TOST) for two proportions: is the difference p2 - p1 between -bound and +bound? Two one-sided Wald z tests with the unpooled standard error (TOSTER's twoprop_test()), planned by pwrss::power.z.twoprops(alternative = 'two.one.sided'; Departure 33). Equal groups. goal > n is the total number of people, split equally.",
       "properties": {
         "variables": {
           "required": [

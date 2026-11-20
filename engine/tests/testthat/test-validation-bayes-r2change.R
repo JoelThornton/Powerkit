@@ -10,7 +10,10 @@
 #      share passing the threshold compared with powerkit's estimate
 #   3. the no-effect side, simulated the same way with the tested
 #      coefficients 0
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 r2c_validation_spec <- function(template, n, r2_full, r2_reduced, p, q, threshold = 10, scale = 0.354, nrep = validation_nrep()) {

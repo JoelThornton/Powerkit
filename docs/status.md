@@ -19,8 +19,8 @@ the plan (`decisions.md`, 13 November 2026).
 Colleague testing began on 16 November 2026. What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
-smaller items), is `next.md` item 25 and comes first while testing runs;
-with it, item 27 audits every card that runs for a check independent of
+smaller items), is `next.md` item 24 and comes first while testing runs;
+with it, item 26 audits every card that runs for a check independent of
 the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
@@ -52,14 +52,25 @@ given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
 equal tails (the default) and names the rule in the write-up. Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
-calculation audit the same day found wrong numbers on several cards
-(study plans with effects of opposite sign, E46's exact interval, E49 and
-E5 with unequal groups, E5's Bayes factor, replication searches), package
-faults powerkit passes through (TOSTER on E36, pmsampsize on E77), and
-export and wording errors; each was reproduced and is queued as `next.md`
-items 30 to 35. The wrong numbers are fixed except the replication
-searches (item 30), which wait for the replication planner's open pull
-request.
+calculation audit the same day found wrong numbers on several cards,
+package faults powerkit passed through, and export and wording errors.
+The wrong numbers are fixed except the replication searches (item 29,
+now ready). E36's equivalence of a correlation or two proportions is
+planned with pwrss, because TOSTER's planning functions give wrong
+answers (Departure 33), and needs at least 10 people per group, as
+TOSTER's test does; two-sided tests of Cronbach's alpha (E69) and of a
+measured predictor of survival (E43) count both tails (Departures 34
+and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
+maintainer, with TOSTER's and pmsampsize's faults); E77 says when
+pmsampsize's answer leaves the mean outcome or a
+time-to-event risk less precise than the criteria ask. The audit's
+labels and wording (item 30) go with item 28; E75's one yes/no per
+condition (item 31) needs a larger null check. Validation expectations
+written with the code (simulation, Type I error and formula checks) may
+now be corrected with an approved method change; values transcribed
+from published sources or G*Power stay the maintainer's (CLAUDE.md,
+decisions.md, 20 November 2026). The alpha null check and the
+minimum-effect simulation were corrected under that rule.
 
 Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
 
@@ -119,7 +130,7 @@ each area, is at the end of
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 17) waits on a decision.
+  Bayes mode (item 18) waits on a decision.
 
 - **What calculates:** About groups supported analyses by the route in
   `forms.yaml`. Some finish in the app, immediately or in the background.
@@ -377,8 +388,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 29 applies this to the rest of powerkit; the input screens' labels over 75 characters are done). Still to come: the rest
-  of item 28 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens' labels over 75 characters are done). Still to come: the rest
+  of item 27 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 

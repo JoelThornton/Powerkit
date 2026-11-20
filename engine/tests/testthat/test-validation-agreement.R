@@ -16,7 +16,10 @@
 #      analysis it approximates (docs/conventions.md, "Bland-Altman limits
 #      of agreement")
 #   4. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 ba_validation_spec <- function(n, bias, sd, margin, method = "mover", agree = 0.95, alpha = 0.05, seed = 6401) {

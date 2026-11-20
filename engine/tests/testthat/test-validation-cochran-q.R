@@ -13,7 +13,10 @@
 #      degrees of freedom, without friedman.test() or Spower
 #   2. Type I error with the same chance of 'yes' in every condition
 #   3. published example: a placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 cochran_reps <- 4000L

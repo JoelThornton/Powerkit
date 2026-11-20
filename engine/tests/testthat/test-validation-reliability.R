@@ -17,7 +17,10 @@
 # The formulas are large-sample approximations, so the simulation is
 # allowed 0.03 beyond its Monte Carlo error (docs/decisions.md, 2 November
 # 2026).
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 reliability_reps <- 4000L
@@ -180,12 +183,15 @@ test_that("Cronbach's alpha: sample size matches Bonett and Wright's worked exam
 test_that("reliability formulas' rejection rate at the null value (Type I error)", {
   skip_unless_full_validation()
   # The spec checks refuse a sample size at the null value, but power at a
-  # given n runs. The ICC and alpha formulas count one tail, so give alpha
-  # (one-sided) or alpha / 2 (two-sided); kappaSize's test gives alpha.
+  # given n runs. The one-sided ICC test gives alpha; a two-sided test of
+  # alpha counts both tails (Departure 34, 20 November 2026), so gives alpha
+  # too, as simulated scales do (5.2% in 20,000); kappaSize's test gives
+  # alpha. (This expectation was written with the code, not transcribed;
+  # it was 0.025 while the alpha formula counted one tail.)
   icc <- reliability_validation_spec("icc", list(metric = "icc", icc = 0.6, icc_null = 0.6, raters = 3), 50, alternative = "greater")
   expect_equal(engine_power(icc)$power, 0.05, tolerance = 1e-12)
   a <- reliability_validation_spec("cronbach_alpha", list(metric = "cronbach_alpha", reliability = 0.7, reliability_null = 0.7, items = 5), 50)
-  expect_equal(engine_power(a)$power, 0.025, tolerance = 1e-12)
+  expect_equal(engine_power(a)$power, 0.05, tolerance = 1e-12)
   y <- validation_variable("binary", "Diagnosis", levels = list("No", "Yes"))
   k <- reliability_validation_spec("kappa", list(metric = "kappa", kappa = 0.4, kappa_null = 0.4, proportions = list(0.7, 0.3), raters = 2), 100, y = y)
   expect_equal(engine_power(k)$power, 0.05, tolerance = 1e-6)

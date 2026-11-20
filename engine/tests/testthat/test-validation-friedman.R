@@ -11,7 +11,10 @@
 #      stats::friedman.test(); and Spearman's rho on skewed scores drawn and
 #      tested by hand with stats::cor.test()
 #   3. Type I error for every shape
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 friedman_validation_spec <- function(means, r, shape, seed, n, alpha = 0.05) {

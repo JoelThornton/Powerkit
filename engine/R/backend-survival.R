@@ -20,6 +20,11 @@
 #                  Lavori's (2000) formula (its help): the two-sided test,
 #                  power Phi(sqrt(n log(HR)^2 var(X) psi (1 - R^2)) -
 #                  z), with psi the proportion of people with the event.
+#                  That counts only the tail in the effect's direction;
+#                  powerkit adds the other tail, Phi(-D - z) with D the
+#                  square root above, recovered from the package's power
+#                  as qnorm(power) + z (Departure 35), so the power of
+#                  the two-sided test is right for small hazard ratios.
 #                  powerkit takes the hazard ratio per SD of X, so var(X)
 #                  is 1.
 #
@@ -79,10 +84,13 @@ survival_power <- function(inputs, n) {
       tmin = inputs$follow_up, alpha = inputs$alpha, nc = groups[1], ni = groups[2], pr = FALSE
     ))
   } else {
-    powerSurvEpi::powerEpiCont.default(
+    one_tail <- powerSurvEpi::powerEpiCont.default(
       n = n, theta = inputs$hazard_ratio, sigma2 = 1, psi = inputs$event_proportion,
       rho2 = inputs$r2_other, alpha = inputs$alpha
     )
+    # The two-sided test also rejects in the other tail (Departure 35).
+    z <- stats::qnorm(1 - inputs$alpha / 2)
+    one_tail + stats::pnorm(-(stats::qnorm(one_tail) + z) - z)
   }
 }
 
@@ -238,11 +246,15 @@ survival_script <- function(spec, result) {
         sprintf("event_proportion <- %s # share of people with the event during the study", r_code(inputs$event_proportion)),
         sprintf("r2_other <- %s # R-squared of X on the other predictors", r_code(inputs$r2_other)),
         "",
-        "# Hsieh and Lavori's (2000) formula, two-sided; X's variance is 1 because",
-        "# the hazard ratio is per SD.",
+        "# Hsieh and Lavori's (2000) formula; X's variance is 1 because the hazard",
+        "# ratio is per SD. powerEpiCont.default() counts only the tail in the",
+        "# effect's direction; the two-sided test also rejects in the other",
+        "# (powerkit's Departure 35).",
         "power_at <- function(n_total) {",
-        "  powerEpiCont.default(n = n_total, theta = hazard_ratio, sigma2 = 1,",
+        "  one_tail <- powerEpiCont.default(n = n_total, theta = hazard_ratio, sigma2 = 1,",
         "    psi = event_proportion, rho2 = r2_other, alpha = alpha)",
+        "  z <- qnorm(1 - alpha / 2)",
+        "  one_tail + pnorm(-(qnorm(one_tail) + z) - z)",
         "}"
       )
     },

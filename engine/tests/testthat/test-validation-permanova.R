@@ -12,7 +12,10 @@
 #      labels, without vegan
 #   3. Type I error with skewed scores
 #   4. published example: placeholder, for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 perm_validation_spec <- function(means, sds, r, shape, n) {

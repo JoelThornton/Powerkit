@@ -8,7 +8,10 @@
 #      at alpha / m (stats::power.t.test(), independent of Superpower); and
 #      without adjustment, Superpower's own exact pairwise power
 #   3. the error rate for a pair with equal means stays at or below alpha
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 pairwise_validation_spec <- function(means, sd, comparison, p_adjust, seed, n, alpha = 0.05) {

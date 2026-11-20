@@ -5,7 +5,10 @@
 #      scored by contingencyTableBF() and its multinomial probability
 #      summed where BF10 reaches the threshold (and, for no association,
 #      where BF01 does)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 table_bf_validation_spec <- function(n, probs, threshold = 10, plan = "rows_fixed") {

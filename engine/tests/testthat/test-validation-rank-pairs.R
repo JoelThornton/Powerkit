@@ -13,7 +13,10 @@
 #      MASS::mvrnorm() and tested with stats::wilcox.test() and PMCMRplus's
 #      Conover test called here
 #   3. Type I error, unadjusted, for every test and shape
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 rank_pairs_validation_spec <- function(method, means, shape, seed, n, r = NULL, p_adjust = "holm", pair = c(1, 3), alpha = 0.05) {

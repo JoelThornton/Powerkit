@@ -664,26 +664,31 @@ propodds_power <- function(inputs, n) {
 }
 
 # Check run: there is no simulated data, so the check confirms the odds
-# ratio powertools works with, recovered from its own verbose output: the
-# cumulative odds of group 2's shares (pT, from Hmisc::pomodm()) against
-# group 1's, at every cut-point.
+# ratio powertools works with: the cumulative odds of group 2's shares (pT,
+# from Hmisc::pomodm(), as powertools computes them) against group 1's, at
+# every cut-point. powertools prints pT rounded to 3 decimals, which can't
+# show the odds ratio where a share is small (0.005 and an odds ratio of 2
+# failed), so pT is rebuilt at full precision with the same call and checked
+# against powertools' rounded output.
 propodds_check_run <- function(spec, inputs) {
   out <- call_backend("powertools", quietly(powertools::propodds(
     pC = inputs$pC, OR = inputs$OR, n1 = 100, alpha = inputs$alpha, v = TRUE
   )))
+  pT <- Hmisc::pomodm(p = inputs$pC, odds.ratio = 1 / inputs$OR)
   cum <- function(p) cumsum(p)[-length(p)]
   odds <- function(q) q / (1 - q)
   # powertools' group 2 is shifted towards the first categories (its "best").
-  recovered <- odds(cum(out$pT)) / odds(cum(inputs$pC))
+  recovered <- odds(cum(pT)) / odds(cum(inputs$pC))
   data.frame(
     parameter = c(
       "shares of group 1 (sum)",
+      "group 2's shares: powertools' (3 decimals) and Hmisc::pomodm()'s",
       sprintf("odds ratio at cut-point %d (powertools' group 2)", seq_along(recovered))
     ),
-    specified = c(1, rep(inputs$OR, length(recovered))),
-    recovered = c(sum(out$pC), recovered),
-    # pT is rounded to 3 decimals in powertools' output.
-    ok = c(abs(sum(out$pC) - 1) < 1e-9, abs(log(recovered) - log(inputs$OR)) < 0.05)
+    specified = c(1, 0, rep(inputs$OR, length(recovered))),
+    recovered = c(sum(out$pC), max(abs(out$pT - round(pT, 3))), recovered),
+    ok = c(abs(sum(out$pC) - 1) < 1e-9, max(abs(out$pT - round(pT, 3))) < 1e-9,
+      abs(log(recovered) - log(inputs$OR)) < 1e-6)
   )
 }
 

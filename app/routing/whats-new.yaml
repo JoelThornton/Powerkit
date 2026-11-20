@@ -8,6 +8,33 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Scripts and checks that match the app
+    text: >
+      The R script for a correlation of exactly 0 tested one-sided now runs.
+      For yes/no answers with one pair of conditions tested by the
+      likelihood ratio, the method and the script now say and do that, not
+      a Wald test. The repeated-measures correlation shows a negative
+      critical value for a lower-tail test. Ordered categories with a very
+      small share in one category no longer fail their translation check.
+  - date: "2026-11-20"
+    title: Correct power where a package was wrong
+    text: >
+      The equivalence test of a correlation or of two proportions now gives
+      the power of the test you will run. The package's own planning
+      functions ignored the expected correlation, or understated power when
+      the proportions differ, so earlier answers could be far off; the
+      result says how they differ. A two-sided test of Cronbach's alpha now
+      counts both tails, so with no difference its power is your alpha;
+      sample sizes don't change. A two-sided test of a measured predictor
+      of survival now counts both tails too, so its power is no longer
+      slightly understated for small effects. The equivalence test of two
+      proportions now needs at least 10 people in each group, the fewest
+      the test itself accepts. For a prediction model of a continuous or
+      time-to-event outcome, the result now says when the sample size
+      doesn't estimate the mean outcome, or the outcome's risk, as
+      precisely as the criteria ask, and for a continuous outcome how many
+      people would.
+  - date: "2026-11-20"
     title: Shorter choices in "Help me choose"
     text: >
       The longest choices in the questions that find your analysis now say the

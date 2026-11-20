@@ -13,7 +13,10 @@
 #      also bounds the exact data set's approximation at 4 points.
 #   3. Type I error under unequal correlations: near alpha with the
 #      Greenhouse-Geisser correction
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 within_covariance_spec <- function(means, sd, r, correction, seed, n, method = NULL, alpha = 0.05) {

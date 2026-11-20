@@ -7,7 +7,10 @@
 #      study, stats::t.test() at every look, and the JZS Bayes factor
 #      integrated here over the noncentral t likelihood (not bfpwr), so the
 #      check relies neither on bfpwr nor on the engine's thresholds in t
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 sequential_of <- function(...) engine_function("bayes_sequential")(...)

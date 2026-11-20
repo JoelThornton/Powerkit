@@ -14,12 +14,20 @@
 # for two samples (a vector of the two group sizes when they differ) and
 # the number of people (or pairs) otherwise.
 #
-# A correlation (template tost_correlation): TOSTER::power_z_cor() with
-# alternative = "equivalence", rho the expected correlation and null the
-# bound (TOSTER tests -bound and +bound), the two one-sided z tests on
-# Fisher's z scale. Two proportions (tost_two_proportions):
-# TOSTER::power_twoprop() with alternative = "equivalence", p1 and p2 and
-# null the bound on p2 - p1; n is per group, the two groups equal.
+# A correlation (template tost_correlation) and two proportions
+# (tost_two_proportions) are not planned with TOSTER's own planning
+# functions, which give wrong answers (docs/conventions.md, Departure 33):
+# TOSTER 0.8.6's power_z_cor() never uses the expected correlation (its
+# power is the power when the true correlation is 0), and power_twoprop()
+# applies the distance to the nearer bound on both sides. powerkit plans
+# the tests TOSTER runs, z_cor_test() and twoprop_test(), with pwrss: the
+# correlation's two one-sided z tests on Fisher's z scale (SE 1 / sqrt(n -
+# 3)) by pwrss::power.z.test() with alternative "two.one.sided", the
+# statistic's mean atanh(r) sqrt(n - 3) and the bounds atanh(+-bound)
+# sqrt(n - 3); the proportions' two one-sided Wald z tests (unpooled SE,
+# as twoprop_test()) by pwrss::power.z.twoprops() with alternative
+# "two.one.sided" and margins -bound and +bound on p2 - p1. n is per group
+# for two proportions, the two groups equal.
 
 toster_type <- function(spec) {
   switch(
@@ -59,14 +67,23 @@ toster_inputs <- function(spec) {
   pop <- spec$population
   ratio <- allocation_ratio(spec)
   alpha <- spec$target_test$alpha
+  # pwrss reads "two.one.sided" as equivalence only with the expected value
+  # strictly inside the bounds; at a bound (allowed for power at a given n)
+  # it is moved inside by a hair, where the power is alpha.
+  inside <- function(value, bound) if (abs(value) >= bound) sign(value) * bound * (1 - 1e-9) else value
   if (identical(spec$template, "tost_correlation")) {
-    return(list(fun = "power_z_cor", args = function(n) {
-      list(n = n, rho = pop$r, null = pop$bound, alpha = alpha, alternative = "equivalence")
+    return(list(fun = "power.z.test", args = function(n) {
+      scale <- sqrt(n - 3)
+      list(mean = atanh(inside(pop$r, pop$bound)) * scale, sd = 1, null.mean = atanh(c(-pop$bound, pop$bound)) * scale,
+        null.sd = 1, alpha = alpha, alternative = "two.one.sided", plot = FALSE, verbose = 0)
     }))
   }
   if (identical(spec$template, "tost_two_proportions")) {
-    return(list(fun = "power_twoprop", args = function(n) {
-      list(p1 = pop$p1, p2 = pop$p2, n = n / 2, null = pop$bound, alpha = alpha, alternative = "equivalence")
+    return(list(fun = "power.z.twoprops", args = function(n) {
+      # pwrss's difference is prob1 - prob2: group 2's proportion goes first.
+      list(prob1 = pop$p1 + inside(pop$p2 - pop$p1, pop$bound), prob2 = pop$p1, margin = c(-pop$bound, pop$bound),
+        n2 = n / 2, n.ratio = 1, alpha = alpha, alternative = "two.one.sided", std.error = "unpooled",
+        ceil.n = FALSE, verbose = 0)
     }))
   }
   type <- toster_type(spec)
@@ -92,19 +109,19 @@ toster_inputs <- function(spec) {
   )
 }
 
-# A correlation or two proportions: TOSTER's z tests.
+# A correlation or two proportions: TOSTER's z tests, planned by pwrss.
 toster_z_backend <- function(spec, inputs) {
   step <- valid_n_step(spec)
   power_at <- function(n) {
-    out <- call_backend("TOSTER", quietly(do.call(getExportedValue("TOSTER", inputs$fun), inputs$args(n))))
+    out <- call_backend("pwrss", quietly(do.call(getExportedValue("pwrss", inputs$fun), inputs$args(n))))
     out$power
   }
   list(
-    name = "TOSTER",
-    packages = "TOSTER",
+    name = "pwrss",
+    packages = "pwrss",
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = paste0("TOSTER::", inputs$fun)),
+    functions = c(exact = paste0("pwrss::", inputs$fun)),
     n_step = step,
     exact_min_n = step * ceiling(minimum_n(spec) / step),
     exact_power = power_at,
@@ -135,14 +152,16 @@ toster_check_run <- function(spec, inputs) {
   args <- inputs$args(100)
   keep <- function(passed) if (searched) passed[!grepl("bound", passed$parameter), , drop = FALSE] else passed
   if (!is.null(inputs$fun)) {
-    passed <- if (identical(inputs$fun, "power_z_cor")) {
-      data.frame(parameter = c("expected correlation passed to TOSTER (rho)", "equivalence bound passed to TOSTER (null)"),
-                 specified = c(pop$r, pop$bound), recovered = c(args$rho, args$null))
+    passed <- if (identical(inputs$fun, "power.z.test")) {
+      data.frame(parameter = c("expected correlation passed to pwrss (Fisher z of the statistic's mean, back-transformed)",
+        "equivalence bound passed to pwrss (Fisher z, back-transformed)"),
+        specified = c(pop$r, pop$bound), recovered = c(tanh(args$mean / sqrt(97)), tanh(args$null.mean[2] / sqrt(97))))
     } else {
-      data.frame(parameter = c("p1 passed to TOSTER", "p2 passed to TOSTER", "equivalence bound passed to TOSTER (null)", "people per group at n = 100"),
-                 specified = c(pop$p1, pop$p2, pop$bound, 50), recovered = c(args$p1, args$p2, args$null, args$n))
+      data.frame(parameter = c("p1 passed to pwrss (prob2)", "p2 passed to pwrss (prob1)", "equivalence bound passed to pwrss (margin)", "people per group at n = 100"),
+                 specified = c(pop$p1, pop$p2, pop$bound, 50), recovered = c(args$prob2, args$prob1, args$margin[2], args$n2))
     }
-    passed$ok <- mapply(function(a, b) isTRUE(all.equal(a, b)), passed$specified, passed$recovered)
+    # A value at the bound is moved inside by a hair (toster_inputs()).
+    passed$ok <- mapply(function(a, b) isTRUE(all.equal(a, b, tolerance = 1e-8)), passed$specified, passed$recovered)
     return(keep(passed))
   }
   specified <- if (identical(inputs$type, "paired")) pop$dz else pop$d
@@ -205,10 +224,12 @@ toster_script <- function(spec, result) {
   )
 }
 
-# The R script for the equivalence of a correlation or of two proportions.
+# The R script for the equivalence of a correlation or of two proportions:
+# the same pwrss call at each size powerkit computed.
 toster_z_script <- function(spec, result, inputs) {
   pop <- spec$population
-  correlation <- identical(inputs$fun, "power_z_cor")
+  correlation <- identical(inputs$fun, "power.z.test")
+  args <- inputs$args(100)
   values <- if (correlation) {
     sprintf("rho <- %s # the expected true correlation", r_code(pop$r))
   } else {
@@ -217,24 +238,39 @@ toster_z_script <- function(spec, result, inputs) {
       sprintf("p2 <- %s # the expected proportion in group 2", r_code(pop$p2))
     )
   }
+  at_bound <- if (correlation) abs(pop$r) >= pop$bound else abs(pop$p2 - pop$p1) >= pop$bound
   call <- if (correlation) {
-    "  power_z_cor(n = n_total, rho = rho, null = bound, alpha = alpha, alternative = \"equivalence\")$power"
+    c(
+      "  # TOSTER's z_cor_test(): two one-sided z tests on Fisher's z scale,",
+      "  # standard error 1 / sqrt(n - 3), each at level alpha.",
+      "  scale <- sqrt(n_total - 3)",
+      if (at_bound) "  rho <- sign(rho) * bound * (1 - 1e-9) # pwrss needs the value strictly inside the bounds; the power is alpha",
+      "  power.z.test(mean = atanh(rho) * scale, sd = 1, null.mean = atanh(c(-bound, bound)) * scale, null.sd = 1,",
+      "    alpha = alpha, alternative = \"two.one.sided\", plot = FALSE, verbose = 0)$power"
+    )
   } else {
     c(
-      "  # TOSTER takes the size of each group; the two groups are equal.",
-      "  power_twoprop(p1 = p1, p2 = p2, n = n_total / 2, null = bound, alpha = alpha, alternative = \"equivalence\")$power"
+      "  # TOSTER's twoprop_test(): two one-sided Wald z tests (unpooled",
+      "  # standard error) of p2 - p1; pwrss's difference is prob1 - prob2, and",
+      "  # n2 is the size of each group (equal groups).",
+      if (at_bound) "  p2 <- p1 + sign(p2 - p1) * bound * (1 - 1e-9) # pwrss needs the difference strictly inside the bounds; the power is alpha",
+      "  power.z.twoprops(prob1 = p2, prob2 = p1, margin = c(-bound, bound), n2 = n_total / 2, n.ratio = 1,",
+      "    alpha = alpha, alternative = \"two.one.sided\", std.error = \"unpooled\", ceil.n = FALSE, verbose = 0)$power"
     )
   }
   c(
-    script_header(spec, result, "TOSTER", paste0("TOSTER::", inputs$fun)),
-    "library(TOSTER)",
+    script_header(spec, result, "pwrss", paste0("pwrss::", inputs$fun)),
+    "library(pwrss)",
     "",
     "# Inputs ----",
     values,
     sprintf("bound <- %s # equivalence bounds -bound and +bound%s", r_code(pop$bound), if (correlation) "" else ", on the difference p2 - p1"),
     goal_inputs(spec, result),
     "",
-    "# Power of the two one-sided tests at a total sample size.",
+    "# Power of the two one-sided tests at a total sample size. (powerkit",
+    "# doesn't use TOSTER's planning functions here: power_z_cor() ignores the",
+    "# expected correlation, and power_twoprop() applies the nearer bound's",
+    "# distance to both sides; powerkit's Departure 33.)",
     "power_at <- function(n_total) {",
     call,
     "}",

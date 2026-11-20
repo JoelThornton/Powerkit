@@ -11,7 +11,10 @@
 #      published examples from the G*Power 3.1 manual
 # Sections 1 and 2 have no Monte Carlo tolerance (docs/decisions.md,
 # 17 October 2026).
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 basic_variables <- function(template, levels_x = 2, levels_y = 2) {
