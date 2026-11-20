@@ -247,7 +247,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
   expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
-  expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
+  expect_match(html, "in group 1: 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
   expect_match(html, "download_simulated_data", fixed = TRUE)            # the simulated data set
