@@ -356,6 +356,17 @@ cochran_spec <- function(probabilities = c(0.5, 0.6, 0.65), n = 60L, nrep = 100L
   spec
 }
 
+test_that("a yes/no outcome is tested by the likelihood ratio only; a count keeps the Wald test", {
+  expect_spec_problem(glmm_spec("yes_no", method = "wald"), "the Wald test found a difference too often")
+  expect_spec_problem(interaction_spec("yes_no", method = "wald"), "the Wald test found a difference too often")
+  expect_silent(validate_quietly(glmm_spec("yes_no", method = "likelihood_ratio")))
+  expect_silent(validate_quietly(glmm_spec("poisson", method = "wald")))
+  # One answer per condition stays refused, with groups or without.
+  once <- interaction_spec("yes_no")
+  once$population$measurements <- 1L
+  expect_spec_problem(once, "can't plan a test of whether the groups change differently")
+})
+
 test_that("Cochran's Q: friedman.test() on 0/1 answers is Q from its own formula, and McNemar's test with two", {
   x <- with_seed(3, matrix(stats::rbinom(40 * 4, 1, 0.4), nrow = 40))
   x[1:3, ] <- 1

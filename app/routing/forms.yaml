@@ -1743,10 +1743,15 @@ forms:
       - input: "The test"
         fields:
           - {id: glmm_test, label: "What the test compares", type: select, path: target_test.method, required: true,
-             shown_if: [{any: [{field: glmm_outcome, is_not: binary}, {field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
+             shown_if: {field: glmm_outcome, is_not: binary},
              choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
              default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
-             help: "That the conditions differ, or, with groups, that the groups change differently. lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. For a yes/no answer from people who differ a lot (an SD of 1.5), powerkit's simulations found the Wald test significant in about 6% of studies with no difference at a 5% significance level, against 4.3% to 5.6% for the likelihood-ratio test."}
+             help: "That the conditions differ, or, with groups, that the groups change differently. lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
+          - {id: glmm_test_yes_no, label: "What the test compares (yes/no)", type: select, path: target_test.method, required: true,
+             shown_if: [{field: glmm_outcome, is: binary}, {any: [{field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
+             choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor and the only test powerkit plans for a yes/no outcome on this card",
+             help: "That the conditions differ, or, with groups, that the groups change differently. The Wald test isn't offered for yes/no answers: for people who differ a lot (an SD of 1.5), powerkit's simulations found it significant in about 6.2% of studies with no difference at a 5% significance level, while the likelihood-ratio test stayed near 5%."}
           - {id: glmm_test_once, label: "Test (a yes/no answer once in each condition)", type: select, path: target_test.method, required: true,
              shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is_not: groups}, {field: glmm_people, is: within_factor}, {field: glmm_measurements, is: "1"}],
              choices: {cochran_q: "Cochran's Q"},

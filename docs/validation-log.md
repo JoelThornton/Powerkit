@@ -1828,3 +1828,76 @@ in every cell. The Wald test runs about 6.2% when people differ a lot,
 which the card's help for the test now says. The validation suite had no
 yes/no Type I check on this card; `test-validation-glmm.R` now has one
 for one factor and one for the interaction, by the likelihood-ratio test.
+
+## 2026-11-20 · Repeated yes/no answers: quadrature and the Wald test (local)
+
+Linux, R 4.5.3, lme4 2.0.6, survival 3.8, engine 0.80.8. Could fitting
+by adaptive Gauss-Hermite quadrature (`glmer(nAGQ = 10)`) instead of the
+Laplace approximation, or a different test, keep one yes/no answer per
+condition near alpha? No study has a difference to find; the rule was
+the same as above (within 3 Monte Carlo SEs of 5%).
+
+**Ten tests in the eight settings that failed above** (4,000 studies a
+setting; script
+[2026-11-20-e75-yes-no-alternatives.R](validation/2026-11-20-e75-yes-no-alternatives.R)).
+Ranges across the eight settings:
+
+| Test | Rate | Within the band everywhere? |
+|---|---|---|
+| Laplace, Wald chi-square | 5.6% to 8.5% | no |
+| Laplace, Wald F (t reference) | 5.0% to 8.4% | no |
+| Laplace, likelihood ratio | 4.4% to 9.3% | no |
+| Quadrature, Wald chi-square | 4.0% to 7.4% | no |
+| Quadrature, Wald F | 3.8% to 7.0% | no |
+| Quadrature, likelihood ratio | 4.9% to 5.7% | yes |
+| Conditional logistic, Wald | 3.5% to 5.4% | no (too cautious) |
+| Conditional logistic, likelihood ratio | 5.1% to 5.9% | yes |
+| Conditional logistic, score | 5.1% to 5.5% | yes |
+| Fisher's exact test of the people who change | 2.6% to 3.1% | no (too cautious) |
+
+**Quadrature through the engine, more settings.** A trial build of E75
+that fitted yes/no by quadrature (passed to simr's `powerSim()` as
+`fitOpts`), two groups, the group-by-condition interaction by the
+likelihood ratio, 2,000 studies a setting (Monte Carlo SE 0.49 points;
+the band is about 3.5% to 6.5%):
+
+| Groups × conditions | People a group | SD | p0 | Answers per condition | Rate |
+|---|---|---|---|---|---|
+| 2 × 2 | 20 | 1.0 | 0.10 | 1 | 7.5% |
+| 2 × 2 | 20 | 1.5 | 0.05 | 1 | 10.0% |
+| 2 × 2 | 50 | 1.0 | 0.05 | 1 | 8.1% |
+| 2 × 2 | 20 | 0.5 | 0.30 | 1 | 6.6% |
+| 2 × 2 | 50 | 2.0 | 0.10 | 1 | 5.9% |
+| 2 × 3 | 30 | 1.0 | 0.10 | 1 | 6.3% |
+| 2 × 4 | 30 | 1.0 | 0.10 | 1 | 7.1% |
+| 3 × 2 | 30 | 1.0 | 0.10 | 1 | 6.4% |
+| 2 × 2 | 20 | 1.0 | 0.10 | 2 | 5.7% |
+| 2 × 3 | 20 | 1.5 | 0.05 | 2 | 6.1% |
+
+The 8.1% setting rerun with another seed and 4,000 studies gave 6.7%
+through the engine and 6.6% fitted directly with lme4 (so the engine
+fitted as intended; the first run was a high draw), and the Laplace fit
+of the same studies 15.0%.
+
+**Laplace against quadrature on the same studies** (2,000 a setting;
+script [2026-11-20-e75-yes-no-quadrature.R](validation/2026-11-20-e75-yes-no-quadrature.R),
+whose output this is):
+
+| People a group | SD | p0 | Answers per condition | Laplace | Quadrature |
+|---|---|---|---|---|---|
+| 50 | 1.0 | 0.05 | 1 | 15.6% | 7.0% |
+| 50 | 1.0 | 0.05 | 2 | 6.0% | 5.9% |
+| 20 | 1.5 | 0.05 | 2 | 7.0% | 6.8% |
+| 30 | 1.0 | 0.10 | 2 | 5.5% | 5.75% |
+| 50 | 1.0 | 0.05 | 3 | 4.4% | 4.45% |
+
+Quadrature cuts the false positives with one answer per condition but
+doesn't bring them near 5% where groups are small or 'yes' is rare, and
+with two or more answers, the designs E75 plans, the two fits agree. So
+E75 keeps the Laplace fit (simr's default) and keeps refusing one answer
+per condition; the conditional logistic tests, though calibrated, are a
+different analysis from the mixed model the card plans. A yes/no outcome
+is now tested by the likelihood ratio only, the Wald test having run
+about 6.2% above (decisions.md, 20 November 2026). Small groups with a
+rare answer run about 7% even with two answers per condition (queue item
+32).

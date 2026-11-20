@@ -65,12 +65,14 @@ maintainer, with TOSTER's and pmsampsize's faults); E77 says when
 pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
 labels and wording (item 30) go with item 28. E75 keeps refusing one
-yes/no answer per condition: in 4,000 simulated studies a cell, the
-mixed model's tests found a difference too often when there was none
-(for a rare answer, 7.6% for the group-by-time test and 8.5% for the
-conditions alone; `validation-log.md`, 20 November 2026); with two or more answers
-per condition the likelihood-ratio test, the default, stays near 5% and
-the card's help says the Wald test ran about 6%. Validation expectations
+yes/no answer per condition: in simulations its tests found a difference
+too often when there was none, and fitting by adaptive quadrature
+instead of glmer()'s default fit didn't cure it (up to 10% in small
+or rare-answer settings; with two or more answers the two fits agree).
+A yes/no outcome is now tested by the likelihood ratio only, the Wald
+test having run about 6.2% (`validation-log.md`, 20 November 2026).
+Small groups with a rare answer still run about 7% with two answers per
+condition (queue item 32). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,

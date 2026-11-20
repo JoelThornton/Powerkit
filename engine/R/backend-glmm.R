@@ -563,6 +563,16 @@ check_repeated_glmm <- function(spec) {
         "Set 'population > measurements' to 2 or more if each person answers several times in each condition.")
     })
   }
+  # A yes/no outcome is tested by the likelihood ratio only: with two or
+  # more answers per condition, its default, it stayed near alpha, while
+  # the Wald test ran about 6.2% when people differ a lot
+  # (validation-log.md, 20 November 2026, "Repeated yes/no answers").
+  if (identical(spec$variables$Y$type, "binary") && identical(spec$target_test$method, "wald")) {
+    problems <- c(problems, paste0(
+      "For a yes/no outcome powerkit plans the likelihood-ratio test: in simulations the Wald test found a difference ",
+      "too often when there was none (about 6.2% of studies at a 5% significance level when people differ a lot), ",
+      "while the likelihood-ratio test stayed near 5%. Set 'target_test > method' to \"likelihood_ratio\"."))
+  }
   problems
 }
 
