@@ -9,7 +9,10 @@
 #   2. published examples: placeholders below, for the maintainer
 #   3. direct-call agreement with InteractionPoweR::power_interaction()
 #   4. Type I error
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 binary_interaction_spec <- function(r_x_y, r_w_y, r_xw_y, r_x_w, seed, n = NULL, binary = "X", alpha = 0.05) {

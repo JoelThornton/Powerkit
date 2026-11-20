@@ -148,6 +148,37 @@ prediction_criteria <- function(out, outcome) {
     shrinkage = as.numeric(table[rows, "Shrinkage"]), stringsAsFactors = FALSE)
 }
 
+# How precisely the final n estimates the mean outcome (continuous) or
+# the outcome risk at the time point (survival), checked here because
+# pmsampsize 1.1.3 does not enforce it (docs/upstream-questions.md,
+# pmsampsize). Continuous, Riley et al.'s criterion 4: the upper limit of
+# the 95% interval for the mean, mean + t(0.975, n - p - 1) sqrt(SD^2 (1 -
+# R^2) / n), divided by the mean, at most the margin (1.1 by default).
+# pmsampsize computes it correctly at the largest of criteria 1 to 3, but
+# its search beyond uses t(0.025), which is negative, so it stops one
+# person later whatever the margin. Survival, criterion 3: pmsampsize
+# reports the interval's upper limit less the risk at the time point but
+# never requires it to be within 0.05. NULL for a binary outcome, whose
+# criterion pmsampsize enforces.
+prediction_precision <- function(out, args, outcome, n) {
+  if (identical(outcome, "continuous")) {
+    r2 <- args$rsquared
+    p <- args$parameters
+    ratio_at <- function(n) {
+      1 + stats::qt(0.975, n - p - 1) * sqrt(args$sd^2 * (1 - r2) / n) / abs(args$intercept)
+    }
+    needed <- max(n, p + 2)
+    while (ratio_at(needed) > args$mmoe) needed <- needed + 1
+    return(list(kind = "mean", achieved = ratio_at(n), target = args$mmoe, met = ratio_at(n) <= args$mmoe,
+      n_needed = needed))
+  }
+  if (identical(outcome, "survival")) {
+    margin <- as.numeric(out$int_uci) - as.numeric(out$int_cuminc)
+    return(list(kind = "risk", achieved = margin, target = 0.05, met = margin <= 0.05 + 1e-9, n_needed = NA_real_))
+  }
+  NULL
+}
+
 run_prediction_model <- function(spec, seed) {
   if (prediction_validation(spec)) return(run_prediction_validation(spec, seed))
   started <- Sys.time()
@@ -156,6 +187,10 @@ run_prediction_model <- function(spec, seed) {
   outcome <- prediction_outcome(spec)
   n <- as.numeric(out$sample_size)
   criteria <- prediction_criteria(out, outcome)
+  precision <- prediction_precision(out, args, outcome, n)
+  # The precision criterion (the last row) is met only if checked so.
+  criteria$met <- TRUE
+  if (!is.null(precision)) criteria$met[nrow(criteria)] <- precision$met
   prediction <- list(
     outcome = outcome,
     n = n,
@@ -171,6 +206,7 @@ run_prediction_model <- function(spec, seed) {
     events_per_parameter = as.numeric(out$EPP %||% NA_real_),
     metric = spec$population$metric,
     c_statistic = spec$population$c_statistic %||% NA_real_,
+    precision = precision,
     function_used = "pmsampsize::pmsampsize"
   )
   check <- data.frame(

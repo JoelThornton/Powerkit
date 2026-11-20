@@ -17,7 +17,10 @@
 #   2. published examples: placeholders below, for the maintainer
 #   3. Type I error, when X doesn't change the mediator and the mediator's
 #      effect on Y is large
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 ordm_validation_spec <- function(x_binary, y_binary, population, seed, n) {

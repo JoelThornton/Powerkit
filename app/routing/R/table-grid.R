@@ -24,6 +24,9 @@ table_grid_note <- function(f) {
 
 table_grid_label <- function(label) sub(":.*$", "", label)
 table_grid_layout <- function(f) {
+  # A field's own `text_layout` (its label is then just the name); else the
+  # part of an older "Name: layout" label after the colon.
+  if (!is.null(f$text_layout)) return(paste0("As text: ", f$text_layout, "."))
   layout <- sub("^[^:]*:\\s*", "", f$label %||% "")
   if (identical(layout, f$label)) return(NULL)
   paste0("As text: ", layout, ".")

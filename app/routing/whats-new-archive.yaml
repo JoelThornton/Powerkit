@@ -3,6 +3,75 @@
 # newest entry. Same format and rules as whats-new.yaml; the Updates tab
 # shows these with the rest.
 entries:
+  - date: "2026-10-19"
+    title: "Asked whether your hypothesis predicts a direction"
+    text: >-
+      For tests that can be one-sided, the input screen now starts by asking
+      whether your hypothesis predicts a direction, instead of filling in a
+      two-sided test for you.
+  - date: "2026-10-19"
+    title: "Planning for a claim that needs every test to be significant"
+    text: >-
+      If your claim needs all of several tests to be significant, powerkit
+      now asks how many and plans each test at a higher power, so that all
+      of them together reach the power you chose. Where it says no
+      correction is needed for separate claims, it now notes that not
+      everyone agrees.
+  - date: "2026-10-19"
+    title: "Check a plan someone shared with you"
+    text: >-
+      Supervisors, reviewers and colleagues can open a saved plan from the
+      start screen and see what it assumes, what it found and which
+      questions are worth asking, such as a missing reason for the effect
+      size or no allowance for drop-out. It doesn't change the file or give
+      a pass or fail.
+  - date: "2026-10-19"
+    title: "A plain-words version of the write-up for ethics applications"
+    text: >-
+      Under the write-up there is now a third box that explains, in words an
+      ethics panel can follow, why you plan this many participants: the
+      effect you planned for and why, and the chance of finding or missing
+      it. It describes the plan; it doesn't judge whether the study is
+      ethical.
+  - date: "2026-10-19"
+    title: "A reason is asked for if you change the significance level or test direction"
+    text: >-
+      The significance level (.05) and a two-sided test stay filled in. If you
+      change either, a box asks why. It's optional, and what you write goes
+      into the write-up.
+  - date: "2026-10-19"
+    title: "Two new analyses: goodness of fit, and comparing two correlations"
+    text: >-
+      You can now plan a chi-square goodness-of-fit test (one group's answers
+      across several categories, compared with expected proportions) and a
+      comparison of the same correlation in two separate groups. Neither has
+      been checked against G*Power yet; their cards say so.
+  - date: "2026-10-19"
+    title: "\"Guess first\": write down your guess before you see the answer"
+    text: >-
+      At the end of each input screen you can write down the sample size or
+      power you expect. The result screen then shows your guess next to the
+      answer. It's a learning aid only: the guess isn't saved in your plan
+      and nothing is collected.
+  - date: "2026-10-19"
+    title: "More analyses can find the smallest effect you could detect"
+    text: >-
+      If you can't justify an effect size, or your sample size is fixed, the
+      app can now find the smallest effect you could detect for two
+      proportions, the chi-square test and interactions in regression. For
+      interactions it uses a quick formula, which the result screen labels.
+  - date: "2026-10-19"
+    title: "The app asks whether your reasoning still applies"
+    text: >-
+      If you change the effect size after explaining why you chose it, the
+      result screen asks whether your reasoning still applies, rather than
+      quietly keeping a reason written for a different number.
+  - date: "2026-10-19"
+    title: "Fisher's exact test and one-way ANCOVA"
+    text: >-
+      Comparing two proportions now offers Fisher's exact test for small
+      samples, and one-way ANCOVA (group means adjusted for covariates)
+      calculates in the app.
   - date: "2026-10-18"
     title: "A methods paragraph you can copy"
     text: >-

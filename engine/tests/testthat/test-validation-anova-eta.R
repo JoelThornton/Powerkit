@@ -8,7 +8,10 @@
 #   3. direct-call agreement with a simulation: not applicable (formula only)
 #   4. Type I error: an effect of 0 is refused by the schema (eta-squared
 #      must be above 0)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 eta_validation_spec <- function(levels, effect, eta_squared, alpha, seed, n = NULL, target_power = NULL) {

@@ -107,8 +107,8 @@ plan_largest_n <- function(entries) {
 joint_power_ui <- function(entries) {
   div(class = "study-plan-joint-power result-card",
     h3(class = "h5", "The chance that every analysis is significant"),
-    p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated."),
-    numericInput("plan_rho", "Correlation between the outcomes (for example 0.3)", value = NA, min = -0.99, max = 0.99, step = 0.05),
+    p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated: enter their correlation, for example 0.3."),
+    numericInput("plan_rho", "Correlation between the outcomes", value = NA, min = -0.99, max = 0.99, step = 0.05),
     actionButton("plan_joint", "Calculate joint power", class = "btn btn-outline-primary"),
     uiOutput("plan_joint_result"))
 }
@@ -220,7 +220,7 @@ plan_status_ui <- function(plan) {
   }
   when <- format(plan$saved_at, "%Y-%m-%d %H:%M:%S UTC", tz = "UTC")
   span(class = "plan-status plan-status-saved",
-    if (identical(plan$saved_how, "link")) "Copied as a link " else "Saved to a file ", saved_time_ui(when), ".")
+    if (identical(plan$saved_how, "link")) "Copied as a link " else "Saved to a file ", saved_time_ui(when), ".", .noWS = "inside")
 }
 
 # The largest comparable requirement among a plan's analyses, or NULL.
@@ -287,7 +287,28 @@ plan_guided_ui <- function(record) {
 
 # The plan page's and the study-wide document's wording on sample sizes.
 plan_common_recruitment_caveat <- "The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those."
-plan_incomparable_note <- "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."
+# Why a plan's analyses have no single study-wide sample size, in the
+# case that applies (19 November 2026): a sample size missing, different
+# units, or the same unit counted in different designs. The first
+# sentence is the reason; the rest is behind an info button with
+# explanations off.
+plan_incomparable_text <- function(entries) {
+  samples <- lapply(entries, plan_entry_sample)
+  units <- unique(vapply(samples, function(x) as.character(x$unit %||% "")[1], ""))
+  keys <- lapply(samples, `[[`, "compatibility_key")
+  known_n <- vapply(entries, function(e) is.numeric(e$n) && length(e$n) == 1L && is.finite(e$n) && e$n > 0, logical(1))
+  rest <- "Their counts are kept separate. If one sample is to serve every analysis, it needs each analysis's own requirement, with an allocation and a measurement schedule that fit every design."
+  lead <- if (!all(known_n)) {
+    "Some of these analyses have no sample size to compare (their goal was power or the smallest detectable effect), so there is no single study-wide sample size here."
+  } else if (any(vapply(keys, function(k) !is.character(k) || !nzchar(k[1] %||% ""), logical(1)))) {
+    "The sample unit of at least one of these analyses isn't known, so there is no single study-wide sample size here."
+  } else if (length(units) > 1L || !nzchar(units[1])) {
+    sprintf("These analyses count different things (%s), so there is no single study-wide sample size here.", paste(units[nzchar(units)], collapse = ", "))
+  } else {
+    sprintf("These analyses all count %s, but in different designs (for example, separate groups in one and the same people measured more than once in another), so there is no single study-wide sample size here.", units)
+  }
+  paste(lead, rest)
+}
 
 # Runs still going for this plan (kept from an input screen, 16 November
 # 2026): each with a bar the server updates in place (kept_progress) and
@@ -318,7 +339,11 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
   tagList(
     actionLink("plans_back", "← All study plans", class = "btn btn-link plans-back"),
     if (plan_is_replication(plan)) p(class = "card-eyebrow", "Study plan \u00b7 Replication"),
-    h2(class = "plan-title", plan$name),
+    # Delete is a small red button beside the title (19 November 2026),
+    # not a link at the foot of the page.
+    div(class = "plan-header",
+      h2(class = "plan-title", plan$name),
+      plan_delete_button(plan, input = "plan_delete", class = "btn btn-sm btn-outline-danger plan-delete-btn", label = "Delete plan")),
     tags$details(class = "plan-rename",
       tags$summary(class = "small", "Rename"),
       textInput("plan_name", "Name of this plan", value = plan$name, width = "100%"),
@@ -360,22 +385,29 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
         whole(largest$n), esc(largest$label), esc(plan_common_recruitment_caveat))))),
     if (k > 0) tags$ol(class = "study-plan-list",
       lapply(entries, function(e) plan_item_ui(e, sets = !is.null(largest) && identical(e$key, largest$key)))),
-    if (k > 1 && is.null(largest)) p(class = "plan-note", plan_incomparable_note),
+    if (k > 1 && is.null(largest)) div(class = "plan-note", rep_note(plan_incomparable_text(entries), keep = TRUE)),
     if (joint_power_offered(entries)) joint_power_ui(entries)
-    else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
-      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")
-    else if (k >= 2) p(class = "study-plan-joint plan-note",
-      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and Powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
-    div(class = "nav-buttons",
-      if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
-      if (!plan_is_replication(plan)) actionButton("plan_more", "Help me choose an analysis", class = "btn btn-outline-primary"),
-      if (!plan_is_replication(plan)) actionButton("plan_more_known", "I know my analysis", class = "btn btn-outline-primary"),
-      if (saveable) share_link_ui("study_plan"),
-      if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
-      if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan."),
-    p(class = "small plan-delete",
-      plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
+    else if (joint_power_needs_student(entries)) div(class = "study-plan-joint plan-note", rep_note(keep = TRUE,
+      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."))
+    else if (k >= 2) div(class = "study-plan-joint plan-note", rep_note(keep = TRUE,
+      "The chance that all of these analyses are significant in the same study is lower than each one's power, and Powerkit doesn't calculate it for these designs yet. Each analysis has the power its card shows. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")),
+    # Two groups (19 November 2026), so the buttons that add to the plan
+    # and those that keep it are told apart, as the replication planner's
+    # routes are.
+    div(class = "plan-actions",
+      if (!plan_is_replication(plan)) div(class = "plan-action-group plan-action-add",
+        h3(class = "h6 plan-action-title", "Add an analysis"),
+        div(class = "nav-buttons",
+          actionButton("plan_more", "Help me choose an analysis", class = if (k) "btn btn-outline-primary" else "btn btn-primary"),
+          actionButton("plan_more_known", "I know my analysis", class = "btn btn-outline-primary"))),
+      if (saveable || k || plan_is_replication(plan)) div(class = "plan-action-group plan-action-keep",
+        h3(class = "h6 plan-action-title", "Keep or share this plan"),
+        div(class = "nav-buttons",
+          if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
+          if (saveable) share_link_ui("study_plan"),
+          if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
+          if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
+        if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top of the page, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan.")))
   )
 }
 
@@ -389,19 +421,24 @@ plan_settings_ui <- function(plan) {
     id <- paste0("plan_setting_", field)
     current <- s[[field]] %||% ""
     if (nzchar(current) && !current %in% choices) choices <- c(stats::setNames(current, current), choices)
-    div(class = "form-field",
-      tags$label(class = "form-label", `for` = id, label),
-      tags$select(id = id, class = "form-select",
+    help_id <- paste0(id, "_help")
+    # The help follows the explanations switch, as the replication
+    # planner's does (19 November 2026): under the box with explanations
+    # on, behind an info button beside the label with them off.
+    div(class = "form-field has-rep-field-more",
+      tags$label(class = "form-label control-label", `for` = id, label),
+      explanation_ui(paste0(id, "_info"), label, class = "rep-field-more", p(class = "small mb-1", help)),
+      tags$select(id = id, class = "form-select", `aria-describedby` = help_id,
         onchange = sprintf("Shiny.setInputValue('plan_settings_edit', {id: %s, field: %s, value: this.value}, {priority: 'event'})",
           js_string(plan$id), js_string(field)),
         lapply(seq_along(choices), function(k) tags$option(value = choices[[k]], selected = if (identical(unname(choices[[k]]), current)) NA, names(choices)[k]))),
-      p(class = "small text-muted mb-0", help))
+      p(class = "small text-muted mb-0 rep-field-help", id = help_id, help))
   }
-  div(class = "plan-settings form-group-box",
-    h3(class = "h6", "Settings for every analysis in this plan"),
-    p(class = "small", "Each analysis you add from this plan starts with these, so you enter them once. You can still change them on an analysis's card."),
+  tags$fieldset(class = "plan-settings form-group-box",
+    tags$legend(class = "h6", "Settings for every analysis in this plan"),
+    rep_note("Each analysis you add from this plan starts with these, so you enter them once. You can still change them on an analysis's card."),
     div(class = "row g-3",
-      div(class = "col-sm-6", choose("alpha", "Significance level (alpha)",
+      div(class = "col-sm-6", choose("alpha", "Significance level",
         c("Choose on each card" = "", "0.05, the usual level" = "0.05", "0.01" = "0.01", "0.005" = "0.005"),
         "If your conclusions rest on several tests, the level after any correction for them.")),
       div(class = "col-sm-6", choose("power", "Target power",

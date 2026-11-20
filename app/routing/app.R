@@ -267,6 +267,28 @@ app_css <- "
     .replication-workspace #rep_threshold.shiny-input-radiogroup .shiny-options-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .replication-workspace .rep-note { margin-bottom: 0.75rem; }
+  /* rep_note(): the text in full with explanations on and no button; with
+     them off, an info button, beside the box's heading when the note opens
+     the box, otherwise a small link naming it (19 November 2026). */
+  .explanation-help.rep-note { display: block; }
+  .explanation-help.rep-note > summary { display: none; }
+  .explanation-help.rep-note > .explanation-content { clear: left; }
+  .terms-mode .explanation-help.rep-note > summary { display: inline-flex; }
+  fieldset.form-group-box > legend.h6 + .explanation-help.rep-note { clear: none; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note { margin: 0; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note > summary { min-width: 32px; min-height: 32px; justify-content: center; font-size: 1rem; }
+  .terms-mode fieldset.form-group-box > legend.h6 + .explanation-help.rep-note > summary::after { content: none; }
+  .terms-mode .explanation-help.rep-note[open] > .explanation-content { margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  /* rep_field(): its help below the box with explanations on; with them
+     off, behind an info button beside the label. */
+  .rep-field-more { display: none; }
+  .terms-mode .rep-field-more { display: inline; margin: 0; }
+  .terms-mode .form-field.has-rep-field-more label.control-label { display: inline; min-height: 0; padding-right: 0; margin-right: 0.35rem; }
+  .terms-mode .form-field .rep-field-more > summary { display: inline-flex; position: static; min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; vertical-align: middle; }
+  .terms-mode .form-field .rep-field-more > summary::after { content: none; }
+  .terms-mode .rep-field-more[open] > .explanation-content { display: block; margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  .terms-mode .has-rep-field-more input, .terms-mode .has-rep-field-more select { margin-top: 0.4rem; }
+  .terms-mode .rep-field-help { display: none; }
   .replication-workspace .rep-more > summary { color: var(--pk-blue); cursor: pointer; }
   .replication-workspace .rep-note-context { display: none; }
   .terms-mode .replication-workspace .rep-note-lead { display: none; }
@@ -288,7 +310,48 @@ app_css <- "
   .plan-rename, .plan-description-fold { display: inline-block; margin: 0 1.25rem 0.5rem 0; vertical-align: top; }
   .plan-rename[open], .plan-description-fold[open] { display: block; }
   .plan-rename > summary, .plan-description-fold > summary { cursor: pointer; color: var(--pk-blue); min-height: 32px; }
-  .rep-card-status > h4.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
+  .rep-card-status > h5.h6, .rep-route > h5.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
+  /* Where the answer comes from, set apart from the questions (19
+     November 2026): a tinted panel with its own heading and two routes. */
+  .rep-routes { background: #eef4fa; border: 1px solid #c9d9ea; border-left: 4px solid var(--pk-blue); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin: 1.25rem 0 0.9rem; }
+  .rep-routes-title { font-size: 1.1rem; font-weight: 700; color: var(--pk-navy); margin: 0 0 0.4rem; }
+  .rep-routes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); gap: 0.75rem; margin-top: 0.5rem; }
+  .rep-route { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
+  .rep-route .nav-buttons { flex-wrap: wrap; }
+  .rep-route .btn { margin-bottom: 0.4rem; }
+  .rep-suggested { background: #f3f7fb; border-radius: 0.4rem; padding: 0.55rem 0.8rem; font-size: 0.95rem; margin: 0.25rem 0 0.8rem; }
+  /* A replication plan's summary card (19 November 2026). */
+  .rep-overview { background: #fff; border: 1px solid var(--pk-line); border-left: 4px solid var(--pk-navy); border-radius: var(--pk-radius); padding: 0.85rem 1.1rem; margin: 0 0 1.25rem; }
+  .rep-overview-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.5rem; }
+  .rep-overview-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; margin: 0; font-size: 0.95rem; }
+  .rep-overview-list dt { font-weight: 600; color: #4a5868; }
+  .rep-overview-list dd { margin: 0; }
+  @media (max-width: 575px) { .rep-overview-list { grid-template-columns: 1fr; } .rep-overview-list dd { margin-bottom: 0.4rem; } }
+  /* One info button in each box's corner with explanations off (19 November 2026). */
+  .box-has-info { position: relative; }
+  .box-info { display: none; }
+  .terms-mode .box-info { display: inline-flex; position: absolute; top: 0.55rem; right: 0.6rem; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
+  .terms-mode .box-info > span { border: 1px solid currentColor; border-radius: 50%; width: 1.2rem; height: 1.2rem; line-height: 1.1rem; text-align: center; font-weight: bold; }
+  .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
+  .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
+  .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
+  .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
+  .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
+  /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
+  .plan-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); align-items: start; gap: 0.75rem; margin: 1.25rem 0 0.75rem; }
+  .plan-note + .plan-note { margin-top: 0.75rem; }
+  .plan-action-group { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.85rem 1rem; }
+  .plan-action-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem; }
+  .plan-action-group .nav-buttons { margin-top: 0; gap: 0.5rem; }
+  .plan-action-group .rep-note { margin-top: 0.5rem; }
+  .plan-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .plan-header .plan-title { margin-bottom: 0.25rem; }
+  .plan-delete-btn { margin-top: 0.35rem; white-space: nowrap; }
+  .plan-note .rep-note-kept p, .plan-note .rep-note p { font-size: inherit; }
+  .plan-note .rep-note-kept > p:last-child, .plan-note .explanation-content > p:last-child { margin-bottom: 0; }
+  /* A tile's own explanation reads as text, not as part of its name. */
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(strong) { font-weight: 400; color: #2b3644; }
+  .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { font-weight: 650; color: var(--pk-navy); }
   .rep-answer:has(.result-panel, table, .alert) { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--pk-shadow); }
   @media (max-width: 600px) { .replication-workspace table.result-table { display: block; overflow-x: auto; white-space: nowrap; } }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
@@ -474,6 +537,8 @@ app_css <- "
   .terms-mode .name-tech { display: inline; }
   .terms-mode .known-choice .choice-help { display: none; }
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
+  /* Text that only explains, left out with explanations off, as field help is (19 November 2026). */
+  .terms-mode .plain-only { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
@@ -588,7 +653,7 @@ app_css <- "
   /* The start screen (11 November 2026): what powerkit is, the three ways
      in with room around them, then one quiet row for everything else. */
   h2.start-title { font-size: 2.1rem; margin: 1.5rem 0 0.6rem; }
-  .start-tester { font-size: 0.9rem; color: #5b6673; max-width: 47rem; margin: 1.25rem 0 0; }
+  .start-tester { font-size: 0.9rem; color: #4a5563; max-width: 47rem; margin: 1.5rem 0 0; padding: 0.85rem 1.1rem; background: #eef3f8; border-left: 4px solid var(--pk-blue); border-radius: 10px; }
   .start-lead { font-size: 1.1rem; line-height: 1.55; color: #44505e; max-width: 47rem; margin: 0 0 2.25rem; }
   h3.start-how { font-size: 1.25rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 1rem; }
   .route-choices { gap: 1.25rem; margin: 0; }
@@ -600,9 +665,11 @@ app_css <- "
     .route-tag { position: absolute; top: 1.6rem; right: 1.4rem; margin: 0; } }
   .route-tag { padding: 0.25rem 0.7rem; border-radius: 999px; background: #e8f1f8; color: var(--pk-blue); font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
   .start-recent { margin-top: 1rem; }
+  .pk-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid #c3ccd6; } .pk-footer a:hover, .pk-footer a:focus { color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
   .start-more { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5rem 2.25rem; margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--pk-line); }
   .start-more > * { min-height: 44px; }
-  .start-more-link { padding: 0; display: inline-flex; align-items: center; font-weight: 500; }
+  .start-more-link { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.95rem; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; background: #fff; }
+  .start-more-icon { flex: none; color: var(--pk-blue); }
   .bayes-mode-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.9rem; max-width: 30rem; }
   .bayes-mode-toggle .form-switch { margin: 0; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; padding-left: 0; }
   .bayes-mode-toggle .form-switch .form-check-input { margin: 0; float: none; flex: none; }
@@ -610,7 +677,7 @@ app_css <- "
   .bayes-mode-what > summary::-webkit-details-marker { display: none; }
   .bayes-mode-what[open] { flex-basis: 100%; }
   .bayes-mode-what > p { max-width: 36rem; color: #4a5563; padding-bottom: 0.5rem; }
-  .local-download { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.95rem; color: #4a5563; }
+  .local-download { margin-left: auto; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: #4a5563; }
   @media (max-width: 767px) { .local-download { margin-left: 0; } .route-choices .route-tag { justify-self: start; } h2.start-title { font-size: 1.6rem; margin-top: 0.5rem; } .start-lead { font-size: 1rem; margin-bottom: 1.5rem; } }
   .saved-projects { margin-top: 1.25rem; background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem 0.5rem; }
   .saved-projects[hidden] { display: none; }
@@ -824,9 +891,12 @@ app_css <- "
                         padding-bottom: 0.45rem; border-bottom: 1px solid var(--pk-line); }
   .form-section:first-of-type .form-section-title { margin-top: 1rem; }
   .form-group-box { padding: 1rem 1.25rem 0.5rem 1.25rem; margin-bottom: 0.9rem; }
-  .form-group-box > legend, .form-group-box legend.h6 { float: left; width: 100%; padding: 0; margin: 0 0 0.6rem 0;
+  /* A box's heading takes only its own width, so its info button sits
+     beside it (19 November 2026: at full width the button dropped to a
+     line of its own); what follows the button clears the heading. */
+  .form-group-box > legend, .form-group-box legend.h6 { float: left; width: auto; max-width: calc(100% - 2.5rem); padding: 0; margin: 0 0.35rem 0.6rem 0;
                                                      font-size: 1rem; font-weight: 650; color: var(--pk-navy); line-height: 1.35; }
-  .form-group-box > legend + * { clear: both; }
+  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: both; }
   .form-section-effect > .form-group-box { border-width: 2px; }
   .form-section-effect > .form-group-box > legend { color: var(--pk-blue); }
   .form-field label, .form-field .control-label { font-weight: 550; color: #1d2733; margin-bottom: 0.3rem; }
@@ -874,6 +944,9 @@ app_css <- "
   .action-bar .form-needed { margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
   .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
   .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
+  /* A field reached with Tab, or scrolled to by a step or a 'needed' link, stops above the
+     sticky action bar instead of under it (WCAG 2.4.11, focus not obscured). */
+  @media (min-width: 576px) { html:has(.action-bar) { scroll-padding-bottom: 6.5rem; } }
   /* On phones actions follow the fields so a sticky bar cannot obscure touch targets. */
   @media (max-width: 575px) {
     .action-bar { position: static; flex-wrap: wrap; gap: 0.4rem 0.5rem; padding: 0.5rem 0.75rem; }
@@ -919,7 +992,6 @@ app_css <- "
   details.mismatch[open] > summary::before, .capabilities-fold[open] > summary::before { transform: rotate(45deg); }
   @media (prefers-reduced-motion: reduce) { .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before { transition: none; } }
   /* Text links that are buttons start at the column's edge, like the text around them. */
-  .start-more .start-more-link { border: 0; }
   .known-open-all { padding-left: 0; padding-right: 0; }
   /* The I don't know my effect size link starts at the column's edge when it is
      on a line of its own, and keeps a space when it follows the text. */
@@ -1023,6 +1095,23 @@ copy_js <- "
   });
 "
 focus_js <- "
+  // A field reached with Tab that ends up under the sticky action bar is
+  // scrolled clear of it (WCAG 2.4.11): browsers don't always honour the
+  // scroll padding for focus, and a choice tile is taller than its input.
+  document.addEventListener('focusin', function(e) {
+    var t = e.target;
+    if (!t || !t.getBoundingClientRect || t === document.body) return;
+    var bars = document.querySelectorAll('.action-bar');
+    for (var i = 0; i < bars.length; i++) {
+      var bar = bars[i];
+      if (!bar.offsetParent || bar.contains(t) || getComputedStyle(bar).position !== 'sticky') continue;
+      var box = (t.closest && t.closest('.radio, .checkbox, .form-check, .form-group, .shiny-input-container')) || t;
+      var r = box.getBoundingClientRect(), b = bar.getBoundingClientRect();
+      if (r.height > window.innerHeight / 2) r = t.getBoundingClientRect();
+      if (r.bottom > b.top - 8 && r.top < b.bottom) window.scrollBy(0, r.bottom - b.top + 16);
+      return;
+    }
+  });
   $(document).on('shiny:value', function(e) {
     if (e.name !== 'screen') return;
     var screen = document.getElementById('screen');
@@ -1149,7 +1238,7 @@ ui <- function(req) fluidPage(
       tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
-    tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
+    tags$footer(class = "small text-muted mt-5 pk-footer", "Powerkit helps plan research studies. ",
       # What it can't do is on About (the layout review of 16 November
       # 2026); the longer guide is on the public site.
       tags$a(href = "#", onclick = "var t=document.querySelector('#tabs a[data-value=\"About\"]'); if(t) t.click(); setTimeout(function(){var e=document.getElementById('about-limits'); if(e) e.scrollIntoView();}, 400); return false;",
@@ -3151,6 +3240,10 @@ server <- function(input, output, session) {
     }
     updated <- plan_set_replication(plan, fields = values)
     if (!identical(updated$changed, plan$changed)) plans_put(updated)
+  })
+  output$rep_overview <- renderUI({
+    plan <- viewed_plan()
+    if (plan_is_replication(plan)) replication_overview_ui(replication_values(plan$replication), rep_server$answer())
   })
   output$rep_card_status <- renderUI({
     plan <- viewed_plan()

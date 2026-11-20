@@ -4684,3 +4684,54 @@ it used.
   every count. The engine's G*Power comparison for E25 uses a fixed value
   of 0.5, where the two rules agree; which rule G*Power uses for other
   fixed values is not checked yet.
+
+## 2026-11-19 · Concise labels, the same with explanations on or off
+
+Many labels carried their own explanation, as a clause after a colon or
+in brackets ("Whether the effect is there or not: either answer would
+tell me something"; "Optional: unequal groups in the replication, as
+group 2's size over group 1's, such as 2 for twice as many in group 2").
+Swapping in short names with explanations off was considered and
+rejected, because it would undo the 17 November 2026 decision that a
+screen's labels read the same in both modes, which was taken after
+mode-swapped names gave two boxes the same heading. Instead:
+
+- A label is the question or quantity itself, in full words, kept short
+  (the replication planner's test caps labels and choices at 75
+  characters). No symbol stands in for a word: "Significance level", not
+  a Greek letter.
+- What a long label explained moves to the field's help, shown with
+  explanations on and behind the field's info button with them off. A
+  text box's examples go in the box as placeholder text.
+- Text that only explains is hidden with explanations off, as field help
+  already is.
+
+The replication planner follows this from 19 November 2026; queue item
+29 applies it to the rest of powerkit.
+
+## 2026-11-20 · Package faults from the calculation audit, and both tails for two-sided z tests
+
+- **E36, equivalence of a correlation or two proportions:** planned with
+  pwrss for the tests TOSTER runs, not with TOSTER's planning functions,
+  which give wrong answers (docs/conventions.md, Departure 33). Two
+  proportions need 10 people a group, `twoprop_test()`'s own minimum.
+- **E69 and E43, two-sided z tests whose package formula counts one tail**
+  (statpsych's for Cronbach's alpha, powerSurvEpi's for a measured score in
+  a Cox regression): powerkit counts both tails, the two-sided test's
+  power (Departures 34 and 35). Sample sizes are unchanged in practice.
+- **E77:** pmsampsize's answer is reported, with a check of the precision
+  criteria it does not enforce.
+- **E75, one yes/no per condition:** kept refused until a larger null
+  check (`next.md`).
+
+## 2026-11-20 · Which validation expectations agents may change
+
+The validation files mix values transcribed from published sources or
+G*Power, which the maintainer owns, with analytic, simulation and Type I
+error checks written with the code. The rule in CLAUDE.md now protects
+the first kind outright; the second may change only as part of a method
+change the maintainer has approved, stated in the pull request. Two
+checks written with the code were wrong under the old rule and are
+corrected: E69's null-value test expected the one-tail 0.025 (simulated
+scales reject 5.2%), and the minimum-effect simulation still simulated
+the test planned before 12 November 2026.

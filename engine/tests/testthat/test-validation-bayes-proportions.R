@@ -11,7 +11,10 @@
 #      powerkit's exact chance
 #   3. the no-effect side, simulated the same way with both groups at
 #      group 1's proportion
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 prop_validation_spec <- function(n, p1, p2, alternative = "two_sided", p_sd = NULL, threshold = 10, a = 1, ratio = 1) {

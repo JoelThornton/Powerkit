@@ -12,7 +12,10 @@
 #      0.04 besides the simulation's own error
 #   2. published example: the method paper irtpwr's DESCRIPTION names;
 #      placeholder for the maintainer
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 dif_validation_spec <- function(a, b, item, shift, n, change = 0, free = "both") {

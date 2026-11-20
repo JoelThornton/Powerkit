@@ -11,7 +11,10 @@
 #      of freedom), without POMADE
 #   2. published examples: a placeholder, for the maintainer
 #   3. Type I error
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 dependent_reps <- 1000L

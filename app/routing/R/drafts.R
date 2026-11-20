@@ -65,8 +65,10 @@ saved_time_ui <- function(saved_at) {
   when <- as.POSIXct(sub(" UTC$", "", saved_at), tz = "UTC", format = "%Y-%m-%d %H:%M:%S")
   if (is.na(when)) return(saved_at)
   tagList(tags$time(class = "pk-local-time", datetime = format(when, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
-      paste("on", format(when, "%d %B %Y at %H:%M UTC", tz = "UTC"))),
-    tags$script(HTML("(function() {
+      paste("on", format(when, "%d %B %Y at %H:%M UTC", tz = "UTC")), .noWS = "after"),
+    # No space between the time and what follows it, such as a full stop
+    # (19 November 2026).
+    tags$script(.noWS = c("before", "after"), HTML("(function() {
   document.querySelectorAll('time.pk-local-time:not([data-done])').forEach(function(el) {
     var t = new Date(el.getAttribute('datetime')); if (isNaN(t)) return;
     var day = function(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };

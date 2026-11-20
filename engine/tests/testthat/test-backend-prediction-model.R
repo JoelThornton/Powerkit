@@ -44,6 +44,40 @@ test_that("the answer is pmsampsize()'s, with every criterion and the one that s
   }
 })
 
+test_that("the precision of the mean or the risk is checked, as pmsampsize does not enforce it", {
+  skip_if_not_installed("pmsampsize")
+  # Continuous: 8 parameters, R-squared 0.25, mean 1, SD 5. pmsampsize asks
+  # for 243 (its criterion 4 search stops a person after criterion 3's 242);
+  # at 243 the interval's upper limit is about 1.55 times the mean, and the
+  # margin 1.1 needs 7,206.
+  spec <- prediction_spec("continuous", r2 = 0.25, parameters = 8L, mean = 1, sd = 5)
+  result <- run_quietly(spec)
+  pr <- result$prediction
+  expect_identical(pr$n, 243)
+  ratio <- function(n) 1 + stats::qt(0.975, n - 9) * sqrt(25 * 0.75 / n)
+  expect_equal(pr$precision$achieved, ratio(243))
+  expect_false(pr$precision$met)
+  expect_identical(pr$precision$n_needed, 7206)
+  expect_lte(ratio(7206), 1.1)
+  expect_gt(ratio(7205), 1.1)
+  expect_identical(pr$criteria$met, c(TRUE, TRUE, TRUE, FALSE))
+  # The card's own example meets it.
+  pr <- run_quietly(prediction_spec("continuous"))$prediction
+  expect_true(pr$precision$met)
+  expect_true(all(pr$criteria$met))
+  # Survival: pmsampsize reports the margin at its n; it is checked against
+  # 0.05 here.
+  pr <- run_quietly(prediction_spec("time_to_event"))$prediction
+  direct <- do.call(pmsampsize::pmsampsize, prediction_args(validate_quietly(prediction_spec("time_to_event"))))
+  expect_equal(pr$precision$achieved, direct$int_uci - direct$int_cuminc)
+  expect_identical(pr$precision$met, pr$precision$achieved <= 0.05)
+  pr <- run_quietly(prediction_spec("time_to_event", rate = 0.4, cox_snell_r2 = 0.3, parameters = 5L))$prediction
+  expect_false(pr$precision$met)
+  expect_false(pr$criteria$met[3])
+  # A binary outcome's criterion is enforced by pmsampsize.
+  expect_null(run_quietly(prediction_spec())$prediction$precision)
+})
+
 test_that("the C-statistic's conversion always uses pmsampsize's default seed", {
   skip_if_not_installed("pmsampsize")
   spec <- prediction_spec()

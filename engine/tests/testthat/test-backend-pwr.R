@@ -493,3 +493,74 @@ test_that("two proportions with unequal groups find the smallest detectable prop
     spec <- read_spec(system.file("specs", "two_proportions.json", package = "powerkit"))
   }
 })
+
+test_that("the exported script runs for a one-sided correlation test at r = 0 (audit, 19 November 2026)", {
+  # pwrss stops ("object 'pwr' not found") at a correlation of exactly 0
+  # one-sided; the app passes the smallest positive number, and so must the
+  # script.
+  skip_unless_scripts_can_run()
+  spec <- example_spec("correlation")
+  spec$population$r <- 0
+  spec$goal <- list(type = "power", n = 80L)
+  for (alternative in c("greater", "less", "two_sided")) {
+    spec$target_test$alternative <- alternative
+    result <- run_quietly(spec)
+    expect_equal(result$curve$power, 0.05, tolerance = 1e-6)
+    run <- run_exported_script(spec, result)
+    expect_equal(run$reproduced, run$powerkit, tolerance = 1e-8, info = alternative)
+  }
+})
+
+test_that("unequal groups are scored as allocated, not with group 1 rounded up inside pwrss", {
+  # Audit, 19 November 2026. pwrss multiplies n.ratio back by n2 and rounds
+  # up, and 7 / 25 * 25 and 27 / 21 * 21 are each a hair above the whole
+  # number, so 7 + 25 was scored as 8 + 25 and 27 + 21 as 28 + 21.
+  pooled_z <- function(n1, n2, p1, p2, alpha = 0.05) {
+    pbar <- (n1 * p1 + n2 * p2) / (n1 + n2)
+    se0 <- sqrt(pbar * (1 - pbar) * (1 / n1 + 1 / n2))
+    se1 <- sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+    z <- stats::qnorm(1 - alpha / 2)
+    d <- abs(p2 - p1)
+    stats::pnorm((d - z * se0) / se1) + stats::pnorm((-d - z * se0) / se1)
+  }
+  props <- example_spec("two_proportions")
+  props$population$p1 <- 0.3
+  props$population$p2 <- 0.65
+  props$options$allocation_ratio <- 3.6
+  props$goal <- list(type = "power", n = 32L)
+  expect_equal(run_spec(props)$curve$power, pooled_z(7, 25, 0.3, 0.65), tolerance = 1e-6)
+  expect_equal(run_spec(props)$curve$power, 0.372170, tolerance = 1e-5)
+
+  fisher_z <- function(n1, n2, r1, r2) {
+    lambda <- abs(atanh(r1) - atanh(r2)) / sqrt(1 / (n1 - 3) + 1 / (n2 - 3))
+    z <- stats::qnorm(0.975)
+    stats::pnorm(lambda - z) + stats::pnorm(-lambda - z)
+  }
+  cors <- example_spec("two_correlations")
+  cors$population$r1 <- 0.1
+  cors$population$r2 <- 0.75
+  cors$options$allocation_ratio <- 0.75
+  expect_identical(as.integer(run_spec(cors)$n_required[[1]]), 49L)
+  cors$goal <- list(type = "power", n = 48L)
+  expect_equal(run_spec(cors)$curve$power, fisher_z(27, 21, 0.1, 0.75), tolerance = 1e-6)
+  expect_equal(run_spec(cors)$curve$power, 0.799167, tolerance = 1e-5)
+  skip_unless_scripts_can_run()
+  equal_props <- props
+  equal_props$population$p2 <- 0.3
+  for (spec in list(props, cors, equal_props)) {
+    run <- run_exported_script(spec, run_quietly(spec))
+    expect_equal(run$reproduced, run$powerkit, tolerance = 1e-8)
+  }
+})
+
+test_that("equal proportions with unequal groups give power equal to alpha", {
+  # pwrss refuses a difference equal to its margin (audit, 19 November 2026).
+  props <- example_spec("two_proportions")
+  props$population$p1 <- 0.3
+  props$population$p2 <- 0.3
+  props$options$allocation_ratio <- 2
+  props$goal <- list(type = "power", n = 90L)
+  expect_lt(abs(run_spec(props)$curve$power - 0.05), 1e-5)
+  props$target_test$alternative <- "greater"
+  expect_lt(abs(run_spec(props)$curve$power - 0.05), 1e-5)
+})

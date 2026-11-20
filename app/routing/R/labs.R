@@ -322,7 +322,7 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
 
 labs_box <- function(f, rows = 3) {
   box <- div(class = "form-field", textAreaInput(f$id, f$ask %||% f$label, rows = rows, width = "100%"),
-    if (!is.null(f$ask)) p(class = "small text-muted", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
+    if (!is.null(f$ask)) p(class = "small text-muted plain-only", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
   if (is.null(f$fold)) box else tags$details(class = "labs-more-question", tags$summary(class = "small", f$fold), box)
 }
 labs_boxes <- function(step) lapply(Filter(function(f) identical(f$step, step), labs_fields), labs_box)
@@ -373,7 +373,7 @@ replication_notes_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   tagList(
-    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
+    p(class = "plain-only", "Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       rep_note("Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),
@@ -393,7 +393,8 @@ replication_notes_ui <- function(tree) {
         conditionalPanel("input.labs_test == 'E6'",
           textInput("labs_rows", "Number of categories in the first variable", width = "100%"),
           textInput("labs_cols", "Number of categories in the second variable", width = "100%")),
-        textInput("labs_power", "Power: the chance of detecting the effect (0.8 is a common choice, not a rule; try 0.5 and 0.9 too)", value = "0.8", width = "100%"),
+        textInput("labs_power", "Power (the chance of detecting the effect)", value = "0.8", width = "100%"),
+        p(class = "group-note", "0.8 is a common choice, not a rule; try 0.5 and 0.9 too."),
         textInput("labs_alpha", "The significance level the original study used (often 0.05)", value = "0.05", width = "100%"),
         actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
@@ -704,7 +705,7 @@ picture_ui <- function() {
     conditionalPanel("input.picture_design == 'paired'",
       p("A paired-samples t-test: each person measured twice (or one score per person against a fixed value). The grey curve is the t statistic if there were no effect; the blue curve is the t statistic for the effect you set. Because each person is compared with themselves, the same d needs far fewer people than with two groups."),
       sliderInput("picture_n_paired", "Number of participants", min = 5, max = 200, value = 34, step = 1, width = "100%"),
-      sliderInput("picture_dz", "Cohen's d_z in the population (the mean difference over the SD of the differences)", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%")),
+      sliderInput("picture_dz", "Cohen's d_z in the population", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%")),
     conditionalPanel("input.picture_design == 'anova'",
       p("A one-way ANOVA with equal groups. The grey curve is the F statistic if the groups' means were all the same; the blue curve is the F statistic for the effect you set. Only large F values are significant, so there is one dashed line."),
       sliderInput("picture_k", "Number of groups", min = 2, max = 6, value = 3, step = 1, width = "100%"),
@@ -961,7 +962,7 @@ published_ui <- function() {
       conditionalPanel("input.pub_design == 'independent_t' && (input.pub_from == 't' || input.pub_from == 'F')",
         p(class = "small text-muted", "For Welch's test, use a reported pooled Cohen's d or calculate it from the group means, SDs and sample sizes. Welch's t and degrees of freedom alone do not identify pooled Cohen's d. For a pooled-variance test, enter both group sizes if the groups were unequal.")),
       conditionalPanel("input.pub_from == 'F' && input.pub_design == 'oneway_between'",
-        textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
+        textInput("pub_df1", "Its first degrees of freedom (df1)", width = "100%")),
       conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",
         textInput("pub_df", "Its error degrees of freedom (the second df of F, or the df of t)", width = "100%"))),
     # The safeguard value is for the t-tests and the correlation, so an
@@ -1009,9 +1010,10 @@ bayes_ui <- function() {
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
       numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Your evidence threshold"),
-      radioButtons("bayes_threshold", "Evidence threshold: the Bayes factor the study should reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
-      p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
-      numericInput("bayes_target", "Find the sample size that gives evidence at the threshold for an effect with this chance (0.8 is a common starting point, not a rule: choose the chance your study needs)", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
+      radioButtons("bayes_threshold", "Evidence threshold (the Bayes factor to reach)", choices = bayes_thresholds, selected = "10", inline = TRUE),
+      p(class = "group-note", "The threshold is a BF10 for an effect and a BF01 for no effect. There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
+      numericInput("bayes_target", "Chance of reaching the threshold", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%"),
+      p(class = "group-note", "The sample size found gives evidence at the threshold for an effect with this chance. 0.8 is a common starting point, not a rule: choose the chance your study needs.")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
       radioButtons("bayes_design", NULL, choices = bayes_designs, selected = "fixed", width = "100%"),
       conditionalPanel("input.bayes_design == 'sequential'",

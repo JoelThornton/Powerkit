@@ -10,7 +10,10 @@
 #      option)
 #   4. Type I error: power falls to alpha as the RMSEA shrinks towards 0
 #      (unit tests; semPower refuses an RMSEA of 0)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 sem_fit_validation_spec <- function(rmsea, df, alpha, seed, n = NULL, target_power = NULL) {

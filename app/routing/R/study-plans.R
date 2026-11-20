@@ -92,7 +92,7 @@ plan_remove_entry <- function(plan, key, now = Sys.time()) {
 plan_edit <- function(plan, name = NULL, description = NULL, now = Sys.time()) {
   if (!is.null(name)) {
     clean <- plan_clean_text(name, plan_name_max)
-    if (nzchar(clean)) plan$name <- clean
+    if (nzchar(clean)) { plan$name <- clean; plan$name_auto <- NULL }
   }
   if (!is.null(description)) plan$description <- plan_clean_text(description, plan_description_max)
   plan_touch(plan, now)

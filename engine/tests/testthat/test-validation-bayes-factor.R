@@ -15,7 +15,10 @@
 #      so with few degrees of freedom it gives a little less power than
 #      the Bayes factor simulated directly (docs/conventions.md, "Known
 #      differences", 6)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 bayes_validation_spec <- function(template, effect, seed, n = NULL, target_power = NULL, effect_sd = 0,

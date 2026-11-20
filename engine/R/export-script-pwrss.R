@@ -372,7 +372,8 @@ pwrss_script_call_lines <- function(spec, inputs) {
       ),
       head = "power.z.twocors( # Fisher's z test of two independent correlations",
       args = c(
-        "rho1 = r1", "rho2 = r2", "n.ratio = n_group1 / n_group2 # pwrss's n.ratio is n1 / n2",
+        "rho1 = r1", "rho2 = r2",
+        "n.ratio = (n_group1 - 1e-9) / n_group2 # pwrss's n.ratio is n1 / n2; it rounds n2 * n.ratio up, so a hair below",
         "n2 = n_group2", "alpha = alpha", "alternative = alternative", "ceil.n = FALSE", "verbose = 0"
       )
     ),

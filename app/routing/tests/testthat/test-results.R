@@ -212,7 +212,7 @@ test_that("technical details show the package's df, critical value and noncentra
   calc <- run_calculation(light_spec("E7"), run, seed = 3L)
   d <- calc$result$details
   html <- as.character(technical_details_ui(calc$result))
-  expect_match(html, "Technical details (for checking against G*Power or R)", fixed = TRUE)
+  expect_match(html, "Technical details", fixed = TRUE)
   expect_match(html, sprintf("Degrees of freedom: %s and %s.", d$df[1], d$df[2]), fixed = TRUE)
   expect_match(html, "Noncentrality parameter:", fixed = TRUE)
   expect_match(html, paste("Reported by", d$source), fixed = TRUE)
@@ -923,12 +923,12 @@ test_that("Welch's F's smallest detectable effect is worked out by formula, or s
   expect_match(paste(w, collapse = " "), "95% simulation interval", fixed = TRUE)
 })
 
-test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER's z tests, in its own words", {
+test_that("equivalence for a correlation or two proportions (E36) runs TOSTER's z tests, planned by pwrss, in its own words", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E36"))
   expected <- list(
-    tost_correlation = c("TOSTER::power_z_cor", "show that the true correlation lies inside", "r = \u00b10.2", "of a correlation"),
-    tost_two_proportions = c("TOSTER::power_twoprop", "show that the true difference lies inside", "p2 \u2212 p1 = \u00b10.1", "of two independent proportions")
+    tost_correlation = c("pwrss::power.z.test", "show that the true correlation lies inside", "r = \u00b10.2", "of a correlation"),
+    tost_two_proportions = c("pwrss::power.z.twoprops", "show that the true difference lies inside", "p2 \u2212 p1 = \u00b10.1", "of two independent proportions")
   )
   for (name in names(expected)) {
     values <- tost_z_examples[[name]]
@@ -942,7 +942,14 @@ test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER
     expect_match(words[["headline"]], expected[[name]][3], fixed = TRUE, info = name)
     w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
     expect_match(w[["short"]], expected[[name]][4], fixed = TRUE, info = name)
+    # Departure 33 is shown, and stated in the methods text.
+    departures <- departures_for(forms, "E36", calc$spec)
+    expect_identical(names(departures), "33", info = name)
+    w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values, departures)
+    expect_match(w[["full"]], "power_z_cor() ignores the expected correlation", fixed = TRUE, info = name)
   }
+  spec <- build_spec(forms, "E36", fields, form_examples$E36)
+  expect_false("33" %in% names(departures_for(forms, "E36", spec)))
   # Two equal groups.
   spec <- build_spec(forms, "E36", fields, tost_z_examples$tost_two_proportions)
   result <- run_calculation(spec, run, seed = 1L)$result
@@ -2419,7 +2426,7 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   # A wrong number of correlations is reported against the field shown.
   bad <- build_spec(forms, "E54", fields, modifyList(values, list(rs = "0.8, 0.5")))
   check <- check_spec(bad, Filter(function(f) field_applies(f, values), fields))
-  expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
+  expect_match(check$problems, "Correlations between conditions", fixed = TRUE, all = FALSE)
 })
 
 test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
@@ -3305,6 +3312,14 @@ test_that("the ICC is planned by the F test's exact power by default and says so
   alpha <- build_spec(forms, "E69", fields, modifyList(form_examples$E69, list(question = "cronbach_alpha", icc = NULL, icc_null = NULL, icc_raters = NULL,
     reliability = "0.85", reliability_null = "0.7", items = "10")))
   expect_false("29" %in% names(departures_for(forms, "E69", alpha)))
+  # Departure 34 (both tails for alpha) is for a two-sided test of alpha.
+  expect_false("34" %in% names(departures_for(forms, "E69", spec)))
+  alpha_two <- build_spec(forms, "E69", fields, modifyList(form_examples$E69, list(question = "cronbach_alpha", rel_alternative = "two_sided",
+    icc = NULL, icc_null = NULL, icc_raters = NULL, reliability = "0.85", reliability_null = "0.7", items = "10")))
+  expect_true("34" %in% names(departures_for(forms, "E69", alpha_two)))
+  alpha_one <- build_spec(forms, "E69", fields, modifyList(form_examples$E69, list(question = "cronbach_alpha", rel_alternative = "greater",
+    icc = NULL, icc_null = NULL, icc_raters = NULL, reliability = "0.85", reliability_null = "0.7", items = "10")))
+  expect_false("34" %in% names(departures_for(forms, "E69", alpha_one)))
   skip_without_run()
   exact <- run_calculation(spec, run, seed = forms$default_seed)
   approx <- run_calculation(walter, run, seed = forms$default_seed)
@@ -3657,6 +3672,19 @@ test_that("developing a prediction model (E77) shows each criterion's sample siz
   expect_identical(out$calc$status, "ok")
   expect_identical(out$calc$spec$population$metric, "r2")
   expect_identical(nrow(out$calc$result$prediction$criteria), 4L)
+  expect_false(grepl("Not met at this size", as.character(result_panel_ui(tree, forms, "E77", out$fields, out$values, out$calc)), fixed = TRUE))
+  # pmsampsize does not enforce the mean's precision: with a mean of 1 and
+  # an SD of 5 its answer (243) leaves the interval's upper limit at 1.55
+  # times the mean; the result and the methods text say so.
+  v <- modifyList(v, list(r2 = "0.25", mean = "1", sd = "5", parameters = "8"))
+  out <- calc_of(v)
+  expect_identical(out$calc$result$prediction$n, 243)
+  words <- result_sentences(out$calc$spec, out$calc$result)
+  expect_match(words[["reading"]], "is 1.55 times the mean, against a target of 1.1. About 7,206 participants would meet it", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E77", out$fields, out$values, out$calc))
+  expect_match(html, "Not met at this size", fixed = TRUE)
+  w <- planning_writeup(forms, "E77", out$calc$spec, out$calc$result, out$fields, out$values)
+  expect_match(w[["short"]], "About 7,206 participants would meet it", fixed = TRUE)
 })
 
 test_that("validating an existing prediction model (E77) shows pmvalsampsize's criteria, without power", {
@@ -3704,4 +3732,19 @@ test_that("a factorial ANOVA's target effect is named with the factors' own name
   expect_identical(anova_effect_words(spec), "the main effect of Role")
   expect_identical(anova_effect_words(list(target_test = list(effect = "interaction"), variables = list())),
     "the interaction of the first factor and the second factor")
+})
+
+test_that("the short methods paragraph leaves out the Welch caveats and R's build date; the full version keeps them", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(goal = "sample_size"))
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  texts <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_no_match(texts[["short"]], "equal population SDs", fixed = TRUE)
+  expect_no_match(texts[["short"]], "observed SDs are equal", fixed = TRUE)
+  expect_no_match(texts[["short"]], "R version [0-9.]+ \\(")
+  expect_match(texts[["full"]], "equal population SDs", fixed = TRUE)
+  expect_match(texts[["full"]], "observed SDs are equal", fixed = TRUE)
+  expect_match(texts[["full"]], "R version [0-9.]+ \\(")
 })

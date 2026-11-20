@@ -10,7 +10,11 @@
 #' trial, people randomised within each group (`d2.1_m2fr`, the groups'
 #' effects varying at random, as powertools' `multisite.cont()` assumes;
 #' the same group size and ICCs). Each analysis
-#' keeps its own effect size; the sample size is the one the study will
+#' keeps its own effect size and its sign: outcomes whose effects point in
+#' opposite directions are significant together less often when they are
+#' positively correlated (PUMP takes positive effects only, so each outcome's
+#' test is turned to face its effect and its correlations' signs follow);
+#' the sample size is the one the study will
 #' recruit, and each analysis is tested at its own significance level with
 #' no further adjustment, as on its card. PUMP's complete power counts
 #' replications in which every unadjusted test is significant, whichever
@@ -74,17 +78,19 @@ joint_power <- function(specs, rho, n, seed = 1L, tnum = 10000L) {
     abort_run("The sample size should be a whole number of at least 4.")
   }
   m <- length(specs)
+  signed <- joint_power_signs(vapply(specs, function(s) s$population$d, numeric(1)),
+    first$target_test$alternative %||% "two_sided", rho)
   args <- list(
     # PUMP reports complete power only alongside a multiple-testing
     # procedure; it is computed from the unadjusted p-values (PUMP's
     # get_power_results()), so Bonferroni here changes nothing in it.
     MTP = "BF",
-    MDES = vapply(specs, function(s) abs(s$population$d), numeric(1)),
+    MDES = signed$mdes,
     M = m,
     alpha = first$target_test$alpha,
-    two.tailed = identical(first$target_test$alternative %||% "two_sided", "two_sided"),
+    two.tailed = signed$two_tailed,
     numCovar.1 = 0, R2.1 = 0,
-    rho = rho, tnum = tnum
+    rho = rho, rho.matrix = signed$rho_matrix, tnum = tnum
   )
   if (identical(first$template, "independent_t")) {
     ratio <- allocation_ratio(first)
@@ -124,6 +130,35 @@ joint_power <- function(specs, rho, n, seed = 1L, tnum = 10000L) {
       packages = as.list(package_versions(c("powerkit", "PUMP")))
     )
   )
+}
+
+# PUMP takes positive effects only: it drops an outcome whose effect is 0 or
+# negative, and then reports no complete power. Each outcome's test is
+# turned to face its effect instead. A two-sided test of an effect of -d
+# rejects exactly when the test of the outcome with its sign reversed
+# rejects for +d, and reversing an outcome's sign reverses its correlations
+# with the others, so PUMP is given |d| and a correlation matrix with those
+# signs. A one-sided test is turned to face the tested direction (every
+# effect's sign reversed for "less"); an effect against it can't be turned,
+# because its rejection region lies in the other tail, so that is refused.
+# An effect of exactly 0 is passed as 1e-8, which PUMP keeps and whose power
+# is the significance level to many decimals.
+joint_power_signs <- function(d, alternative, rho) {
+  two_tailed <- identical(alternative, "two_sided")
+  if (!two_tailed) {
+    facing <- if (identical(alternative, "less")) -d else d
+    if (any(facing < 0)) {
+      abort_run(sprintf(
+        "Joint power for a one-sided test needs every effect in the tested direction (%s): an outcome whose effect points the other way would almost never be significant. Check the effects' signs, or use a two-sided test.",
+        if (identical(alternative, "less")) "below zero" else "above zero"
+      ))
+    }
+    d <- facing
+  }
+  sign <- ifelse(d < 0, -1, 1)
+  rho_matrix <- rho * outer(sign, sign)
+  diag(rho_matrix) <- 1
+  list(mdes = pmax(abs(d), 1e-8), rho_matrix = rho_matrix, two_tailed = two_tailed)
 }
 
 # PUMP's arguments for a multisite trial (d2.1_m2fr), from powertools'

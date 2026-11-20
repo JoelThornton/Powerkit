@@ -108,7 +108,8 @@ test_that("the exported script reproduces each equivalence result", {
   }
 })
 
-# A correlation and two proportions: TOSTER's z tests.
+# A correlation and two proportions: the z tests TOSTER runs, planned by
+# pwrss (Departure 33: TOSTER's own planning functions give wrong answers).
 
 tz_spec <- function(name, goal, ...) {
   spec <- tost_spec(name, goal = goal)
@@ -116,28 +117,82 @@ tz_spec <- function(name, goal, ...) {
   spec
 }
 
-test_that("the equivalence of a correlation or two proportions gives TOSTER's power", {
+# The power of two one-sided z tests, each at level alpha, of a statistic
+# with mean m and SD 1 against bounds lo < m < hi.
+tost_z_power <- function(m, lo, hi, alpha) {
+  z <- stats::qnorm(1 - alpha)
+  max(0, stats::pnorm(hi - z - m) - stats::pnorm(lo + z - m))
+}
+
+test_that("the equivalence of a correlation gives the power of TOSTER's z_cor_test()", {
   spec <- tz_spec("tost_correlation", list(type = "power", n = 150), r = 0.05)
   result <- run_spec(spec)
-  expect_equal(result$provenance$backend_function, "TOSTER::power_z_cor")
-  direct <- TOSTER::power_z_cor(n = 150, rho = 0.05, null = 0.2, alpha = 0.05, alternative = "equivalence")$power
-  expect_equal(result$curve$power, direct)
-  expect_true(all(result$check_run$ok))
-
-  spec <- tz_spec("tost_two_proportions", list(type = "power", n = 400), p2 = 0.65)
-  result <- run_spec(spec)
-  expect_equal(result$provenance$backend_function, "TOSTER::power_twoprop")
-  direct <- TOSTER::power_twoprop(p1 = 0.6, p2 = 0.65, n = 200, null = 0.1, alpha = 0.05, alternative = "equivalence")$power
-  expect_equal(result$curve$power, direct)
+  expect_equal(result$provenance$backend, "pwrss")
+  expect_equal(result$provenance$backend_function, "pwrss::power.z.test")
+  # Fisher's z, SE 1 / sqrt(n - 3), as z_cor_test().
+  scale <- sqrt(147)
+  expect_equal(result$curve$power, tost_z_power(atanh(0.05) * scale, -atanh(0.2) * scale, atanh(0.2) * scale, 0.05), tolerance = 1e-8)
   expect_true(all(result$check_run$ok))
 })
 
-test_that("the required n agrees with TOSTER's own, in whole people and equal groups", {
-  n <- run_spec(tost_spec("tost_correlation", goal = list(type = "sample_size", power = 0.8)))$n_required$n
-  expect_equal(n, ceiling(TOSTER::power_z_cor(rho = 0, null = 0.2, alpha = 0.05, power = 0.8, alternative = "equivalence")$n))
+test_that("the equivalence of two proportions gives the power of TOSTER's twoprop_test()", {
+  spec <- tz_spec("tost_two_proportions", list(type = "power", n = 400), p2 = 0.65)
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "pwrss::power.z.twoprops")
+  # The unpooled Wald SE, as twoprop_test(), 200 per group.
+  se <- sqrt(0.6 * 0.4 / 200 + 0.65 * 0.35 / 200)
+  expect_equal(result$curve$power, tost_z_power(0.05 / se, -0.1 / se, 0.1 / se, 0.05), tolerance = 1e-8)
+  expect_true(all(result$check_run$ok))
+})
+
+test_that("the planned tests reject at their level, checked by simulation", {
+  set.seed(33)
+  # Correlation: 150 people, true r 0.05, bounds +-0.2.
+  power <- run_spec(tz_spec("tost_correlation", list(type = "power", n = 150), r = 0.05))$curve$power
+  hits <- replicate(4000, {
+    x <- stats::rnorm(150)
+    y <- 0.05 * x + sqrt(1 - 0.05^2) * stats::rnorm(150)
+    z <- atanh(stats::cor(x, y)) * sqrt(147)
+    z - (-atanh(0.2) * sqrt(147)) > stats::qnorm(0.95) && atanh(0.2) * sqrt(147) - z > stats::qnorm(0.95)
+  })
+  expect_lt(abs(mean(hits) - power), 4 * sqrt(power * (1 - power) / 4000))
+  # Two proportions: 200 per group, 0.6 and 0.65, bounds +-0.1.
+  power <- run_spec(tz_spec("tost_two_proportions", list(type = "power", n = 400), p2 = 0.65))$curve$power
+  hits <- replicate(4000, {
+    a <- stats::rbinom(1, 200, 0.6) / 200
+    b <- stats::rbinom(1, 200, 0.65) / 200
+    se <- sqrt(a * (1 - a) / 200 + b * (1 - b) / 200)
+    (b - a + 0.1) / se > stats::qnorm(0.95) && (0.1 - (b - a)) / se > stats::qnorm(0.95)
+  })
+  expect_lt(abs(mean(hits) - power), 4 * sqrt(power * (1 - power) / 4000))
+})
+
+test_that("Departure 33: TOSTER's planning functions differ, by this much", {
+  # power_z_cor() ignores the expected correlation: at r = 0.1 (bounds
+  # +-0.2, 500 people) it gives the power at r = 0.
+  toster <- TOSTER::power_z_cor(n = 500, rho = 0.1, null = 0.2, alpha = 0.05, alternative = "equivalence")$power
+  at_zero <- TOSTER::power_z_cor(n = 500, rho = 0, null = 0.2, alpha = 0.05, alternative = "equivalence")$power
+  expect_equal(toster, at_zero)
+  ours <- run_spec(tz_spec("tost_correlation", list(type = "power", n = 500), r = 0.1))$curve$power
+  expect_gt(toster - ours, 0.2)
+  # power_twoprop() applies the distance to the nearer bound on both sides:
+  # 0.5 and 0.55 with bounds +-0.1 and 500 per group.
+  toster <- TOSTER::power_twoprop(p1 = 0.5, p2 = 0.55, n = 500, null = 0.1, alpha = 0.05, alternative = "equivalence")$power
+  ours <- run_spec(tz_spec("tost_two_proportions", list(type = "power", n = 1000), p1 = 0.5, p2 = 0.55))$curve$power
+  expect_gt(abs(ours - toster), 0.2)
+})
+
+test_that("the required n is the smallest that reaches the power, in equal groups", {
+  spec <- tost_spec("tost_correlation", goal = list(type = "sample_size", power = 0.8))
+  n <- run_spec(spec)$n_required$n
+  power_at <- function(n) tost_z_power(0, -atanh(0.2) * sqrt(n - 3), atanh(0.2) * sqrt(n - 3), 0.05)
+  expect_gte(power_at(n), 0.8)
+  expect_lt(power_at(n - 1), 0.8)
   n <- run_spec(tost_spec("tost_two_proportions", goal = list(type = "sample_size", power = 0.8)))$n_required$n
-  per_group <- TOSTER::power_twoprop(p1 = 0.6, p2 = 0.6, null = 0.1, alpha = 0.05, power = 0.8, alternative = "equivalence")$n
-  expect_equal(n, 2 * ceiling(per_group))
+  expect_equal(n %% 2, 0)
+  power_at <- function(n) tost_z_power(0, -0.1 / sqrt(0.48 / (n / 2)), 0.1 / sqrt(0.48 / (n / 2)), 0.05)
+  expect_gte(power_at(n), 0.8)
+  expect_lt(power_at(n - 2), 0.8)
 })
 
 test_that("an expected effect outside the bound is refused for these too", {

@@ -267,6 +267,32 @@ terms_js <- "
       var ids = visible.concat(other);
       if (ids.length) el.setAttribute('aria-describedby', ids.join(' ')); else el.removeAttribute('aria-describedby');
     });
+    // One info button in the corner of each box that has notes (19 November
+    // 2026), in place of a More context link under each note: with
+    // explanations off it opens or closes every explanation in the box.
+    var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
+    var boxNotes = function(box) {
+      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more'))
+        .filter(function(d) { return d.closest(boxSel) === box; });
+    };
+    document.querySelectorAll(boxSel).forEach(function(box) {
+      var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
+      var hasNote = notes.some(function(n) { return n.classList.contains('rep-note'); });
+      if (!hasNote) { if (btn) btn.remove(); box.classList.remove('box-has-info'); return; }
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'box-info';
+        btn.setAttribute('aria-label', 'Explanations for this part'); btn.title = 'Show or hide the explanations here';
+        btn.innerHTML = '<span aria-hidden=\"true\">i</span>';
+        btn.addEventListener('click', function() {
+          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && n.classList.contains('rep-note'); });
+          ns.forEach(function(n) { n.open = open; });
+          window.pkSyncExplanations(false);
+        });
+        box.appendChild(btn); box.classList.add('box-has-info');
+      }
+      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && n.classList.contains('rep-note'); }) ? 'true' : 'false');
+    });
   };
   window.pkSetTermsMode = function(on) {
     document.documentElement.classList.toggle('terms-mode', !!on);
@@ -459,6 +485,10 @@ route_icon <- function(id) {
     tags$path(d = path, fill = "currentColor"))
 }
 
+# The small icon at the start of a start-screen button (decorative).
+start_more_icon <- function(path) tags$svg(class = "start-more-icon", viewBox = "0 0 24 24", width = "18", height = "18",
+  `aria-hidden` = "true", focusable = "false", tags$path(d = path, fill = "currentColor"))
+
 start_ui <- function(tree, start = list(), saved_projects = NULL) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
@@ -485,14 +515,16 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
     # row under a divider, a short line each: stacked under the routes in
     # their own styles they had crowded the screen.
     div(class = "start-more",
-      if (!is.null(saved_projects)) tags$button(type = "button", class = "btn btn-link start-more-link", id = "saved_projects_toggle",
+      if (!is.null(saved_projects)) tags$button(type = "button", class = "btn btn-outline-secondary start-more-link", id = "saved_projects_toggle",
         `aria-expanded` = "false", `aria-controls` = "saved_projects_panel",
         onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
           "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
+        start_more_icon("M5 3h9l5 5v13H5V3Zm8 1.5V9h4.5L13 4.5ZM7 12h10v2H7v-2Zm0 4h10v2H7v-2Z"),
         "Open a saved file"),
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
-        tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
+        tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener", class = "btn btn-outline-secondary start-more-link",
+          start_more_icon("M12 3v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6V3h2ZM5 19h14v2H5v-2Z"),
           if (local) "Download and update instructions" else "Run Powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
     # One line for someone trying the prototype out: what to do and where

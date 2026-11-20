@@ -56,13 +56,37 @@ test_that("a Cox model's measured predictor runs on powerEpiCont.default() and m
   expect_equal(result$provenance$backend, "powerSurvEpi")
   expect_true(all(result$check_run$ok))
   direct <- powerSurvEpi::powerEpiCont.default(n = 350, theta = 0.75, sigma2 = 1, psi = 0.3, rho2 = 0.1, alpha = 0.05)
-  expect_equal(result$curve$power, direct, tolerance = 1e-12)
+  # The package's power plus the other tail (Departure 35), here tiny.
+  d <- sqrt(350 * log(0.75)^2 * 0.3 * 0.9)
+  expect_equal(result$curve$power, direct + stats::pnorm(-d - stats::qnorm(0.975)), tolerance = 1e-12)
+  expect_lt(result$curve$power - direct, 1e-6)
   n <- run_spec(example_spec("survival_cox_predictor"))$n_required$n
   power_at <- function(n) powerSurvEpi::powerEpiCont.default(n, 0.75, 1, 0.3, 0.1, 0.05)
   expect_gte(power_at(n), 0.8)
   expect_lt(power_at(n - 1), 0.8)
   # Package's own sample size, rounded up.
   expect_equal(n, ceiling(powerSurvEpi::ssizeEpiCont.default(power = 0.8, theta = 0.75, sigma2 = 1, psi = 0.3, rho2 = 0.1, alpha = 0.05)), tolerance = 1)
+})
+
+test_that("Departure 35: a measured score's two-sided test counts both tails, by this much", {
+  # powerEpiCont.default() counts one tail: at no effect it gives alpha / 2,
+  # and at a small hazard ratio less than alpha. The two-sided test rejects
+  # in either tail.
+  inputs <- survival_inputs(survival_spec("survival_cox_predictor", list(type = "power", n = 100)))
+  inputs$hazard_ratio <- 1
+  expect_equal(survival_power(inputs, 100), 0.05, tolerance = 1e-12)
+  inputs$hazard_ratio <- 1.05
+  inputs$r2_other <- 0
+  one_tail <- powerSurvEpi::powerEpiCont.default(100, 1.05, 1, inputs$event_proportion, 0, 0.05)
+  d <- sqrt(100 * log(1.05)^2 * inputs$event_proportion)
+  ours <- survival_power(inputs, 100)
+  expect_equal(ours, stats::pnorm(d - stats::qnorm(0.975)) + stats::pnorm(-d - stats::qnorm(0.975)), tolerance = 1e-12)
+  expect_gt(ours, 0.05)
+  expect_lt(one_tail, 0.05)
+  # Checked by simulation: the z test of a normal statistic with mean d.
+  set.seed(35)
+  z <- stats::rnorm(200000, d)
+  expect_lt(abs(mean(abs(z) > stats::qnorm(0.975)) - ours), 0.002)
 })
 
 test_that("the R scripts reproduce the runs", {

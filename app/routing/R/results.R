@@ -2501,7 +2501,7 @@ technical_details_ui <- function(result) {
       list(sprintf("Reported by %s at N = %s.", d$source, whole(n_analysed(result)))))
   }
   tags$details(class = "result-more result-technical",
-    tags$summary("Technical details (for checking against G*Power or R)"),
+    tags$summary("Technical details"),
     tags$ul(lapply(Filter(Negate(is.null), lines), tags$li)),
     p(class = "small", "The R script (under \u201cWrite it up\u201d) reproduces the whole calculation with the package alone."))
 }
@@ -2919,6 +2919,15 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 33 (pwrss's power for TOSTER's z tests) applies to a
+  # correlation and two proportions.
+  if (!spec$template %in% c("tost_correlation", "tost_two_proportions")) keys <- setdiff(keys, "33")
+  # Departure 34 (both tails for Cronbach's alpha) applies to a two-sided
+  # test of alpha.
+  if (!identical(spec$template, "cronbach_alpha") || isTRUE(spec$target_test$alternative %in% c("greater", "less"))) keys <- setdiff(keys, "34")
+  # Departure 35 (both tails for a measured score's Cox test) applies to
+  # that template.
+  if (!identical(spec$template, "cox_predictor")) keys <- setdiff(keys, "35")
   # Departure 32 (the Brown-Forsythe test by default for two variances)
   # applies when it is the test planned for.
   if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")
@@ -3082,6 +3091,15 @@ small_count_note <- function(spec, result) {
   sprintf(paste0("With these proportions and this sample size, one group is expected to hold only about %s people with (or without) the outcome. ",
     "The z test's formula is unreliable when an expected count is below about 5: the real power and false-positive rate can both differ from the figures here. ",
     "Choose Fisher's exact test under \u201cTest version\u201d, whose power is worked out exactly."), format(round(smallest, 1)))
+}
+
+# The equal-SD form of the Welch note: an assumption that changes nothing
+# when the SDs are equal, so the short version leaves it out. With a
+# different SD ratio the note states the ratio and stays everywhere.
+welch_equal_sd_note <- function(spec) {
+  ratio <- spec$population$sd_ratio %||% 1
+  if (!isTRUE(all.equal(as.numeric(ratio), 1))) return(NULL)
+  welch_population_note(spec)
 }
 
 welch_population_note <- function(spec) {
@@ -3508,7 +3526,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
     ),
     if (any(folded)) tags$details(class = "result-more result-departures-minor",
-      tags$summary("Small differences from the tools' defaults, which don't change the answer in practice"),
+      tags$summary("Small differences from the tools' defaults"),
+      p(class = "small text-muted", "These don't change the answer in practice."),
       tags$ul(class = "result-departures", lapply(unname(departures[folded]), tags$li))),
     if (length(known)) tagList(
       h4(class = "h6", "Where other established tools give a different answer"),
@@ -3638,8 +3657,10 @@ writeup_software <- function(result, full = FALSE, bayes = FALSE) {
     "by formula (no simulation)"
   }
   fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
+  # The short version gives R's version; the build date is for the full one.
+  r_version <- if (full) p$r_version else sub(" \\([0-9]{4}-[0-9]{2}-[0-9]{2}\\)$", "", p$r_version)
   s <- sprintf("%s calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
-    if (bayes) "The probabilities of evidence at the threshold were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
+    if (bayes) "The probabilities of evidence at the threshold were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -4073,7 +4094,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
-  short <- paste(c(main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
+  # Welch caveats that don't change the answer (equal-SD planning, the
+  # critical effect's equal-SD condition) stay in the full version only.
+  short_main <- setdiff(main, welch_equal_sd_note(spec))
+  welch_critical <- if (!is.null(result$critical_effect)) critical_effect_welch_text(result$critical_effect) else ""
+  if (nzchar(welch_critical)) short_main <- sub(welch_critical, "", short_main, fixed = TRUE)
+  short <- paste(c(short_main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size") && is.null(result$n_required$verification)) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }

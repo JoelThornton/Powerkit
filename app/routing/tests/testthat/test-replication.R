@@ -380,10 +380,10 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   expect_match(alpha, 'value=""', fixed = TRUE)
   expect_match(alpha, "rep-num", fixed = TRUE)
   expect_match(html, 'id="rep_alpha_usual"', fixed = TRUE)
-  expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
+  expect_match(html, "0.05 (the usual)", fixed = TRUE)
   expect_match(html, 'id="rep_power_usual_3"[^>]*>95%', perl = TRUE)
   # One sentence over the two routes; the references once, folded, linked.
-  expect_match(html, "Two ways to the sample size", fixed = TRUE)
+  expect_match(html, "Two ways, from the answers above", fixed = TRUE)
   expect_identical(lengths(regmatches(html, gregexpr("rep-references", html, fixed = TRUE))), 1L)
   expect_no_match(html, "References: ", fixed = TRUE)
   expect_match(html, "<summary>References \\([0-9]+\\)</summary>")
@@ -418,7 +418,7 @@ test_that("variation between studies is on each design's own scale", {
   expect_equal(replication_args(c(generic, rep_tau_value = "0.03"))$tau, 0.03)
   html <- as.character(replication_workspace_ui(tree))
   expect_match(html, '<option value="0.025" selected>Example: 0.025</option>', fixed = TRUE)
-  expect_match(html, "an SD on the effect's own scale", fixed = TRUE)
+  expect_match(html, "(SD on its scale)", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0, "generic", "log")), "no meaning on this effect's scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.03, "generic", "log")), "0.03 on the log scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.025, "correlation")), "the correlation card's smallest value", fixed = TRUE)
@@ -861,4 +861,25 @@ test_that("tests and Bayesian posteriors each supply their own effect for both r
     rep_n = "80", rep_se_from = "f", rep_f = "10"))
   expect_null(replication_args(generic)$original_f)
   expect_equal(replication_args(generic)$original_effect, 0.55)
+})
+
+test_that("a three-factor ANOVA original is planned with BUCSS alone", {
+  values <- list(rep_design = "anova", rep_anova_kind = "between", rep_levels_a = "2", rep_levels_b = "2", rep_levels_c = "2",
+    rep_anova_effect = "a_by_b_by_c", rep_n = "120", rep_anova_f = "6.2", rep_f_from = "f")
+  expect_false(replication_anova_one_df(values))
+  expect_true(replication_bucss_only(values))
+  args <- replication_anova_args(values)
+  expect_equal(args$levels_c, 2)
+  expect_equal(args$effect, "a_by_b_by_c")
+  plan <- replication_run(values, engine_function("replication_planning"), engine_function("replication_bucss"),
+    engine_function("replication_anova_smallest"))
+  expect_true(plan$anova)
+  expect_null(plan$smallest)
+  expect_match(replication_bucss_original_words(plan), "2 x 2 x 2 design")
+  # Without a third factor, a third-factor effect falls back to the first factor.
+  values$rep_levels_c <- ""
+  expect_equal(replication_anova_effect_choice(values)$effect, "factor_a")
+  # With one, the two-factor interaction means the first-by-second one.
+  values$rep_levels_c <- "3"; values$rep_anova_effect <- "interaction"
+  expect_equal(replication_anova_effect_choice(values)$effect, "a_by_b")
 })

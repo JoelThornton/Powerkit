@@ -13,7 +13,10 @@
 #      (Departure 6), so this reference is a little conservative.
 #   2. published examples: placeholders below, for the maintainer
 #   3. Type I error, when the tested group's a_j is 0 and b is large
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 mcx_validation_spec <- function(a, b, direct, group, seed, n) {

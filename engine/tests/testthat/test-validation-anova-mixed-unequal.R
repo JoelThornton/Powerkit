@@ -16,7 +16,10 @@
 #   3. agreement with Superpower::ANOVA_exact() when the ratio is 1 : 1
 #      (the same simulation, at equal groups), beyond 2 x 2
 #   4. Type I error with unequal groups
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 unequal_mixed_spec <- function(means, sd, r, effect, ratio, seed, n, alpha = 0.05) {

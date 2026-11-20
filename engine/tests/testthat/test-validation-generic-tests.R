@@ -8,7 +8,10 @@
 #      noncentrality has no data-generating model to simulate)
 #   4. Type I error: a noncentrality of 0 gives alpha by construction
 #      (unit tests)
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 #
 # Only the generic t test has a section in the manual (25, p. 63). The

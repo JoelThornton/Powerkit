@@ -9,7 +9,10 @@
 #      with an intercept for each person and one common slope, the model
 #      rmcorr::rmcorr() fits)
 #   3. Type I error, from simulated studies
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 rmcorr_validation_spec <- function(r, measurements, seed, n = NULL, target_power = NULL,

@@ -7,7 +7,10 @@
 #      from its definition by numerical integration (not bfpwr), and the
 #      share passing the threshold compared with powerkit's exact chance
 #   3. the no-effect side, simulated the same way at p = p0
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 bin_validation_spec <- function(n, p, p0 = 0.5, alternative = "two_sided", one_sided_null = NULL, p_sd = NULL,

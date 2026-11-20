@@ -129,9 +129,9 @@ test_that("the screen catches empty, non-numeric and out-of-range values, naming
   expect_true(any(grepl("“Correlation r” should be a plain number, such as 12 or 0.3 (with a full stop", problems, fixed = TRUE)))
   # A percentage typed with its sign gets the proportion to type instead.
   v <- values_for("E4"); v$alpha <- "5%"
-  expect_true(any(grepl("“Significance level (alpha)” should be a proportion, without the % sign: for 5%, type 0.05.",
+  expect_true(any(grepl("“Significance level” should be a proportion, without the % sign: for 5%, type 0.05.",
     form_problems(fields_for("E4"), v), fixed = TRUE)))
-  expect_true(any(grepl("“Significance level (alpha)” must be at most 0.5.", problems, fixed = TRUE)))
+  expect_true(any(grepl("“Significance level” must be at most 0.5.", problems, fixed = TRUE)))
   # Names may stay empty (they only label the result).
   expect_false(any(grepl("“First variable” is empty.", problems, fixed = TRUE)))
   v <- values_for("E4"); v$r <- "1.5"
@@ -245,7 +245,7 @@ test_that("the engine's messages name the screen's fields, in plain English", {
   spec$target_test$alpha <- 0.7
   check <- check_spec(spec, fields_for("E1"), validate)
   expect_identical(check$status, "problems")
-  expect_match(check$problems, "“Significance level (alpha)” must be at most 0.5", fixed = TRUE, all = FALSE)
+  expect_match(check$problems, "“Significance level” must be at most 0.5", fixed = TRUE, all = FALSE)
   # Advice from the checker is passed on (here: a pilot study's estimate).
   v <- values_for("E1"); v$just_type <- "pilot_study"
   check <- check_spec(build_spec(forms, "E1", fields_for("E1"), v), fields_for("E1"), validate)

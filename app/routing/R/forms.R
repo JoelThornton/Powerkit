@@ -494,8 +494,8 @@ precision_goal_fields <- function(tool) {
          choices = list(precision_n = "The sample size for an interval this narrow",
            precision_width = "How narrow the interval would be at a given sample size"),
          buttons = TRUE, button_labels = list(precision_n = "Sample size", precision_width = "Interval width")),
-    list(id = "width", writeup_label = "interval width", label = "Target interval width (upper limit minus lower, in the estimate's own units)",
-         help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
+    list(id = "width", writeup_label = "interval width", label = "Target interval width",
+         help = "Upper limit minus lower, in the estimate's own units. For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
     # Assurance by default on MBESS's routes (8 November 2026; Departure
     # 25): an interval as narrow as planned only on average is wider than
@@ -539,8 +539,8 @@ prediction_goal_fields <- function(tool) {
          help = "How little the model may overfit: 0.9 means the predictor effects are expected to be overestimated by no more than about 10%. A higher target (0.95) asks for less overfitting and a larger sample.",
          type = "number", path = "goal.shrinkage", required = TRUE, min_exclusive = 0, max_exclusive = 1,
          default = tool[["shrinkage"]], default_source = tool[["shrinkage_source"]], shown_if = develop),
-    list(id = "intercept_margin", writeup_label = "margin for the mean outcome", label = "How precisely to estimate the mean outcome: within this factor of the true mean",
-         help = "For example 1.1: the estimated mean outcome (the model's intercept) should be within 10% of the true mean.",
+    list(id = "intercept_margin", writeup_label = "margin for the mean outcome", label = "Precision of the estimated mean outcome",
+         help = "The estimate must be within this factor of the true mean. For example 1.1: the estimated mean outcome (the model's intercept) should be within 10% of the true mean.",
          type = "number", path = "goal.intercept_margin", required = TRUE, min_exclusive = 1,
          default = tool[["intercept_margin"]], default_source = tool[["intercept_margin_source"]],
          shown_if = list(develop, list(field = "outcome", is = "continuous"))),
@@ -550,8 +550,8 @@ prediction_goal_fields <- function(tool) {
       "How precisely to estimate whether the model's predictions are too extreme or too modest: 0.2 means an interval such as 0.9 to 1.1."),
     width("cstat_ci_width", "Width of the 95% interval for the C-statistic (criterion 3)",
       "How precisely to estimate the model's discrimination: 0.1 means an interval such as 0.75 to 0.85."),
-    list(id = "nb_ci_width", writeup_label = "width of the interval for the net benefit", label = "Width of the 95% interval for the standardised net benefit (criterion 4; optional, 0.2 if left empty)",
-         help = "Used only with a risk threshold.", type = "number", path = "goal.nb_ci_width", optional = TRUE, min_exclusive = 0,
+    list(id = "nb_ci_width", writeup_label = "width of the interval for the net benefit", label = "Width of the net benefit interval",
+         help = "The 95% interval for the standardised net benefit (criterion 4). Optional: 0.2 if left empty. Used only with a risk threshold.", type = "number", path = "goal.nb_ci_width", optional = TRUE, min_exclusive = 0,
          shown_if = validate)
   )
 }
@@ -645,7 +645,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
-    list(id = "alpha", label = "Significance level (alpha)", help = "The chance of a significant result when there is no effect. A lower level means fewer false positives and needs more people for the same power. It is not the chance that a significant finding is false.", type = "number", path = "target_test.alpha", required = TRUE,
+    list(id = "alpha", label = "Significance level", help = "Also called alpha: the chance of a significant result when there is no effect. A lower level means fewer false positives and needs more people for the same power. It is not the chance that a significant finding is false.", type = "number", path = "target_test.alpha", required = TRUE,
          # Empty on every card (8 November 2026), as target power is: one
          # click gives the usual level, so choosing it is the user's act.
          min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
@@ -734,7 +734,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     )),
     # Guess first (optional teaching mode): the guess is shown next to the
     # answer and goes nowhere else (no spec path, not in the exports).
-    list(input = NULL, title = "Guess the answer first (optional, to learn how power behaves)", note = guess_note, fields = list(
+    list(input = NULL, title = "Guess the answer first (optional)", note = guess_note, fields = list(
       list(id = "guess", label = "Your guess", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
@@ -808,7 +808,7 @@ heterogeneity_fields <- function(template) {
     list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
-    return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
+    return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies?",
       fold = "The correlation may differ from study to study (optional)",
       type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
       default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
@@ -820,7 +820,7 @@ heterogeneity_fields <- function(template) {
         "and are only illustrations. The results show the answer at each of them and at your value."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
-  list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
+  list(list(id = "het_tau", label = "How much might the true effect vary between studies?",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
     default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
     fold = "The effect may differ from study to study (optional)",
@@ -990,7 +990,7 @@ conversion_fields <- function(template, when = list()) {
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
          path = "effect_justification.conversion.value", shown_if = converting),
     if (isTRUE(template %in% eta_squared_templates)) {
-      list(id = "conv_df1", label = "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", type = "number",
+      list(id = "conv_df1", label = "Its first degrees of freedom (df1)", type = "number", help = "The effect's df: the first number in F(df1, df2).",
            integer = TRUE, min = 1, conversion = TRUE, required = TRUE, path = "effect_justification.conversion.df",
            shown_if = c(converting, list(list(field = "conv_from", is = "F"))))
     },
@@ -1535,7 +1535,7 @@ engine_validator <- function(engine_dir = file.path(routing_root(), "..", "..", 
 routing_root <- function() getOption("powerkit.routing_dir", getwd())
 
 # Put the user's field labels in place of spec paths in the engine's
-# messages (e.g. 'target_test > alpha' becomes "Significance level (alpha)").
+# messages (e.g. 'target_test > alpha' becomes "Significance level").
 plain_engine_message <- function(message, fields, local = isTRUE(getOption("powerkit.local"))) {
   message <- online_package_message(message, local)
   ids <- vapply(fields, function(f) f$id %||% "", "")

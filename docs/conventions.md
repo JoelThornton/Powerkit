@@ -426,17 +426,15 @@ convention to follow here (`coverage-roadmap.md`, row B54, found none).
 Only symmetric bounds are offered: TOSTER takes asymmetric ones, and the
 app may add them later.
 
-**A correlation and two proportions (from 29 October 2026, 0.21.0).**
-TOSTER's `power_z_cor(alternative = "equivalence")` is the two one-sided
-z tests of a correlation on Fisher's z scale (an approximation, as the
-correlation test is), and `power_twoprop(alternative = "equivalence")`
-the two one-sided z tests of p2 − p1, with `n` per group (TOSTER 0.8.6
-help). powerkit passes the expected correlation (`rho`) or proportions and
-the bound (`null`, which TOSTER takes as minus and plus), with alpha for
-each one-sided test; two proportions are planned for equal groups,
-because `power_twoprop()` takes one group size. The required n agrees
-with TOSTER's own solution for n, rounded up (unit tests). Not a
-departure: TOSTER's own calculation.
+**A correlation and two proportions (from 29 October 2026, 0.21.0;
+planned by pwrss since 20 November 2026).** TOSTER's tests are
+`z_cor_test()`, the two one-sided z tests of a correlation on Fisher's z
+scale (SE 1 / sqrt(n − 3)), and `twoprop_test()`, the two one-sided Wald
+z tests of p2 − p1 with the unpooled SE. TOSTER's planning functions for
+them, `power_z_cor()` and `power_twoprop()`, give wrong answers, so
+powerkit plans the same tests with pwrss (Departure 33). Two proportions
+are planned for equal groups. The required n is the smallest whose power
+reaches the target.
 
 **Non-inferiority (from 29 October 2026, 0.22.0; t-tests corrected 11
 November 2026).** G\*Power plans non-inferiority as a one-sided test
@@ -2179,6 +2177,82 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   methods paragraph. Only the F test is one-sided, so the direction
   question is shown with it alone.
 
+### 33. Equivalence of a correlation or two proportions: pwrss's power for TOSTER's tests, not TOSTER's planning functions
+
+- **Established convention:** TOSTER 0.8.6 plans these tests with
+  `power_z_cor(alternative = "equivalence")` and
+  `power_twoprop(alternative = "equivalence")`.
+- **powerkit:** since 20 November 2026 the power of the test TOSTER runs,
+  from pwrss: `z_cor_test()`'s two one-sided z tests on Fisher's z scale
+  by `pwrss::power.z.test()` (`alternative = "two.one.sided"`, the
+  statistic's mean atanh(r) sqrt(n − 3), bounds atanh(±bound)
+  sqrt(n − 3)), and `twoprop_test()`'s two one-sided Wald z tests (unpooled
+  SE) by `pwrss::power.z.twoprops()` (`alternative = "two.one.sided"`,
+  `std.error = "unpooled"`, margins −bound and +bound) (`backend-toster.R`).
+- **Why:** both TOSTER functions answer a different question from the test.
+  `power_z_cor()` never uses `rho`: its power is the power when the true
+  correlation is 0, whatever correlation is expected (TOSTER 0.8.6 source,
+  `pow_corr_tost()`). `power_twoprop()` takes the formula
+  2 Φ((bound − |p2 − p1|) / SE − z) − 1, which applies the distance to the
+  nearer bound on both sides, and so understates power when the
+  proportions differ (`pow_prop_tost()`). Simulated tests agree with
+  powerkit's power (`test-backend-toster.R`, "the planned tests reject at
+  their level").
+- **Size:** for an expected correlation of 0.1, bounds ±0.2 and 500
+  people, TOSTER gives 99.6% and powerkit 73.8%; for 80% power TOSTER asks
+  for 212 people and powerkit 593. For proportions 0.5 and 0.55, bounds
+  ±0.1 and 500 per group, TOSTER gives 0% and powerkit 47.5%; for 80%
+  power TOSTER asks for 1,705 per group and powerkit 1,231.
+- **Test:** `engine/tests/testthat/test-backend-toster.R`, "Departure 33:
+  TOSTER's planning functions differ, by this much".
+- **Shown to users:** on the E36 result for a correlation or two
+  proportions (`app/routing/R/results.R`, `departures_for()`), and in the
+  methods paragraph. Reported to TOSTER (`docs/upstream-questions.md`).
+
+### 34. Cronbach's alpha: a two-sided test counts both tails
+
+- **Established convention:** statpsych's `size.test.cronbach()` gives the
+  sample size for Bonett and Wright's (2015) test of ln(1 − alpha) from
+  n = 2r / (r − 1) (z_(α/2) + z_β)² / ln(e)² + 2, which counts only the
+  tail in the effect's direction. Solved for power, it gives alpha / 2 at
+  the null value of a two-sided test.
+- **powerkit:** since 20 November 2026 the power of a two-sided test adds
+  the other tail, Φ(−D − z_(α/2)), so at the null value it is alpha, the
+  test's level (`backend-reliability.R`, `cronbach_power()`).
+- **Why:** the two-sided z test rejects in either tail, and its power is
+  the sum of both. The single-tail form is a standard approximation for
+  sample sizes (statpsych's own), not the test's power.
+- **Size:** at the null value, 5.0% against 2.5%. With an effect worth
+  planning for the other tail adds under 0.000001 (alpha 0.8 against 0.7,
+  5 items, 139 people), so powerkit's required n is statpsych's in every
+  case tested.
+- **Test:** `engine/tests/testthat/test-backend-reliability.R`, "Departure
+  34: a two-sided test of alpha counts both tails, by this much".
+- **Shown to users:** on the E69 result for a two-sided test of Cronbach's
+  alpha (`departures_for()`), and in the methods paragraph.
+
+### 35. A measured score in a Cox regression: a two-sided test counts both tails
+
+- **Established convention:** powerSurvEpi's `powerEpiCont.default()`
+  (Hsieh and Lavori's formula) gives Φ(D − z_(α/2)), D = sqrt(n ln(HR)²
+  var(X) ψ (1 − R²)): only the tail in the effect's direction, though its
+  help calls the test two-sided.
+- **powerkit:** since 20 November 2026 the power adds the other tail,
+  Φ(−D − z_(α/2)), with D recovered from the package's own power as
+  qnorm(power) + z_(α/2) (`backend-survival.R`, `survival_power()`).
+- **Why:** the two-sided Wald test of the Cox coefficient rejects in either
+  tail; as for Cronbach's alpha (Departure 34), the single tail is a
+  sample-size approximation, not the test's power.
+- **Size:** at a hazard ratio of 1 (power at n only; the spec checks
+  refuse it for a sample size), 5.0% against 2.5%. At a hazard ratio of
+  1.05 with 100 people and 30% with the event, 5.8% against 4.5%. At the
+  card's example (hazard ratio 0.75, 350 people) the difference is under
+  0.000001, so sample sizes are unchanged.
+- **Test:** `engine/tests/testthat/test-backend-survival.R`, "Departure
+  35: a measured score's two-sided test counts both tails, by this much".
+- **Shown to users:** on the E43 result for a measured score
+  (`departures_for()`), and in the methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2671,8 +2745,7 @@ Wired into the app on 18 October 2026 (E25, E26).*
   ratio per SD so the score's variance is 1. Its help calls the test
   two-sided, but its power is a single tail, `pnorm(sqrt(...) - z[1 -
   alpha/2])`, so at a hazard ratio of 1 it gives alpha / 2, not alpha;
-  with any effect worth planning for the other tail adds well under 0.001.
-  powerkit reports the package's number. Both formulas agree with
+  powerkit adds the other tail (Departure 35). Both formulas agree with
   simulated log-rank tests and Cox models within 0.02 at the sizes
   tested. Tests: `test-backend-survival.R`; `test-validation-survival.R`
   [powerkit, `docs/decisions.md`].
@@ -2695,8 +2768,9 @@ Wired into the app on 18 October 2026 (E25, E26).*
   kappaSize's goodness-of-fit approach (two-sided), which gives a sample
   size, not rounded, for a power; powerkit's power at n is the power for
   which kappaSize gives n, and its sample size kappaSize's rounded up.
-  The ICC and alpha formulas count only the tail in the effect's
-  direction, so a two-sided test at the null value gives alpha / 2.
+  ICC.Sample.Size's approximation counts only the tail in the effect's
+  direction, so a two-sided test at the null value gives alpha / 2;
+  powerkit counts both tails for Cronbach's alpha (Departure 34).
   Tests: `test-backend-reliability.R`; `test-validation-reliability.R`
   [powerkit, `docs/decisions.md`].
 - **The Brunner-Munzel test (E2's test version): the effect when the

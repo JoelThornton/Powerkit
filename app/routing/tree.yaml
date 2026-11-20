@@ -355,8 +355,8 @@ nodes:
     doc_id: D1
     text: "What does your main hypothesis involve?"
     options:
-      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E44, when: {outcome: score}, help: "e.g. each partner's daily stress and both partners' relationship satisfaction."}
-      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "A score on each member, related to their own and their partner's outcome", next: E44, when: {outcome: score}, help: "e.g. each partner's daily stress and both partners' relationship satisfaction."}
+      - {label: "A score on each member, related to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
       - {label: "Conditions given to whole pairs", next: E34, help: "e.g. couples randomised to a programme or a waiting list: a cluster-randomised trial with groups of two."}
       - {label: "Something else, such as a condition given to one member of each pair", next: E65}
   # Counts and ordered categories over many trials (12 November 2026): a
@@ -392,7 +392,7 @@ nodes:
       - {label: "The same people in three or more conditions", next: s4, sets: {times: many_conditions}, help: "e.g. everyone completes three tasks, every cell of a 2 x 2 design, or a trial's groups measured before, after and at follow-up."}
       - {label: "Measurements over time, to see whether a trend changes at a known point", next: E45, help: "e.g. weekly scores before and after a policy change (segmented regression, interrupted time series)."}
       - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
-      - {label: "Two scores measured over time, to see whether each predicts later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
+      - {label: "Two scores over time, each predicting later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
   s4:
     doc_id: S4
     # The goal (detect, equivalence, estimate) is asked once, on the aim
@@ -422,15 +422,15 @@ nodes:
     doc_id: C1
     text: "What does your main hypothesis involve?"
     options:
-      - {label: "Conditions or treatments given to whole groups, or to people within the groups", next: c2, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
-      - {label: "Something measured on each person, or on each group, and how it relates to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
+      - {label: "A condition or treatment given to groups, or within groups", next: c2, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
+      - {label: "Something measured on each person or group, related to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
   # Groups within larger groups (1 November 2026): three levels (E68).
   c2:
     doc_id: C2
     text: "Are the groups themselves part of larger groups that matter for the design?"
     options:
       - {label: "No: one level of groups (for example, classes, or clinics)", next: E34}
-      - {label: "Yes: groups within larger groups (for example, classes within schools, or therapists within clinics)", next: E68, help: "e.g. schools randomised to a programme, with pupils in several classes in each school."}
+      - {label: "Yes: groups within larger groups", next: E68, help: "For example classes within schools, or therapists within clinics. e.g. schools randomised to a programme, with pupils in several classes in each school."}
   # Equivalence for grouped data goes to the grouped card, which says it
   # isn't covered yet: the equivalence card assumes separate people.
   s4_equivalence:
@@ -448,20 +448,20 @@ nodes:
       - {label: "A relationship between two things you measure", next: q2_rel, help: "e.g. daily screen time is related to loneliness."}
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
-      - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
-      - {label: "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people", next: q1_more,
+      - {label: "Both: it works through something that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "Something else: spread, structure, item bias, signal detection or types", next: q1_more,
          help: "Spread of scores (variance tests), structural equation models, differential item functioning, signal detection (d'), exploratory factor analysis and latent profiles."}
   q1_more:
     doc_id: Q1b
     text: "Which of these is closest to what you want to show?"
     help: "Less common aims, each with its own analysis."
     options:
-      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1_by_times,
-         when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
-      - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
-      - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
-      - {label: "That people tell a signal from noise better in one condition or group than another (sensitivity, d', in signal detection)", next: E72, help: "e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
-      - {label: "That a questionnaire's items form the factors you expect, found by exploratory factor analysis", next: E73, help: "e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
+      - {label: "That scores are more spread out in one group than another", next: v1_by_times,
+         when: {outcome: score, times: [once, twice]}, help: "Or more consistent, or compared with a fixed value. e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
+      - {label: "Something about latent variables", help: "That a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM).", next: E37}
+      - {label: "That a test's items work the same in two groups", next: E71, help: "Differential item functioning, in item response theory. e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
+      - {label: "That people detect a signal better in one condition or group", next: E72, help: "Sensitivity, d', in signal detection. e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
+      - {label: "That a questionnaire's items form the factors you expect", next: E73, help: "Found by exploratory factor analysis. e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -500,7 +500,7 @@ nodes:
   # answer the number of groups in F1.
   f2_by_times:
     doc_id: F2
-    text: "How many groups or conditions? (answered by S3 when the people are measured twice or more)"
+    text: "How many groups or conditions?"
     branch_on: times
     routes: {twice: E3, many_conditions: f2a}
   f2a:
@@ -516,21 +516,21 @@ nodes:
       - {label: "Any difference among the conditions", next: E54, when: {times: many_conditions}}
   f3a_by_times:
     doc_id: F3a
-    text: "For each factor: did different people get each level? (answered by S3 unless people did three or more conditions)"
+    text: "For each factor: did different people get each level?"
     branch_on: times
     routes: {once: E21, twice: E55, many_conditions: f3a}
   f3a:
     doc_id: F3a
-    text: "For each factor: did different people get each level, or did everyone get every level?"
-    help: "For example, two groups each measured at three timepoints: the groups are different people, and everyone gets every timepoint."
+    text: "For each factor, did different people get each level?"
+    help: "Or did everyone get every level? For example, two groups each measured at three timepoints: the groups are different people, and everyone gets every timepoint."
     options:
       - {label: "One factor different people, the other everyone got every level", next: E55, when: {times: [twice, many_conditions]}}
       - {label: "Both factors: different people", next: E21, when: {times: once}}
       - {label: "Both factors: everyone got every level", next: E20, when: {times: many_conditions}}
   f4:
     doc_id: F4
-    text: "For each factor: did different people get each level, or did everyone get both? (answered by S3)"
-    help: "Measured once: different people in every group. Twice: one factor between people, the other within. Three or more conditions: everyone got every combination."
+    text: "For each factor, did different people get each level?"
+    help: "Or did everyone get both? Measured once: different people in every group. Twice: one factor between people, the other within. Three or more conditions: everyone got every combination."
     branch_on: times
     routes: {once: f4a_between, twice: f4b, many_conditions: E20}
   f4a_between:
@@ -602,7 +602,7 @@ nodes:
       - {label: "One effect disappears", next: E8}
   q3_cat_by_times:
     doc_id: Q3
-    text: "What are you comparing? (answered by S3 when the same people are measured more than once)"
+    text: "What are you comparing?"
     branch_on: times
     routes: {once: q3_cat, twice: E26, many_conditions: q3_cat_many}
   # Three or more conditions with a yes/no or categorical outcome: one
@@ -614,8 +614,8 @@ nodes:
     options:
       - {label: "Once in each condition, yes or no", next: E78,
          help: "e.g. whether each person attends after no reminder, a text and a call (Cochran's Q)."}
-      - {label: "Another way: several answers in each condition, groups of people compared over the conditions, or more than two categories", next: E75,
-         help: "e.g. a yes/no answer on every trial, or a programme and a control group each asked before and after."}
+      - {label: "Another way", next: E75,
+         help: "Several answers in each condition, groups of people compared over the conditions, or more than two categories. e.g. a yes/no answer on every trial, or a programme and a control group each asked before and after."}
   q3_cat:
     doc_id: Q3
     text: "What are you comparing?"
@@ -633,7 +633,7 @@ nodes:
   # How much scores vary -----------------------------------------------------
   v1_by_times:
     doc_id: V1
-    text: "Whose spread of scores are you comparing? (answered by S3 when the same people are measured twice)"
+    text: "Whose spread of scores are you comparing?"
     branch_on: times
     routes: {once: v1, twice: E57}
   v1:
@@ -695,7 +695,7 @@ nodes:
     text: "Which kind of categorical outcome?"
     options:
       - {label: "Yes/no", next: E27}
-      - {label: "One of several categories, predicted by a score (or controlling for other variables)", next: E70}
+      - {label: "One of several categories, predicted by a score", help: "Optionally controlling for other variables.", next: E70}
       - {label: "One of several categories (and the other variable is categories too)", next: E6}
   q3_rel:
     doc_id: Q3
@@ -709,16 +709,16 @@ nodes:
     doc_id: R2
     text: "What is the other variable like?"
     options:
-      - {label: "A score measured on the same occasions, and the question is whether the two go together within people", next: E76,
-         help: "e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
-      - {label: "Something else: several predictors, a score measured once per person, or a relationship that depends on something", next: E41}
+      - {label: "Two scores measured on the same occasions, within people", next: E76,
+         help: "The question is whether the two go together within people. e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
+      - {label: "Something else: several predictors, or a relationship that depends on something", help: "Including a score measured once per person.", next: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
     options:
       - {label: "A score or scale", next: E4}
-      - {label: "A score, and the question is whether the relationship differs between two separate groups", next: E49}
-      - {label: "Scores, and the question is whether one correlation is stronger than another in the same people", next: E51}
+      - {label: "Whether a relationship differs between two separate groups", next: E49}
+      - {label: "Whether one correlation is stronger than another in the same people", next: E51}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
       - {label: "Several predictors at once, or controlling for other variables", next: E24}
 
@@ -742,11 +742,11 @@ nodes:
     text: "What are the two things whose combination matters?"
     help: "X is the predictor whose effect depends on something; W is what it depends on (the moderator)."
     options:
-      - {label: "Both are groups or conditions (for example, the emotion effect is bigger in the clinical group, or the treatment group improves more over time)", next: f1,
-         help: "A factorial design: the interaction in a mixed or repeated-measures ANOVA."}
-      - {label: "A treatment or group, and a measured score, with the outcome measured before and after", next: E24, when: {times: twice},
+      - {label: "Both are groups or conditions", next: f1,
+         help: "For example the emotion effect is bigger in the clinical group, or the treatment group improves more over time. A factorial design: the interaction in a mixed or repeated-measures ANOVA."}
+      - {label: "A group and a measured score, with the outcome before and after", next: E24, when: {times: twice},
          help: "e.g. the treatment works better for people with more social support. Tested as the X x W product in a regression on the after score that adjusts for the before score."}
-      - {label: "Things measured within each person (for example, daily stress and sleep in a diary study)", next: E41}
+      - {label: "Both are measured within each person", help: "For example daily stress and sleep in a diary study.", next: E41}
   mo1:
     doc_id: MO1
     text: "What is your main predictor (X)?"
@@ -1094,7 +1094,7 @@ endpoints:
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
-      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
+      - "Will you analyse the table with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with the usual default sampling plan and prior, which you can change."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -1277,10 +1277,10 @@ endpoints:
     card_points:
       - "Powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
       - "Expect the groups to vary by different amounts? Welch's F, the test Powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
-      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior."
+      - "Will you analyse the data with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with the usual default prior, which you can change."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
       - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-      - "Comparing pairs with a rank test instead? Choose a Mann-Whitney test of each pair, or Dunn's test, the follow-up JASP offers after the Kruskal-Wallis test, as the test version: whichever you will report."
+      - "Comparing pairs with a rank test instead? Choose a Mann-Whitney test of each pair, or Dunn's test, the usual follow-up to the Kruskal-Wallis test, as the test version: whichever you will report."
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
@@ -1407,7 +1407,7 @@ endpoints:
     card_points:
       - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, as G*Power does, which gives a little more power."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
+      - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
     alternatives: ["a t-test or ANOVA on change scores", "the mixed (group by time) interaction", "a regression with the covariate as a predictor"]
@@ -1423,7 +1423,7 @@ endpoints:
     validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factors for R-squared, an increase and one coefficient agree with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
-      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly for R-squared against 0 and by simulation for an R-squared increase or one coefficient (the model with them against the model without)."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with the usual default prior, exactly for R-squared against 0 and by simulation for an R-squared increase or one coefficient (the model with them against the model without)."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. Powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
@@ -1673,7 +1673,7 @@ endpoints:
     plain_name: "Show that an effect is too small to matter (equivalence)"
     search_words: "tost equivalence non inferiority"
     template: "equivalence_test / tost_independent, tost_paired, tost_one_sample, tost_correlation, tost_two_proportions, noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions"
-    backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula); power_z_cor() for a correlation and power_twoprop() for two proportions (two one-sided z tests); pwrss's power.t.student() and power.z.twoprops() with a margin for non-inferiority (one-sided)"
+    backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula); TOSTER's z tests for a correlation (Fisher's z) and two proportions (unpooled standard error), planned by pwrss's power.z.test() and power.z.twoprops() with alternative two.one.sided (TOSTER's own power_z_cor() and power_twoprop() give wrong answers); pwrss's power.t.student() and power.z.twoprops() with a margin for non-inferiority (one-sided)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-toster.R, note: "Matches TOSTER called directly in the engine's tests, agrees with a large-sample approximation written out in base R, and keeps the chance of wrongly claiming equivalence at or below alpha. Not yet checked against a published example."}
@@ -2342,7 +2342,7 @@ endpoints:
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
       - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and the F test is then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise); the MANOVA approach, which doesn't assume sphericity, is shown beside it."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-      - "Comparing pairs with a rank test instead? Choose a Wilcoxon signed-rank test of each pair, or Conover's test, the follow-up JASP offers after Friedman's test, as the test version: whichever you will report."
+      - "Comparing pairs with a rank test instead? Choose a Wilcoxon signed-rank test of each pair, or Conover's test, a common follow-up to Friedman's test, as the test version: whichever you will report."
     inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
@@ -2379,7 +2379,7 @@ endpoints:
       - "Three factors crossed, every combination appearing, such as group (training or control) by time (before or after) by task difficulty (easy or hard). Each factor is either different people at each level or measured in everyone."
       - "Power is for one effect: a factor's main effect, a two-way interaction, or the three-way interaction (whether a two-way interaction depends on the third factor)."
       - "Powerkit assumes equal group sizes, the same SD in every cell and the same correlation between any two conditions a person is measured in. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors. With a factor everyone is measured in, the full analysis is an R script you run yourself."
+      - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change. With a factor everyone is measured in, the full analysis is an R script you run yourself."
     inputs: ["Names of the three factors, their levels and the outcome", "Which factors everyone is measured in", "The expected cell means", "The SD", "The correlation between any two conditions a person is measured in", "Which effect", "The F test or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
@@ -2402,7 +2402,7 @@ endpoints:
     search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
       - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of evidence at the threshold either way."
-      - "Powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
+      - "Powerkit plans this for every design below, with the usual default priors, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; Powerkit uses it for the t-tests."}

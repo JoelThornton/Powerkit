@@ -160,6 +160,9 @@ bfprop_backend <- function(spec, seed = NULL) {
     default_method = "exact",
     functions = c(exact = "BayesFactor::contingencyTableBF"),
     n_step = step,
+    # The chance of a decisive table goes up and down with n, as for any
+    # test of counts: the search checks every n below its answer.
+    sawtooth = TRUE,
     exact_min_n = step * ceiling(max(4, minimum_n(spec)) / step),
     exact_power = power_at,
     bracket_power = power_at,
@@ -281,7 +284,7 @@ bfprop_script <- function(spec, result) {
     "  total",
     "}",
     "",
-    pwr_goal_section(spec, result),
+    if (identical(spec$goal$type, "sample_size")) sawtooth_goal_section(spec, result) else pwr_goal_section(spec, result),
     comparison_section()
   )
 }

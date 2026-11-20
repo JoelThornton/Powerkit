@@ -8,7 +8,10 @@
 #      example from JustifyAlpha's documentation)
 #   3. an independent search: below; a fine grid over alpha with pwr's
 #      power finds the same minimum and the same balance point
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 ja_validation_spec <- function(d, n, goal = list()) {

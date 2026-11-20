@@ -6,7 +6,10 @@
 #      observed effect beyond the critical value is exactly an observed
 #      p below alpha, by R's own t.test() and cor.test() (the tests a
 #      researcher runs), for each test and side
-# Expected values below are owned by the maintainer: do not edit them.
+# Values transcribed from a published source or G*Power (tests marked
+# "(published)" or "(G*Power value)", or a value whose comment cites its
+# source) are owned by the maintainer: do not edit them. Other expected
+# values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
 critical_validation_spec <- function(template, n, alternative = "two_sided", ratio = 1) {

@@ -111,6 +111,14 @@ test_that("the exported script reproduces the sample size and width with the pac
     expect_false(any(grepl("powerkit::|library\\(powerkit\\)", run$script)))
     expect_equal(run$reproduced, run$powerkit, tolerance = 1e-10)
   }
+  # The corrected Clopper-Pearson limits and the Wald interval's start.
+  for (case in list(list(p = 0.01, method = "exact", width = 0.0545), list(p = 0.01, method = "exact", n = 100L),
+    list(p = 0.05, method = "wald", width = 0.2))) {
+    spec <- precision_spec("precision_proportion", population.p = case$p, target_test.method = case$method,
+      goal = Filter(Negate(is.null), list(type = "precision", width = case$width, n = case$n)))
+    run <- run_exported_script(spec, run_quietly(spec))
+    expect_equal(run$reproduced, run$powerkit, tolerance = 1e-10, info = case$method)
+  }
   skip_if_not_installed("MBESS")
   spec <- precision_two_group_spec(list(type = "precision", width = 0.4, assurance = 0.8))
   result <- run_quietly(spec)
@@ -186,4 +194,33 @@ test_that("the exported scripts reproduce the new estimates with the package alo
       expect_equal(run$reproduced, run$powerkit, tolerance = 1e-6, label = name)
     }
   }
+})
+
+test_that("Clopper-Pearson limits match binom.test() at one expected success, and width plans are the smallest n", {
+  # presize 0.3.11 sets the upper limit to 1 when n p is 1 (audit, 19
+  # November 2026); binom.test() gives the interval for 1 success in 100.
+  at100 <- run_spec(precision_spec("precision_proportion", population.p = 0.01, target_test.method = "exact",
+    goal = list(type = "precision", n = 100L)))$precision
+  expect_equal(c(at100$lower, at100$upper), as.numeric(stats::binom.test(1, 100)$conf.int), tolerance = 1e-6)
+  cp_width <- function(n) {
+    x <- 0.01 * n
+    stats::qbeta(0.975, x + 1, n - x) - stats::qbeta(0.025, x, n - x + 1)
+  }
+  for (w in c(0.0545, 0.055, 0.07)) {
+    plan <- run_spec(precision_spec("precision_proportion", population.p = 0.01, target_test.method = "exact",
+      goal = list(type = "precision", width = w)))$precision
+    expect_lte(cp_width(plan$n), w)
+    expect_gt(cp_width(plan$n - 1L), w)
+    expect_lt(plan$upper, 0.1)
+  }
+})
+
+test_that("a Wald width plan starts where its own check of 5 expected in each outcome passes", {
+  # presize finds n = 19 at p = 0.05 for a width of 0.2 (under one expected
+  # success, a lower limit below 0), which check_precision() refuses.
+  plan <- run_spec(precision_spec("precision_proportion", population.p = 0.05, target_test.method = "wald",
+    goal = list(type = "precision", width = 0.2)))$precision
+  expect_identical(plan$n, 100L)
+  expect_no_error(validate_spec(precision_spec("precision_proportion", population.p = 0.05,
+    target_test.method = "wald", goal = list(type = "precision", n = plan$n))))
 })

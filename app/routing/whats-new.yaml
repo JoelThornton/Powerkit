@@ -7,6 +7,162 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-20"
+    title: Shorter labels on study plans, the whole-study screen and the variation tool
+    text: >
+      Labels no longer carry a bracketed explanation or a symbol standing in
+      for a word: "Significance level" replaces "Significance level (alpha)"
+      everywhere (the help says it is also called alpha), "Total participants
+      analysed" drops "(N)", and notes such as "separate them with commas" or
+      "the same seed gives the same result" now sit beside the box instead
+      of inside its label.
+  - date: "2026-11-20"
+    title: A shorter methods paragraph
+    text: >
+      The short version of the methods paragraph no longer carries the
+      Welch-test notes about equal SDs or R's build date. They are still in
+      the full version, for a supplement or preregistration.
+  - date: "2026-11-20"
+    title: Scripts and checks that match the app
+    text: >
+      The R script for a correlation of exactly 0 tested one-sided now runs.
+      For yes/no answers with one pair of conditions tested by the
+      likelihood ratio, the method and the script now say and do that, not
+      a Wald test. The repeated-measures correlation shows a negative
+      critical value for a lower-tail test. Ordered categories with a very
+      small share in one category no longer fail their translation check.
+  - date: "2026-11-20"
+    title: Correct power where a package was wrong
+    text: >
+      The equivalence test of a correlation or of two proportions now gives
+      the power of the test you will run. The package's own planning
+      functions ignored the expected correlation, or understated power when
+      the proportions differ, so earlier answers could be far off; the
+      result says how they differ. A two-sided test of Cronbach's alpha now
+      counts both tails, so with no difference its power is your alpha;
+      sample sizes don't change. A two-sided test of a measured predictor
+      of survival now counts both tails too, so its power is no longer
+      slightly understated for small effects. The equivalence test of two
+      proportions now needs at least 10 people in each group, the fewest
+      the test itself accepts. For a prediction model of a continuous or
+      time-to-event outcome, the result now says when the sample size
+      doesn't estimate the mean outcome, or the outcome's risk, as
+      precisely as the criteria ask, and for a continuous outcome how many
+      people would.
+  - date: "2026-11-20"
+    title: Shorter choices in "Help me choose"
+    text: >
+      The longest choices in the questions that find your analysis now say the
+      main idea in a few words. The examples and the detail they carried are
+      in the note under each choice, which shows with explanations on.
+  - date: "2026-11-20"
+    title: Shorter labels on the input screens
+    text: >
+      Long labels on the input screens, mostly the boxes for means,
+      proportions, correlations and SDs, now say what the number is in a few
+      words. How to enter it (the order, commas, whether it is optional) is in
+      the help under the box, which shows with explanations on.
+  - date: "2026-11-20"
+    title: Corrected answers in several calculations
+    text: >
+      A study plan's joint power now keeps the direction of each effect, so
+      two related outcomes expected to move in opposite directions are no
+      longer treated as moving the same way; an outcome with no expected
+      effect is kept, and a one-sided test of an effect in the other
+      direction is explained instead of miscounted.
+  - date: "2026-11-20"
+    title: Exact sizes for unequal groups and intervals for rare outcomes
+    text: >
+      Comparing two correlations, or two proportions with the z test, with
+      unequal groups now scores the groups exactly as they are split, where
+      one person could be added to the first group before; the z test also
+      gives an answer when the two proportions are equal. The exact
+      (Clopper-Pearson) interval for a proportion no longer reaches 1 when
+      one success is expected, and a Wald interval plan starts where at
+      least 5 are expected in each outcome.
+  - date: "2026-11-20"
+    title: Smallest sample sizes found where power dips
+    text: >
+      The Bayes factor test of two proportions now finds the smallest sample
+      size when the chance of strong evidence goes up and down as the sample
+      grows. Mixed models with conditions between participants search in
+      totals that split equally between the conditions, and the R script for
+      a trial that assigns whole sites searches in pairs of sites, as the
+      app does.
+  - date: "2026-11-20"
+    title: A tidier start screen and home page
+    text: >
+      On the start screen, "Open a saved file" and "Run Powerkit on your own
+      computer" are now buttons with small icons, the note for people trying
+      the prototype out sits in a soft box, and the footer links are quieter.
+      The public home page lists its guide, download, validation and source
+      links as four short cards.
+  - date: "2026-11-19"
+    title: Replication plans for three-factor ANOVAs
+    text: >
+      A replication of an ANOVA with three factors can now be planned: give
+      the third factor's levels, choose the effect the replication tests
+      (a main effect, a two-way interaction or the three-way interaction)
+      and enter the original's F. The sample size allows for publication
+      bias and the uncertainty of the original's estimate, as for a
+      two-factor ANOVA. A mixed design asks how many of its factors are
+      between-subjects.
+  - date: "2026-11-19"
+    title: Replication plans name themselves and sum up what you've entered
+    text: >
+      A new replication plan takes its name from the original study and the
+      kind of replication, such as "Close replication of Smith (2019)",
+      until you give it a name of your own. A card at the top of the plan
+      sums up what you have entered so far, including the sample size once
+      it is planned. Goals now say which main criterion your answer to
+      "What should the replication show?" gives, and that this criterion
+      sets the sample size. With explanations off, each box has one info
+      button in its corner instead of "More context" links. Delete is a
+      small red button beside the plan's title.
+  - date: "2026-11-19"
+    title: Fields stay clear of the bar at the bottom of the screen
+    text: >
+      Moving through a form with the Tab key no longer leaves a field hidden
+      under the bar with the main button at the bottom of the screen. For an
+      ANOVA original, the assurance choices now run from 50% to 95%; 80%,
+      BUCSS's default, is still the one selected.
+  - date: "2026-11-19"
+    title: Shorter labels in the replication planner
+    text: >
+      The replication planner's labels are shorter, such as "Significance
+      level", "Chance of success (power)" and "Whether the effect is there or
+      not", and read the same with explanations on or off. What the longer
+      labels explained is now in each field's help, and examples are inside
+      the text boxes.
+  - date: "2026-11-19"
+    title: Clearer study plan pages
+    text: >
+      A study plan's page now looks like a replication plan's. Its settings
+      card has a heading, and its help is behind info buttons when
+      explanations are off. The notes show their first sentence and keep
+      the rest behind an info button. A plan whose analyses can't share one
+      sample size now says why: one has no sample size, they count
+      different things, or they count the same people in different
+      designs. The buttons sit in two cards: one for adding an analysis
+      and one for saving or sharing the plan.
+  - date: "2026-11-19"
+    title: Design finder describes Bayes factor tests in plain words
+    text: >
+      The design finder's cards ask whether you will analyse with a Bayes
+      factor instead of a p-value, and describe the starting priors as the
+      usual defaults you can change, rather than naming one program's
+      version of the analysis. Dunn's and Conover's follow-up tests are
+      described the same way.
+  - date: "2026-11-19"
+    title: Clearer replication plan pages
+    text: >
+      With "Show explanations" on, a replication plan's guidance is shown
+      in full without info buttons; with it off, the guidance sits behind
+      an info button beside the heading or question it is about, rather
+      than on a line of its own. The two ways to get the sample size now
+      sit in their own panel, apart from the questions, and the choices'
+      descriptions are no longer in bold. On every input screen, a
+      section's info button now sits beside its heading.
   - date: "2026-11-19"
     title: Exact binomial tests and one-sided proportion tests
     text: >
@@ -2560,72 +2716,3 @@ entries:
       tests" under "I know my analysis". You get the power for that
       noncentrality, or the noncentrality you'd need; there is no sample
       size, because the noncentrality already reflects it.
-  - date: "2026-10-19"
-    title: "Asked whether your hypothesis predicts a direction"
-    text: >-
-      For tests that can be one-sided, the input screen now starts by asking
-      whether your hypothesis predicts a direction, instead of filling in a
-      two-sided test for you.
-  - date: "2026-10-19"
-    title: "Planning for a claim that needs every test to be significant"
-    text: >-
-      If your claim needs all of several tests to be significant, powerkit
-      now asks how many and plans each test at a higher power, so that all
-      of them together reach the power you chose. Where it says no
-      correction is needed for separate claims, it now notes that not
-      everyone agrees.
-  - date: "2026-10-19"
-    title: "Check a plan someone shared with you"
-    text: >-
-      Supervisors, reviewers and colleagues can open a saved plan from the
-      start screen and see what it assumes, what it found and which
-      questions are worth asking, such as a missing reason for the effect
-      size or no allowance for drop-out. It doesn't change the file or give
-      a pass or fail.
-  - date: "2026-10-19"
-    title: "A plain-words version of the write-up for ethics applications"
-    text: >-
-      Under the write-up there is now a third box that explains, in words an
-      ethics panel can follow, why you plan this many participants: the
-      effect you planned for and why, and the chance of finding or missing
-      it. It describes the plan; it doesn't judge whether the study is
-      ethical.
-  - date: "2026-10-19"
-    title: "A reason is asked for if you change the significance level or test direction"
-    text: >-
-      The significance level (.05) and a two-sided test stay filled in. If you
-      change either, a box asks why. It's optional, and what you write goes
-      into the write-up.
-  - date: "2026-10-19"
-    title: "Two new analyses: goodness of fit, and comparing two correlations"
-    text: >-
-      You can now plan a chi-square goodness-of-fit test (one group's answers
-      across several categories, compared with expected proportions) and a
-      comparison of the same correlation in two separate groups. Neither has
-      been checked against G*Power yet; their cards say so.
-  - date: "2026-10-19"
-    title: "\"Guess first\": write down your guess before you see the answer"
-    text: >-
-      At the end of each input screen you can write down the sample size or
-      power you expect. The result screen then shows your guess next to the
-      answer. It's a learning aid only: the guess isn't saved in your plan
-      and nothing is collected.
-  - date: "2026-10-19"
-    title: "More analyses can find the smallest effect you could detect"
-    text: >-
-      If you can't justify an effect size, or your sample size is fixed, the
-      app can now find the smallest effect you could detect for two
-      proportions, the chi-square test and interactions in regression. For
-      interactions it uses a quick formula, which the result screen labels.
-  - date: "2026-10-19"
-    title: "The app asks whether your reasoning still applies"
-    text: >-
-      If you change the effect size after explaining why you chose it, the
-      result screen asks whether your reasoning still applies, rather than
-      quietly keeping a reason written for a different number.
-  - date: "2026-10-19"
-    title: "Fisher's exact test and one-way ANCOVA"
-    text: >-
-      Comparing two proportions now offers Fisher's exact test for small
-      samples, and one-way ANCOVA (group means adjusted for covariates)
-      calculates in the app.
