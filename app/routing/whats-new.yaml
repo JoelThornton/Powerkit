@@ -8,6 +8,21 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Shorter labels on study plans, the whole-study screen and the variation tool
+    text: >
+      Labels no longer carry a bracketed explanation or a symbol standing in
+      for a word: "Significance level" replaces "Significance level (alpha)"
+      everywhere (the help says it is also called alpha), "Total participants
+      analysed" drops "(N)", and notes such as "separate them with commas" or
+      "the same seed gives the same result" now sit beside the box instead
+      of inside its label.
+  - date: "2026-11-20"
+    title: A shorter methods paragraph
+    text: >
+      The short version of the methods paragraph no longer carries the
+      Welch-test notes about equal SDs or R's build date. They are still in
+      the full version, for a supplement or preregistration.
+  - date: "2026-11-20"
     title: Scripts and checks that match the app
     text: >
       The R script for a correlation of exactly 0 tested one-sided now runs.
