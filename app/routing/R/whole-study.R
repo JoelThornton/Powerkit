@@ -292,7 +292,7 @@ whole_study_seconds <- function(forms, plan, nrep) {
 whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NULL) {
   if (!isTRUE(plan$ok)) {
     return(tags$details(class = "plan-more whole-study-entry",
-      tags$summary("Simulating the whole study at once (experimental) isn't available for this plan"),
+      tags$summary("Simulating the whole study isn't available for this plan"),
       p("It covers studies where:"), tags$ul(lapply(plan$reasons, tags$li))))
   }
   div(class = "whole-study-entry whole-study-lead",
@@ -606,7 +606,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
         whole(pv$nrep), whole(r$n))),
       curve),
     div(class = "result-card", id = "ws-inputs",
-      h4(class = "h5", "What your study model means for each analysis's own input screen"),
+      h4(class = "h5", "What your study model means for each analysis"),
       p(class = "small", if (experiment)
         "Each test's effect size (Cohen's f) and its power when it is the only test, calculated exactly from your means (Superpower's ANOVA_exact()), as its own card would give them."
         else "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),

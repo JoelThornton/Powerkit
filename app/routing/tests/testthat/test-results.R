@@ -212,7 +212,7 @@ test_that("technical details show the package's df, critical value and noncentra
   calc <- run_calculation(light_spec("E7"), run, seed = 3L)
   d <- calc$result$details
   html <- as.character(technical_details_ui(calc$result))
-  expect_match(html, "Technical details (for checking against G*Power or R)", fixed = TRUE)
+  expect_match(html, "Technical details", fixed = TRUE)
   expect_match(html, sprintf("Degrees of freedom: %s and %s.", d$df[1], d$df[2]), fixed = TRUE)
   expect_match(html, "Noncentrality parameter:", fixed = TRUE)
   expect_match(html, paste("Reported by", d$source), fixed = TRUE)
@@ -3704,4 +3704,19 @@ test_that("a factorial ANOVA's target effect is named with the factors' own name
   expect_identical(anova_effect_words(spec), "the main effect of Role")
   expect_identical(anova_effect_words(list(target_test = list(effect = "interaction"), variables = list())),
     "the interaction of the first factor and the second factor")
+})
+
+test_that("the short methods paragraph leaves out the Welch caveats and R's build date; the full version keeps them", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(goal = "sample_size"))
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  texts <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_no_match(texts[["short"]], "equal population SDs", fixed = TRUE)
+  expect_no_match(texts[["short"]], "observed SDs are equal", fixed = TRUE)
+  expect_no_match(texts[["short"]], "R version [0-9.]+ \\(")
+  expect_match(texts[["full"]], "equal population SDs", fixed = TRUE)
+  expect_match(texts[["full"]], "observed SDs are equal", fixed = TRUE)
+  expect_match(texts[["full"]], "R version [0-9.]+ \\(")
 })

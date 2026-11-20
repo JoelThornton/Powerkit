@@ -734,7 +734,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     )),
     # Guess first (optional teaching mode): the guess is shown next to the
     # answer and goes nowhere else (no spec path, not in the exports).
-    list(input = NULL, title = "Guess the answer first (optional, to learn how power behaves)", note = guess_note, fields = list(
+    list(input = NULL, title = "Guess the answer first (optional)", note = guess_note, fields = list(
       list(id = "guess", label = "Your guess", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))

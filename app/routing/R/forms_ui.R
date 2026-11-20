@@ -545,7 +545,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
         settings_summary_ui(settings, values), " \u00b7 ", tags$span(class = "form-settings-change", "Change")),
       part("settings")),
-    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional, to learn how power behaves)"), part("guess"))
+    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess"))
   )
 }
 
