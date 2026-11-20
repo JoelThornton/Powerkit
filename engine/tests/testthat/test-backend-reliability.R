@@ -98,6 +98,24 @@ test_that("Cronbach's alpha: the required n is statpsych's, and its help example
   expect_equal(run_spec(spec)$n_required$n, unname(statpsych::size.test.cronbach(0.1, 0.85, 0.8, 5, 0.7)[1, 1]))
 })
 
+test_that("Departure 34: a two-sided test of alpha counts both tails, by this much", {
+  # At the null value the formula's one tail gives alpha / 2; both tails
+  # give alpha, the two-sided test's level.
+  spec <- reliability_spec("reliability_cronbach_alpha", list(type = "power", n = 100), reliability = 0.7)
+  expect_equal(run_spec(spec)$curve$power, 0.05, tolerance = 1e-12)
+  inputs <- reliability_inputs(spec)
+  inputs$one_sided <- TRUE
+  inputs$alpha <- 0.025
+  expect_equal(cronbach_power(inputs, 100), 0.025, tolerance = 1e-12)
+  # With an effect worth planning for, the other tail adds almost nothing:
+  # alpha 0.8 against 0.7 over 5 items at n = 139 (statpsych's n for 85%).
+  spec <- reliability_spec("reliability_cronbach_alpha", list(type = "power", n = 139))
+  inputs <- reliability_inputs(spec)
+  d <- sqrt(137 * 4 / 10) * abs(log(0.2 / 0.3))
+  expect_equal(run_spec(spec)$curve$power - stats::pnorm(d - stats::qnorm(0.975)), stats::pnorm(-d - stats::qnorm(0.975)))
+  expect_lt(stats::pnorm(-d - stats::qnorm(0.975)), 1e-6)
+})
+
 test_that("kappa: the required n is kappaSize's, rounded up, and power inverts it", {
   result <- run_spec(example_spec("reliability_kappa"))
   expect_equal(result$provenance$backend, "kappaSize")

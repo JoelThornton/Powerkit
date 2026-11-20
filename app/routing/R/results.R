@@ -2919,6 +2919,12 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 33 (pwrss's power for TOSTER's z tests) applies to a
+  # correlation and two proportions.
+  if (!spec$template %in% c("tost_correlation", "tost_two_proportions")) keys <- setdiff(keys, "33")
+  # Departure 34 (both tails for Cronbach's alpha) applies to a two-sided
+  # test of alpha.
+  if (!identical(spec$template, "cronbach_alpha") || isTRUE(spec$target_test$alternative %in% c("greater", "less"))) keys <- setdiff(keys, "34")
   # Departure 32 (the Brown-Forsythe test by default for two variances)
   # applies when it is the test planned for.
   if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")

@@ -3113,8 +3113,8 @@ minimum_n_design <- function(spec) {
       # TOSTER's z test of a correlation uses Fisher's z, whose SE is
       # 1 / sqrt(n - 3).
       tost_correlation = 5,
-      # TOSTER's power_twoprop() needs four people in each of the two
-      # equal groups.
+      # Four people in each of the two equal groups, so that the Wald
+      # standard error of each proportion can be other than 0.
       tost_two_proportions = 8,
       # pwrss's t tests need at least 3 degrees of freedom.
       noninf_independent = 6,

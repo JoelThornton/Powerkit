@@ -387,6 +387,8 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "34": "Cronbach's alpha: for a two-sided test Powerkit counts both tails of Bonett and Wright's z test, so at the null value the power is alpha (5%). statpsych's sample-size formula counts only the tail in the effect's direction, which gives alpha / 2 there; with an effect worth planning for the other tail adds well under 0.0001, so the sample size is statpsych's."
+  "33": "Equivalence of a correlation or of two proportions: Powerkit works out the power of the test TOSTER runs (two one-sided z tests, on Fisher's z for a correlation, with the unpooled standard error for two proportions) with pwrss. TOSTER's own planning functions give different answers: power_z_cor() ignores the expected correlation (for r = 0.1, bounds of 0.2 and 500 people it gives 99.6%, against 73.8%), and power_twoprop() applies the distance to the nearer bound on both sides (0% against 47.5% for 0.5 and 0.55, bounds of 0.1 and 500 per group)."
   "32": "Two variances: Powerkit plans for the Brown-Forsythe test unless you choose Levene's test or the F test. G*Power plans for the F test, which assumes normal scores: with skewed or heavy-tailed scores its chance of a false positive is far above alpha (12% and 43% at alpha .05 with 100 per group), while the Brown-Forsythe test keeps it near 5%. With normal scores the Brown-Forsythe test has a little less power: 46.6% against the F test's 51.8% for variances of 1.5 and 1 and 200 people."
   "29": "The ICC: Powerkit works out the F test's power from its exact distribution (Donner and Eliasziw, 1987), unless you choose ICC.Sample.Size's approximation (Walter, Eliasziw and Donner), which asks for a few more people than needed: for an ICC of 0.8 against 0.6 with 3 raters, one-sided, 80% power needs 26 subjects by the exact power and 27 by the approximation."
   "26": "Repeated measures with SDs or correlations that differ: Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
@@ -1951,7 +1953,7 @@ forms:
     tool: kappaSize
     sensitivity: true
     sensitivity_shown_if: {field: question, is_one_of: [icc, cronbach_alpha, kappa]}
-    departures: ["27", "29"]
+    departures: ["27", "29", "34"]
     directional: false
     base: {spec_version: "0.1", design: reliability, variables: {"Y": {type: continuous}}, population: {}, target_test: {}}
     groups:
@@ -3317,9 +3319,10 @@ forms:
   E36:
     # Equivalence tests: two one-sided tests (TOST) by TOSTER's exact
     # formula. One screen for the three comparisons TOSTER's power_t_TOST()
-    # covers, and for a correlation (power_z_cor()) and two proportions
-    # (power_twoprop()); the comparison sets the template.
+    # covers, and for a correlation and two proportions (TOSTER's z tests,
+    # planned with pwrss: Departure 33); the comparison sets the template.
     methods_name: "an equivalence test (two one-sided tests, TOST)"
+    departures: ["33"]
     sensitivity: true
     sides: false
     tool: TOSTER

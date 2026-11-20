@@ -29,8 +29,12 @@
 #                   e = (1 - rel) / (1 - h), z_a two-sided (its source,
 #                   version 2.0.0). statpsych gives no power at a given n,
 #                   so power is the same formula solved for z_b:
-#                   Phi(sqrt((n - 2)(r - 1) / (2r)) |ln e| - z_a). Its
-#                   smallest n for a power equals size.test.cronbach()'s
+#                   Phi(D - z_a), D = sqrt((n - 2)(r - 1) / (2r)) |ln e|,
+#                   plus, for a two-sided test, the other tail's
+#                   Phi(-D - z_a), which the sample-size formula leaves
+#                   out (Departure 34: so a test at the null value has
+#                   power alpha, not alpha / 2). Its smallest n for a power
+#                   equals size.test.cronbach()'s
 #                   (test-backend-reliability.R). A one-sided test takes
 #                   z_a at 1 - alpha.
 #
@@ -142,7 +146,9 @@ cronbach_power <- function(inputs, n) {
   z_a <- stats::qnorm(1 - if (inputs$one_sided) inputs$alpha else inputs$alpha / 2)
   e <- (1 - inputs$value) / (1 - inputs$null)
   r <- inputs$items
-  stats::pnorm(sqrt(max(n - 2, 0) * (r - 1) / (2 * r)) * abs(log(e)) - z_a)
+  d <- sqrt(max(n - 2, 0) * (r - 1) / (2 * r)) * abs(log(e))
+  # A two-sided test rejects in either tail (Departure 34).
+  stats::pnorm(d - z_a) + if (inputs$one_sided) 0 else stats::pnorm(-d - z_a)
 }
 
 # kappaSize's sample size (not rounded) for a power.
@@ -333,11 +339,13 @@ reliability_script <- function(spec, result) {
       "",
       "# Bonett and Wright's (2015) test of ln(1 - alpha). size.test.cronbach()",
       "# gives the sample size; the same formula solved for power gives the",
-      "# power at a given n.",
+      "# power at a given n. A two-sided test also counts the other tail,",
+      "# which the sample-size formula leaves out (powerkit's Departure 34).",
       "power_at <- function(n_total) {",
       "  z_a <- qnorm(1 - if (one_sided) alpha else alpha / 2)",
       "  e <- (1 - reliability) / (1 - reliability_null)",
-      "  pnorm(sqrt(max(n_total - 2, 0) * (items - 1) / (2 * items)) * abs(log(e)) - z_a)",
+      "  d <- sqrt(max(n_total - 2, 0) * (items - 1) / (2 * items)) * abs(log(e))",
+      "  pnorm(d - z_a) + if (one_sided) 0 else pnorm(-d - z_a)",
       "}",
       "# For comparison: statpsych's sample size for 80% power.",
       "size.test.cronbach(if (one_sided) 2 * alpha else alpha, 0.8, reliability, items, reliability_null)"

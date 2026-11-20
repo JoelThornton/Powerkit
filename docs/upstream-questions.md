@@ -51,6 +51,9 @@ below retain their reproduction information and limitations.
 | Spower: one-sided correlation test with nonzero null rho | Source inspection quoted below; no independent numerical check recorded here | Not exposed: Powerkit does not offer that nonzero-null simulated correlation target | Such a target is added, or Spower's p-value code changes; validate the actual directional test |
 | Spower 0.6.4: halved two-sided p-values with a zero null | Historical reproduction `upstream/spower-one-sided-tests.R`; retired Departure 4 | Upstream resolution recorded for 0.7; this historical fault is separate from the nonzero-null question above | Direction handling changes; retain null and opposite-direction regression checks on upgrade |
 | semPower: simulated configural measurement-invariance comparison | `test-validation-sem-latent.R`; recorded internal dimension error | Analytic route unaffected; independent lavaan simulation used for the cross-check | Simulation output changes; repeat configural and saturated comparisons before changing the cross-check |
+| TOSTER 0.8.6: `power_z_cor(alternative = "equivalence")` | Question below; `test-backend-toster.R`, "Departure 33" | Bypassed: powerkit plans `z_cor_test()` with `pwrss::power.z.test()` on Fisher's z (Departure 33) | Upstream correction; compare with powerkit's power at a nonzero expected correlation before using it again |
+| TOSTER 0.8.6: `power_twoprop(alternative = "equivalence")` | Question below; `test-backend-toster.R`, "Departure 33" | Bypassed: powerkit plans `twoprop_test()` with `pwrss::power.z.twoprops()`, unpooled SE (Departure 33) | Upstream change to the exact two-sided TOST power; compare at unequal proportions |
+| pmsampsize 1.1.3: continuous criterion 4 and survival criterion 3 | Question below; `test-backend-prediction-model.R`, "the precision of the mean or the risk is checked" | Disclosed: powerkit reports the package's n, checks the precision at it, and says on the result and in the methods text when it is not met (with the n that meets the continuous criterion) | Upstream correction; rerun the 8-parameter example (243 against 7,206) and a survival case that misses 0.05 |
 | PMCMRplus: list-form Jonckheere direction/continuity | `test-backend-trend.R`; list versus score/group calls | Bypassed: scores and group labels passed separately | New version or list-method fix; retain directional and two-sided comparisons |
 
 On a dependency update, inspect the affected rows and run their named checks
@@ -419,6 +422,50 @@ Questions about pmvalsampsize 0.1.0, from reading its source (15 November
    the package? powerkit passes the default and reports pmvalsampsize's
    answer; its validation checks this criterion to within 1%
    (engine/tests/testthat/test-validation-prediction-model.R).
+
+## TOSTER
+
+Questions about TOSTER 0.8.6, from reading its source (20 November 2026).
+
+1. **`power_z_cor(alternative = "equivalence")` never uses `rho`.** The
+   internal `pow_corr_tost()` computes the power from the Fisher-z bounds
+   and the SE alone, so the answer is the power when the true correlation
+   is 0: for `rho = 0.1`, `null = 0.2` and `n = 500` it gives 0.996, the
+   same as for `rho = 0`, where the two one-sided z tests `z_cor_test()`
+   runs have power 0.738. Would the package use atanh(rho) as the
+   statistic's mean?
+2. **`power_twoprop(alternative = "equivalence")` applies the nearer
+   bound's distance to both sides.** `pow_prop_tost()` takes
+   2 Φ((bound − |p1 − p2|) / SE − z) − 1, a conservative approximation; the
+   power of `twoprop_test()`'s two one-sided Wald tests is
+   Φ((bound − d) / SE − z) + Φ((bound + d) / SE − z) − 1. For 0.5 and
+   0.55, bound 0.1, 500 per group, it gives 0 where the test's power is
+   0.475 (checked by simulation). Would the exact form suit the package?
+
+powerkit plans both tests with pwrss instead (docs/conventions.md,
+Departure 33).
+
+## pmsampsize
+
+Questions about pmsampsize 1.1.3, from reading its source (20 November
+2026).
+
+1. **Continuous outcomes, criterion 4: the search uses the wrong
+   quantile.** `pmsampsize_cont()` checks the interval for the mean at
+   the largest of criteria 1 to 3 with `-qt(0.025, df)`, but its search
+   beyond uses `qt(0.025, df)`, which is negative, so the "upper" limit
+   falls below the mean and the loop stops at the next n. For 8
+   parameters, R-squared 0.25, mean 1, SD 5 and the default margin 1.1 it
+   returns 243 (with an upper limit of 0.45 reported for a mean of 1);
+   the margin needs 7,206. Would `-qt(0.025, df)` in the loop be right?
+2. **Time-to-event outcomes, criterion 3 is reported but not required.**
+   `pmsampsize_surv()` computes the interval for the risk at the time
+   point at max(n1, n2) and reports it, but no n is chosen to bring it
+   within 0.05. Is that intended? Riley et al. present it as a criterion.
+
+powerkit reports the package's sample size, checks both precisions at it
+and says on the result when one is not met
+(`engine/R/backend-prediction-model.R`, `prediction_precision()`).
 
 ## Superpower: corrected mixed-design approximation
 

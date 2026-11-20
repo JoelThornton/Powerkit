@@ -74,6 +74,8 @@ export_script <- function(spec, result, file = NULL) {
     },
     pwrss = if (rmcorr_test(spec)) {
       rmcorr_script(spec, result)
+    } else if (spec$template %in% c("tost_correlation", "tost_two_proportions")) {
+      toster_script(spec, result)
     } else if (mediation_joint_test(spec)) {
       mediation_joint_script(spec, result)
     } else if (spec$design == "generic_test") {

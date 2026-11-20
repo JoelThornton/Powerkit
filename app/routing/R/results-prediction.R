@@ -45,6 +45,23 @@ prediction_validation_sentences <- function(spec, result) {
   c(headline = headline, reading = reading, detail = how)
 }
 
+# pmsampsize 1.1.3 does not enforce the precision of the mean outcome
+# (continuous) or of the outcome risk (time to event); the engine checks it
+# (result$prediction$precision). A sentence when it is not met, else NULL.
+prediction_precision_sentence <- function(pr) {
+  pc <- pr$precision
+  if (is.null(pc) || isTRUE(pc$met)) return(NULL)
+  if (identical(pc$kind, "mean")) {
+    sprintf(paste("At this size the mean outcome is not estimated as precisely as the criterion asks: the upper limit of its 95%% interval",
+      "is %s times the mean, against a target of %s. About %s would meet it (pmsampsize's search for this criterion stops too early)."),
+      format(round(pc$achieved, 2), nsmall = 2), format(pc$target), prediction_people(pc$n_needed))
+  } else {
+    sprintf(paste("At this size the outcome risk at the time point is estimated within %s, not within the criterion's %s:",
+      "pmsampsize reports this precision but does not require it, so a larger sample is needed for it."),
+      format(round(pc$achieved, 3), nsmall = 3), format(pc$target))
+  }
+}
+
 prediction_sentences <- function(spec, result) {
   if (is_prediction_validation(spec)) return(prediction_validation_sentences(spec, result))
   pr <- result$prediction
@@ -54,7 +71,8 @@ prediction_sentences <- function(spec, result) {
   events <- if (!is.na(pr$events)) sprintf(" That is about %s %s, or %s per candidate parameter.", whole(ceiling(pr$events)),
     if (identical(pr$outcome, "survival")) "events" else "people with the outcome", format(round(pr$events_per_parameter, 1), nsmall = 1)) else ""
   reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
-    " It is a minimum for developing the model, not a power calculation: a smaller sample risks a model that overfits and predicts less well in new people.")
+    " It is a minimum for developing the model, not a power calculation: a smaller sample risks a model that overfits and predicts less well in new people.",
+    if (!is.null(prediction_precision_sentence(pr))) paste0(" ", prediction_precision_sentence(pr)) else "")
   how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which Powerkit called with your answers, assuming %s for a model of %s.",
     prediction_performance_text(spec), prediction_outcome_words(pr$outcome))
   c(headline = headline, reading = reading, detail = how)
@@ -67,9 +85,10 @@ prediction_criteria_ui <- function(result) {
   pr <- result$prediction
   rows <- lapply(seq_len(nrow(pr$criteria)), function(i) {
     row <- pr$criteria[i, ]
+    unmet <- identical(row$met, FALSE)
     tags$tr(class = if (identical(row$criterion, pr$binding)) "table-active" else NULL,
       tags$td(row$criterion), tags$td(class = "text-end", whole(row$n)),
-      tags$td(if (identical(row$criterion, pr$binding)) "Sets the answer" else ""))
+      tags$td(if (unmet) "Not met at this size (pmsampsize does not enforce it)" else if (identical(row$criterion, pr$binding)) "Sets the answer" else ""))
   })
   tags$table(class = "table table-sm result-criteria",
     tags$caption("The sample size each criterion needs"),
@@ -114,6 +133,7 @@ prediction_writeup <- function(form, spec, result, fields, values, departures = 
     if (!is.na(pr$events)) sprintf(" (about %s %s, %s per candidate parameter)", whole(ceiling(pr$events)),
       if (identical(pr$outcome, "survival")) "events" else "with the outcome", format(round(pr$events_per_parameter, 1), nsmall = 1)) else "",
     tolower_first(pr$binding))
+  aim <- paste(c(aim, prediction_precision_sentence(pr)), collapse = " ")
   basis <- sprintf("The model's anticipated performance, %s, was based on %s: %s.", prediction_performance_text(spec),
     writeup_source[[values$just_type %||% "prior_study"]] %||% "our reasoning", writeup_quote(values$just_source))
   recruit <- result$recruitment
