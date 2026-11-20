@@ -2676,7 +2676,7 @@ server <- function(input, output, session) {
     showNotification(sprintf("Your study plans from your last visit are back (%d %s). Open them with “Study plans” at the top of the page.",
       k, if (k == 1) "plan" else "plans"), duration = 12, type = "message")
   }, once = TRUE)
-  joint_kept <- list()
+  joint_kept <- reactiveValues()
   observeEvent(input$plan_joint, {
     plan <- plan_get(isolate(state$plans_view))
     entries <- plan$entries %||% list()
@@ -2693,11 +2693,21 @@ server <- function(input, output, session) {
     }
     # Kept for this plan's "Download everything" while its analyses stay
     # the same.
-    if (!is.character(out) && !is.null(plan)) joint_kept[[plan$id]] <<- list(analyses = plan_analysis_hashes(plan), calc = out)
+    # A failed calculation (a blank correlation, say) drops the earlier one,
+    # so the downloads match what the screen shows.
+    if (!is.null(plan)) joint_kept[[plan$id]] <- if (!is.character(out)) list(analyses = plan_analysis_hashes(plan), calc = out)
     output$plan_joint_result <- renderUI(if (is.character(out)) div(class = "form-problems", role = "alert", out) else {
       words <- joint_power_sentence(out, entries)
       div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
     })
+  })
+  # A correlation edited after the calculation: the result shown is said
+  # to be out of date (and the downloads leave it out, joint_power_current()).
+  output$plan_joint_stale <- renderUI({
+    rho <- input$plan_rho
+    plan <- plan_get(state$plans_view)
+    text <- if (!is.null(plan)) joint_power_stale_text(joint_kept[[plan$id]], plan, rho)
+    if (!is.null(text)) p(class = "small plan-note", role = "status", text)
   })
   # The next analysis, chosen from the searchable list of every analysis
   # (queue item 29), added to this plan.
@@ -2743,8 +2753,7 @@ server <- function(input, output, session) {
     content = function(file) {
       plan <- plan_get(isolate(state$plans_view))
       if (is.null(plan) || (!length(plan$entries) && !plan_is_replication(plan))) stop("The plan has no analyses to download.")
-      kept <- joint_kept[[plan$id]]
-      joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
+      joint <- joint_power_current(isolate(joint_kept[[plan$id]]), plan, isolate(input$plan_rho))
       write_plan_bundle(plan, file, tree, forms, joint = joint)
       plans_put(plan_mark_saved(plan, "file"))
     },
@@ -2755,8 +2764,7 @@ server <- function(input, output, session) {
   plan_report_lines <- function() {
     plan <- plan_get(isolate(state$plans_view))
     if (is.null(plan) || !length(plan$entries)) stop("The plan has no analyses.")
-    kept <- joint_kept[[plan$id]]
-    joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
+    joint <- joint_power_current(isolate(joint_kept[[plan$id]]), plan, isolate(input$plan_rho))
     plan_planning_document(plan, tree, forms, joint = joint)
   }
   plan_report_name <- function(ext) sub("\\.powerkit\\.json$", paste0("-planning.", ext), plan_file_name(plan_get(isolate(state$plans_view))))
