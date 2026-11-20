@@ -27,7 +27,7 @@ and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
-size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026); results and exports are next.
+size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026); results and exports are next. A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; they are `next.md` items 33 to 41, with items 33 and 34 a priority and item 40 (fixed rows in the Bayes factor tables) waiting on a decision.
 Replication plans compare BUCSS publication assumptions when the original's
 publication process is unknown. Goals and exports describe what the selected
 criterion can show, including the replication Bayes factor for designs without
