@@ -1676,9 +1676,13 @@ prop_test_script_lines <- function(spec, inputs) {
         "  n_group2 <- n_total - n_group1",
         "  power.z.twoprops(",
         paste0("    ", ensure_commas(c(
-          "prob1 = proportions[1]", "prob2 = proportions[2]",
+          "prob1 = proportions[1]",
+          if (args$prob2 != spec$population$p2) {
+            "prob2 = proportions[2] + 2e-6 # pwrss refuses equal proportions (to 1e-6); the power there is alpha"
+          } else "prob2 = proportions[2]",
           "n2 = n_group2",
           "n.ratio = n_group1 / n_group2 # pwrss's n.ratio is n1 / n2",
+          "ceil.n = FALSE # pwrss otherwise rounds n2 * n.ratio up",
           sprintf("alpha = %s", sig),
           sprintf("alternative = %s", r_code(alternative)),
           "std.error = \"pooled\" # pooled variance under the null, as G*Power",
@@ -4309,7 +4313,7 @@ simr_script <- function(spec, result) {
     "}",
     "",
     batch_section(result, "powerSim()"),
-    simulation_goal_section(spec, result, 1),
+    simulation_goal_section(spec, result, simr_backend(spec)$n_step),
     comparison_section()
   )
 }

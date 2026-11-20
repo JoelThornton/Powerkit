@@ -33,7 +33,9 @@ simr_backend <- function(spec, seed = NULL) {
     default_method = "simulation",
     functions = c(simulation = if (!is.null(inputs$test_label)) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
-    n_step = if (isTRUE(inputs$vary_items)) (if (inputs$within) 1 else 2) else if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
+    # Otherwise the whole-group totals the fixed-n check accepts: conditions
+    # between participants need a multiple of the number of conditions.
+    n_step = if (isTRUE(inputs$vary_items)) (if (inputs$within) 1 else 2) else if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else valid_n_step(spec),
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
@@ -835,7 +837,7 @@ crossed_conditions_script <- function(spec, result) {
     "}",
     "",
     batch_section(result, "powerSim()"),
-    simulation_goal_section(spec, result, 1),
+    simulation_goal_section(spec, result, simr_backend(spec)$n_step),
     comparison_section()
   )
 }
@@ -1019,7 +1021,8 @@ three_level_script <- function(spec, result) {
     "}",
     "",
     batch_section(result, "powerSim()"),
-    simulation_goal_section(spec, result, inputs$site_size),
+    # The app's step: sites assigned to the conditions come in pairs.
+    simulation_goal_section(spec, result, inputs$site_size * if (identical(inputs$level, "site")) 2 else 1),
     comparison_section()
   )
 }
