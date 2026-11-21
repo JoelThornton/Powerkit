@@ -1474,7 +1474,8 @@ as an experimental option, for a statistician's check
   36.4%).
 - **Test:** `test-validation-whole-study-crosscheck.R` (full validation,
   chunk `whole_study`; with `test-validation-whole-study-groups.R` for
-  non-randomised groups): each analysis against its separate calculation,
+  non-randomised groups and `test-validation-whole-study-covariates.R`
+  for covariates): each analysis against its separate calculation,
   the joint power above the product of the separate powers for related
   analyses, and Type I error with every path 0; `test-whole-study.R`: the
   joint counts' exact bookkeeping.

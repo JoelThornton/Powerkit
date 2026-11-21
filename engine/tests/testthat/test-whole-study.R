@@ -404,3 +404,53 @@ test_that("the effect of X on the mediator (a manipulation check) is M on X alon
   two$analyses[[2]]$path <- "X->M1->Y"
   expect_error(validate_whole_study(two), "one mediator, named M")
 })
+
+test_that("covariates predict every mediator and the outcome, and every analysis adjusts every equation for them", {
+  spec <- whole_study_example()
+  spec$variables$C1 <- list(type = "continuous", label = "Age")
+  spec$variables$C2 <- list(type = "continuous", label = "Tenure")
+  params <- whole_study_parameters(spec[setdiff(names(spec), "population")])
+  expect_true(all(c("C1->M", "C2->M", "C1->Y", "C2->Y") %in% params$paths))
+  expect_identical(params$correlations, c("X<->W", "X<->C1", "X<->C2", "W<->C1", "W<->C2", "C1<->C2"))
+  spec$population$paths <- c(spec$population$paths, list("C1->M" = 0.2, "C2->M" = 0, "C1->Y" = 0.3, "C2->Y" = 0.1))
+  spec$population$correlations <- list("X<->W" = -0.2, "X<->C1" = 0.2, "X<->C2" = 0, "W<->C1" = 0, "W<->C2" = 0.1, "C1<->C2" = 0.4)
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  fits <- stats::setNames(vapply(inputs$analyses, function(a) a$fit_model, ""), vapply(inputs$analyses, function(a) a$id, ""))
+  expect_identical(fits[["compare"]], "Y ~ X + C1 + C2")
+  expect_identical(fits[["moderation"]], "Y ~ X + W + X:W + C1 + C2")
+  expect_identical(lines_of(fits[["mediation"]]), c("M ~ X + C1 + C2", "Y ~ M + X + C1 + C2"))
+  expect_true(all(c("X ~~ C1: 0.2", "C1 ~~ C2: 0.4") %in% lines_of(inputs$pop_es)))
+  # A gap in the names is refused in plain words.
+  spec$variables$C1 <- NULL
+  expect_error(validate_whole_study(spec), "C1, C2 and C3 in turn")
+})
+
+test_that("covariates: the manipulation check and the baseline are adjusted for them too", {
+  spec <- check_study()
+  spec$variables$C1 <- list(type = "continuous", label = "Age")
+  spec$population$paths[c("C1->M", "C1->Y")] <- list(0.2, 0.3)
+  spec$population$correlations <- list("X<->C1" = 0)
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  expect_identical(inputs$analyses[[1]]$fit_model, "M ~ X + C1")
+  spec <- regression_study()
+  spec$variables$B <- list(type = "continuous", label = "Before")
+  spec$variables$C1 <- list(type = "continuous", label = "Age")
+  spec$population$paths[c("B->Y", "C1->Y")] <- list(0.5, 0.2)
+  spec$population$correlations <- list("X<->W" = -0.2, "X<->B" = 0, "W<->B" = 0, "X<->C1" = 0, "W<->C1" = 0, "B<->C1" = 0.3)
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  expect_identical(inputs$analyses[[1]]$fit_model, "Y ~ X + B + C1")
+})
+
+test_that("a two-group X may differ on the covariates: each is drawn from those before it", {
+  spec <- regression_study()
+  spec$variables$X$type <- "binary"
+  spec$variables$C1 <- list(type = "continuous", label = "Age")
+  spec$population$paths[["C1->Y"]] <- 0.3
+  spec$population$correlations <- list("X<->W" = 0.2, "X<->C1" = 0.3, "W<->C1" = 0.1)
+  regressions <- whole_study_exogenous_regressions(validate_whole_study(spec))
+  r <- matrix(c(1, 0.2, 0.2, 1), 2)
+  expect_equal(unname(regressions$C1), solve(r, c(0.3, 0.1)))
+  result <- run_whole_study(validate_whole_study(spec))
+  expect_true(all(result$check_run$ok))
+  expect_true("X<->C1" %in% result$check_run$parameter)
+})
