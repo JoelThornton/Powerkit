@@ -339,45 +339,42 @@ percent <- function(p) sprintf("%.0f%%", 100 * p)
 alpha_text <- function(a) sub("^0", "", format(a, nsmall = 2))
 whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
-# Group sizes for a total n, for designs with separate groups; NULL for
-# designs where everyone is in one group (one sample, paired, correlation,
-# chi-square, goodness of fit, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
-group_sizes <- function(spec, n) {
-  switch(
-    spec$template,
-    independent_t = ,
-    tost_independent = ,
-    tost_two_proportions = ,
-    noninf_independent = ,
-    noninf_two_proportions = ,
-    invariance = ,
-    two_proportions = ,
-    two_correlations = {
-      ratio <- spec$options$allocation_ratio %||% 1
-      n1 <- floor(n / (1 + ratio) + 0.5)
-      c(n1, n - n1)
-    },
-    "2x2_between" = rep(n / 4, 4),
-    "2x2_mixed" = rep(n / 2, 2),
-    factorial_between = ,
-    factorial_ancova = {
-      cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
-      rep(n / cells, cells)
-    },
-    factorial_three = {
-      v <- spec$variables[c("A", "B", "C")]
-      between <- vapply(v, function(x) identical(x$type, "between_factor"), logical(1))
-      groups <- prod(vapply(v[between], function(x) length(x$levels), numeric(1)))
-      if (groups > 1) rep(n / groups, groups) else NULL
-    },
-    oneway_between = ,
-    mixed = ,
-    oneway_ancova = {
-      k <- length(spec$variables$A$levels)
-      rep(n / k, k)
-    },
-    NULL
-  )
+# How a total n is divided into groups or cells, from the engine's own
+# allocation (powerkit's sample_structure(), the split it runs): a list
+# with `groups` (the number in each), `group_labels` and `group_unit`
+# ("group" or "cell"), or NULL for designs where everyone is in one group.
+group_split <- function(spec, n, describe = engine_function("sample_structure")) {
+  if (is.null(describe) || length(n) != 1 || !is.finite(n)) return(NULL)
+  d <- tryCatch(describe(spec, n), error = function(e) NULL)
+  if (is.null(d$groups) || length(d$groups) < 2) return(NULL)
+  d
+}
+
+# The split in words: "30 per cell", "60 in group 1 and 30 in group 2", or
+# for more unequal groups each one named ("40 in Community sample,
+# Standard; ..."). NULL without groups.
+group_split_text <- function(spec, n) {
+  d <- group_split(spec, n)
+  if (is.null(d)) return(NULL)
+  g <- d$groups
+  unit <- if (identical(d$group_unit, "cell")) "cell" else "group"
+  if (length(unique(g)) == 1) return(sprintf("%s per %s", whole(g[1]), unit))
+  if (length(g) == 2) return(sprintf("%s in %s 1 and %s in %s 2", whole(g[1]), unit, whole(g[2]), unit))
+  labels <- d$group_labels %||% paste(unit, seq_along(g))
+  paste(sprintf("%s in %s", whole(g), labels), collapse = "; ")
+}
+
+# What n analysed counts, in words, for the sample-size rule and the
+# ethics paragraph: pairs (with the people in them), time points after an
+# intervention (with those before it), items (with the participants), or
+# participants with their groups or cells.
+analysed_text <- function(spec, n, groups = TRUE) {
+  if (is_dyadic(spec)) return(sprintf("%s pairs (%s people)", whole(n), whole(2 * n)))
+  if (identical(spec$template, "its")) {
+    return(sprintf("%s time points after the intervention (and %s before it)", whole(n), whole(spec$population$n_pre)))
+  }
+  if (identical(spec$goal$unit, "items")) return(sprintf("%s items (with %s participants)", whole(n), whole(spec$population$participants)))
+  sprintf("%s participants%s", whole(n), if (groups) group_text(spec, n) else "")
 }
 
 group_text <- function(spec, n) {
@@ -394,14 +391,8 @@ group_text <- function(spec, n) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s in %s groups of %s, and %s taking part individually)", whole(n / 2), whole(n / m / 2), whole(m), whole(n / 2)))
   }
-  sizes <- group_sizes(spec, n)
-  if (is.null(sizes)) return("")
-  unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
-  if (length(unique(sizes)) == 1) {
-    sprintf(" (%s %s)", whole(sizes[1]), unit)
-  } else {
-    sprintf(" (%s in group 1 and %s in group 2)", whole(sizes[1]), whole(sizes[2]))
-  }
+  split <- group_split_text(spec, n)
+  if (is.null(split)) "" else sprintf(" (%s)", split)
 }
 
 test_text <- function(spec) {
@@ -2344,16 +2335,13 @@ actual_power_sentence <- function(spec, result) {
   fitted <- simulated(result)
   at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
   if (length(at_n) != 1 || is.na(at_n)) return(NULL)
-  sizes <- group_sizes(spec, n)
+  split <- group_split_text(spec, n)
   who <- if (!is.null(n_unit(spec))) {
     sprintf("With %s %s", whole(n), n_unit(spec))
-  } else if (is.null(sizes)) {
+  } else if (is.null(split)) {
     sprintf("With %s participants", whole(n))
-  } else if (length(unique(sizes)) == 1) {
-    unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
-    sprintf("With %s %s", whole(sizes[1]), unit)
   } else {
-    sprintf("With %s in group 1 and %s in group 2", whole(sizes[1]), whole(sizes[2]))
+    sprintf("With %s", split)
   }
   if (!is.null(result$n_required$verification)) {
     return(sprintf("%s, fresh simulated power is about %.1f%%; the selection-adjusted one-sided lower bound is %.1f%%.",
@@ -4129,8 +4117,8 @@ sample_rule_text <- function(spec, result) {
   if (identical(spec$design, "generic_test") || is_meta(spec)) return(NULL)
   n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
   if (is.null(n) || length(n) != 1 || !is.finite(n)) return(NULL)
-  sprintf("Sample size rule: data collection stops when %s participants%s are in the analysis; the analysis is run once, at that sample size, with no interim looks.",
-    whole(n), group_text(spec, n))
+  sprintf("Sample size rule: data collection stops when %s are in the analysis; the analysis is run once, at that sample size, with no interim looks.",
+    analysed_text(spec, n))
 }
 
 # The ethics-board version (optional feature, 19 October 2026): the same
@@ -4196,7 +4184,8 @@ ethics_text <- function(spec, result, fields, values) {
       "If there is no effect, the chance that a study of this size shows the effect is too small for the original study to have detected (a one-sided test using a %s threshold) is %s, and the chance that it fails to show this is %s.",
       alpha, percent(p), percent(1 - p))
   }
-  include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
+  include <- sprintf("We plan to include %s in the analysis%s.", analysed_text(spec, n, groups = FALSE),
+    if (grepl(" participants$", analysed_text(spec, n, groups = FALSE))) group_text(spec, n) else "")
   if (is_meta(spec)) {
     include <- sprintf("We plan to include %s studies in the meta-analysis.", whole(n))
     chance <- function(p) sprintf(

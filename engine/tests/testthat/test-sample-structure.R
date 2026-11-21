@@ -62,3 +62,20 @@ test_that("analyses of the same groups on different outcomes and cards share one
   mcnemar$options$attrition <- paired$options$attrition
   expect_identical(sample_structure(paired)$compatibility_key, sample_structure(mcnemar)$compatibility_key)
 })
+
+test_that("with n, the groups are the ones the engine runs, labelled in its order", {
+  unequal <- example_spec("anova_2x2_between_unequal")
+  d <- sample_structure(unequal, 120)
+  expect_equal(d$groups, 120 * cell_ratio_vector(unequal) / sum(cell_ratio_vector(unequal)))
+  expect_equal(d$groups, superpower_cell_n(list(cell_ratio = cell_ratio_vector(unequal)), 120))
+  expect_identical(d$group_unit, "cell")
+  a <- unlist(unequal$variables$A$levels)
+  b <- unlist(unequal$variables$B$levels)
+  expect_identical(d$group_labels, c(paste(a[1], b[1], sep = ", "), paste(a[1], b[2], sep = ", "),
+    paste(a[2], b[1], sep = ", "), paste(a[2], b[2], sep = ", ")))
+  # One group of people, or pairs: no split.
+  expect_null(sample_structure(example_spec("paired_t"), 40)$groups)
+  expect_null(sample_structure(example_spec("dyadic_apim"), 150)$groups)
+  # Without n, as before.
+  expect_null(sample_structure(unequal)$groups)
+})

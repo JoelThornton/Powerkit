@@ -3759,3 +3759,20 @@ test_that("the short methods paragraph leaves out the Welch caveats and R's buil
   sens <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
   expect_match(sens[["short"]], "critical effect size", fixed = TRUE)
 })
+
+test_that("the sample-size rule and the ethics count give the design the engine ran: cells, pairs and time points", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  result_at <- function(n) list(goal_type = "power", curve = data.frame(n = n, power = 0.5))
+  # Unequal cells (2, 2, 1, 1): Superpower runs 40, 40, 20 and 20.
+  unequal <- read_example("anova_2x2_between_unequal")
+  rule <- sample_rule_text(unequal, result_at(120))
+  expect_match(rule, "120 participants (40 in Community sample, Standard; 40 in Community sample, Self-compassion; 20 in Clinical sample, Standard; 20 in Clinical sample, Self-compassion)", fixed = TRUE)
+  expect_false(grepl("30 per cell", rule, fixed = TRUE))
+  equal <- read_example("anova_2x2_between")
+  expect_match(sample_rule_text(equal, result_at(120)), "120 participants (30 per cell)", fixed = TRUE)
+  # Pairs, with the people in them; time points before and after.
+  expect_match(sample_rule_text(read_example("dyadic_apim"), result_at(150)), "stops when 150 pairs (300 people) are in the analysis", fixed = TRUE)
+  its <- read_example("its")
+  expect_match(analysed_text(its, 24), "24 time points after the intervention (and 24 before it)", fixed = TRUE)
+  expect_false(grepl("participants", sample_rule_text(its, result_at(24)), fixed = TRUE))
+})
