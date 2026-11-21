@@ -5,3 +5,9 @@ entries:
       On a narrow screen the replication planner's result tables now wrap
       their text so every column is visible, instead of scrolling sideways
       with the heading and some columns out of sight.
+  - date: "2026-11-21"
+    title: The written plan states a several-tests claim in the first person
+    text: >
+      When a replication plan rests on several tests, the written plan now
+      says "Our claim needs all 3 tests to succeed" like the rest of the
+      paragraph, without the advice shown on screen.

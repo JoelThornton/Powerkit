@@ -1101,6 +1101,16 @@ replication_claim_text <- function(plan) {
     whole(cl$tests), replication_pct(cl$per_test), whole(cl$tests), replication_pct(cl$target), how, replication_pct(cl$per_test))
 }
 
+# The same claim for the write-up, which says "we": no advice to the reader.
+replication_claim_sentence <- function(plan) {
+  cl <- plan$claim
+  if (is.null(cl)) return("")
+  how <- if (identical(cl$dependence, "independent")) "the product of their chances, which assumes the tests are independent"
+    else "a target that assumes nothing about how the tests relate and may be conservative"
+  sprintf(" Our claim needs all %s tests to succeed, so this test was planned at %s: that gives all %s succeeding together at least %s of the time, by %s, if each other test also reaches at least %s under the same assumptions.",
+    whole(cl$tests), replication_pct(cl$per_test), whole(cl$tests), replication_pct(cl$target), how, replication_pct(cl$per_test))
+}
+
 replication_claim_ui <- function(plan) {
   words <- replication_claim_text(plan)
   if (is.null(words)) return(NULL)
@@ -2026,7 +2036,7 @@ replication_either_sentence <- function(plan, n_main) {
 # recruit ...", or "" without a dropout.
 replication_recruit_sentence <- function(plan) {
   r <- plan$recruit
-  claim <- if (is.null(plan$claim)) "" else paste0(" ", replication_claim_text(plan))
+  claim <- replication_claim_sentence(plan)
   if (is.null(r)) return(claim)
   paste0(sprintf(" Allowing for an expected dropout of %s, each group's analysed size was divided by %s and rounded up, so we will recruit %s.",
     sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)), format(signif(1 - r$attrition, 6)),

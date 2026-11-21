@@ -39,7 +39,10 @@ test_that("the result and the write-up say the claim rests on several tests", {
   expect_match(words, "all 3 tests", fixed = TRUE)
   expect_match(words, "may be conservative", fixed = TRUE)
   expect_match(paste(as.character(replication_claim_ui(plan)), collapse = ""), "Several tests", fixed = TRUE)
-  expect_match(replication_recruit_sentence(plan), "all 3 tests", fixed = TRUE)
+  # The write-up says "we", not "your", and gives no advice to the reader.
+  sentence <- replication_recruit_sentence(plan)
+  expect_match(sentence, "Our claim needs all 3 tests", fixed = TRUE)
+  expect_no_match(sentence, "Your claim|plan each one", perl = TRUE)
   one <- claim_run(claim_values)
   expect_null(one$claim)
   expect_null(replication_claim_ui(one))
