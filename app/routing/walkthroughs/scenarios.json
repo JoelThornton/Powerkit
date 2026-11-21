@@ -505,7 +505,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -635,7 +636,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -677,7 +679,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -761,7 +764,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -1279,7 +1283,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -1321,7 +1326,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -2229,7 +2235,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, adjusted for a covariate measured beforehand"
   ],
   "known": {
    "answers": [
@@ -2255,10 +2262,20 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E2",
+   "choose": "E23",
    "known": "E23",
    "guided": "E23"
-  }
+  },
+  "changes": [
+   {
+    "change": "finder audit, 21 November 2026: two groups are asked whether the score is adjusted for a covariate",
+    "before": {
+     "choose": "E2",
+     "known": "E23",
+     "guided": "E23"
+    }
+   }
+  ]
  },
  {
   "id": "u-mlogit",
