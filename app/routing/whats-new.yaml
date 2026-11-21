@@ -8,6 +8,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: The assumptions comparison looks inside each range
+    text: >
+      "Which assumption matters most?" compared the answers at the two ends of
+      each range only, so a range that crosses no effect (a difference from
+      -0.5 to +0.5, with the same power at both ends and 5% at zero) was drawn
+      as "no change". It now also works out seven values inside each range,
+      and zero for an effect whose range crosses it, shows an answer inside
+      that goes beyond both ends, and ranks the assumptions by the whole
+      range.
+  - date: "2026-11-20"
     title: A chance that no simulated study reached is no longer called impossible
     text: >
       For Bayes factor plans whose chance of evidence for no effect is
