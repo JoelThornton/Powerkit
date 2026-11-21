@@ -8,6 +8,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: Rank tests found by name, and a clearer evidence heading
+    text: >
+      Searching for Wilcoxon's signed-rank test, Spearman's or Kendall's
+      correlation now finds the cards that offer them (one group against a
+      fixed value, the same people twice, and two scores related). The
+      checks shown under each result are headed "Evidence for this analysis
+      method": they were recorded for the method and its options, usually
+      at other values than yours, not for your exact sample size, effect or
+      alpha.
+  - date: "2026-11-21"
     title: "Plan a Bayes factor t-test with an informed prior"
     text: "The Bayes factor versions of the one-sample, paired and two-group t-tests now take an informed prior: give its centre and, if you like, its degrees of freedom beside its scale. Powerkit works out the chance of strong evidence exactly, with no simulation, because the package it uses gives wrong answers for informed priors in small samples. Leave the new boxes empty for the default prior centred on no effect."
   - date: "2026-11-21"
