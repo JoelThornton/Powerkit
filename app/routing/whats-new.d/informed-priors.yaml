@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-21"
+    title: "Plan a Bayes factor t-test with an informed prior"
+    text: "The Bayes factor versions of the one-sample, paired and two-group t-tests now take an informed prior: give its centre and, if you like, its degrees of freedom beside its scale. Powerkit works out the chance of strong evidence exactly, with no simulation, because the package it uses gives wrong answers for informed priors in small samples. Leave the new boxes empty for the default prior centred on no effect."

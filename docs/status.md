@@ -19,8 +19,8 @@ the plan (`decisions.md`, 13 November 2026).
 Colleague testing began on 16 November 2026. What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
-smaller items), is `next.md` item 23 and comes first while testing runs;
-with it, item 25 audits every card that runs for a check independent of
+smaller items), is `next.md` item 22 and comes first while testing runs;
+with it, item 24 audits every card that runs for a check independent of
 the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
@@ -77,7 +77,7 @@ or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
 Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 28). Validation expectations
+condition (queue item 27). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
@@ -144,7 +144,7 @@ each area, is at the end of
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 18) waits on a decision.
+  Bayes mode (item 17) waits on a decision.
 
 - **What calculates:** About groups supported analyses by the route in
   `forms.yaml`. Some finish in the app, immediately or in the background.
@@ -182,7 +182,10 @@ each area, is at the end of
   "Bayes mode" on the start screen), opens every card on its Bayes factor
   version and asks how unsure the user is about the effect instead of
   assuming 0.
-  Informed priors wait on a bfpwr fault (`upstream-questions.md`).
+  The three Bayes factor t-tests also take an informed prior (a t prior
+  with its own location, scale and degrees of freedom); its power is
+  worked out exactly around bfpwr's Bayes factor, because bfpwr's own
+  power function fails for these priors at small samples (Departure 36).
 
 - **Effect sizes:** the commonest cards take what researchers have: a
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the
@@ -215,7 +218,7 @@ each area, is at the end of
   InteractionPoweR's formula the three-way interaction; and the mediation
   cards' smallest indirect effect or index of moderated mediation, by the
   same search through the R script they hand out (the rest is `next.md`
-  item 11). Results show the critical effect size for the
+  item 10). Results show the critical effect size for the
   t-tests (Student's) and the correlation. The "If the effect were
   different" and "What if the true effect is smaller?" panels work on the
   basic tests and, since 16 November 2026, on the formula cards whose
@@ -402,8 +405,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
-  of item 26 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 27 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  of item 25 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 
@@ -461,7 +464,7 @@ November 2026), which gives .051.
   above 5%); the results screen states it (`validation-log.md`,
   14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
-  (`hosting-options.md`, `next.md` item 12).
+  (`hosting-options.md`, `next.md` item 11).
 - No usability sessions with researchers yet
   ([`usability-session-pack.md`](usability-session-pack.md)); no
   ease-of-use result is claimed.

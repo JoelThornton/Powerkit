@@ -70,7 +70,7 @@ bfpwr_backend <- function(spec, seed = NULL) {
     packages = "bfpwr",
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = "bfpwr::powertbf01"),
+    functions = c(exact = if (bft_informed(inputs)) "bfpwr::tbf01" else "bfpwr::powertbf01"),
     n_step = step,
     exact_min_n = n_min,
     exact_power = power_at,
@@ -92,6 +92,8 @@ bfpwr_inputs <- function(spec) {
     effect_sd = pop$effect_sd %||% bayes_defaults$effect_sd,
     threshold = tt$evidence_threshold %||% bayes_defaults$evidence_threshold,
     prior_scale = tt$prior_scale %||% bayes_defaults$prior_scale,
+    prior_location = tt$prior_location %||% 0,
+    prior_df = tt$prior_df %||% 1,
     alternative = bfpwr_alternative(spec),
     size = function(n) if (identical(type, "two.sample")) n / 2 else n
   )
@@ -99,13 +101,16 @@ bfpwr_inputs <- function(spec) {
 
 bfpwr_args <- function(inputs, n) {
   list(
-    n = inputs$size(n), k = 1 / inputs$threshold, plocation = 0, pscale = inputs$prior_scale,
-    pdf = 1, type = inputs$type, alternative = inputs$alternative,
+    n = inputs$size(n), k = 1 / inputs$threshold, plocation = inputs$prior_location %||% 0, pscale = inputs$prior_scale,
+    pdf = inputs$prior_df %||% 1, type = inputs$type, alternative = inputs$alternative,
     dpm = inputs$effect, dpsd = inputs$effect_sd
   )
 }
 
 bfpwr_power <- function(inputs, n) {
+  if (bft_informed(inputs)) {
+    return(call_backend("bfpwr", bft_chance_exact(inputs, n, for_effect = TRUE)))
+  }
   out <- call_backend("bfpwr", quietly(do.call(bfpwr::powertbf01, bfpwr_args(inputs, n))))
   out$power
 }
@@ -116,6 +121,9 @@ bfpwr_power <- function(inputs, n) {
 # normal design prior N(dpm, dpsd^2). The cards, Labs' Bayesian planning
 # and the sequential planner's fixed comparison all use this.
 bfpwr_chance <- function(inputs, n, for_effect = TRUE, dpm = inputs$effect, dpsd = inputs$effect_sd) {
+  if (bft_informed(inputs)) {
+    return(call_backend("bfpwr", bft_chance_exact(inputs, n, for_effect = for_effect, dpm = dpm, dpsd = dpsd)))
+  }
   args <- list(
     n = inputs$size(n), plocation = 0, pscale = inputs$prior_scale, pdf = 1,
     type = inputs$type, alternative = inputs$alternative, dpm = dpm, dpsd = dpsd
@@ -250,7 +258,9 @@ bfpwr_check_run <- function(spec, inputs) {
     row(sprintf("expected effect (%s) passed to bfpwr as the design prior's mean (dpm)", name), inputs$effect, args$dpm),
     row("uncertainty about the effect passed as the design prior's SD (dpsd)", inputs$effect_sd, args$dpsd),
     row("evidence threshold BF10, passed as the BF01 threshold k = 1 / BF10", inputs$threshold, 1 / args$k),
-    row("scale of the Cauchy analysis prior (pscale)", inputs$prior_scale, args$pscale),
+    row("scale of the analysis prior (pscale)", inputs$prior_scale, args$pscale),
+    row("location of the analysis prior (plocation)", inputs$prior_location, args$plocation),
+    row("degrees of freedom of the analysis prior (pdf; 1 = Cauchy)", inputs$prior_df, args$pdf),
     row(
       "size bfpwr is given at a total of 100 (per group for two groups)",
       if (identical(inputs$type, "two.sample")) 50 else 100, args$n
@@ -292,6 +302,9 @@ bfpwr_script <- function(spec, result) {
     return(bfancova_script(spec, result))
   }
   inputs <- bfpwr_inputs(spec)
+  if (bft_informed(inputs)) {
+    return(bft_script(spec, result, inputs))
+  }
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
   size_line <- if (identical(inputs$type, "two.sample")) {
     "  n <- n_total / 2 # bfpwr takes the size of each group (equal groups)"

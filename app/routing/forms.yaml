@@ -387,6 +387,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "36": "Bayes factor t-tests with an informed prior (a centre other than 0, or degrees of freedom other than 1): Powerkit works out the chance of evidence exactly from bfpwr's own Bayes factor, because bfpwr's power function, powertbf01(), gives wrong answers for informed priors in small samples. With a prior centred on 0.3 (scale 0.15), an expected effect of 0.4 (SD 0.1) and a threshold of 10, 10 people give a 5.4% chance of strong evidence (5.5% in simulated studies), where powertbf01() gives 0; from about 30 people the two agree within a point or two."
   "35": "A measured score in a Cox regression: Powerkit counts both tails of the two-sided test, so with no effect the power is alpha (5%). powerSurvEpi's formula counts only the tail in the effect's direction, which gives alpha / 2 with no effect and too little with small effects (4.5% against 5.8% for a hazard ratio of 1.05 with 100 people); for effects worth planning for the difference is well under 0.001."
   "34": "Cronbach's alpha: for a two-sided test Powerkit counts both tails of Bonett and Wright's z test, so at the null value the power is alpha (5%). statpsych's sample-size formula counts only the tail in the effect's direction, which gives alpha / 2 there; with an effect worth planning for the other tail adds well under 0.0001, so the sample size is statpsych's."
   "33": "Equivalence of a correlation or of two proportions: Powerkit works out the power of the test TOSTER runs (two one-sided z tests, on Fisher's z for a correlation, with the unpooled standard error for two proportions) with pwrss. TOSTER's own planning functions give different answers: power_z_cor() ignores the expected correlation (for r = 0.1, bounds of 0.2 and 500 people it gives 99.6%, against 73.8%), and power_twoprop() applies the distance to the nearer bound on both sides (0% against 47.5% for 0.5 and 0.55, bounds of 0.1 and 500 per group)."
@@ -570,7 +571,7 @@ replication_effects:
 forms:
   E1:
     methods_name: "a one-sample t-test"
-    departures: ["15", "23"]
+    departures: ["15", "23", "36"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
     known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -614,10 +615,16 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
-          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+          - {id: prior_scale, label: "Scale of the analysis prior (by default a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: prior_location, label: "Centre of the analysis prior, as an effect size (optional; empty = 0)", type: number, path: target_test.prior_location, optional: true, empty_text: "0", min: -5, max: 5,
+             shown_if: {field: method, is: bayes_factor},
+             help: "Leave it empty for the default Bayes factor, which centres its prior on no effect. For an informed prior (for example one built from earlier studies), give its centre here and its spread as the scale above, as in your analysis plan."}
+          - {id: prior_df, label: "Degrees of freedom of the analysis prior (optional; empty = 1, a Cauchy prior)", type: number, path: target_test.prior_df, optional: true, empty_text: "1", min: 1, max: 1000,
+             shown_if: {field: method, is: bayes_factor},
+             help: "The prior is a t distribution. 1 is a Cauchy prior with heavy tails, the default; larger values give lighter tails, close to a normal prior from about 30."}
           - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
@@ -631,7 +638,7 @@ forms:
 
   E2:
     methods_name: "an independent-samples t-test"
-    departures: ["21", "15", "23"]
+    departures: ["21", "15", "23", "36"]
     known_differences_if_method: {"5": mann_whitney, "6": bayes_factor}
     known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -715,10 +722,16 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
-          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+          - {id: prior_scale, label: "Scale of the analysis prior (by default a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: prior_location, label: "Centre of the analysis prior, as an effect size (optional; empty = 0)", type: number, path: target_test.prior_location, optional: true, empty_text: "0", min: -5, max: 5,
+             shown_if: {field: method, is: bayes_factor},
+             help: "Leave it empty for the default Bayes factor, which centres its prior on no effect. For an informed prior (for example one built from earlier studies), give its centre here and its spread as the scale above, as in your analysis plan."}
+          - {id: prior_df, label: "Degrees of freedom of the analysis prior (optional; empty = 1, a Cauchy prior)", type: number, path: target_test.prior_df, optional: true, empty_text: "1", min: 1, max: 1000,
+             shown_if: {field: method, is: bayes_factor},
+             help: "The prior is a t distribution. 1 is a Cauchy prior with heavy tails, the default; larger values give lighter tails, close to a normal prior from about 30."}
           - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
@@ -740,7 +753,7 @@ forms:
   E3:
     scope_note: "Crossover study? This card does not model period, sequence or carry-over effects. Use it only for an ordinary paired analysis when omitting those terms is justified; it does not plan an adjusted crossover analysis."
     methods_name: "a paired-samples t-test"
-    departures: ["15", "23"]
+    departures: ["15", "23", "36"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
     known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -808,10 +821,16 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
-          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+          - {id: prior_scale, label: "Scale of the analysis prior (by default a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: prior_location, label: "Centre of the analysis prior, as an effect size (optional; empty = 0)", type: number, path: target_test.prior_location, optional: true, empty_text: "0", min: -5, max: 5,
+             shown_if: {field: method, is: bayes_factor},
+             help: "Leave it empty for the default Bayes factor, which centres its prior on no effect. For an informed prior (for example one built from earlier studies), give its centre here and its spread as the scale above, as in your analysis plan."}
+          - {id: prior_df, label: "Degrees of freedom of the analysis prior (optional; empty = 1, a Cauchy prior)", type: number, path: target_test.prior_df, optional: true, empty_text: "1", min: 1, max: 1000,
+             shown_if: {field: method, is: bayes_factor},
+             help: "The prior is a t distribution. 1 is a Cauchy prior with heavy tails, the default; larger values give lighter tails, close to a normal prior from about 30."}
           - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",

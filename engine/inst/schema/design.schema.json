@@ -622,6 +622,18 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "prior_location": {
+          "description": "Bayes factor t-tests only: the location of the t analysis prior on the standardised effect under the alternative (an informed prior, as in bfpwr's tbf01(plocation)). Default 0, the Jeffreys-Zellner-Siow prior centred on no effect. With a location other than 0, or degrees of freedom other than 1, powerkit works out the chance of evidence exactly from bfpwr's Bayes factor (bayes-informed-t.R), because bfpwr's powertbf01() is unreliable for informed priors at small samples.",
+          "type": "number",
+          "minimum": -5,
+          "maximum": 5
+        },
+        "prior_df": {
+          "description": "Bayes factor t-tests only: the degrees of freedom of the t analysis prior (bfpwr's tbf01(pdf)). Default 1, a Cauchy prior; larger values give a prior with lighter tails, close to a normal prior from about 30.",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000
+        },
         "prior_a": {
           "description": "Bayes factor test of one proportion only: the first shape parameter of the Beta(a, b) analysis prior on the proportion under the alternative. Default 1 (with b = 1, a uniform prior), bfpwr's default (binbf01(a = 1)) and JASP's.",
           "type": "number",
@@ -750,6 +762,8 @@
               "evidence_threshold": false,
               "congruence": false,
               "prior_scale": false,
+              "prior_location": false,
+              "prior_df": false,
               "prior_scale_covariates": false,
               "prior_a": false,
               "prior_b": false,

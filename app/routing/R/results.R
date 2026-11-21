@@ -2763,8 +2763,25 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
       ""))
   }
-  sprintf("evidence threshold: BF10 of at least %s; Cauchy prior scale %s",
-    format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
+  sprintf("evidence threshold: BF10 of at least %s; %s",
+    format(tt$evidence_threshold %||% 10), bayes_t_prior_words(tt, short = TRUE))
+}
+
+# The analysis prior of a Bayes factor t-test in words: the JZS Cauchy prior
+# centred on 0, or an informed t prior with its location and degrees of
+# freedom.
+bayes_t_prior_words <- function(tt, short = FALSE) {
+  scale <- format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3))
+  location <- tt$prior_location %||% 0
+  df <- tt$prior_df %||% 1
+  if (location == 0 && df == 1) {
+    return(if (short) sprintf("Cauchy prior scale %s", scale) else sprintf("a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size", scale))
+  }
+  shape <- if (df == 1) "Cauchy" else sprintf("t (%s degrees of freedom)", format(signif(df, 3)))
+  if (short) {
+    return(sprintf("informed %s prior, location %s, scale %s", shape, format(signif(location, 3)), scale))
+  }
+  sprintf("an informed Bayes factor with a %s analysis prior of location %s and scale %s on the effect size", shape, format(signif(location, 3)), scale)
 }
 
 # The inclusion Bayes factor of an effect in a factorial or repeated-measures
@@ -2962,6 +2979,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Departures 23 and 24 (variation between studies, 0.05 or 0.025 to start with) apply
   # when the plan allows for it.
   if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, c("23", "24"))
+  # Departure 36 (informed priors worked out exactly) applies to a Bayes
+  # factor t-test whose prior isn't the default JZS prior.
+  if (!(is_bayes_test(spec) && spec$template %in% c("one_sample_t", "paired_t", "independent_t") &&
+        !((spec$target_test$prior_location %||% 0) == 0 && (spec$target_test$prior_df %||% 1) == 1))) keys <- setdiff(keys, "36")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -3943,8 +3964,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; the evidence threshold set at BF10 ≥ %s)",
-      name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
+    test <- sprintf("%s (%s; %s, %s; the evidence threshold set at BF10 ≥ %s)",
+      name, sides, bayes_t_prior_words(tt),
+      if ((tt$prior_location %||% 0) == 0 && (tt$prior_df %||% 1) == 1) "computed with bfpwr" else
+        "the chance of evidence worked out exactly from bfpwr's Bayes factor, tbf01(), and the noncentral t distribution of the t statistic",
+      format(tt$evidence_threshold %||% 10))
   }
   if (!is.null(telescopes)) test <- sprintf("%s (one-sided, α = %s)", name, writeup_alpha(spec$target_test$alpha))
   if (equivalence) test <- if (is_noninferiority(spec)) {
@@ -4808,7 +4832,8 @@ bayes_robustness_ui <- function(spec, rob) {
   k <- format(spec$target_test$evidence_threshold %||% 10)
   tagList(
     h5(class = "h6", "Does the prior matter?"),
-    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.")),
+    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior%s. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.",
+      if (isTRUE((spec$target_test$prior_location %||% 0) != 0 || (spec$target_test$prior_df %||% 1) != 1)) " (the other rows are the default prior, centred on 0)" else "")),
     tags$table(class = "table table-sm result-robustness",
       tags$thead(tags$tr(tags$th(scope = "col", "Analysis prior"), tags$th(scope = "col", "Scale"),
         tags$th(scope = "col", sprintf("BF10 of at least %s, if the effect is as planned", k)),
@@ -4863,6 +4888,8 @@ bayes_uncertain_words <- function(spec, sd, at_n, needed) {
 bayes_sequential_card_ui <- function(spec, result) {
   if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
       !result$goal_type %in% c("sample_size", "power")) return(NULL)
+  # bayes_sequential() takes the default prior only (a Cauchy centred on 0).
+  if (!isTRUE((spec$target_test$prior_location %||% 0) == 0 && (spec$target_test$prior_df %||% 1) == 1)) return(NULL)
   n <- bayes_companion_n(spec, result)
   per <- bayes_sequential_unit_n(spec, n)
   k <- spec$target_test$evidence_threshold %||% 10

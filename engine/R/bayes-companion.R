@@ -208,17 +208,21 @@ companion_agreement_t <- function(spec, b, n, k) {
 bayes_robustness <- function(spec, n) {
   if (!bayes_factor_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t")) return(NULL)
   own <- spec$target_test$prior_scale %||% bayes_defaults$prior_scale
+  # An informed prior (a location or degrees of freedom of its own) is
+  # compared with the default prior's three named widths, centred on 0.
+  informed <- bft_informed(spec$target_test)
   scales <- c(own, 1 / sqrt(2), 1, sqrt(2))
   names <- c("Your prior", "Medium (the usual default)", "Wide", "Ultrawide")
-  keep <- c(TRUE, !vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1)))
+  named <- !informed & vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1))
+  keep <- c(TRUE, !named)
   # Your own prior, when it is one of the named ones, takes its name.
-  named <- vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1))
   if (any(named)) {
     names[1] <- paste0(names[-1][named][1], ", your prior")
   }
   rows <- lapply(which(keep), function(i) {
     s <- spec
     s$target_test$prior_scale <- scales[i]
+    if (i > 1) s$target_test[c("prior_location", "prior_df")] <- NULL
     s$goal <- list(type = "power", n = as.integer(n))
     r <- run_spec(s)
     data.frame(prior = names[i], scale = scales[i], for_effect = r$curve$power[1],
