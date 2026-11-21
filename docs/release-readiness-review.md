@@ -250,6 +250,11 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   the evidence explanations and the citations are not yet read.
 - [ ] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.
+  Read on 21 November 2026: the home page and download page (the launcher
+  and update-checker files they name exist; the reproduction-script claim
+  matches the exported script, which states that powerkit is not needed to run
+  it). No wrong claim found. The guide page, data and project downloads and
+  the generated R scripts for the cards are not yet read.
 - [ ] Walk through complete tasks on desktop/mobile; remove repetition while
   keeping the answer, analysis identity and key assumptions visible.
 - [x] Check three selected analytic sensitivity thresholds with fresh
