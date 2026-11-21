@@ -3,7 +3,7 @@
 # users move to Connect Cloud, so powerkit starts there.)
 #
 # Usually not needed: Connect Cloud publishes the app from GitHub's
-# `connect-cloud` branch, which a workflow updates once a week (Mondays) from main
+# `connect-cloud` branch, which a workflow updates once a day from main
 # (docs/hosting-options.md, "How the online app is published"). This
 # script is the fallback.
 #

@@ -166,9 +166,9 @@ to read small.
   shared page (handover.md, status.md), check open PRs for edits to it.
 - The online app (Posit Connect Cloud) is paid for by the hour it runs,
   and publishing restarts it: don't run the `online-app-manifest`
-  workflow by hand after a merge. The weekly schedule publishes; a
+  workflow by hand after a merge. The daily schedule publishes; a
   publish by hand is the maintainer's, for an urgent fix
-  (docs/hosting-options.md, "The free plan's limit").
+  (docs/hosting-options.md, "The plan's limit").
 - Local R in a cloud session: scripts/setup-cloud-session.sh, set as the
   environment's setup script, so a session starts with R and the packages
   ready. Check `Rscript -e 'library(power4mome)'` before installing

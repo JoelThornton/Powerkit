@@ -112,7 +112,7 @@ message every 20 seconds for as long as any tab stayed open. All three
 were changed on 6 November:
 
 - the app is published once a day, only when something it runs changed
-  (below; once a week since 21 November 2026);
+  (below);
 - the keep-open message is sent only while the page is in view and has
   been used in the last 20 minutes (10 since 21 November 2026), or while
   a calculation runs (`R/connection.R`);
@@ -124,25 +124,20 @@ The app's CPU and memory settings in Connect Cloud are the other lever:
 the smallest setting that holds the app and its packages uses the fewest
 credits.
 
-#### The free plan's limit (21 November 2026)
+#### The plan's limit (21 November 2026)
 
-The account is on the free plan, whose 20 credits a month are now
-enforced: at the limit the account is paused, and the app with it, until
-the monthly reset (the 18th). In the month from 18 November 2026 the app
-had used 16 credits by the evening of 21 November. Eight publishes went
-out in those four days, five of them started by hand after merges rather
-than by the schedule. To make the rest last, from 21 November:
+The account's credits are enforced: at the monthly limit the account,
+and the app with it, is paused until the reset (the 18th). On the free
+plan (20 credits) the app had used 16 by the evening of 21 November,
+three days into the month. Eight publishes went out in those days, five
+of them started by hand after merges rather than by the schedule. The
+account moved to the Basic plan ($19 a month: 8 GB, 2 CPUs, 100 credits;
+plans page, 21 November 2026) the same day, and:
 
-- the schedule publishes once a week (Mondays, 04:23 UTC, with the 16:23
-  second look), and a publish by hand is the maintainer's, for an urgent
-  fix only;
+- a publish by hand is the maintainer's, for an urgent fix only; the
+  daily schedule publishes everything else (`CLAUDE.md`);
 - the keep-open message stops after 10 minutes without use rather than
   20, so a tab left open in view stops holding the app up sooner.
-
-Neither can make 4 credits last a month of testing, at about 4 credits a
-day so far. Keeping the app online through testing needs the Basic plan
-($19 a month: 8 GB, 2 CPUs, 100 credits, plans page, 21 November 2026)
-or another host ("Side by side" below).
 
 What a larger plan changes: credits are charged by the hour at a rate set
 by the app's own CPU and memory settings, so the plan raises the limit
@@ -158,15 +153,14 @@ Raising the settings raises the credits used per hour.
 Connect Cloud republishes an app whenever the GitHub branch it watches
 changes. powerkit's app watches the `connect-cloud` branch, not main
 (`repository-protection.md` has the one-time migration). Only the
-`online-app-manifest` workflow writes to it: every Monday at 04:23 UTC
-(every day until 21 November 2026), if
+`online-app-manifest` workflow writes to it: every day at 04:23 UTC, if
 anything under `app/routing/`, `engine/` (tests aside) or `renv.lock`
 differs between main and `connect-cloud`, it writes
 `app/routing/manifest.json` (the packages Connect Cloud installs, with
 powerkit's engine pinned to main's commit) and publishes main's checked
 source plus that manifest to `connect-cloud` with a fast-forward push
 (`scripts/prepare-publish-branch.py`). Until 6 November 2026 it did this
-after every merge, and until 21 November once a day. GitHub starts timed runs late or skips them when it
+after every merge. GitHub starts timed runs late or skips them when it
 is busy (no run started on 8 November 2026), so a second scheduled run at
 16:23 UTC publishes if nothing was published in the last 10 hours; on a
 normal day it does nothing. The morning run always publishes what
