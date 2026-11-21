@@ -61,15 +61,60 @@ run_assumption_ranges <- function(forms, ep_id, fields, values, ranges, run = en
     }
     low <- one(ranges[[id]][1])
     high <- one(ranges[[id]][2])
+    # The answer needn't be monotone over the range: a difference from -0.5
+    # to +0.5 has the same power at both ends and 5% at zero. So the values
+    # inside the range are worked out too (an odd number, so the midpoint is
+    # one, and zero for an effect whose range crosses it), and an answer
+    # inside that goes beyond both ends is reported.
+    inside_x <- assumption_inside_values(ranges[[id]], isTRUE(f$effect))
+    inside <- vapply(inside_x, function(x) one(x)$value, numeric(1))
+    ends <- c(low$value, high$value)
+    beyond <- assumption_beyond(ends, inside_x, inside)
     data.frame(id = id, label = assumption_label(f), planned = values[[id]] %||% "",
       low = ranges[[id]][1], high = ranges[[id]][2], at_low = low$value, at_high = high$value,
+      inside_low = beyond$low, inside_low_at = beyond$low_at, inside_high = beyond$high, inside_high_at = beyond$high_at,
+      inside_missing = if (length(inside) && all(!is.na(ends))) sum(is.na(inside)) else 0L,
+      spread = if (all(is.na(c(ends, inside)))) -1 else diff(range(c(ends, inside), na.rm = TRUE)),
       problem = paste(stats::na.omit(c(low$problem, high$problem)), collapse = " "), stringsAsFactors = FALSE)
   })
   out <- do.call(rbind, rows)
-  # The input the answer depends on most first.
-  spread <- abs(out$at_high - out$at_low)
-  spread[is.na(spread)] <- -1
-  out[order(-spread), , drop = FALSE]
+  # The input the answer depends on most first, over its whole range.
+  out[order(-out$spread), , drop = FALSE]
+}
+
+# Values strictly inside a range: seven evenly spaced (with the ends, nine,
+# so the midpoint is one), and zero for an effect when the range crosses it.
+assumption_inside_values <- function(r, effect = FALSE) {
+  if (any(is.na(r)) || r[1] == r[2]) return(numeric(0))
+  x <- seq(r[1], r[2], length.out = 9)[2:8]
+  if (effect && min(r) < 0 && max(r) > 0) x <- sort(unique(c(x, 0)))
+  signif(x, 6)
+}
+
+# The lowest and highest answers inside the range, where they go beyond
+# both ends' answers (NA otherwise), with the value of the input there.
+assumption_beyond <- function(ends, inside_x, inside) {
+  none <- list(low = NA_real_, low_at = NA_real_, high = NA_real_, high_at = NA_real_)
+  ok <- !is.na(inside)
+  if (!any(ok) || all(is.na(ends))) return(none)
+  tol <- 1e-6 * max(1, abs(c(ends, inside)), na.rm = TRUE)
+  out <- none
+  i <- which(ok)[which.min(inside[ok])]
+  if (inside[i] < min(ends, na.rm = TRUE) - tol) { out$low <- inside[i]; out$low_at <- inside_x[i] }
+  j <- which(ok)[which.max(inside[ok])]
+  if (inside[j] > max(ends, na.rm = TRUE) + tol) { out$high <- inside[j]; out$high_at <- inside_x[j] }
+  out
+}
+
+# What the row says about the values inside its range, or NULL when the
+# answer stays between the two ends' answers.
+assumption_inside_text <- function(row, goal) {
+  parts <- c(
+    if (!is.na(row$inside_low)) sprintf("%s at %s", assumption_answer_text(row$inside_low, goal), format(row$inside_low_at)),
+    if (!is.na(row$inside_high)) sprintf("%s at %s", assumption_answer_text(row$inside_high, goal), format(row$inside_high_at)))
+  missing <- if (isTRUE(row$inside_missing > 0)) "not worked out at some values" else NULL
+  if (!length(c(parts, missing))) return(NULL)
+  paste(c(parts, missing), collapse = "; ")
 }
 
 # The ranges typed on the result screen: both blank leaves an input out;
@@ -95,8 +140,9 @@ assumptions_ui <- function(spec, result, candidates) {
     h5(class = "h6", "Which assumption matters most?"),
     p(class = "small", sprintf(paste(
       "Your answer rests on every number you entered, not only the effect. For any you're unsure of, enter the lowest and highest value",
-      "your evidence makes plausible. Powerkit changes each one on its own, keeps the rest as planned, and shows %s at each end,",
-      "with the assumption that moves it most at the top. Powerkit won't suggest the values."), answer)),
+      "your evidence makes plausible. Powerkit changes each one on its own, keeps the rest as planned, and shows %s at each end",
+      "(and inside the range, where it goes further than at either end), with the assumption that moves it most at the top.",
+      "Powerkit won't suggest the values."), answer)),
     div(class = "assumption-inputs", style = "max-width:100%; overflow-x:auto", tabindex = "0", role = "region",
       `aria-label` = "Plausible values for each assumption",
       tags$table(class = "table table-sm",
@@ -143,14 +189,15 @@ assumptions_result_ui <- function(table, result, spec) {
         tags$caption(sprintf("%s with each assumption at its lowest and highest plausible value, the others as planned (planned answer: %s)",
           heading, assumption_answer_text(assumption_answer(result), goal))),
         tags$thead(tags$tr(tags$th(scope = "col", "Assumption"), tags$th(scope = "col", "Lowest"), tags$th(scope = "col", "Answer"),
-          tags$th(scope = "col", "Highest"), tags$th(scope = "col", "Answer"))),
+          tags$th(scope = "col", "Highest"), tags$th(scope = "col", "Answer"), tags$th(scope = "col", "Inside the range"))),
         tags$tbody(lapply(seq_len(nrow(table)), function(i) tags$tr(
           tags$td(table$label[i]),
           tags$td(if (is.na(table$low[i])) "-" else format(table$low[i])), tags$td(assumption_answer_text(table$at_low[i], goal)),
-          tags$td(if (is.na(table$high[i])) "-" else format(table$high[i])), tags$td(assumption_answer_text(table$at_high[i], goal))))))),
+          tags$td(if (is.na(table$high[i])) "-" else format(table$high[i])), tags$td(assumption_answer_text(table$at_high[i], goal)),
+          tags$td(assumption_inside_text(table[i, ], goal) %||% (if (is.na(table$low[i]) || is.na(table$high[i])) "-" else "between the two"))))))),
     if (any(nzchar(table$problem))) tags$ul(class = "small", lapply(which(nzchar(table$problem)), function(i)
       tags$li(sprintf("%s: %s", table$label[i], table$problem[i])))),
-    p(class = "small", "Each row changes one assumption with the others as planned; the answers don't add up when several are wrong together. This comparison doesn't change your plan or what you save."))
+    p(class = "small", "Each row changes one assumption with the others as planned; the answers don't add up when several are wrong together. Powerkit also works out seven values evenly spaced inside each range (and zero for an effect whose range crosses it); a value between those can go a little further. This comparison doesn't change your plan or what you save."))
 }
 
 # The tornado chart: a bar per assumption from the answer at its lowest
@@ -173,7 +220,7 @@ assumptions_plot <- function(table, result, spec) {
   # Room for the labels on the left, in lines (about two characters a line).
   width <- max(nchar(d$label)) * 0.5
   chart_start(key_rows = 1, left = min(max(4.6, width + 1.2), 18))
-  xr <- range(c(lo, hi, planned), na.rm = TRUE)
+  xr <- range(c(lo, hi, planned, d$inside_low, d$inside_high), na.rm = TRUE)
   xr <- xr + c(-1, 1) * max(diff(xr) * 0.08, if (identical(goal, "sample_size")) 1 else 0.01)
   if (!identical(goal, "sample_size")) xr <- c(max(0, xr[1]), min(1, xr[2]))
   plot(NA, xlim = xr, ylim = c(0.4, k + 0.6), axes = FALSE, ylab = "",
@@ -188,9 +235,23 @@ assumptions_plot <- function(table, result, spec) {
   # the lowest value in the top half of the row, the highest below.
   graphics::rect(pmin(lo, planned), y, pmax(lo, planned), y + 0.34, col = grDevices::adjustcolor(chart_colours$amber, 0.75), border = NA)
   graphics::rect(pmin(hi, planned), y - 0.34, pmax(hi, planned), y, col = grDevices::adjustcolor(chart_colours$blue, 0.75), border = NA)
+  # An answer inside the range that goes beyond both ends: a line out to it
+  # with its value, so a range that crosses no effect doesn't look flat.
+  for (i in seq_len(k)) for (side in c("low", "high")) {
+    v <- d[[paste0("inside_", side)]][i]
+    if (is.na(v)) next
+    from <- if (side == "low") min(lo[i], hi[i], planned) else max(lo[i], hi[i], planned)
+    graphics::segments(from, y[i], v, y[i], col = chart_colours$ink, lwd = 2, lty = 2)
+    graphics::points(v, y[i], pch = 19, col = chart_colours$ink)
+    graphics::text(v, y[i], sprintf("%s inside the range", assumption_answer_text(v, goal)),
+      pos = 1, offset = 0.6, cex = 0.8, col = chart_colours$ink, xpd = NA)
+  }
   graphics::abline(v = planned, col = chart_colours$navy, lwd = 2)
+  flat_inside <- is.na(d$inside_low) & is.na(d$inside_high)
   same <- abs(lo - planned) < 1e-9 & abs(hi - planned) < 1e-9
-  if (any(same)) graphics::text(planned, y[same], "  no change", pos = 4, cex = 0.85, col = chart_colours$ink)
+  if (any(same & flat_inside)) graphics::text(planned, y[same & flat_inside], "  no change", pos = 4, cex = 0.85, col = chart_colours$ink)
+  ends_same <- abs(lo - hi) < 1e-9 & !flat_inside
+  if (any(ends_same)) graphics::text(planned, y[ends_same] + 0.3, "same at both ends", pos = 4, cex = 0.8, col = chart_colours$ink)
   graphics::mtext(sprintf("Planned: %s", assumption_answer_text(planned, goal)), side = 3, line = 0.1, at = planned, cex = 0.85, col = chart_colours$navy)
   chart_key(legend = c("At the lowest plausible value", "At the highest plausible value"),
     fill = grDevices::adjustcolor(c(chart_colours$amber, chart_colours$blue), 0.75), border = NA)
