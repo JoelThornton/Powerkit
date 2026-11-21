@@ -2224,7 +2224,7 @@ server <- function(input, output, session) {
   # values the engine says the population needs, and the run.
   whole_study_screen <- reactive({
     answers <- routed_answers()
-    plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks)
+    plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks, state$ws_values$n_covariates %||% 1L)
     if (!isTRUE(plan$ok)) return(list(plan = plan))
     labels <- whole_study_labels(plan$roles, state$plan_values, state$ws_names %||% list())
     # An experiment (a factorial ANOVA) needs no path model.
@@ -2239,6 +2239,13 @@ server <- function(input, output, session) {
     if (isTRUE(ws$plan$experiment)) state$ws_values <- whole_study_experiment_values(input, ws$plan)
     else if (!is.null(ws$params)) state$ws_values <- whole_study_values(input, ws$params)
   }
+  # The number of covariates changes the model: keep what was typed, then
+  # redraw the screen with the covariates' paths and correlations.
+  observeEvent(input$ws_n_covariates, {
+    if (identical(input$ws_n_covariates, isolate(state$ws_values$n_covariates) %||% "1")) return()
+    state$ws_names <- whole_study_names_from_input(input, isolate(whole_study_screen())$plan$roles)
+    save_whole_study_values()
+  }, ignoreInit = TRUE)
   # An experiment's grid of cell means follows the levels typed, keeping
   # the means already entered.
   output$ws_means_grid <- renderUI({

@@ -284,7 +284,8 @@ each area, is at the end of
 - **Experimental: whole-study planning.** The guided plan simulates
   several analyses of one study together, so the chance all succeed is
   counted rather than assumed: measured predictors or two groups
-  (randomised or not), people measured once or twice, mediation and
+  (randomised or not), people measured once or twice, up to three
+  covariates that every analysis adjusts for, mediation and
   moderated mediation (power4mome), factorial experiments (Superpower),
   and a pair-level moderator in dyadic studies. Joint power for several
   outcomes of one randomised trial uses PUMP. Its result gives a

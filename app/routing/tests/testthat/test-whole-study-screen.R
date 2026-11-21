@@ -360,10 +360,50 @@ test_that("measured twice, a baseline covariate is the first measurement, so the
   expect_true(plan_base$ok)
   expect_identical(plan_base$analyses, plan_none$analyses)
   expect_identical(plan_base$roles, plan_none$roles)
-  # Other covariates still aren't simulated, and the reason says so.
+  # Other covariates are added beside the baseline (C1, then C2 and C3).
   other <- whole_study_plan(tree, modifyList(none, list(covariate = "other")), "moderation", "moderation", list())
-  expect_false(other$ok)
-  expect_true(any(grepl("other than the first measurement", other$reasons, fixed = TRUE)))
+  expect_true(other$ok)
+  expect_identical(other$roles, c("X", "W", "B", "C1", "Y"))
+  # A covariate that isn't a score measured on each person isn't simulated.
+  unsure <- whole_study_plan(tree, modifyList(none, list(covariate = "notsure")), "moderation", "moderation", list())
+  expect_false(unsure$ok)
+  expect_true(any(grepl("covariates are scores", unsure$reasons, fixed = TRUE)))
+})
+
+test_that("covariates: every analysis adjusts for them, the screen asks how many and for their paths, and the write-up says so", {
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  answers <- modifyList(ws_answers, list(covariate = "other"))
+  # The effect of X with covariates is the multiple regression (E24), or
+  # the ANCOVA (E23) for two groups; both are the regression adjusting for them.
+  plan <- whole_study_plan(tree, answers, c("compare", "mediation", "moderation"), c("compare", "mediation"), list(), n_covariates = "2")
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_y", "indirect", "interaction"))
+  expect_equal(plan$roles, c("X", "W", "M", "C1", "C2", "Y"))
+  expect_identical(plan$n_covariates, 2L)
+  groups <- whole_study_plan(tree, modifyList(answers, list(x = "cond2", moderator = "none")), "compare", "compare", list())
+  expect_true(groups$ok)
+  expect_equal(groups$roles, c("X", "C1", "Y"))
+  labels <- whole_study_labels(plan$roles, list())
+  expect_identical(labels[["C2"]], "Second covariate")
+  skeleton <- whole_study_skeleton(plan, labels)
+  params <- params_of(skeleton)
+  expect_true(all(c("C1->M", "C2->M", "C1->Y", "C2->Y") %in% params$paths))
+  expect_true(all(c("X<->C1", "W<->C2", "C1<->C2") %in% params$correlations))
+  html <- as.character(whole_study_ui(forms, plan, params, labels, list(), 200L, "all"))
+  expect_match(html, "How many covariates every analysis adjusts for", fixed = TRUE)
+  expect_match(html, "ws_name_C2", fixed = TRUE)
+  expect_match(html, whole_study_input_id("C1<->C2"), fixed = TRUE)
+  expect_match(whole_study_path_label("X<->C1"), "Correlation of the predictor with the first covariate (X with C1; for groups", fixed = TRUE)
+  expect_match(whole_study_path_label("C1->M"), "from the first covariate (C1) to the mediator (M)", fixed = TRUE)
+  # The screen's choice of how many reaches the plan.
+  expect_identical(whole_study_values(list(ws_n_covariates = "3"), params)$n_covariates, "3")
+  # The methods paragraph says what every analysis adjusted for.
+  r <- list(analyses = data.frame(id = "compare", label = "The effect", power = 0.8, role = "main"),
+    implied = list(compare = list(values = c(r = 0.2, r_C1_Y = 0.3, r_C2_Y = 0.1))),
+    provenance = list(backend = "power4mome", packages = list(powerkit = "0.80.0", power4mome = "0.2.1"), nrep = 200, seed = 1),
+    n = 200, alpha = 0.05, claim = "each", models = list(population_values = ""))
+  expect_match(whole_study_methods(r), "adjusted each of its regressions (for the mediators and the outcome) for the two covariates (C1, C2)", fixed = TRUE)
 })
 
 test_that("a manipulation check beside a mediation is planned and simulated as M on X alone", {
