@@ -1073,7 +1073,7 @@ card_how_words <- c(
   script = "A preview here, then an R script to run on your computer"
 )
 
-validation_scope_note <- "Checks apply to the cases described in this record, not automatically to every test version, population or decision rule. Package agreement, independent simulation and published examples are different kinds of evidence."
+validation_scope_note <- "Each check covers the cases its record describes; other test versions, populations or decision rules may not be covered. Agreement with a package, an independent simulation and a published example are different kinds of evidence."
 
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
