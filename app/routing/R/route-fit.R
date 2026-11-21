@@ -71,7 +71,40 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
       "You said the same people are in three or more conditions. This card compares two (McNemar's test). For three or more,",
       "use the card for the same people measured more than once with a yes/no outcome, which plans Cochran's Q."))
   }
-  if (identical(ep_id, "E41") && identical(ctx$times, "twice")) {
+  if (identical(ep_id, "E2") && identical(ctx$outcomes, "separate")) {
+    out <- c(out, paste(
+      "You said each outcome score is a claim of its own. Plan each one on this card, and on its input screen answer",
+      "\u201cHow many tests does your conclusion rest on?\u201d: separate claims need no correction (Rubin, 2021), a related",
+      "group corrected together (Mayo, 2018) or a claim that any one result supports needs a stricter significance level,",
+      "and a claim that needs every result needs more power for each. For one joint test of all the scores instead, use",
+      "the card for groups compared on several outcomes at once."))
+  }
+  if (identical(ep_id, "E24") && identical(ctx$shape, "curve")) {
+    out <- c(out, paste(
+      "You expect a curved relationship, such as an inverted U. A correlation measures a straight line, so it can miss a",
+      "strong curve. On this card, plan the curve as the R-squared a squared term adds: choose \u201cWhether some predictors",
+      "add to the others\u201d, with two predictors in the full model (the score and its square) and one tested (the square)."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$hypothesis, "mediation")) {
+    out <- c(out, paste(
+      "You said the effect works through something else (mediation), with the same people measured more than once.",
+      "This card doesn't calculate an indirect effect: it plans the effect of something measured on each occasion (X),",
+      "of something measured once per person (W), and whether W changes X's effect. Within-person mediation needs two",
+      "more paths, from X to the mediator and from the mediator to the outcome allowing for X, and a timing in which the",
+      "mediator is measured after X and before the outcome. Powerkit doesn't plan it yet; its power is simulated in R",
+      "with a multilevel mediation model. You can still use this card for one of its own effects."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$trajectory, "one_group")) {
+    out <- c(out, paste(
+      "You described one group's change over time. This card plans it as the effect of something that changes from",
+      "occasion to occasion (X), here time, and tests \u201cX's effect within people\u201d: the average change. It takes X's",
+      "effect per SD of X, so multiply the average change per unit of time by the SD of the occasions (for weeks 1 to 8,",
+      "about 2.45), and do the same for how much people's own rates of change differ (the SD of X's effect). With the",
+      "same occasions for everyone, this gives the same model as a growth curve with a random slope. The card also asks",
+      "for something measured once per person (W): if there is none, give W's effect and the moderation as 0. The",
+      "answer is the power to detect the average change, not differences between people's changes."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$times, "twice") && !identical(ctx$hypothesis, "mediation")) {
     out <- c(out, paste(
       "If one measurement predicts the other later, allowing for the earlier score (for example, whether baseline anxiety predicts",
       "depression at follow-up, adjusting for baseline depression), that is a regression with the baseline as a covariate, which",
@@ -85,7 +118,7 @@ route_fit_ui <- function(tree, ep_id, ctx = list()) {
   if (!length(messages)) return(NULL)
   div(class = "status status-soon route-fit-note", role = "note",
     lapply(messages, function(m) p(class = "mb-1", m)),
-    if (identical(ep_id, "E41") && identical(ctx$times, "twice")) pick_button("Open multiple regression", "ep:E24", class = "btn btn-outline-primary btn-sm"))
+    if (identical(ep_id, "E41") && identical(ctx$times, "twice") && !identical(ctx$hypothesis, "mediation")) pick_button("Open multiple regression", "ep:E24", class = "btn btn-outline-primary btn-sm"))
 }
 
 # "Plan my whole study" (V-02, V-05): what the route can't do for this
@@ -131,6 +164,12 @@ finder_form_fills <- list(
     E68 = list(field = "three_outcome", values = c(score = "continuous", yesno = "binary")),
     E34 = list(field = "outcome_type", values = c(score = "standardised", yesno = "proportion")),
     E75 = list(field = "glmm_outcome", values = c(count = "count", yesno = "binary", ordinal = "categorical"))
+  ),
+  shape = list(
+    E24 = list(field = "question", values = c(curve = "r2_increase"))
+  ),
+  trajectory = list(
+    E41 = list(field = "two_level_effect", values = c(one_group = "within_effect"))
   ),
   assignment = list(
     E33 = list(field = "crossed_participants", values = c(within = "within_factor", between = "between_factor")),

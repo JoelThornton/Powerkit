@@ -413,7 +413,7 @@ test_that("MANOVA takes Pillai's V instead of means, computed by formula without
 
 test_that("the commonest designs take one screen fewer, with the options grouped (D-06, D-07)", {
   diff <- c("A score or scale", "Independent people", "Once", "A difference between groups or conditions")
-  expect_identical(follow_answers(tree, c(diff, "Two groups, different people in each")), "E2")
+  expect_identical(follow_answers(tree, c(diff, "Two groups, different people in each", "One outcome score, compared as it is")), "E2")
   expect_identical(follow_answers(tree, c(diff, "One group, compared with a fixed value")), "E1")
   expect_identical(follow_answers(tree, c(diff, "Two or more groups, compared on several outcomes at once")), "E59")
   expect_identical(follow_answers(tree, c(diff, "Three or more groups, different people in each")), "f2a")
