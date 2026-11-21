@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "sources_md5": {
-    "app/routing/tree.yaml": "ae965896264526b65be4e80084a22e5b",
+    "app/routing/tree.yaml": "3c36b8869dc9842bb7e7c2f45aee4782",
     "app/routing/forms.yaml": "05737190536bf8b3dc4e0bd1fde382f0",
     "engine/inst/evidence/records.json": "5cdbab1c6b5b8d258555ea05763da8d5",
     "scripts/release-support.R": "3ea4c59d3f3ea6b22008db6ed7c3078d",
@@ -42,7 +42,7 @@
     "app/routing/R/table-grid.R": "f4c940e4b9969bb033a5aea19fa5c5d5",
     "app/routing/R/tree.R": "01a79d77829f35de16f493fbcd58df7c",
     "app/routing/R/ui.R": "3b0ec0d7e8c16687c48b6d341b51cd4e",
-    "app/routing/R/whole-study.R": "8ac28b8b839d2e3cc9b71d4d912b566d"
+    "app/routing/R/whole-study.R": "1d679f163127496261ba52643cc4ee9f"
   },
   "evidence_registry": "engine/inst/evidence/records.json",
   "limits": ["Discovery metadata only; no calculation or new validation is performed.", "Selectors are individual choices, not valid Cartesian products.", "Shared closing fields are included; generated mediation inputs use two mediators.", "Engine constraints, dynamic UI logic and all generated model sizes still need case-level audit.", "Card status is historical; use analysis_evidence() on a complete selected spec.", "No empirical percentage of research designs is established by this inventory."]

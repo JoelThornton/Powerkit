@@ -1,3 +1,9 @@
+# powerkit 0.81.6
+
+* Whole-study simulation: a new analysis `w_y`, the regression of Y on
+  the moderator W alone (its own effect, adjusted for the baseline and
+  covariates as `x_y` is), tested with `test_parameters(pars = "Y~W")`.
+
 # powerkit 0.81.5
 
 * App: the decision an analysis commits the researcher to (its test name

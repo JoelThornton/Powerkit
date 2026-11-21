@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: "Plan the moderator's own effect"
+    text: "A study plan with a moderator can now include the moderator's own effect on the outcome (its main effect) as an analysis, with its own card, and simulating the whole study includes it: in a regression study as the outcome on the moderator, in an experiment as the moderator's main effect in the ANOVA."
+  - date: "2026-11-21"
     title: "Study plans and planning documents state the same decision as the write-up"
     text: >-
       A study plan's design table and target, and an analysis's planning document,
