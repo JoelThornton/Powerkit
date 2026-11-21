@@ -115,6 +115,7 @@ search-n,0.1
 sensitivity-anova-regression,18.7
 sensitivity-lpa-efa,900
 sensitivity-mediation,15
+sensitivity-mixed-model,20
 sensitivity-search,550
 sensitivity-simulated-a,700
 sensitivity-simulated-b,1000
