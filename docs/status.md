@@ -230,7 +230,9 @@ each area, is at the end of
   profiles (the separation) and factor recovery (the loading), and by
   InteractionPoweR's formula the three-way interaction; and the mediation
   cards' smallest indirect effect or index of moderated mediation, and the
-  mixed models' smallest difference, slope, d or coefficient, by the same
+  mixed models' smallest difference, slope, d or coefficient, and the
+  repeated count, yes/no or rating card's smallest rate or odds ratio
+  (Cochran's Q in the app), by the same
   search through the R script they hand out (the rest is `next.md` item
   11). Results show the critical effect size for the
   t-tests (Student's) and the correlation. The "If the effect were
