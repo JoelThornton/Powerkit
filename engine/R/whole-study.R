@@ -93,6 +93,8 @@ whole_study_model <- function(spec) {
     y_eq <- c(y_eq, "W", "XW")
     products$XW <- c("X", "W")
   }
+  # The moderator's own effect on the outcome: a path W -> Y.
+  if ("w_y" %in% tests) y_eq <- c(y_eq, "W")
   if ("m_y" %in% links) {
     y_eq <- c(y_eq, "W", "MW")
     products$MW <- c("M", "W")
@@ -160,7 +162,7 @@ whole_study_structure_problems <- function(spec) {
   if (!"main" %in% vapply(spec$analyses, function(a) a$role, character(1))) {
     problems <- c(problems, "Mark at least one analysis as a main analysis ('role': 'main').")
   }
-  needs_w <- any(tests %in% c("interaction", "index_of_mome"))
+  needs_w <- any(tests %in% c("interaction", "index_of_mome", "w_y"))
   if (needs_w && !"W" %in% roles) {
     problems <- c(problems, "An analysis with a moderator needs the moderator W in 'variables'.")
   }
@@ -484,6 +486,7 @@ whole_study_inputs <- function(spec) {
     test <- switch(
       a$test,
       x_y = list(fun = "test_parameters", args = list(pars = "Y~X", level = level)),
+      w_y = list(fun = "test_parameters", args = list(pars = "Y~W", level = level)),
       x_m = list(fun = "test_parameters", args = list(pars = "M~X", level = level)),
       interaction = list(fun = "test_moderation", args = list(level = level)),
       indirect = {
@@ -540,6 +543,9 @@ whole_study_fit <- function(a, spec) {
   switch(
     a$test,
     x_y = regression("Y ~ X"),
+    # The moderator's own effect, as its own card analyses it: Y on W
+    # alone (the test of the correlation), adjusted as Y ~ X is.
+    w_y = regression("Y ~ W"),
     # The effect of X on the mediator (a manipulation check), as its own
     # card analyses it: M on X alone. It is not adjusted for B, which is
     # the outcome's first measurement, but it is for the covariates.
@@ -909,6 +915,7 @@ whole_study_implied <- function(spec, inputs, data) {
       # A two-group X: also the d the two-group card asks for, the groups'
       # mean difference over their pooled SD, estimated from the data.
       x_y = c(r = stats::cor(data$X, data$Y), if (!is.null(inputs$x_prob)) c(d = whole_study_group_d(data))),
+      w_y = c(r = stats::cor(data$W, data$Y)),
       x_m = c(r = stats::cor(data$X, data$M), if (!is.null(inputs$x_prob)) c(d = whole_study_group_d(data, "M"))),
       interaction = c(
         r_X_Y = stats::cor(data$X, data$Y), r_W_Y = stats::cor(data$W, data$Y),

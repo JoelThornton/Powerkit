@@ -41,8 +41,8 @@ whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the 
 
 # Measured twice: the analysis that each planned analysis becomes once Y
 # is adjusted for its first measurement (whole_study_plan()).
-whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome", check = "x_m")
-whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41")
+whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome", check = "x_m", w_main = "w_y")
+whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41", w_main = "E24")
 
 # The effect of X on the mediator (a manipulation check, tree.yaml's
 # `check`): M on X alone, whatever card it leads to (the two-group
@@ -107,8 +107,10 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks, n_covariates 
           (asks[[id]] %||% "") %in% names(whole_study_twice_links)))
     }, logical(1))
   } else {
+    # The moderator's own effect: Y on a measured W alone (E4, or E24
+    # with covariates).
     ifelse(ticked == "check", endpoints %in% whole_study_check_endpoints & identical(answers$mediators, "one"),
-      endpoints %in% names(whole_study_tests))
+      ifelse(ticked == "w_main", endpoints %in% c("E4", "E24"), endpoints %in% names(whole_study_tests)))
   }
   outside <- ticked[!covered]
   if (length(outside)) {
@@ -125,14 +127,14 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks, n_covariates 
     id <- ticked[i]
     ep <- endpoints[[i]]
     a <- list(id = id, label = analysis_by_id(tree, id)$label,
-      test = if (twice || identical(id, "check")) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
+      test = if (twice || id %in% c("check", "w_main")) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
       role = if (id %in% primary) "main" else "extra")
     if (identical(a$test, "indirect")) a$path <- if (length(mediators) == 1) "X->M->Y" else if (serial) "X->M1->M2->Y" else "X->M1->Y"
     if (identical(a$test, "index_of_mome")) a$moderated_link <- if (twice) whole_study_twice_links[[asks[[id]]]] else link[[ep]]
     a
   })
   tests <- vapply(analyses, function(a) a$test, "")
-  roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome"))) "W",
+  roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome", "w_y"))) "W",
     if (any(tests %in% c("indirect", "index_of_mome", "x_m"))) mediators, if (twice) "B", covariates, "Y")
   path_choices <- if (length(mediators) == 2 && "indirect" %in% tests) {
     if (serial) c("X->M1->M2->Y", "X->M1->Y", "X->M2->Y") else c("X->M1->Y", "X->M2->Y")
@@ -166,7 +168,7 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
   if (!identical(answers$outcome, "score") || !identical(answers$covariate %||% "none", "none") ||
     !identical(answers$mediators %||% "none", "none")) return(NULL)
   reasons <- character()
-  outside <- setdiff(ticked, c("compare", "moderation"))
+  outside <- setdiff(ticked, c("compare", "moderation", if (!identical(w, "none")) "w_main"))
   if (length(outside)) reasons <- c(reasons, sprintf("every analysis is one the simulation covers (not yet: %s)",
     paste(vapply(outside, function(id) analysis_by_id(tree, id)$label, ""), collapse = "; ")))
   if (length(ticked) == 0) reasons <- c(reasons, "at least one analysis is planned")
@@ -181,7 +183,8 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
   # Factor A is the between factor: X measured once, W in a mixed design.
   # With W measured once, X is A and W is B.
   x_factor <- if (within_x && has_w) "B" else "A"
-  effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction")
+  effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction",
+    w_main = if (x_factor == "A") "main_effect_B" else "main_effect_A")
   analyses <- lapply(ticked, function(id) {
     list(id = id, label = whole_study_experiment_labels[[id]], test = "anova_effect", effect = effect_of[[id]],
       role = if (id %in% primary) "main" else "extra")
@@ -192,6 +195,7 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
 }
 
 whole_study_experiment_labels <- c(compare = "The main effect of X (in the factorial ANOVA)",
+  w_main = "The main effect of the moderator (in the factorial ANOVA)",
   moderation = "Whether the effect of X depends on the moderator (the X x W interaction)")
 
 # The variables' names: from what the user typed on the plan's input
@@ -854,6 +858,7 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
 whole_study_experiment_label <- function(id, labels) {
   switch(id,
     compare = sprintf("The main effect of %s", labels[["X"]]),
+    w_main = sprintf("The main effect of %s", labels[["W"]]),
     moderation = sprintf("Whether the effect of %s depends on %s (the interaction)", labels[["X"]], labels[["W"]]),
     id)
 }
