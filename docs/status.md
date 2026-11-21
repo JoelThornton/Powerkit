@@ -514,10 +514,15 @@ November 2026), which gives .051.
 
 The app is online at
 <https://joelthornton-powerkit.share.connect.posit.cloud>, published at
-most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
-second look at 16:23 in case GitHub skips the first), which the
+most once a week from the `connect-cloud` branch (Mondays at 04:23 UTC,
+with a second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
-installs from ([`hosting-options.md`](hosting-options.md)). "Copy page
+installs from ([`hosting-options.md`](hosting-options.md)). It runs on
+Connect Cloud's free plan, whose 20 credits a month are enforced: the
+account had used 16 of them by 21 November, and is paused at 20 until the
+reset on 18 December unless the plan or the host changes
+([`hosting-options.md`](hosting-options.md), "The free plan's limit"). A
+publish by hand costs credits and is the maintainer's to run. "Copy page
 link" gives the open tab, the Labs tool or the open card (`?card=E8`,
 which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main

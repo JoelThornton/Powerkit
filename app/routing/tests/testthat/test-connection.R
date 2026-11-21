@@ -53,7 +53,7 @@ test_that("the keep-open message stops when the page is left alone, unless a cal
   # A message sent for ever would keep the app (paid for by the hour)
   # running for as long as a forgotten tab stayed open (6 November 2026).
   expect_match(connection_js, "connected && keepOpen()", fixed = TRUE)
-  expect_match(connection_js, "IDLE_MS = 20 * 60 * 1000", fixed = TRUE)
+  expect_match(connection_js, "IDLE_MS = 10 * 60 * 1000", fixed = TRUE)
   expect_match(connection_js, "document.visibilityState === 'visible' && now - lastActive < IDLE_MS", fixed = TRUE)
   expect_match(connection_js, "e.message.custom.calc_progress", fixed = TRUE)
   expect_no_match(connection_js, "if (connected) Shiny.setInputValue('pk_heartbeat'", fixed = TRUE)
@@ -88,11 +88,13 @@ test_that("search engines are sent to the public pages, not to the app", {
   expect_true(file.exists(file.path(site, "google47b320cdc6781b0a.html")))
 })
 
-test_that("the online app is published at most daily, not after every merge", {
+test_that("the online app is published at most weekly, not after every merge", {
   workflow <- yaml::read_yaml(file.path(repo_dir, ".github", "workflows", "online-app-manifest.yaml"))
   triggers <- workflow[[which(names(workflow) %in% c("on", "TRUE"))]]
   expect_null(triggers$push)
-  expect_match(triggers$schedule[[1]]$cron, "^\\d+ \\d+ \\* \\* \\*$")
+  # Once a week: each publish restarts the app, which the host charges for
+  # by the hour, and the free plan's credits ran low (21 November 2026).
+  expect_match(triggers$schedule[[1]]$cron, "^\\d+ \\d+ \\* \\* [0-6]$")
   # The manifest check still runs on every pull request.
   expect_true("pull_request" %in% names(triggers))
   steps <- workflow$jobs$manifest$steps
@@ -103,11 +105,12 @@ test_that("the online app is published at most daily, not after every merge", {
   expect_false(grepl("--force", publish$run, fixed = TRUE))
   decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
   expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
-  # A second daily look catches a morning run GitHub skipped: only that run
+  # A second look the same day catches a morning run GitHub skipped: only that run
   # waits for a 10-hour gap, so a publish by hand never holds back the
   # next morning's.
   expect_length(triggers$schedule, 2)
   second <- triggers$schedule[[2]]$cron
+  expect_identical(sub(".* ", "", second), sub(".* ", "", triggers$schedule[[1]]$cron))
   expect_match(decide$run, sprintf('[ "$SCHEDULE" = "%s" ]', second), fixed = TRUE)
   expect_match(decide$run, "-lt 36000", fixed = TRUE)
   expect_identical(decide$env$SCHEDULE, "${{ github.event.schedule }}")

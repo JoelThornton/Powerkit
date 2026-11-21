@@ -1,11 +1,13 @@
 # Checks the manifest on PRs, and publishes the online app (Posit Connect
-# Cloud) once a day, with a second look in the afternoon.
+# Cloud) once a week, on Mondays, with a second look in the afternoon.
 #
 # Connect Cloud republishes the app whenever the branch it watches
 # (connect-cloud) changes, and charges for every hour the app runs, a
 # rebuild and restart included. Main changes dozens of times a day, so
 # publishing after every merge kept the app rebuilding (docs/
-# hosting-options.md, "What uses the plan's credits"). Instead, once a day,
+# hosting-options.md, "What uses the plan's credits"). The free plan's 20
+# credits a month did not cover a publish a day as well as visitors (21
+# November 2026). Instead, once a week,
 # if anything the app runs (app/routing, engine and renv.lock, tests aside)
 # differs between main and connect-cloud, this workflow writes the manifest
 # and publishes checked main source plus that manifest to connect-cloud,
@@ -14,18 +16,20 @@
 # without an automation bypass (docs/repository-protection.md).
 #
 # "Run workflow" on the Actions tab publishes at once (an urgent fix); tick
-# "force" to publish even if nothing changed.
+# "force" to publish even if nothing changed. Each publish uses credits, so
+# it is the maintainer's to run, never a routine step after a merge.
 name: online-app-manifest
 
 on:
   schedule:
-    # 04:23 UTC every day, and a second look at 16:23. GitHub starts timed
-    # runs late, or not at all, when it is busy (8 November 2026 had none),
-    # so the second look publishes only if nothing was published in the
-    # last 10 hours: it catches a missed morning without a second rebuild
-    # on a normal day. The morning run always publishes what changed.
-    - cron: "23 4 * * *"
-    - cron: "23 16 * * *"
+    # 04:23 UTC every Monday, and a second look at 16:23. GitHub starts
+    # timed runs late, or not at all, when it is busy (8 November 2026 had
+    # none), so the second look publishes only if nothing was published in
+    # the last 10 hours: it catches a missed morning without a second
+    # rebuild on a normal Monday. The morning run always publishes what
+    # changed.
+    - cron: "23 4 * * 1"
+    - cron: "23 16 * * 1"
   pull_request:
   workflow_dispatch:
     inputs:
@@ -83,7 +87,7 @@ jobs:
           elif git diff --quiet origin/connect-cloud HEAD -- $paths; then
             echo "Nothing the app runs has changed since the last publish; not publishing."
             publish=false
-          elif [ "$SCHEDULE" = "23 16 * * *" ] && [ $(( $(date +%s) - $(git log -1 --format=%ct origin/connect-cloud) )) -lt 36000 ]; then
+          elif [ "$SCHEDULE" = "23 16 * * 1" ] && [ $(( $(date +%s) - $(git log -1 --format=%ct origin/connect-cloud) )) -lt 36000 ]; then
             echo "The second look: published less than 10 hours ago, so not again today."
             publish=false
           else
