@@ -948,6 +948,9 @@ conversion_fields <- function(template, when = list()) {
   from <- conversion_choices[[template]]
   labels <- conversion_labels[from]
   if (isTRUE(template %in% eta_squared_templates)) labels$F <- "An F statistic, with its two degrees of freedom"
+  # The t is converted by the pooled-SD formula (Lakens, 2013): a Welch t
+  # from groups of different sizes or spreads gives a different d.
+  if (identical(template, "independent_t")) labels$t <- "A Student's (pooled) t statistic"
   proportions <- identical(template, "two_proportions")
   if (proportions) {
     labels$odds_ratio <- "An odds ratio (group 2's odds of 'yes' over group 1's), with group 1's proportion above"

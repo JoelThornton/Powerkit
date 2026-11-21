@@ -2042,9 +2042,9 @@ forms:
              choices: {mover: "Simulate the analysis, with MOVER confidence intervals for the limits (recommended)",
                        bland_altman: "Simulate the analysis, with Bland and Altman's confidence intervals for the limits",
                        lu_formula: "Quick approximation: Lu et al.'s (2016) formula (instant, less accurate)"},
-             default: mover, default_source: "the MOVER intervals, SimplyAgree's default (agreement_limit(loa_calc = 'mover'), version 0.3.0), whose error rates are close to the level you set",
-             choice_notes: {mover: "Powerkit simulates studies like yours and analyses each with SimplyAgree's agreement_limit(), as you would analyse your data. The MOVER intervals (Zou, 2013) keep the chance of wrongly showing agreement close to the level you set. Power at a fixed sample size runs here in under a minute; a sample size comes as an R script that takes about 5 minutes.",
-                            bland_altman: "The same simulation with Bland and Altman's (1999) approximate intervals. Choose it if that is the analysis you will report. Its intervals are a little too narrow in small samples, so it shows agreement more often than it should: about twice the level you set at 30 subjects.",
+             default: mover, default_source: "the MOVER intervals, SimplyAgree's default (agreement_limit(loa_calc = 'mover'), version 0.3.0), whose error rates are close to their nominal level",
+             choice_notes: {mover: "Powerkit simulates studies like yours and analyses each with SimplyAgree's agreement_limit(), as you would analyse your data. Each limit is tested at half the significance level you set (the outer end of a two-sided interval), so with a limit at the margin the chance of wrongly showing agreement is half that level; the MOVER intervals (Zou, 2013) keep it close to that. Power at a fixed sample size runs here in under a minute; a sample size comes as an R script that takes about 5 minutes.",
+                            bland_altman: "The same simulation with Bland and Altman's (1999) approximate intervals. Choose it if that is the analysis you will report. Its intervals are a little too narrow in small samples, so it shows agreement more often than it should: at 30 subjects, about the full level you set rather than half of it.",
                             lu_formula: "The published formula for this analysis (Lu et al., 2016), SimplyAgree's blandPowerCurve(). It is instant, but it approximates the analysis it plans for: for a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, it gives 80% power at 26 subjects, where the MOVER analysis has about 69% and needs 33. Use it to explore, and the simulation for the number you report."}}
   E44:
     methods_name: "an actor-partner interdependence model"
@@ -3793,7 +3793,7 @@ forms:
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
           - {id: meta_slope, writeup_label: "change in the effect per SD of the moderator", label: "Change in the effect per SD of the moderator", type: number, path: population.slope, effect: true,
              shown_if: {field: meta_question, is: meta_regression},
-             help: "On the effect's scale. For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
+             help: "On the effect's scale: Fisher's z for a correlation (0.15 in z is about 0.15 in r for small correlations), d or the log ratio otherwise. For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
           - {id: i2, label: "Heterogeneity, as I-squared", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
@@ -4132,10 +4132,10 @@ forms:
              choices: {known: "Enter the measures' reliability (recommended)", perfect: "Assume no measurement error (power will be optimistic)"},
              sets: {perfect: [{path: population.reliability, value: 1}]},
              default_source: "Not filled in for you, because almost no measure is perfectly reliable (for reference: powRICLPM assumes no measurement error, powRICLPM(reliability = 1))",
-             help: "Real scores contain measurement error, which lowers power and makes the lagged effects look smaller. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
+             help: "Real scores contain measurement error, which lowers power and biases the lagged effects: the stability paths look smaller, and a cross-lagged path can be pushed either way. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
           - {id: reliability, label: "Each score's reliability", type: number, path: population.reliability, required: true, min: 0.5, max: 1,
              shown_if: {field: reliability_known, is: known},
-             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
+             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls, and the lagged effects are biased (the stability paths downwards, a cross-lagged path in either direction)."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.
@@ -4744,13 +4744,13 @@ forms:
           - {id: Y2_label, label: "Y2", type: text, path: variables.Y2.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The two correlations you are comparing"
         fields:
-          - {id: r_X_Y, baseline: true, writeup_label: "first correlation (X with Y)", label: "First: X with Y", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X_Y, baseline: true, writeup_label: "correlation under no difference (X with Y)", label: "X with Y, the value under no difference", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: overlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+          - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "expected correlation (X with Z)", label: "X with Z, the value you expect", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "second correlation (X with Z)", label: "Second: X with Z", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X1_Y1, baseline: true, writeup_label: "first correlation (X1 with Y1)", label: "First: X1 with Y1", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "second correlation (X2 with Y2)", label: "Second: X2 with Y2", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X1_Y1, baseline: true, writeup_label: "correlation under no difference (X1 with Y1)", label: "X1 with Y1, the value under no difference", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+          - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "expected correlation (X2 with Y2)", label: "X2 with Y2, the value you expect", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The correlations between the other pairs of variables"
         fields:
@@ -4972,7 +4972,7 @@ forms:
              shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: beta}]}
           - {id: oe, writeup_label: "anticipated O/E ratio", label: "Expected observed/expected ratio", help: "Optional: 1 if left empty, meaning the model is well calibrated in the large.", type: number, path: population.oe, optional: true, min_exclusive: 0,
              shown_if: {field: purpose, is: validation}}
-          - {id: calibration_slope, writeup_label: "anticipated calibration slope", label: "The calibration slope you expect", help: "1 if left empty.", type: number, path: population.calibration_slope, optional: true, min_exclusive: 0,
+          - {id: calibration_slope, writeup_label: "anticipated calibration slope", label: "The calibration slope you expect", help: "1 if left empty. pmvalsampsize reports it with the result, but works out the slope's precision for a well-calibrated model, so this value doesn't change the sample size.", type: number, path: population.calibration_slope, optional: true, min_exclusive: 0,
              shown_if: {field: purpose, is: validation}}
           - {id: threshold, writeup_label: "risk threshold", label: "Risk threshold for decisions", type: number, path: population.threshold, optional: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: purpose, is: validation},

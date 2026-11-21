@@ -4465,7 +4465,7 @@ precision_writeup <- function(form, spec, result, fields, values, departures = c
   aim <- if (!is.na(pr$target_width)) {
     sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s%s. This requires %s.",
       interval, estimate, format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
+      if (is.na(pr$assurance)) precision_width_basis(result) else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
       if (!is.na(pr$assurance) && !blank(values$assurance_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$assurance_reason))) else "",
       precision_people(spec, pr$n))
   } else {
@@ -4490,6 +4490,14 @@ precision_writeup <- function(form, spec, result, fields, values, departures = c
   c(short = short, full = full, ethics = ethics)
 }
 
+# How a width without assurance is met: MBESS plans the interval's
+# expected width ("on average"); presize and the formula routes give the
+# width at the values assumed (for example the expected proportion), not
+# an average over samples.
+precision_width_basis <- function(result) {
+  if (identical(result$provenance$backend, "MBESS")) " on average" else " at the values assumed"
+}
+
 # The precision result's big figure: the sample size for a width, or the
 # width a sample size gives, with what it assumes beside it.
 precision_hero_ui <- function(spec, result) {
@@ -4506,7 +4514,7 @@ precision_hero_ui <- function(spec, result) {
     sprintf("Expected %s = %s", pr$effect_name, format(pr$effect)),
     paste0(toupper(substr(interval, 1, 1)), substr(interval, 2, nchar(interval))),
     if (!is.na(pr$target_width)) sprintf("Width no more than %s%s", format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(", %s assurance", percent(pr$assurance))))
+      if (is.na(pr$assurance)) precision_width_basis(result) else sprintf(", %s assurance", percent(pr$assurance))))
   div(class = "result-hero",
     div(class = "result-figure",
       tags$span(class = "result-figure-value", fig$value),

@@ -319,3 +319,23 @@ test_that("the exported script reproduces a variance run", {
   expect_equal(run$reproduced$n_recruit, 134) # 60 / 0.9 = 66.7 per group
   expect_equal(run$reproduced, run$powerkit)
 })
+
+test_that("studies Spower redraws because their analysis failed are counted as failed (queue item 29)", {
+  # An experiment whose analysis fails half the time (an NA p-value, as
+  # p_riclpm() returns for a model that doesn't converge): Spower redraws
+  # those studies, and the counts report them, so the result can say how
+  # many studies could be analysed.
+  assign("p_fails_half", function(n) if (stats::runif(1) < 0.5) NA_real_ else stats::runif(1, 0, 0.1), envir = globalenv())
+  withr::defer(rm("p_fails_half", envir = globalenv()))
+  inputs <- list(args = function(n) list(n = n), alternative = "two_sided", own = TRUE, experiment = "p_fails_half", alpha = 0.05)
+  counts <- spower_counts(inputs, 20, 100, seed = 3)
+  expect_equal(counts[[2]], 100)
+  expect_equal(counts[[4]], 100)
+  expect_gt(counts[[3]], 130)
+  expect_equal(spower_rejections(inputs, 20, 100, seed = 3), counts[[1]])
+  # With nothing failing, every attempted study is valid.
+  inputs$experiment <- "p_never_fails"
+  assign("p_never_fails", function(n) stats::runif(1), envir = globalenv())
+  withr::defer(rm("p_never_fails", envir = globalenv()))
+  expect_equal(spower_counts(inputs, 20, 50, seed = 3)[[3]], 50)
+})

@@ -80,7 +80,7 @@ spower_backend <- function(spec, seed = NULL) {
     exact_min_n = n_min,
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
-        spower_rejections(inputs, n, k, chunk_seed)
+        spower_counts(inputs, n, k, chunk_seed)
       })
     },
     sensitivity = NULL,
@@ -1352,8 +1352,9 @@ p_riclpm <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor
 # against the population values. It is run on error-free scores
 # (reliability 1): with reliability below 1, powRICLPM adds measurement
 # error to the observed scores and the fitted model, which has no
-# measurement part, recovers attenuated lagged effects. That attenuation
-# is the point of the setting (it lowers power), not a translation
+# measurement part, recovers biased lagged effects (the stability paths
+# smaller, a cross-lagged path either way). That bias is part of the
+# setting (it changes power), not a translation
 # error, so comparing those estimates with the specified effects would
 # report a working design as broken. The check confirms that the
 # population reaches powRICLPM as specified; the power is then simulated
@@ -1886,8 +1887,10 @@ spower_alternative <- function(template, alternative) {
   if (alternative == "greater") "less" else "greater"
 }
 
-# Rejections in `nrep` Spower replications at total sample size n.
-spower_rejections <- function(inputs, n, nrep, seed) {
+# `nrep` Spower replications at total sample size n, as the counts
+# simulate_in_chunks() takes: the rejections, the studies analysed, the
+# studies attempted and the valid ones. spower_rejections() is the first.
+spower_counts <- function(inputs, n, nrep, seed) {
   args <- inputs$args(n)
   if (inputs$alternative != "two_sided") {
     args$alternative <- spower_alternative(inputs$template, inputs$alternative)
@@ -1895,8 +1898,16 @@ spower_rejections <- function(inputs, n, nrep, seed) {
   if (isTRUE(inputs$continuity_corrected)) return(corrected_count_rejections(inputs, args, nrep, seed))
   head <- if (isTRUE(inputs$own)) as.name(inputs$experiment) else call("::", as.name("Spower"), as.name(inputs$experiment))
   result <- spower_eval(head, args, nrep, inputs$alpha, seed)
-  round(result$power * nrep)
+  # Spower redraws a study whose analysis fails (the experiment returns NA
+  # or stops) and counts it in ERRORS, so the power is over the studies
+  # that could be analysed; the redraws are reported as failed studies
+  # (search_n.R, simulation_record()), as for the other simulations.
+  redrawn <- suppressWarnings(as.numeric(result$ERRORS %||% 0))
+  redrawn <- if (length(redrawn) == 1 && is.finite(redrawn)) redrawn else 0
+  c(round(result$power * nrep), nrep, nrep + redrawn, nrep)
 }
+
+spower_rejections <- function(inputs, n, nrep, seed) spower_counts(inputs, n, nrep, seed)[1]
 
 # Evaluate Spower::Spower(<head>(<args>)) with the random-number generator
 # seeded. Spower reads the experiment unevaluated and turns each length-one

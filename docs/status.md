@@ -69,7 +69,7 @@ and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
 maintainer, with TOSTER's and pmsampsize's faults); E77 says when
 pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
-labels and wording (item 29) go with item 28. E75 keeps refusing one
+labels and wording are fixed too: E51 says which correlation is the value under no difference, E2's converter asks for a pooled t, E77 says its calibration slope doesn't change the sample size, E69's agreement note gives each limit's level, E74's help says measurement error biases a cross-lagged path either way, and a simulated design whose fits sometimes fail now says how many studies could be analysed. E75 keeps refusing one
 yes/no answer per condition: in simulations its tests found a difference
 too often when there was none, and fitting by adaptive quadrature
 instead of glmer()'s default fit didn't cure it (up to 10% in small
@@ -77,7 +77,7 @@ or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
 Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 31). Validation expectations
+condition (queue item 30). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,

@@ -456,6 +456,16 @@ Questions about pmvalsampsize 0.1.0, from reading its source (15 November
    the package? powerkit passes the default and reports pmvalsampsize's
    answer; its validation checks this criterion to within 1%
    (engine/tests/testthat/test-validation-prediction-model.R).
+2. **The anticipated calibration slope doesn't change the sample size.**
+   `cslope` is shown in criterion 2's row of the results table, but the
+   criterion's sample size is the same for any value (4,692 for slopes of
+   0.8, 1 and 1.2, with prevalence 0.2, C statistic 0.75, a normal linear
+   predictor with mean -1.4 and SD 0.8 and widths of 0.2, checked on
+   21 November 2026): the slope's precision is worked out with the
+   model's predictions calibrated (intercept 0, slope 1). Is that the
+   intended criterion, or should a miscalibrated model's slope enter the
+   simulation? powerkit says on the form that the value doesn't change
+   the sample size.
 
 ## TOSTER
 

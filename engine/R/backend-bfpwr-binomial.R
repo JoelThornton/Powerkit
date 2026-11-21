@@ -103,18 +103,21 @@ bfbin_outcome_probabilities <- function(n, p, p_sd) {
   exp(lchoose(n, x) + lbeta(x + design$a, n - x + design$b) - lbeta(design$a, design$b))
 }
 
-# The chance that BF10 is at least k (`for_effect = TRUE`), or BF01 above
-# k, at n people when the proportion is p (or drawn from the design
-# prior with SD p_sd).
+# The chance that BF10 is at least k (`for_effect = TRUE`), or BF01 at
+# least k, at n people when the proportion is p (or drawn from the design
+# prior with SD p_sd). The outcomes are whole numbers, so a Bayes factor
+# can equal k exactly: "at least" counts that outcome, as the results say.
 bfbin_chance <- function(inputs, n, k, for_effect, p = inputs$p, p_sd = inputs$p_sd) {
   if (bfbin_by_bfpwr(inputs)) {
-    # pbinbf01(k) is P(BF01 <= k); BF10 >= k is BF01 <= 1 / k.
-    args <- c(bfbin_bfpwr_args(inputs, n, p, p_sd), if (for_effect) list(k = 1 / k) else list(k = k, lower.tail = FALSE))
+    # pbinbf01(k) is P(BF01 <= k); BF10 >= k is BF01 <= 1 / k. Its upper
+    # tail is P(BF01 > k), so k is lowered by a rounding margin to count
+    # BF01 = k.
+    args <- c(bfbin_bfpwr_args(inputs, n, p, p_sd), if (for_effect) list(k = 1 / k) else list(k = k * (1 - 1e-9), lower.tail = FALSE))
     return(call_backend("bfpwr", quietly(do.call(bfpwr::pbinbf01, args))))
   }
   bf10 <- call_backend("bfpwr", bfbin_point_one_sided_bf10(0:n, n, inputs))
-  # As pbinbf01(): BF10 at least k for an effect, BF01 above k for none.
-  pass <- if (for_effect) bf10 >= k else 1 / bf10 > k
+  # BF10 at least k for an effect, BF01 at least k (within rounding) for none.
+  pass <- if (for_effect) bf10 >= k else 1 / bf10 >= k * (1 - 1e-9)
   sum(bfbin_outcome_probabilities(n, p, p_sd)[pass])
 }
 
