@@ -751,6 +751,14 @@ check_bayes_factor <- function(spec) {
     }
     return(character())
   }
+  if (!is.null(spec$target_test$prior_location) || !is.null(spec$target_test$prior_df)) {
+    if (!isTRUE(spec$template %in% c("one_sample_t", "paired_t", "independent_t"))) {
+      return(paste0(
+        "'target_test > prior_location' and 'prior_df' set an informed prior for the Bayes factor t-tests only; ",
+        "remove them for this test."
+      ))
+    }
+  }
   if (bftable_test(spec)) {
     return(check_bayes_table(spec))
   }
