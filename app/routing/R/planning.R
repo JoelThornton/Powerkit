@@ -35,27 +35,8 @@ planning_decision_ui <- function(form) {
       p("A directional scientific prediction can accompany a two-sided test. Choose the statistical decision rule before seeing the data.")))
 }
 
-decision_rule_text <- function(spec) {
-  if (identical(spec$design, "prediction_model") && identical(spec$template, "validation")) return(sprintf(
-    "Minimum sample size for validating an existing prediction model, not a significance decision: the criteria of Riley and colleagues, with 95%% intervals no wider than %s (O/E ratio), %s (calibration slope) and %s (C-statistic).",
-    format(spec$goal$oe_ci_width %||% 0.2), format(spec$goal$cslope_ci_width %||% 0.2), format(spec$goal$cstat_ci_width %||% 0.1)))
-  if (identical(spec$design, "prediction_model")) return(sprintf(
-    "Minimum sample size for developing a prediction model, not a significance decision: the criteria of Riley and colleagues, with a shrinkage target of %s.",
-    format(spec$goal$shrinkage %||% 0.9)))
-  if (identical(spec$design, "precision")) return(paste(
-    "Precision planning, not a significance decision.",
-    if (is.null(spec$goal$assurance)) "Target: expected (average) interval width; no probability guarantee of meeting that width is specified." else
-      sprintf("Target: width %s with assurance %s.", spec$goal$width, spec$goal$assurance)))
-  if (identical(spec$design, "equivalence_test")) return("Equivalence/non-inferiority decision relative to the stated bounds and selected test; a non-significant ordinary test does not establish equivalence.")
-  if (identical(spec$target_test$method, "minimum_effect")) return("Minimum-effect decision: the effect exceeds the stated worthwhile threshold in the chosen direction. The expected population effect and threshold are separate assumptions.")
-  if (identical(spec$target_test$method, "bayes_factor")) return("Bayes factor evidence decision using the stated prior and evidence threshold, rather than a p-value significance rule.")
-  sides <- c(two_sided = "two-sided", greater = "one-sided (greater)", less = "one-sided (less)")
-  alternative <- spec$target_test$alternative %||% "two_sided"
-  side <- if (alternative %in% names(sides)) sides[[alternative]] else gsub("_", " ", alternative)
-  paste0("A significance test at alpha = ", spec$target_test$alpha, ", ", side, ". ",
-    if (identical(spec$design, "sem")) "Overall model fit and a particular path or correlation are different hypotheses; the plan tests the one selected." else
-      "A significant result rejects the selected null hypothesis; it does not show that the effect matters in practice or that the theory is true.")
-}
+# The planning document's decision rule (decision-rule.R).
+decision_rule_text <- function(spec, result = NULL, form = NULL) decision_rule(spec, result, form)$rule
 
 # Build from the calculation's captured answers, never the live input boxes.
 planning_document <- function(tree, forms, calc) {
@@ -81,7 +62,7 @@ planning_document <- function(tree, forms, calc) {
     sprintf("Planning draft for review, made with %s. This file does not register a preregistration or guarantee the assumptions are correct.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
     "## Scientific question", if (blank(values$research_question)) "Not recorded." else values$research_question, "",
     "## Analysis and decision", tree$endpoints[[id]]$plain_name %||% tree$endpoints[[id]]$doc_name,
-    decision_rule_text(spec),
+    decision_rule_text(spec, result, forms$forms[[id]]),
     paste("Why this effect size:", values$just_source %||% "Not recorded."),
     if (!blank(values$alternative_reason)) paste("One-sided decision reasoning:", values$alternative_reason), "",
     "## Assumptions and sources", "Entered values below are planning assumptions unless their source establishes otherwise. Defaults are not study-specific evidence.",

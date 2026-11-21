@@ -144,7 +144,9 @@ test('precision produces width rather than a power result', async ({ page }, inf
   expect(saved.result.precision).toBeTruthy();
   const document = info.outputPath('precision-planning.md');
   await download(page, 'download_planning_document', document);
-  expect(await fs.readFile(document, 'utf8')).toContain('Precision planning, not a significance decision');
+  const text = await fs.readFile(document, 'utf8');
+  expect(text).toContain('Precision planning for a 95% Wilson confidence interval');
+  expect(text).toContain('not a significance decision');
 });
 
 test('a real background simulation can be cancelled', async ({ page }) => {

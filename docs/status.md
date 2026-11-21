@@ -276,7 +276,11 @@ each area, is at the end of
   hypothesis, sampling plan, analysis plan, what sets the sensitivity,
   interpretation of each outcome, theory at stake; also on its own from
   the plan's Study plan report button), the merged references and each analysis's own files; the zip
-  opens again as the plan. "Plan my whole study" makes or fills a study
+  opens again as the plan. The table's analysis and interpretation cells, the plan's target column and the single-analysis
+  planning document's decision rule come from one source (`decision-rule.R`, 21 November 2026), so a
+  non-inferiority test, a test of not-close fit, a minimum-effect test, a validation plan, factor
+  recovery, profile selection and a precision plan each state the same decision as their write-ups,
+  with no alpha where there is no test. Still to fix from the same audit: `next.md` items 28 to 30. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
   the guided screens from the plan's page. A plan's significance level

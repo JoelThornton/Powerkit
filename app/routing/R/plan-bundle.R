@@ -45,15 +45,9 @@ plan_analysis_hashes <- function(plan) {
   vapply(plan$entries, function(e) plan_entry_calc(e)$result$provenance$spec_hash %||% "", character(1))
 }
 
-# What the analysis aimed for, in the words its card uses.
-plan_entry_target <- function(spec) {
-  goal <- spec$goal %||% list()
-  if (identical(spec$design, "prediction_model")) return(paste0("the criteria for developing a prediction model, shrinkage ", format(goal$shrinkage %||% 0.9)))
-  if (identical(spec$design, "precision")) return(paste0("interval width ", format(goal$width),
-    if (!is.null(goal$assurance)) paste0(", assurance ", format(goal$assurance))))
-  if (!is.null(goal$power)) return(paste("power", format(goal$power)))
-  gsub("_", " ", goal$type %||% "")
-}
+# What the analysis aimed for, in the words its card uses
+# (decision-rule.R).
+plan_entry_target <- function(spec) decision_rule(spec)$target
 
 # The merged references from several analyses' citation texts
 # (export_citations(format = "text")): each reference once, with the line
@@ -236,43 +230,21 @@ plan_design_row <- function(e, tree, forms) {
   sampling <- if (is.numeric(e$n) && length(e$n) == 1 && is.finite(e$n)) {
     sprintf("%s %s%s.", whole(e$n), units, if (!is.null(goal$power)) sprintf(", for %s power", replication_pct(goal$power)) else "")
   } else plan_item_summary(e)
-  test <- tryCatch(test_text(spec), error = function(err) e$label)
-  name <- plan_test_name(forms$forms[[id %||% ""]], spec)
-  if (!is.null(name)) test <- sprintf("%s (%s)", name, sub("^an? ", "", test))
-  test <- paste0(toupper(substr(test, 1, 1)), substring(test, 2))
-  method <- spec$target_test$method %||% ""
-  bayes <- identical(method, "bayes_factor")
-  thr <- format(spec$target_test$evidence_threshold %||% 10)
-  analysis <- if (bayes) sprintf("%s; a success if the Bayes factor for the effect reaches %s.", test, thr)
-    else if (identical(spec$design, "equivalence_test")) sprintf("%s; a success if both one-sided tests are significant.", test)
-    else if (identical(spec$design, "precision") || identical(spec$design, "prediction_model")) paste0(test, ".")
-    else sprintf("%s; a success if it is significant.", test)
+  rule <- decision_rule(spec, calc$result, forms$forms[[id %||% ""]])
+  analysis <- rule$analysis
   effect <- paste(writeup_effect(fields, values), collapse = "; ")
   source <- writeup_source[[values$just_type %||% ""]] %||% NULL
   sensitivity <- paste0(if (nzchar(effect)) effect else "The values entered on the card",
     if (!is.null(source)) paste0(", based on ", source) else "",
     if (!blank(values$just_source)) sprintf(": \u201c%s\u201d", values$just_source) else "", ".")
-  interpretation <- if (bayes) sprintf("BF10 of %s or more: evidence for the effect. BF01 of %s or more: evidence for no effect. Between: not enough evidence either way.", thr, thr)
-    else if (identical(spec$design, "equivalence_test")) "Both significant: the effect is within the bounds. Otherwise: an effect beyond them is not ruled out."
-    else if (identical(method, "minimum_effect")) "Significant: the effect exceeds the stated threshold. Otherwise: it is not shown to exceed it."
-    else if (identical(spec$design, "precision") || identical(spec$design, "prediction_model")) "Not a test: report the estimate and its interval (fill in what values would change your conclusion)."
-    else "Significant: evidence against no effect. Not significant: the effect is not shown; this test alone cannot show it is absent."
+  interpretation <- rule$interpretation
   c(question, "(fill in)", sampling, analysis, sensitivity, interpretation, "(fill in)")
 }
 
 # The test's name as the methods paragraph gives it ("Welch's
 # independent-samples t-test", "a 2 x 2 ANOVA (target effect: the
 # interaction of A and B)"), or NULL when the card names none.
-plan_test_name <- function(form, spec) {
-  name <- form$methods_name
-  if (is.null(name) || !nzchar(name)) return(NULL)
-  method <- spec$target_test$method %||% ""
-  if (identical(method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
-  if (identical(method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
-  if (identical(method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
-  if (is_bayes_test(spec)) name <- bayes_test_name(spec)
-  if (isTRUE(spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three"))) {
-    name <- sprintf("%s (target effect: %s)", name, anova_effect_words(spec))
-  }
-  name
+plan_test_name <- function(form, spec, result = NULL) {
+  if (is.null(form$methods_name) || !nzchar(form$methods_name)) return(NULL)
+  methods_test_name(form, spec, result)
 }
