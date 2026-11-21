@@ -3808,138 +3808,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     values$just_source <- no_reason_token
     return(without_reason(writeup_text(form, spec, result, fields, values, departures, known_methods, known)))
   }
-  name <- form$methods_name
-  # "Welch's independent-samples t-test (two-sided, ...)": one set of
-  # brackets, not two in a row (P-15).
-  if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
-  if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
-  # A two-sided exact binomial test: which p-value (next.md item 30, 19
-  # November 2026), since equal tails and binom.test() need different n.
-  if (identical(spec$template, "one_proportion") && isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) {
-    name <- paste("a z test of one proportion (R's prop.test())",
-      if (identical(spec$target_test$method, "z_test")) "without the continuity correction" else "with the continuity correction",
-      "with power summed over every possible count")
-  }
-  if (identical(spec$template, "one_proportion") && identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
-    if (identical(spec$target_test$method, "exact_binomial")) name <- paste(name, "with alpha / 2 in each tail")
-    if (identical(spec$target_test$method, "binom_test")) {
-      name <- paste(name, "with the two-sided p-value of R's binom.test(), which adds up every count no more likely than the one observed")
-    }
-  }
-  # McNemar's chi-square test and the variance tests that don't assume
-  # normal scores (17 November 2026, next.md item 27).
-  if (identical(spec$target_test$method, "mcnemar_chisq")) name <- "McNemar's chi-square test without the continuity correction, simulated"
-  if (identical(spec$target_test$method, "mcnemar_chisq_corrected")) {
-    name <- "McNemar's chi-square test with the continuity correction (the default in R's mcnemar.test()), simulated"
-  }
-  if (isTRUE(spec$target_test$method %in% c("levene", "brown_forsythe"))) {
-    name <- sprintf("%s of two variances (car's leveneTest(), deviations from each group's %s), simulated assuming %s",
-      if (identical(spec$target_test$method, "levene")) "Levene's test" else "the Brown-Forsythe test",
-      if (identical(spec$target_test$method, "levene")) "mean" else "median",
-      score_shape_text(spec$population$score_shape))
-  }
-  # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
-  # effect given as partial eta-squared) or measured (Shieh's method).
-  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
-  # A mixed model's test with Kenward and Roger's degrees of freedom in
-  # place of Satterthwaite's (17 November 2026).
-  if (identical(spec$target_test$df_method, "kenward_roger")) {
-    name <- if (grepl("Satterthwaite", name, fixed = TRUE)) gsub("Satterthwaite", "Kenward-Roger", name, fixed = TRUE) else
-      paste0(name, " (Kenward-Roger tests)")
-  }
-  if (identical(spec$design, "survival")) {
-    name <- switch(spec$target_test$method %||% "",
-      log_rank = "a time-to-event analysis (the log-rank test)",
-      cox_regression = "a time-to-event analysis (a Cox regression)", name)
-  }
-  if (isTRUE(spec$target_test$method %in% c("zero_inflated_poisson", "zero_inflated_negative_binomial"))) {
-    name <- sprintf("a zero-inflated %s regression (%s, %s%% extra zeros%s), simulated",
-      if (identical(spec$target_test$method, "zero_inflated_poisson")) "Poisson" else "negative binomial",
-      switch(spec$target_test$effect,
-        zero_odds_ratio = "the Wald z test of one predictor in the zero part",
-        rate_and_zero = "the likelihood-ratio test of one predictor in both parts",
-        "the Wald z test of one predictor in the count part"
-      ),
-      format(100 * spec$population$zero_prob),
-      if (identical(spec$target_test$method, "zero_inflated_negative_binomial")) sprintf(", overdispersion k = %s", format(spec$population$dispersion)) else "")
-  }
-  if (identical(spec$target_test$method, "permanova")) {
-    name <- sprintf("a PERMANOVA (vegan's adonis2() permutation test on Euclidean distances between the standardised outcomes), simulated assuming %s", score_shape_text(spec$population$score_shape))
-  }
-  if (identical(spec$target_test$method, "negative_binomial")) {
-    name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))
-  }
-  if (identical(spec$template, "single_coefficient")) {
-    name <- switch(spec$target_test$method %||% "f_test",
-      ols_hc3 = "the t test of one regression coefficient with HC3 robust standard errors, simulated",
-      ols_hc4 = "the t test of one regression coefficient with HC4 robust standard errors, simulated",
-      quantile_regression = sprintf("a quantile regression test of one coefficient (quantile %s), simulated", format(spec$population$quantile %||% 0.5)),
-      "the t test of one regression coefficient (as an F test)"
-    )
-  }
-  # Moderation of a count and mediation with a yes/no or count outcome
-  # (E32): the model the outcome takes.
-  if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) {
-    name <- if (identical(spec$target_test$method, "negative_binomial")) {
-      sprintf("a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = %s), simulated", format(spec$population$dispersion))
-    } else "a Poisson regression with an interaction (the Wald z test of the X x W coefficient), simulated"
-  }
-  if (identical(spec$template, "multinomial_interaction")) {
-    name <- if (identical(spec$target_test$method, "wald_z")) {
-      sprintf("a multinomial logistic regression with an interaction (the Wald z test of the X x W coefficient for '%s' against '%s'), simulated",
-        spec$target_test$category, unlist(spec$variables$Y$levels)[[1]])
-    } else "a multinomial logistic regression with an interaction (the likelihood-ratio test of the X x W terms for every category together), simulated"
-  }
-  if (identical(spec$template, "binary_or_count_outcome")) {
-    name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
-      if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
-        sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
-  }
-  # Mediation with a mediator in ordered categories (E39).
-  if (identical(spec$template, "ordinal_mediator")) {
-    name <- sprintf(paste0("mediation with a mediator in %d ordered categories, as a structural equation model in which the categories are cut from ",
-      "an underlying normal score (lavaan's latent-response model for ordered variables, theta parameterisation, with %s), ",
-      "the indirect effect a*b tested by the delta method, simulated"),
-      length(spec$population$m_probabilities),
-      if (identical(spec$variables$Y$type, "binary")) "the yes/no outcome declared ordered too" else "the outcome a score")
-  }
-  # One yes/no answer in each of three or more conditions (E75).
-  if (identical(spec$target_test$method, "cochran_q")) {
-    name <- sprintf(paste0("Cochran's Q, simulated from a logistic model with a random intercept for each person ",
-      "(SD %s on the log-odds scale), each person answering once in each condition"), format(spec$population$sd_person))
-  }
-  if (is_rank_test(spec)) name <- rank_test_name(spec)
-  if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
-  if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
-  if (is_pairwise(spec)) name <- pairwise_test_name(spec)
-  if (is_meta(spec)) name <- meta_methods_name(spec)
-  # A sphericity correction (E54, when the SDs or correlations differ).
-  correction <- spec$target_test$correction %||% "none"
-  if (!identical(correction, "none") && !is_pairwise(spec)) {
-    name <- sprintf("%s with the %s correction for sphericity", name, c(GG = "Greenhouse-Geisser", HF = "Huynh-Feldt")[[correction]])
-  }
-  if (is_bayes_test(spec)) name <- bayes_test_name(spec)
-  if (is_minimum_effect(spec)) name <- sprintf("%s as a minimum-effect test against a smallest effect of interest of %s (pwrss's t-test against the margin)",
-    name, minimum_effect_margin_text(spec))
-  if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
-  # The test of fit chosen, not only the test of exact fit.
-  if (is_sem_fit(spec)) name <- sem_fit_test_name(spec$target_test$method, spec$population$rmsea_null %||% 0.05)
+  name <- methods_test_name(form, spec, result)
   telescopes <- result$small_telescopes
-  if (!is.null(telescopes)) {
-    name <- sprintf(paste0("a small-telescopes replication test (Simonsohn, 2015): a one-sided test of whether the effect is smaller ",
-      "than %s, the effect the original study (%s) had 33%% power to detect (%s), computed with pwrss"),
-      telescope_effect_text(telescopes), telescope_original_text(telescopes), sub("^pwr[:]+", "pwr's ", telescopes$function_used))
-  }
-  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, anova_effect_words(spec))
   equivalence <- identical(spec$design, "equivalence_test")
-  if (equivalence) {
-    name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
-      tost_paired = "of two paired measurements", tost_one_sample = "of one mean against a fixed value",
-      tost_correlation = "of a correlation (z tests on Fisher's z)", tost_two_proportions = "of two independent proportions (z tests)",
-      noninf_independent = "of two independent groups", noninf_paired = "of two paired measurements",
-      noninf_one_sample = "of one mean against a reference value", noninf_two_proportions = "of two independent proportions"))
-    if (is_noninferiority(spec)) name <- sub("^an equivalence test \\(two one-sided tests, TOST\\)", "a non-inferiority test (one-sided, against the margin)", name)
-  }
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
   generic <- identical(spec$design, "generic_test")
@@ -4261,6 +4132,13 @@ ethics_text <- function(spec, result, fields, values) {
   else if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
     alpha, percent(p), percent(1 - p))
+  # A minimum-effect test: the chance of showing the effect is larger than
+  # the smallest effect that matters, not of finding an effect at all
+  # (decision-rule.R).
+  if (is_minimum_effect(spec)) chance <- function(p) sprintf(
+    "If the real effect is %s, the chance that a study of this size shows it is %s %s, the smallest effect that would matter (a statistically significant minimum-effect test, using a %s threshold), is %s, and the chance that it fails to show this is %s. If the real effect is closer to %s, the chance of failing is higher.",
+    effect %||% "the one we expect", switch(spec$target_test$alternative %||% "two_sided", less = "below minus", greater = "larger than", "further from zero than"),
+    minimum_effect_margin_text(spec), alpha, percent(p), percent(1 - p), minimum_effect_margin_text(spec))
   # Bayes factor tests: strong evidence, not a significant result, and
   # with a design prior, averaged over the effects thought plausible.
   if (is_bayes_test(spec)) {
