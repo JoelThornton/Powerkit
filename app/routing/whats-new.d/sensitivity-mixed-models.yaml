@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "The smallest effect you could detect, for mixed models"
+    text: "The mixed-model cards (participants and items, an item predictor, and two- or three-level designs) now offer \"the smallest effect I'd have a good chance of finding\", when one effect is tested. Like the required sample size on these cards, it comes as an R script to run on your own computer."

@@ -266,12 +266,12 @@ simulations:
       full_run: [power]
       preview: {power: 35}
       full: {power: 350}
-      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 2 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E63:
       full_run: [power]
       preview: {power: 40}
       full: {power: 400}
-      script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 3 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E75:
       full_run: [power]
       preview: {power: 20}
@@ -281,22 +281,22 @@ simulations:
       full_run: [power]
       preview: {power: 35}
       full: {power: 350}
-      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 2 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E68:
       full_run: [power]
       preview: {power: 30}
       full: {power: 300}
-      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 2 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E62:
       full_run: [power]
       preview: {power: 30}
       full: {power: 300}
-      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 2 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E41:
       full_run: [power]
       preview: {power: 30}
       full: {power: 300}
-      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)", sensitivity: "about 30 minutes to 2 hours on one core (an estimate; 7 to 10 sizes of the effect are simulated)"}
     E74:
       full_run: [power]
       preview: {power: 15}
@@ -1526,6 +1526,7 @@ forms:
 
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"
+    sensitivity: true
     tool: simr
     departures: ["16"]
     directional: false
@@ -1548,7 +1549,7 @@ forms:
              default: within_factor, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026; one condition each since 31 October 2026)"}
       - input: "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'"
         fields:
-          - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true,
+          - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true, optional_for: [sensitivity], when_empty: zero,
              shown_if: {field: outcome_type, is: continuous},
              help: "For example, 16 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: probabilities, writeup_label: "chance of yes in each condition", label: "Chance of 'yes' in each condition", help: "For a typical participant and item, as proportions in the same order as the conditions, separated by commas, for example 0.75, 0.85.", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
@@ -1601,6 +1602,7 @@ forms:
   # 2026: the Satterthwaite F test, or one pair adjusted for all the pairs.
   E63:
     methods_name: "a linear mixed model with participants and items as random factors and three or more conditions (Satterthwaite tests)"
+    sensitivity: true
     tool: simr
     departures: ["16", "17"]
     directional: false
@@ -1787,6 +1789,7 @@ forms:
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
     methods_name: "a mixed model with participants and items as random factors and a measured predictor"
+    sensitivity: true
     tool: simr
     departures: ["16"]
     directional: false
@@ -1818,7 +1821,7 @@ forms:
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "The effect, and how participants and items vary"
         fields:
-          - {id: slope, writeup_label: "effect per SD of the item score", label: "Effect of one SD more of the item score", help: "In the outcome's units, or on the log odds for yes/no.", type: number, path: population.slope, effect: true}
+          - {id: slope, writeup_label: "effect per SD of the item score", label: "Effect of one SD more of the item score", help: "In the outcome's units, or on the log odds for yes/no.", type: number, path: population.slope, effect: true, optional_for: [sensitivity], when_empty: zero}
           - {id: probability, writeup_label: "chance of yes at the average item", label: "Chance of 'yes' at the average item score", help: "For a typical participant (0 to 1).", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: outcome_type, is: binary}}
           - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
@@ -1838,6 +1841,7 @@ forms:
   # assigned to sites, groups or people (1 November 2026).
   E68:
     methods_name: "a three-level mixed model"
+    sensitivity: true
     tool: simr
     departures: ["16"]
     directional: false
@@ -1870,7 +1874,7 @@ forms:
              default: site, default_source: "whole sites, the commonest three-level trial"}
       - input: "The effect, and how alike people in the same group and site are"
         fields:
-          - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true,
+          - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true, optional_for: [sensitivity], when_empty: zero,
              shown_if: {field: three_outcome, is: continuous},
              help: "The total SD is how much people vary on the outcome across everyone, not only within one group."}
           - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "Intraclass correlation of the larger groups", help: "The share of the outcome's variation between larger groups, for example schools (0 to 1).", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1,
@@ -2140,6 +2144,9 @@ forms:
   # "observations"), so the result names people and occasions.
   E41:
     methods_name: "a two-level mixed model of occasions within people, with an occasion-level and a person-level predictor"
+    sensitivity: true
+    # One coefficient tested: several together are not searched.
+    sensitivity_shown_if: {field: two_level_effect, is_one_of: [cross_level_interaction, within_effect, between_effect]}
     tool: simr
     departures: ["16"]
     directional: false
@@ -2193,6 +2200,9 @@ forms:
 
   E62:
     methods_name: "a two-level mixed model with a person-level and a group-level predictor"
+    sensitivity: true
+    # One coefficient tested: several together are not searched.
+    sensitivity_shown_if: {any: [[{field: in_sites, is: "no"}, {field: two_level_effect, is_one_of: [cross_level_interaction, within_effect, between_effect]}], [{field: in_sites, is: "yes"}, {field: three_level_effect, is_one_of: [cross_level_interaction, site_interaction, within_effect, between_effect, site_effect]}]]}
     tool: simr
     departures: ["16"]
     directional: false
