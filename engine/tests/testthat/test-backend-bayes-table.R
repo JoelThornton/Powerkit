@@ -21,9 +21,36 @@ test_that("each simulated study is scored by contingencyTableBF() with JASP's sa
   expect_equal(bftable_log_bf10(table, 1, "joint_multinomial"), joint)
   # The experiment's draw: the same table the seed gives directly.
   set.seed(5)
-  drawn <- matrix(stats::rmultinom(1, 120, as.vector(t(inputs$probs))), 3, byrow = TRUE)
+  drawn <- bftable_draw(120, inputs$probs, "rows_fixed")
   set.seed(5)
   expect_identical(p_bayes_table(120, inputs$probs, 10, 1, "rows_fixed"), bftable_log_bf10(drawn, 1, "rows_fixed") >= log(10))
+})
+
+test_that("a plan that fixes the rows or columns draws every study with those totals, set in advance", {
+  probs <- matrix(c(0.25, 0.10, 0.15, 0.15, 0.10, 0.25), 3, byrow = TRUE)
+  # Rows fixed: each row's total is its share of n (0.35, 0.30, 0.35 of
+  # 120: 42, 36 and 42) in every simulated study.
+  set.seed(1)
+  rows <- replicate(50, rowSums(bftable_draw(120, probs, "rows_fixed")))
+  expect_true(all(rows == c(42, 36, 42)))
+  # Columns fixed: each column's total is its share (0.5 and 0.5).
+  cols <- replicate(50, colSums(bftable_draw(121, probs, "columns_fixed")))
+  expect_true(all(cols[1, ] == 61 & cols[2, ] == 60))
+  # Only the total fixed: the row totals vary.
+  joint <- replicate(50, rowSums(bftable_draw(120, probs, "joint_multinomial")))
+  expect_gt(stats::sd(joint[1, ]), 0)
+  expect_true(all(colSums(joint) == 120))
+  # Whole totals by largest remainder.
+  expect_identical(bftable_margin_totals(31, c(0.3, 0.7)), c(9, 22))
+  expect_identical(bftable_margin_totals(10, c(1, 1, 1)), c(4, 3, 3))
+  # The design analysis's example: 15 a group, rates .70 and .30, BF10 of
+  # at least 10. Fixed groups give about 43% (exactly 43.2%); group sizes
+  # left to chance had given 36.0%.
+  spec <- table_bf_spec(n = 30, probs = list(list(0.35, 0.15), list(0.15, 0.35)), nrep = 2000L)
+  spec$variables$X$levels <- list("Group 1", "Group 2")
+  power <- run_spec(spec)$curve$power
+  expect_gt(power, 0.40)
+  expect_lt(power, 0.46)
 })
 
 test_that("power, the no-association side and the check run are reported, and the run is reproducible", {
