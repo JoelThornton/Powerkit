@@ -237,9 +237,9 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
 
 **End point:** E35 (The same people measured three or more times) in all three routes.
 
@@ -254,15 +254,13 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
 
-**End point:** E35 (The same people measured three or more times) in all three routes.
+**End point:** E76 (Do two scores go together within people, measured several times?) in all three routes.
 
-![E35 card](figures/walkthroughs/E35.png)
-
-**Would the card make sense without statistics training?** **E35:** The title is clear. "Depends on the model" still gives a lay reader nothing to go on, and the package names won't mean much.
+**Before/after:** all three routes: E35 → E76 (finder audit, 21 November 2026). E35 plans a difference in slopes between two groups, which this study doesn't have; the many-times screen now offers two scores measured together on each occasion. A directional within-person effect (stress predicting that night's sleep) can also be planned on the within-person card (E41).
 
 **Flags:** [F12](#flags)
 

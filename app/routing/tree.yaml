@@ -408,8 +408,18 @@ nodes:
     options:
       - {label: "The same people in three or more conditions", next: s4, sets: {times: many_conditions}, help: "e.g. everyone completes three tasks, every cell of a 2 x 2 design, or a trial's groups measured before, after and at follow-up."}
       - {label: "Measurements over time, to see whether a trend changes at a known point", next: E45, help: "e.g. weekly scores before and after a policy change (segmented regression, interrupted time series)."}
-      - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
+      - {label: "Measurements over time, to see how people change", next: t2, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
+      - {label: "Two scores measured together on each occasion, to see whether they go together within people", next: E76, when: {outcome: score}, help: "e.g. on days when people sleep longer than usual, is their mood better than usual? (a repeated-measures correlation)"}
       - {label: "Two scores over time, each predicting later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
+  # How people change (finder audit, 21 November 2026): one group's
+  # trajectory and a difference between groups' trajectories are different
+  # hypotheses; E35 plans only the second.
+  t2:
+    doc_id: T2
+    text: "What does your hypothesis say about the change?"
+    options:
+      - {label: "Two groups change at different rates", next: E35, help: "e.g. a training group improves faster than a control group (the group x time interaction in a growth model)."}
+      - {label: "One group's scores change over time", next: E41, sets: {trajectory: one_group}, help: "e.g. whether a single cohort's wellbeing falls across the first year at university (the average slope of time)."}
   s4:
     doc_id: S4
     # The goal (detect, equivalence, estimate) is asked once, on the aim
@@ -474,8 +484,8 @@ nodes:
       - {label: "A difference between groups or conditions", next: q2_diff, help: "e.g. students who sleep eight hours recall more words than students who sleep five."}
       - {label: "A relationship between two things you measure", next: q2_rel, help: "e.g. daily screen time is related to loneliness."}
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
-      - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
-      - {label: "Both: it works through something that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "That an effect works through something else (mediation)", next: q2_med, sets: {hypothesis: mediation}, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
+      - {label: "Both: it works through something that depends on something else", next: q2_modmed, sets: {hypothesis: mediation}, help: "Moderated mediation."}
       - {label: "Something else: spread, structure, item bias, signal detection or types", next: q1_more,
          help: "Spread of scores (variance tests), structural equation models, differential item functioning, signal detection (d'), exploratory factor analysis and latent profiles."}
   q1_more:

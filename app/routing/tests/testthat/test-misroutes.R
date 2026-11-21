@@ -69,7 +69,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
   expect_all_routes(c("A score or scale", "Pairs", "A score on each member, related to their own and their partner's outcome"), "E44")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
-  expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
+  # How people change (21 November 2026): two groups' slopes (E35) or one
+  # group's trajectory (E41, time as X).
+  expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change", "Two groups change at different rates"), "E35")
+  expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change", "One group's scores change over time"), "E41")
+  expect_all_routes(c(screen_score, "Many times", "Two scores measured together on each occasion, to see whether they go together within people"), "E76")
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
@@ -239,7 +243,8 @@ test_that("dyadic data no longer reach a test that treats partners as independen
 
 test_that("growth curves and diary studies in the guided route reach the longitudinal card", {
   # On main the guided route reached E23 or E8 through a baseline covariate.
-  expect_identical(follow_answers(tree, c(screen_score, "Many times", "Measurements over time, to see how people change"), "guided"), "E35")
+  expect_identical(follow_answers(tree, c(screen_score, "Many times", "Measurements over time, to see how people change", "Two groups change at different rates"), "guided"), "E35")
+  expect_identical(follow_answers(tree, c(screen_score, "Many times", "Two scores measured together on each occasion, to see whether they go together within people"), "guided"), "E76")
 })
 
 test_that("time-to-event outcomes no longer reach a score test", {

@@ -168,3 +168,32 @@ test_that("the app opens the input screen set to the finder's answers", {
     expect_identical(state$form_values$crossed_participants, "between_factor")
   })
 })
+
+test_that("one group's change, and mediation over time, say what the within-person card plans", {
+  base <- c("A score or scale", "Independent people", "Many times", "Measurements over time, to see how people change")
+  expect_identical(follow_answers(tree, base), "t2")
+  f <- follow_with_context(tree, c(base, "One group's scores change over time"))
+  expect_identical(f$id, "E41")
+  msg <- route_fit_messages(tree, "E41", f$ctx)
+  expect_length(msg, 1)
+  expect_match(msg, "per SD of X", fixed = TRUE)
+  expect_match(msg, "average change", fixed = TRUE)
+  expect_identical(finder_form_values(forms, "E41", f$ctx), list(two_outcome = "continuous", two_level_effect = "within_effect"))
+  # Two groups' slopes: E35, with no note.
+  f <- follow_with_context(tree, c(base, "Two groups change at different rates"))
+  expect_identical(f$id, "E35")
+  expect_length(route_fit_messages(tree, "E35", f$ctx), 0)
+  # Mediation measured twice: the indirect effect isn't on E41, and the
+  # baseline-regression note (about prediction, not mediation) is not shown.
+  for (times in list("Twice", c("Many times", "The same people in three or more conditions"))) {
+    f <- follow_with_context(tree, c("A score or scale", "Independent people", times, "That an effect works through something else (mediation)"))
+    expect_identical(f$id, "E41")
+    msg <- route_fit_messages(tree, "E41", f$ctx)
+    expect_length(msg, 1)
+    expect_match(msg, "doesn't calculate an indirect effect", fixed = TRUE)
+    expect_null(finder_form_values(forms, "E41", f$ctx)$two_level_effect)
+    expect_no_match(as.character(route_fit_ui(tree, "E41", f$ctx)), "ep:E24", fixed = TRUE)
+  }
+  f <- follow_with_context(tree, c("A score or scale", "Independent people", "Twice", "Both: it works through something that depends on something else"))
+  expect_match(route_fit_messages(tree, f$id, f$ctx), "indirect effect", fixed = TRUE)
+})
