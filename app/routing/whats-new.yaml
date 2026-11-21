@@ -7,6 +7,15 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-21"
+    title: Bayes factor tables simulate the group sizes you set
+    text: >
+      On the categories card, a Bayes factor plan with the rows (or columns)
+      set in advance now simulates studies whose group sizes are fixed at
+      those numbers. It had let the group sizes vary by chance, which gave
+      too little power: with 15 people in each of two groups and rates of 70%
+      and 30%, the chance of a Bayes factor of at least 10 is 43%, where it
+      had said 36%. Plans with only the total set, or none, are unchanged.
   - date: "2026-11-20"
     title: Mediation cards say what a causal reading assumes
     text: >
@@ -2828,19 +2837,3 @@ entries:
       words. In "Plan my whole study", the combined sample size and the
       consistency check are marked "Coming soon"; until then, use the
       largest sample size from your analyses' cards.
-  - date: "2026-10-20"
-    title: "Labs: pre-replication notes"
-    text: >-
-      A new, experimental Labs tab. Its first tool helps you think before
-      replicating a finding: three questions from a recent paper on
-      pre-replication, answered in your own words, plus the smallest effect
-      the original study could detect. Nothing is required or scored, and
-      deciding a finding isn't worth replicating counts as a good outcome.
-  - date: "2026-10-20"
-    title: "Generic t, F, chi-square and z tests"
-    text: >-
-      If you have already worked out your test's noncentrality parameter, as
-      with G*Power's generic tests, choose "Generic t, F, chi-square and z
-      tests" under "I know my analysis". You get the power for that
-      noncentrality, or the noncentrality you'd need; there is no sample
-      size, because the noncentrality already reflects it.
