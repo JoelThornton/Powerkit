@@ -1,3 +1,31 @@
+# powerkit 0.80.22
+
+* Engine: `replication_planning()` searches each BayesRepDesign goal over
+  whole totals with the pors*() chance functions (every total up to 1,000,
+  a 400-point grid beyond with each change pinned by bisection) instead of
+  the ssd*() searches. The planned size is the smallest total from which
+  every larger one meets the goal; smaller totals that also meet it are
+  reported in the new `goals$also` column, and a goal met only by smaller
+  replications has reason `"within_range"`. This fixes a pooled goal
+  reported as out of reach where ssdMeta() fails (a strong original), a
+  pooled goal missed at moderate sizes, and unequal groups whose search
+  started above the smallest replication. porsMeta() is called one standard
+  error at a time for an estimate below zero (upstream-questions.md,
+  BayesRepDesign questions 2 and 3). The exported scripts search the same
+  way and give the same numbers (queue item 29).
+
+# powerkit 0.80.21
+
+* App: run_calculation() drops the engine's "This design spec has N
+  problems:" heading from error messages, and the result's folded JSON is
+  headed "The settings that were run" (queue item 12).
+
+* App: the failed-simulation warning, its per-sample-size lines and the
+  whole-study version no longer use "valid decisions", "conditional power"
+  or "successful-study probability"; the Bayes factor sequential card's
+  claim that most studies stop early is conditional on the effect being as
+  planned (queue item 12).
+
 # powerkit 0.80.20
 
 * The contingency table Bayes factor (E6) now simulates the totals its sampling plan fixes: with the rows or columns fixed, each simulated study sets them at the table's shares of n (`bftable_margin_totals()`, largest remainder) and draws each row or column from its conditional probabilities (`bftable_draw()`); it had drawn every table with only the total fixed, which understated power (36.0% instead of 43.2% with 15 a group, rates .70 and .30, BF10 of at least 10). The exported script and the validation's exact sums follow the plan too.

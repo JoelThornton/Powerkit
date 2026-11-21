@@ -8,6 +8,30 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: The replication planner checks every replication size it reports
+    text: >
+      The replication planner now checks each goal at whole numbers of
+      participants rather than trusting a search that could stop short. A
+      pooled-significance goal after a strong original study is no longer
+      reported as out of reach, a plan with very unequal groups no longer
+      asks for a few more people than needed, and where a small replication
+      meets a goal that moderate ones miss, the table says so instead of
+      giving the small size alone.
+  - date: "2026-11-21"
+    title: Clearer error text and a plainer details heading
+    text: >
+      If the engine rejects your answers, the message no longer opens with
+      "This design spec has a problem". The folded details on a result now
+      say "The settings that were run (JSON)".
+  - date: "2026-11-21"
+    title: Plainer wording when some simulated studies can't be analysed
+    text: >
+      When a few simulated studies fail to fit, the warning now says in plain
+      words which studies the reported power counts, and gives the lower
+      figure that counts the failed ones as misses. The "Check as you go"
+      card for a Bayes factor now says that most studies stop early only if
+      the effect is as you planned.
+  - date: "2026-11-21"
     title: Bayes factor tables simulate the group sizes you set
     text: >
       On the categories card, a Bayes factor plan with the rows (or columns)

@@ -193,13 +193,18 @@ A list: \code{inputs}; \code{original} (estimate and standard error on the
 analysis scale, z and two-sided p; with a change of reliability, also
 \code{reported}, the estimate in the original's units, and \code{attenuation}); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
-planned for no effect), \code{n} (the total sample size needed, \code{NA} when
-not reachable), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:
+planned for no effect), \code{n} (the total sample size needed: the
+smallest whole total from which every larger one, up to \code{max_n},
+meets the goal; \code{NA} when there is none), \code{per_group} (equal groups), \code{n1} and \code{n2} (two groups:
 each group's size), \code{ratio} (n over the original's), \code{limit}
 (the highest chance reachable, when the goal cannot reach \code{power};
 for \code{reason} \code{"any_size"}, the chance with the smallest replication,
-which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
-\code{"over_max"}, \code{"not_found"} or \code{"any_size"}); \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
+which already exceeds \code{power}; for \code{"within_range"}, the chance with
+the largest), \code{reason} (\code{"not_reachable"}, \code{"over_max"},
+\code{"not_found"}, \code{"any_size"}, or \code{"within_range"} when only some
+smaller totals meet the goal) and \code{also} (smaller totals that also
+meet the goal, as ranges such as \code{"3-9"} separated by commas; \code{NA}
+when none); \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
 and its calculation, \code{NULL} for a generic design or a Bayesian
 original); \code{bias_corrected} (for a t-test or correlation original
 analysed with a test, \code{\link[=replication_bucss]{replication_bucss()}}'s sample sizes for a

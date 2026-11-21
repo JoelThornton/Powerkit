@@ -435,6 +435,24 @@ test_that("a goal any replication meets says so, and doesn't set the sample size
   expect_no_match(html, "Not reachable: at most 100%", fixed = TRUE)
 })
 
+test_that("smaller replications that also meet a goal are reported beside its size", {
+  expect_identical(replication_also_words("3-9"), "3 to 9")
+  expect_identical(replication_also_words("3-9,40-40,1200-1500"), "3 to 9, 40 and 1,200 to 1,500")
+  expect_null(replication_also_words(NA_character_))
+  # d = 0.34 from 100 people, shrunk: 3 to 9 meet the pooled goal, 10 to 84 don't, 85 on do.
+  plan <- engine_function("replication_planning")("one_sample", 0.34, original_n = 100, tau = 0.1)
+  row <- plan$goals[plan$goals$goal == "pooled" & plan$goals$prior %in% "shrunk", ]
+  expect_identical(replication_cell(plan, row),
+    "85 participants (smaller replications of 3 to 9 also reach it; those in between don't)")
+  expect_match(replication_methods_paragraph(plan, "pooled", "shrunk"),
+    "This gives 85 participants. Every larger replication has that chance; smaller replications of 3 to 9 also have it", fixed = TRUE)
+  # With more heterogeneity, only small replications meet it.
+  wide <- engine_function("replication_planning")("one_sample", 0.35, original_n = 100, tau = 0.2)
+  row <- wide$goals[wide$goals$goal == "pooled" & wide$goals$prior %in% "shrunk", ]
+  expect_match(replication_cell(wide, row), "^Only replications of 3 to 8: larger ones fall short")
+  expect_match(replication_methods_paragraph(wide, "pooled", "shrunk"), "only with a replication of 3 to 8", fixed = TRUE)
+})
+
 test_that("the paper's t, its repeated-measures d or an F become the engine's arguments", {
   paired <- list(rep_design = "paired", rep_effect = "1.99", rep_n = "60", rep_alpha = "0.05", rep_power = "0.8")
   expect_null(replication_args(paired)$original_effect_type)

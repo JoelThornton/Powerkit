@@ -56,8 +56,11 @@ equal tails (the default) and names the rule in the write-up. Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
 calculation audit the same day found wrong numbers on several cards,
 package faults powerkit passed through, and export and wording errors.
-The wrong numbers are fixed except the replication searches (item 29,
-now ready). E36's equivalence of a correlation or two proportions is
+The wrong numbers are fixed, the replication searches last: the
+replication planner now checks each goal at whole totals and plans the
+smallest total from which every larger one meets it, saying when a
+smaller range also does, because BayesRepDesign's own searches could
+stop short or fail (`upstream-questions.md`). E36's equivalence of a correlation or two proportions is
 planned with pwrss, because TOSTER's planning functions give wrong
 answers (Departure 33), and needs at least 10 people per group, as
 TOSTER's test does; two-sided tests of Cronbach's alpha (E69) and of a
@@ -66,7 +69,7 @@ and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
 maintainer, with TOSTER's and pmsampsize's faults); E77 says when
 pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
-labels and wording (item 30) go with item 28. E75 keeps refusing one
+labels and wording (item 29) go with item 28. E75 keeps refusing one
 yes/no answer per condition: in simulations its tests found a difference
 too often when there was none, and fitting by adaptive quadrature
 instead of glmer()'s default fit didn't cure it (up to 10% in small
@@ -74,7 +77,7 @@ or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
 Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 32). Validation expectations
+condition (queue item 31). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
