@@ -1,0 +1,13 @@
+entries:
+  - date: "2026-11-21"
+    title: The design finder keeps your answers
+    text: >
+      When the design finder opens an analysis, its input screen now starts
+      from what you told the finder: a yes/no outcome rather than a score,
+      and each person in one condition or in all of them. A note at the top
+      lists what was set. The finder also asks how many categories an
+      answer has before suggesting McNemar's test or an analysis of trials
+      or of people in groups, and with three or more says what Powerkit
+      can't plan yet. People in groups with a count outcome are asked what
+      the hypothesis involves, and the card says it takes a score or a
+      yes/no outcome.
