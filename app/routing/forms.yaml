@@ -388,6 +388,7 @@ whole_study:
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
   "35": "A measured score in a Cox regression: Powerkit counts both tails of the two-sided test, so with no effect the power is alpha (5%). powerSurvEpi's formula counts only the tail in the effect's direction, which gives alpha / 2 with no effect and too little with small effects (4.5% against 5.8% for a hazard ratio of 1.05 with 100 people); for effects worth planning for the difference is well under 0.001."
+  "36": "The z test of one proportion (R's prop.test()): Powerkit sums the chance of every possible count where prop.test() would be significant, so the power is the test's own, with no approximation. pwrss and the textbook formula use a normal approximation, which can be off by a few percentage points either way: for 20% against 10% at 80% power, 78 people rather than pwrss's 86 without the continuity correction, and 89 rather than 96 with it."
   "34": "Cronbach's alpha: for a two-sided test Powerkit counts both tails of Bonett and Wright's z test, so at the null value the power is alpha (5%). statpsych's sample-size formula counts only the tail in the effect's direction, which gives alpha / 2 there; with an effect worth planning for the other tail adds well under 0.0001, so the sample size is statpsych's."
   "33": "Equivalence of a correlation or of two proportions: Powerkit works out the power of the test TOSTER runs (two one-sided z tests, on Fisher's z for a correlation, with the unpooled standard error for two proportions) with pwrss. TOSTER's own planning functions give different answers: power_z_cor() ignores the expected correlation (for r = 0.1, bounds of 0.2 and 500 people it gives 99.6%, against 73.8%), and power_twoprop() applies the distance to the nearer bound on both sides (0% against 47.5% for 0.5 and 0.55, bounds of 0.1 and 500 per group)."
   "32": "Two variances: Powerkit plans for the Brown-Forsythe test unless you choose Levene's test or the F test. G*Power plans for the F test, which assumes normal scores: with skewed or heavy-tailed scores its chance of a false positive is far above alpha (12% and 43% at alpha .05 with 100 per group), while the Brown-Forsythe test keeps it near 5%. With normal scores the Brown-Forsythe test has a little less power: 46.6% against the F test's 51.8% for variances of 1.5 and 1 and 200 people."
@@ -3254,9 +3255,9 @@ forms:
     sensitivity_without_effect: true
     sensitivity_shown_if: {field: method, is_not: bayes_factor}
     sensitivity_note: "For the smallest effect you could detect, the expected proportion can stay empty if you have no estimate: Powerkit keeps the fixed value and finds how far above it the proportion would need to be. A value below the fixed one looks for a decrease instead."
-    departures: ["15"]
+    departures: ["15", "36"]
     known_differences: ["2"]
-    known_differences_if_method: {"2": [exact_binomial, binom_test]}
+    known_differences_if_method: {"2": [exact_binomial, binom_test, z_test, z_test_corrected]}
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: one_proportion,
            variables: {"Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
@@ -3271,12 +3272,12 @@ forms:
       - input: "The fixed value"
         fields:
           - {id: p0, label: "The fixed proportion to compare with", help: "From 0 to 1, for example 0.5 for chance with two options.", type: number, path: population.p0, required: true, min_exclusive: 0, max_exclusive: 1}
-      - input: "The exact binomial test, or a Bayes factor test"
+      - input: "The test: exact binomial, z test, or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {exact_binomial: "Exact binomial test, alpha / 2 in each tail", binom_test: "Exact binomial test, p-value as R's binom.test() gives it", bayes_factor: "Bayes factor test (beta prior on the proportion), instead of a p-value"},
+             choices: {exact_binomial: "Exact binomial test, alpha / 2 in each tail", binom_test: "Exact binomial test, p-value as R's binom.test() gives it", z_test: "z test of one proportion, without continuity correction (R's prop.test(correct = FALSE))", z_test_corrected: "z test of one proportion, with continuity correction (R's prop.test(), its default)", bayes_factor: "Bayes factor test (beta prior on the proportion), instead of a p-value"},
              default: exact_binomial, default_source: "the exact binomial test pwrss computes (power.exact.oneprop(), pwrss 1.3.3), with alpha / 2 in each tail when two-sided",
-             help: "Two-sided, exact binomial tests differ in how they find the p-value. With alpha / 2 in each tail (as pwrss computes it), each tail is tested at half the level. R's binom.test() adds up every count no more likely than the one observed, so its two tails needn't hold half each, and it often needs fewer people (83 against 94 for 20% against 10% at 80% power). Choose the one you will run. One-sided, they are the same test."}
+             help: "Two-sided, exact binomial tests differ in how they find the p-value. With alpha / 2 in each tail (as pwrss computes it), each tail is tested at half the level. R's binom.test() adds up every count no more likely than the one observed, so its two tails needn't hold half each, and it often needs fewer people (83 against 94 for 20% against 10% at 80% power). One-sided, those two are the same test. The z test (a chi-square test against the fixed value) is the usual test in many software packages; R's prop.test() applies the continuity correction unless told not to, and the correction needs more people (89 against 78 here). Choose the one you will run."}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (pbinbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",

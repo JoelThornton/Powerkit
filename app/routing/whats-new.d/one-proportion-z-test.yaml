@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-21"
+    title: The z test of one proportion
+    text: >
+      Comparing one proportion with a fixed value now offers the z test
+      (R's prop.test(), with or without the continuity correction) beside
+      the exact binomial tests. Its power is worked out exactly from every
+      possible count rather than approximated, so it can differ from pwrss
+      and the textbook formula by a few percentage points: for 20% against
+      10% at 80% power, 78 people rather than 86 without the correction,
+      and 89 rather than 96 with it. The result says so.

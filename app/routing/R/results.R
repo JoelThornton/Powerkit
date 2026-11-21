@@ -2976,6 +2976,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 35 (both tails for a measured score's Cox test) applies to
   # that template.
   if (!identical(spec$template, "cox_predictor")) keys <- setdiff(keys, "35")
+  # Departure 36 (the one-proportion z test summed over its counts)
+  # applies when the z test is chosen.
+  if (!identical(spec$template, "one_proportion") || !isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) keys <- setdiff(keys, "36")
   # Departure 32 (the Brown-Forsythe test by default for two variances)
   # applies when it is the test planned for.
   if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")
@@ -3792,6 +3795,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   # A two-sided exact binomial test: which p-value (next.md item 30, 19
   # November 2026), since equal tails and binom.test() need different n.
+  if (identical(spec$template, "one_proportion") && isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) {
+    name <- paste("a z test of one proportion (R's prop.test())",
+      if (identical(spec$target_test$method, "z_test")) "without the continuity correction" else "with the continuity correction",
+      "with power summed over every possible count")
+  }
   if (identical(spec$template, "one_proportion") && identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
     if (identical(spec$target_test$method, "exact_binomial")) name <- paste(name, "with alpha / 2 in each tail")
     if (identical(spec$target_test$method, "binom_test")) {
@@ -4631,7 +4639,8 @@ bayes_companion_templates <- c("one_sample_t", "paired_t", "independent_t", "cor
 bayes_companion_applies <- function(tree, ep_id, spec, result) {
   ep_id %in% names(tree$bayes_designs) && spec$template %in% bayes_companion_templates && !is_bayes_test(spec) &&
     result$goal_type %in% c("sample_size", "power") && is.null(spec$effect_justification$safeguard) &&
-    spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "binom_test", "z_test", "fisher_exact", "anova_f")
+    (spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "binom_test", "z_test", "fisher_exact", "anova_f") ||
+      identical(spec$template, "one_proportion") && identical(spec$target_test$method, "z_test_corrected"))
 }
 
 bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
@@ -4807,7 +4816,7 @@ companion_freq_name <- function(spec) {
   switch(spec$template,
     one_sample_t = "one-sample t-test", paired_t = "paired t-test",
     independent_t = if (identical(m, "welch_t")) "Welch's t-test" else "Student's t-test",
-    correlation = "test of Pearson's correlation", one_proportion = "exact binomial test",
+    correlation = "test of Pearson's correlation", one_proportion = if (isTRUE(m %in% c("z_test", "z_test_corrected"))) "z test of one proportion" else "exact binomial test",
     two_proportions = if (identical(m, "fisher_exact")) "Fisher's exact test" else "z test of the two proportions",
     oneway_between = "one-way ANOVA (F test)", "test")
 }
