@@ -761,7 +761,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   record <- as.character(card_ui(tree, "E13"))
   expect_match(record, "published example is still to come", fixed = TRUE)
   expect_no_match(record, "Checked against published values", fixed = TRUE)
-  expect_match(record, "not automatically to every test version", fixed = TRUE)
+  expect_match(record, "other test versions, populations or decision rules may not be covered", fixed = TRUE)
   # Cards that don't calculate have no facts strip.
   expect_no_match(as.character(card_ui(tree, "E65")), "card-facts", fixed = TRUE)
   # Reached by answering questions, it says so.

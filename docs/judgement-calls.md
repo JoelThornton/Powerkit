@@ -579,9 +579,8 @@ draft sentences, and a source for the "observed power" line.
     study has 61% power: if the true effect is the one you entered, about
     61 in 100 studies like this would give a significant result …"
   - Every result adds: "This is planned power for the effect you entered,
-    before the study is run. It is not "observed power" calculated from a
-    finished study's results, which says nothing beyond the study's
-    p-value."
+    before the study is run. "Observed power" worked out from a finished
+    study adds nothing to its p-value."
 - **Options:** keep the draft; a shorter number-first wording; other
   wording.
 - **What tools and sources do:** not yet checked against a source for

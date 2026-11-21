@@ -232,7 +232,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   calc <- run_calculation(spec, run, seed = 5L)
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, form_examples$E5, calc))
   expect_match(html, "the study has", fixed = TRUE)
-  expect_match(html, "not \"observed power\"|not &quot;observed power&quot;")
+  expect_match(html, "\"Observed power\" worked out from a finished study|&quot;Observed power&quot; worked out from a finished study")
   expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>")
   expect_match(html, "base R's formula, stats::power.prop.test(), no simulation", fixed = TRUE)
   expect_match(html, "Seed: 5.", fixed = TRUE)
@@ -621,7 +621,7 @@ test_that("the result reads in plain words, shows 80% and 95% side by side, the 
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), values, calc))
   expect_match(html, "about 9 in 10 studies like this would get a significant result", fixed = TRUE)
   expect_match(html, "Your reasoning: “Smallest difference our clinic would act on.”", fixed = TRUE)
-  expect_match(html, "tell you whether your measures are valid", fixed = TRUE)
+  expect_match(html, "says nothing about whether your measures are valid", fixed = TRUE)
 })
 
 test_that("no output template uses a verdict word", {
@@ -661,7 +661,7 @@ test_that("the explore panel shows power by N for another effect size, without t
   expect_equal(df$power[1], pwr::pwr.t.test(n = df$n[1] / 2, d = 0.6)$power)
   expect_true(all(diff(df$power) > 0))
   expect_equal(calc$spec$population$d, 0.4) # the plan is unchanged
-  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn(&#39;|')t change it")
+  expect_match(as.character(explore_ui(calc$spec)), "The circle is your answer", fixed = TRUE)
   # Not offered for simulation or for designs other than the t-tests and the correlation.
   expect_null(explore_ui(light_spec("E7")))
   sim <- spec; sim$options$method <- "simulation"
@@ -2627,7 +2627,7 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   calc <- run_calculation(spec, seed = forms$default_seed)
   html <- as.character(scenarios_ui(calc$spec, calc$result))
   expect_match(html, "What if the true effect is smaller?", fixed = TRUE)
-  expect_match(html, "Powerkit won&#39;t suggest them|Powerkit won't suggest them")
+  expect_match(html, "doesn&#39;t suggest values|doesn't suggest values")
   # Only the values given are drawn; the plan's effect always is.
   n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
   expect_named(n, c("conservative", "expected"))
@@ -2779,7 +2779,7 @@ test_that("the simulated data set: offered where the engine has a generator, wit
   result <- list(goal_type = "sample_size", n_required = list(n = 128))
   html <- as.character(simulated_data_ui(spec, result))
   expect_match(html, "Simulated data set (CSV, n = 128)", fixed = TRUE)
-  expect_match(html, "not evidence, not a pilot", fixed = TRUE)
+  expect_match(html, "tells you nothing about your effect", fixed = TRUE)
   expect_equal(simulated_data_n_for(spec, list(goal_type = "power")), spec$goal$n %||% NA_real_)
   # A choice the data set makes that the plan leaves open is said beside it.
   html <- as.character(simulated_data_ui(spec_at("anova_oneway_ancova"), result))
@@ -3249,7 +3249,7 @@ test_that("the t-tests and the correlation state their critical effect size as a
   expect_match(note, "N = 64", fixed = TRUE)
   expect_match(note, "Cohen's d beyond ±0.50", fixed = TRUE)
   expect_match(note, "Perugini et al., 2025", fixed = TRUE)
-  expect_match(note, "not the effect assumed for power", fixed = TRUE)
+  expect_match(note, "whatever the true effect", fixed = TRUE)
   expect_match(critical_effect_sentence(result), "is an observed Cohen's d beyond ±0.50.", fixed = TRUE)
   one_sided <- list(critical_effect = list(effect_name = "r", value = 0.21, alternative = "less", alpha = 0.05, n = 60))
   expect_match(critical_effect_sentence(one_sided), "r below −0.21", fixed = TRUE)
