@@ -180,10 +180,14 @@ each area, is at the end of
   and a yes/no-or-categories answer on trials, in groups or measured
   twice is asked how many categories it has before a card is offered;
   three or more reach the safety net with a note on what Powerkit can't
-  plan (21 November 2026, from the finder audit of that day). Still to
-  do from that audit: the repeated-measurement and measured-once branches
-  (one trajectory or a difference in slopes, mediation over time,
-  adjusted or unadjusted, joint or separate outcomes).
+  plan (21 November 2026, from the finder audit of that day). Many
+  measurements ask whether one group's trajectory or a difference in
+  slopes is the hypothesis, and offer two scores measured together;
+  mediation over time is told the within-person card has no indirect
+  effect. Two groups measured once are asked whether the score is adjusted
+  for a covariate and whether several scores are one joint test or
+  separate claims; a curved relationship goes to multiple regression with
+  a squared term.
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;
