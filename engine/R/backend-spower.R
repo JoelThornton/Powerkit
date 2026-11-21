@@ -1889,7 +1889,9 @@ spower_alternative <- function(template, alternative) {
 
 # `nrep` Spower replications at total sample size n, as the counts
 # simulate_in_chunks() takes: the rejections, the studies analysed, the
-# studies attempted and the valid ones. spower_rejections() is the first.
+# studies attempted and the valid ones. spower_rejections() is the first
+# (all four for a continuity-corrected count, whose own simulation has
+# always returned them).
 spower_counts <- function(inputs, n, nrep, seed) {
   args <- inputs$args(n)
   if (inputs$alternative != "two_sided") {
@@ -1907,7 +1909,10 @@ spower_counts <- function(inputs, n, nrep, seed) {
   c(round(result$power * nrep), nrep, nrep + redrawn, nrep)
 }
 
-spower_rejections <- function(inputs, n, nrep, seed) spower_counts(inputs, n, nrep, seed)[1]
+spower_rejections <- function(inputs, n, nrep, seed) {
+  counts <- spower_counts(inputs, n, nrep, seed)
+  if (isTRUE(inputs$continuity_corrected)) counts else counts[1]
+}
 
 # Evaluate Spower::Spower(<head>(<args>)) with the random-number generator
 # seeded. Spower reads the experiment unevaluated and turns each length-one
