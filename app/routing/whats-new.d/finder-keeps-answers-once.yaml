@@ -1,0 +1,12 @@
+entries:
+  - date: "2026-11-21"
+    title: "Two groups: the design finder asks about covariates and several outcomes"
+    text: >
+      For two groups of different people, the design finder now asks
+      whether you compare one score as it is, adjust it for something
+      measured beforehand (ANCOVA), test several scores together, or make a
+      separate claim about each score. A relationship you expect to be
+      curved, such as an inverted U, goes to multiple regression with a
+      squared term, since a correlation can miss a strong curve. The
+      exploratory factor analysis choice says it plans whether the loadings
+      you expect are recovered, not how many factors to retain.

@@ -168,3 +168,58 @@ test_that("the app opens the input screen set to the finder's answers", {
     expect_identical(state$form_values$crossed_participants, "between_factor")
   })
 })
+
+test_that("one group's change, and mediation over time, say what the within-person card plans", {
+  base <- c("A score or scale", "Independent people", "Many times", "Measurements over time, to see how people change")
+  expect_identical(follow_answers(tree, base), "t2")
+  f <- follow_with_context(tree, c(base, "One group's scores change over time"))
+  expect_identical(f$id, "E41")
+  msg <- route_fit_messages(tree, "E41", f$ctx)
+  expect_length(msg, 1)
+  expect_match(msg, "per SD of X", fixed = TRUE)
+  expect_match(msg, "average change", fixed = TRUE)
+  expect_identical(finder_form_values(forms, "E41", f$ctx), list(two_outcome = "continuous", two_level_effect = "within_effect"))
+  # Two groups' slopes: E35, with no note.
+  f <- follow_with_context(tree, c(base, "Two groups change at different rates"))
+  expect_identical(f$id, "E35")
+  expect_length(route_fit_messages(tree, "E35", f$ctx), 0)
+  # Mediation measured twice: the indirect effect isn't on E41, and the
+  # baseline-regression note (about prediction, not mediation) is not shown.
+  for (times in list("Twice", c("Many times", "The same people in three or more conditions"))) {
+    f <- follow_with_context(tree, c("A score or scale", "Independent people", times, "That an effect works through something else (mediation)"))
+    expect_identical(f$id, "E41")
+    msg <- route_fit_messages(tree, "E41", f$ctx)
+    expect_length(msg, 1)
+    expect_match(msg, "doesn't calculate an indirect effect", fixed = TRUE)
+    expect_null(finder_form_values(forms, "E41", f$ctx)$two_level_effect)
+    expect_no_match(as.character(route_fit_ui(tree, "E41", f$ctx)), "ep:E24", fixed = TRUE)
+  }
+  f <- follow_with_context(tree, c("A score or scale", "Independent people", "Twice", "Both: it works through something that depends on something else"))
+  expect_match(route_fit_messages(tree, f$id, f$ctx), "indirect effect", fixed = TRUE)
+})
+
+test_that("two groups measured once are asked about a covariate and several outcomes; a curve and factor counts are named", {
+  two <- c("A score or scale", "Independent people", "Once", "A difference between groups or conditions", "Two groups, different people in each")
+  expect_identical(follow_answers(tree, two), "f1_two")
+  expect_identical(follow_answers(tree, c(two, "One outcome score, compared as it is")), "E2")
+  expect_identical(follow_answers(tree, c(two, "One outcome score, adjusted for a covariate measured beforehand")), "E23")
+  expect_identical(follow_answers(tree, c(two, "Several outcome scores, tested together in one comparison")), "E59")
+  f <- follow_with_context(tree, c(two, "Several outcome scores, each a claim of its own"))
+  expect_identical(f$id, "E2")
+  msg <- route_fit_messages(tree, "E2", f$ctx)
+  expect_match(msg, "How many tests does your conclusion rest on?", fixed = TRUE)
+  expect_match(msg, "Rubin, 2021", fixed = TRUE)
+  expect_length(route_fit_messages(tree, "E2", follow_with_context(tree, c(two, "One outcome score, compared as it is"))$ctx), 0)
+  # The claim question it names is the input screen's.
+  expect_identical(claim_groups()[[1]]$fields[[1]]$label, "How many tests does your conclusion rest on?")
+  # A curve: multiple regression, set to the R-squared a term adds.
+  rel <- c("A score or scale", "Independent people", "Once", "A relationship between two things you measure")
+  f <- follow_with_context(tree, c(rel, "A score, with a curved relationship such as an inverted U"))
+  expect_identical(f$id, "E24")
+  expect_match(route_fit_messages(tree, "E24", f$ctx), "squared term", fixed = TRUE)
+  expect_identical(finder_form_values(forms, "E24", f$ctx), list(question = "r2_increase"))
+  expect_match(tree$nodes$r1$options[[1]]$help, "straight-line", fixed = TRUE)
+  # Exploratory factor analysis: retaining factors is a different question.
+  efa <- Filter(function(o) identical(o$`next`, "E73"), tree$nodes$q1_more$options)[[1]]
+  expect_match(efa$help, "how many factors to retain", fixed = TRUE)
+})

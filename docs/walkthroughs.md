@@ -237,9 +237,9 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change* → *Two groups change at different rates*
 
 **End point:** E35 (The same people measured three or more times) in all three routes.
 
@@ -254,15 +254,13 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Measurements over time, to see how people change*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *Two scores measured together on each occasion, to see whether they go together within people*
 
-**End point:** E35 (The same people measured three or more times) in all three routes.
+**End point:** E76 (Do two scores go together within people, measured several times?) in all three routes.
 
-![E35 card](figures/walkthroughs/E35.png)
-
-**Would the card make sense without statistics training?** **E35:** The title is clear. "Depends on the model" still gives a lay reader nothing to go on, and the package names won't mean much.
+**Before/after:** all three routes: E35 → E76 (finder audit, 21 November 2026). E35 plans a difference in slopes between two groups, which this study doesn't have; the many-times screen now offers two scores measured together on each occasion. A directional within-person effect (stress predicting that night's sleep) can also be planned on the within-person card (E41).
 
 **Flags:** [F12](#flags)
 
@@ -433,7 +431,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Compare two separate groups on a score*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -498,7 +496,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Compare two separate groups on a score*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -519,7 +517,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Compare two separate groups on a score*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -561,7 +559,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -840,7 +838,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Compare two separate groups on a score*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -861,7 +859,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, compared as it is*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -1291,13 +1289,15 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each* → *One outcome score, adjusted for a covariate measured beforehand*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Compare groups adjusting for a covariate (e.g. the before score)*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: Other covariates → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E2 (Compare two separate groups on a score); I know my analysis: E23 (Compare groups adjusting for a covariate (e.g. the before score)); Plan my whole study: E23 (Compare groups adjusting for a covariate (e.g. the before score)). **The routes differ.**
+**End point:** E23 (Compare groups adjusting for a covariate (e.g. the before score)) in all three routes.
 
-![E2 card](figures/walkthroughs/E2.png) ![E23 card](figures/walkthroughs/E23.png)
+**Before/after:** Help me choose: E2 → E23 (finder audit, 21 November 2026: two groups are now asked whether the score is adjusted for a covariate measured beforehand).
+
+![E23 card](figures/walkthroughs/E23.png)
 
 **Would the card make sense without statistics training?** **E2:** The title is clear, and Cohen's d, pooled SD and Student's or Welch's test now have hints. **E23:** The title is clear, and the covariate, adjusted means and R-squared now have hints.
 
