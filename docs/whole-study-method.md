@@ -169,6 +169,13 @@ two-way repeated-measures ANOVA (`factorial_within`, one correlation
 between any two of a person's scores). Each F test's power agrees with
 Superpower's exact power for it (`test-whole-study-experiment.R`).
 
+The moderator's own effect (21 November 2026): a planned analysis of its
+own, "the effect of the moderator on the outcome". With a measured W it
+is the regression of Y on W alone (`w_y`, adjusted for the baseline and
+covariates as Y on X is), the test the correlation card runs; its power
+agrees with pwr's at the implied correlation (`test-whole-study.R`). In
+an experiment it is W's main effect in the factorial ANOVA.
+
 ## What it is checked against
 
 `engine/tests/testthat/test-whole-study.R` (every CI run):

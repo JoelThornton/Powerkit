@@ -301,7 +301,8 @@ each area, is at the end of
   (randomised or not), people measured once or twice, up to three
   covariates that every analysis adjusts for, mediation and
   moderated mediation (power4mome), factorial experiments (Superpower),
-  including the same people in three or more conditions,
+  including the same people in three or more conditions, and the
+  moderator's own effect beside its interaction,
   and a pair-level moderator in dyadic studies. Joint power for several
   outcomes of one randomised trial uses PUMP. Its result gives a
   planning document (PDF, Word or Markdown) with every analysis and its
