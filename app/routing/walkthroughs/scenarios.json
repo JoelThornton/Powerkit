@@ -1547,7 +1547,8 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Twice",
-   "A difference between groups or conditions"
+   "A difference between groups or conditions",
+   "Two: yes or no"
   ],
   "known": {
    "answers": [
