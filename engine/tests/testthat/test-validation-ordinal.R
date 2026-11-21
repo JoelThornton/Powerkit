@@ -5,8 +5,12 @@
 #      powerkit against propodds() called directly; below, against Hmisc's
 #      popower(), an independent implementation of the same method
 #   2. published examples: placeholders below, for the maintainer
-#   3. direct-call agreement with a simulation: not yet (no simulation
-#      option)
+#   3. agreement with studies simulated separately: the proportional-odds
+#      model written out, each study fitted by MASS::polr(), with most people
+#      at one end of the scale, both directions of the shift and unequal
+#      groups. This is the check that would have caught the direction
+#      error fixed on 17 November 2026: propodds() and popower() share the
+#      convention, so comparing them could not
 #   4. Type I error: not applicable to the formula (an odds ratio of 1 is
 #      refused as no effect)
 # Values transcribed from a published source or G*Power (tests marked
@@ -68,4 +72,38 @@ test_that("ordinal outcome, two groups: equals Hmisc's popower(), with equal and
     direct <- Hmisc::popower(p = p_average, odds.ratio = 2.5, n1 = n1, n2 = n1 * ratio)$power
     expect_equal(run_spec(spec)$curve$power, direct, tolerance = 1e-8, label = paste("ratio", ratio))
   }
+})
+
+
+# 3. Independent simulation ---------------------------------------------------------
+# Whitehead's formula is a large-sample approximation to the test of the
+# group's coefficient, so the simulated Wald test may differ from it by a
+# little more than Monte Carlo error at these sizes (1 to 2 points in the
+# first runs): an allowance of 0.03 power, well below the error the
+# direction mistake made (a factor of about two in the sample size).
+
+test_that("ordinal outcome, two groups: agrees with proportional-odds studies simulated separately and fitted by polr() (simulation)", {
+  skip_unless_full_validation()
+  skewed <- c(0.6, 0.25, 0.1, 0.05)
+  cases <- list(
+    list(shares = skewed, odds_ratio = 2, n = 160, ratio = 1, seed = 601),
+    list(shares = skewed, odds_ratio = 0.5, n = 160, ratio = 1, seed = 602),
+    list(shares = skewed, odds_ratio = 0.5, n = 180, ratio = 2, seed = 603),
+    list(shares = c(0.1, 0.3, 0.4, 0.2), odds_ratio = 1.8, n = 200, ratio = 1, seed = 604)
+  )
+  powers <- numeric(0)
+  for (case in cases) {
+    spec <- ordinal_validation_spec(case$shares, case$odds_ratio, n = case$n, allocation_ratio = case$ratio)
+    estimate <- engine_power(spec)
+    reference <- independent_ordinal_power(case$shares, case$odds_ratio, case$n, case$ratio,
+      nrep = validation_nrep(), seed = case$seed)
+    expect_power_within_approximation(estimate, reference, validation_nrep(), allowance = 0.03)
+    powers <- c(powers, estimate$power)
+  }
+  # With most people in the lowest category, a shift up (odds ratio 2) and
+  # the same shift down (0.5) have different power; the order must be the
+  # simulation's.
+  up <- independent_ordinal_power(skewed, 2, 160, nrep = validation_nrep(), seed = 605)
+  down <- independent_ordinal_power(skewed, 0.5, 160, nrep = validation_nrep(), seed = 606)
+  expect_identical(sign(powers[1] - powers[2]), sign(up - down))
 })

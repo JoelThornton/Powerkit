@@ -343,6 +343,38 @@ allowance. Joint-test power, power4mome vs simsem:
 
 Each chunk took under half an hour (2 tests at a time, 2 cores each).
 
+## Independent checks by card
+
+**Why.** A comparison with the package a card wraps, called directly,
+checks that powerkit passes the right numbers, not what they mean: the
+direction of an effect, one- or two-sided, per group or in total, true or
+observed scores. The ordinal card planned an odds ratio's shift the wrong
+way until 17 November 2026 while agreeing with the package by hand. So
+each card records which of its checks don't depend on its backend: a
+simulation that draws data from the study as the researcher describes it
+and runs the usual test, a formula or package written independently, a
+Type I error check, or a published example (placeholders don't count
+until transcribed). The simulations are in
+`helper-independent-simulation.R` and run in each design's chunk.
+
+| Card | Backend | Independent power checks | Where |
+| --- | --- | --- | --- |
+| t-tests, correlation, chi-square, two proportions | Spower | pwr's formulas; G\*Power values; Type I error | `basic` |
+| Simple, parallel and serial mediation | power4mome | pwrss and simsem (cross-check chunks) | `mediation_crosscheck*` |
+| Moderation in regression | InteractionPoweR | **base-R studies fitted by `lm()`, with and without measurement error (21 November 2026)**; Type I error | `interactions` |
+| Ordinal outcome, two groups | powertools | **proportional-odds studies fitted by `MASS::polr()`, both directions, uneven shares, unequal groups (21 November 2026)** | `ordinal` |
+| One-way repeated measures | Superpower | **base-R studies analysed by `aov()` (21 November 2026)**; Type I error | `anova` |
+| Mixed ANOVA beyond 2 x 2 | Superpower | **base-R studies by `aov()`, each effect (21 November 2026)**; Type I error | `anova` |
+| 2 x 2 between, unequal cells, unequal mixed groups | Superpower | Sommet et al.'s published values; pwrss's Shieh formula; `pwr.t2n.test()` | `anova`, `anova_mixed_unequal` |
+| Repeated measures without sphericity | Superpower | an independent reference with Greenhouse-Geisser | `anova` |
+
+Still compared only with their own package for power (Type I error
+checks aside), next in this audit: equivalence tests (TOSTER), the
+logistic factorial (Spower), the rank tests (Spower), the three-way
+interaction (InteractionPoweR), moderated mediation (power4mome; PROCESS
+models 7 and 14 wait on transcribed published values) and the SEM cards
+(semPower and lavaan).
+
 ## Before this log
 
 Runs recorded in `docs/decisions.md` before this file existed. The loop bug

@@ -1,0 +1,117 @@
+# Independent simulations for the validation tests (docs/next.md item 24,
+# part 1). Each one draws data from the study as the researcher describes
+# it on the input screen and runs the usual test in base R (or MASS), with
+# no call to the package the card wraps. A comparison with the package
+# called directly checks that powerkit passes the right arguments; these
+# check what the arguments mean (direction, one or two groups, per group or
+# in total, true or observed correlations), which the package and powerkit
+# could otherwise get wrong together. Used only by test-validation-*.R.
+
+# The proportion of `nrep` simulated studies in which `one_study()` (which
+# returns TRUE when the test is significant) succeeds.
+independent_power <- function(one_study, nrep, seed) {
+  set.seed(seed)
+  mean(vapply(seq_len(nrep), function(i) isTRUE(one_study()), logical(1)))
+}
+
+# Compound symmetry: every pair of conditions correlates r, each with SD sd.
+compound_symmetry <- function(k, sd, r) sd^2 * (r + (1 - r) * diag(k))
+
+# Moderation in regression (InteractionPoweR's parametrisation): X and W
+# standard normal with correlation r_x_w; the product XW, standardised,
+# uncorrelated with both (as it is for normal X and W); Y built from the
+# correlations of X, W and XW with Y. The correlations are between true
+# scores: each observed score is its true score plus independent error,
+# with the reliability given. Each study fits lm(Y ~ X * W) to the
+# observed scores and tests the product's coefficient, two-sided.
+independent_interaction_power <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
+                                          rel_x = 1, rel_w = 1, rel_y = 1,
+                                          alpha = 0.05, nrep, seed) {
+  r <- diag(3)
+  r[1, 2] <- r[2, 1] <- r_x_w
+  beta <- solve(r, c(r_x_y, r_w_y, r_xw_y))
+  residual_sd <- sqrt(1 - sum(beta * (r %*% beta)))
+  observed <- function(true, reliability) {
+    sqrt(reliability) * true + sqrt(1 - reliability) * stats::rnorm(length(true))
+  }
+  independent_power(function() {
+    xw <- MASS::mvrnorm(n, c(0, 0), r[1:2, 1:2])
+    x <- xw[, 1]
+    w <- xw[, 2]
+    product <- x * w / sqrt(1 + r_x_w^2)
+    y <- beta[1] * x + beta[2] * w + beta[3] * product + stats::rnorm(n, sd = residual_sd)
+    d <- data.frame(x = observed(x, rel_x), w = observed(w, rel_w), y = observed(y, rel_y))
+    summary(stats::lm(y ~ x * w, data = d))$coefficients["x:w", "Pr(>|t|)"] < alpha
+  }, nrep, seed)
+}
+
+# An ordinal outcome in two groups under proportional odds: group 1's
+# shares from the lowest category; in group 2 the odds of being above each
+# cut-point are odds_ratio times group 1's. n1 = round(n / (1 + ratio)) and
+# the rest are in group 2. Each study fits MASS::polr() and tests the
+# group's coefficient by its Wald z test, two-sided.
+independent_ordinal_power <- function(shares, odds_ratio, n, ratio = 1, alpha = 0.05, nrep, seed) {
+  k <- length(shares)
+  n1 <- floor(n / (1 + ratio) + 0.5)
+  n2 <- n - n1
+  above_1 <- 1 - cumsum(shares)[-k]
+  above_2 <- stats::plogis(stats::qlogis(above_1) + log(odds_ratio))
+  shares_2 <- -diff(c(1, above_2, 0))
+  group <- rep(0:1, c(n1, n2))
+  independent_power(function() {
+    y <- factor(c(sample.int(k, n1, TRUE, shares), sample.int(k, n2, TRUE, shares_2)),
+      levels = seq_len(k), ordered = TRUE)
+    # A study that leaves a category empty is analysed with the categories
+    # it has, as a researcher would.
+    y <- droplevels(y)
+    if (nlevels(y) < 2) return(FALSE)
+    fit <- suppressWarnings(MASS::polr(y ~ group, Hess = TRUE))
+    z <- stats::coef(fit)[["group"]] / sqrt(stats::vcov(fit)["group", "group"])
+    abs(z) > stats::qnorm(1 - alpha / 2)
+  }, nrep, seed)
+}
+
+# Repeated measures: one within-participants factor (rows of `means` are
+# the levels of a between-participants factor when there is one, equal
+# groups of n / rows). Scores are multivariate normal with compound
+# symmetry. Each study runs stats::aov() with an Error stratum for
+# participants and reads the uncorrected F test of `term` ("B", "A" or
+# "A:B" with groups; "B" alone without).
+independent_rm_anova_power <- function(means, sd, r, n, term, alpha = 0.05, nrep, seed) {
+  means <- if (is.matrix(means)) means else matrix(means, nrow = 1)
+  groups <- nrow(means)
+  k <- ncol(means)
+  per_group <- n / groups
+  stopifnot(per_group == round(per_group))
+  sigma <- compound_symmetry(k, sd, r)
+  d <- data.frame(
+    id = factor(rep(seq_len(n), each = k)),
+    A = factor(rep(rep(seq_len(groups), each = per_group), each = k)),
+    B = factor(rep(seq_len(k), n))
+  )
+  formula <- if (groups > 1) y ~ A * B + Error(id / B) else y ~ B + Error(id / B)
+  stratum <- if (term == "A") "Error: id" else "Error: id:B"
+  independent_power(function() {
+    d$y <- unlist(lapply(seq_len(groups), function(g) {
+      as.vector(t(MASS::mvrnorm(per_group, means[g, ], sigma)))
+    }))
+    table <- summary(stats::aov(formula, data = d))[[stratum]][[1]]
+    table[trimws(rownames(table)) == term, "Pr(>F)"] < alpha
+  }, nrep, seed)
+}
+
+# For a large-sample formula against simulated studies: the difference may
+# be up to the formula's approximation error, `allowance`, as well as
+# Monte Carlo error on both sides (99.9%).
+expect_power_within_approximation <- function(estimate, reference, reference_nrep, allowance, level = 0.999) {
+  se <- sqrt(estimate$mcse^2 + reference * (1 - reference) / reference_nrep)
+  half_width <- z_for(level) * se + allowance
+  expect(
+    abs(estimate$power - reference) <= half_width,
+    sprintf(
+      "Simulated power %.4f; powerkit's %.4f differs by %.4f, more than %.4f (Monte Carlo error at %g%% plus the formula's allowance of %.3f).",
+      reference, estimate$power, abs(estimate$power - reference), half_width, 100 * level, allowance
+    )
+  )
+  invisible(estimate)
+}
