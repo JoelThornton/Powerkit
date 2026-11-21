@@ -581,6 +581,9 @@ entries:
       ordinary study plan. The plan also asks for the checks that show a changed study still tests the same thing, and explains
       why the original's card and the Goals can give different sample sizes.
   - date: "2026-11-17"
+    title: "The smallest effect you could detect, for mixed models"
+    text: "The mixed-model cards (participants and items, an item predictor, and two- or three-level designs) now offer \"the smallest effect I'd have a good chance of finding\", when one effect is tested. Like the required sample size on these cards, it comes as an R script to run on your own computer."
+  - date: "2026-11-17"
     title: "The smallest indirect effect you could detect, for mediation"
     text: "Simple, parallel and serial mediation, and moderated mediation, now offer \"the smallest effect I'd have a good chance of finding\". The answer is the smallest indirect effect, or index of moderated mediation, with the paths you entered kept in proportion. Like the required sample size on these cards, it comes as an R script to run on your own computer, since it takes 15 minutes to a couple of hours."
   - date: "2026-11-17"

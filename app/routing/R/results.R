@@ -2262,6 +2262,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     level_change = "change in level", slope_change = "change in trend per time point",
     r_range = "difference between the largest and smallest group's correlation",
     indirect_effect = "indirect effect", index_of_moderated_mediation = "index of moderated mediation",
+    mean_difference = "difference between the means", slope = "slope", coefficient = "coefficient",
     fallback)
 }
 
