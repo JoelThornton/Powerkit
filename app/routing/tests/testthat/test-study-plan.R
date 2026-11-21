@@ -207,3 +207,28 @@ test_that("a plan's settings are kept in the browser and in its file", {
   expect_identical(back$settings, list(alpha = "0.005"))
   expect_identical(plan_settings_numbers(list(alpha = "0.005", power = "0.8")), list(alpha = 0.005, power = 0.8))
 })
+
+test_that("the downloads carry joint power only for the correlation and analyses now entered", {
+  entry <- function(hash) list(label = hash, result = structure(list(provenance = list(spec_hash = hash)), class = "powerkit_result"))
+  plan <- list(id = "p1", entries = list(entry("a"), entry("b")))
+  kept <- list(analyses = plan_analysis_hashes(plan), calc = list(rho = 0.3, complete = 0.6))
+  expect_identical(joint_power_current(kept, plan, 0.3), kept$calc)
+  expect_null(joint_power_stale_text(kept, plan, 0.3))
+  # The correlation edited after the calculation, or left blank: stale.
+  expect_null(joint_power_current(kept, plan, 0.5))
+  expect_null(joint_power_current(kept, plan, NA))
+  expect_match(joint_power_stale_text(kept, plan, 0.5), "out of date: it was calculated for a correlation of 0.3", fixed = TRUE)
+  expect_match(joint_power_stale_text(kept, plan, 0.5), "the plan's downloads leave it out", fixed = TRUE)
+  # An analysis changed since: stale too.
+  changed <- plan; changed$entries[[2]] <- entry("c")
+  expect_null(joint_power_current(kept, changed, 0.3))
+  expect_match(joint_power_stale_text(kept, changed, 0.3), "the plan's analyses have changed since", fixed = TRUE)
+  # Nothing kept (a failed rerun drops it): nothing to say or download.
+  expect_null(joint_power_current(NULL, plan, 0.3))
+  expect_null(joint_power_stale_text(NULL, plan, 0.3))
+  # The server keeps nothing after a failed run, and the downloads ask for
+  # the current result.
+  app_code <- paste(readLines(file.path(routing_dir, "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(app_code, "joint_kept[[plan$id]] <- if (!is.character(out))", fixed = TRUE)
+  expect_equal(lengths(regmatches(app_code, gregexpr("joint_power_current(isolate(joint_kept[[plan$id]]), plan, isolate(input$plan_rho))", app_code, fixed = TRUE))), 2)
+})
