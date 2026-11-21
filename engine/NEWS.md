@@ -1,3 +1,8 @@
+# powerkit 0.80.24
+
+* App: the replication planner states beside an ANOVA original's total
+  sample size that its groups are treated as equal in size.
+
 # powerkit 0.80.23
 
 * App: the replication planner takes an optional number of tests that must
