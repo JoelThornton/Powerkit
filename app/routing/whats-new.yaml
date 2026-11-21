@@ -8,6 +8,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: A chance that no simulated study reached is no longer called impossible
+    text: >
+      For Bayes factor plans whose chance of evidence for no effect is
+      simulated, a chance of zero now reads as none of the simulated studies
+      reaching the threshold, with an upper bound on the chance (for 1,000
+      studies, about 0.3%). The results screen, the methods paragraph and the
+      ethics paragraph had said a study of that size could never reach it,
+      which a simulation can't show. Exact calculations still say so when it's
+      true.
+  - date: "2026-11-20"
     title: The ethics paragraph says what a result would show
     text: >
       For the test of not-close fit on the structural equation modelling card,
