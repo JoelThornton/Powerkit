@@ -2563,7 +2563,11 @@ server <- function(input, output, session) {
     shown <- plans_page_shown()
     req(shown)
     plan <- isolate(state$plans[[shown$view]])
-    if (is.null(plan)) plans_list_ui(shown$plans, shown$current, shown$running) else plan_page_ui(plan, shown$n, shown$running)
+    if (is.null(plan)) return(plans_list_ui(shown$plans, shown$current, shown$running))
+    # The shared N, checked by rerunning each analysis at it (formula
+    # results only; plan_shared_n()).
+    shared <- tryCatch(plan_shared_n(plan$entries, engine_function("run_spec")), error = function(e) NULL)
+    plan_page_ui(plan, shown$n, shown$running, shared = shared)
   })
   output$plan_status <- renderUI({
     plan <- state$plans[[state$plans_view %||% ""]]

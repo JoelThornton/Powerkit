@@ -95,8 +95,10 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
       if (nzchar(e$note %||% "")) paste("Note:", e$note),
       text %||% "The methods paragraph for this analysis couldn't be made; it is in the analysis's own report.", "")
   }))
+  shared <- if (!is.null(largest)) tryCatch(plan_shared_n(plan$entries, engine("run_spec")), error = function(err) NULL)
   requirement <- if (!is.null(largest)) c(
-    sprintf("The largest comparable requirement is N = %s, for %s.", whole(largest$n), largest$label),
+    sprintf("The largest of the separate requirements is N = %s, for %s.", whole(largest$n), largest$label),
+    plan_shared_n_text(shared),
     plan_common_recruitment_caveat) else if (length(entries) > 1) plan_incomparable_text(entries) else
     "The plan has one analysis: its requirement is the plan's."
   refs <- plan_merge_citations(plan_citation_texts(entries, engine))

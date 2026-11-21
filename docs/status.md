@@ -302,7 +302,11 @@ each area, is at the end of
   ethics paragraph gives the power reached at the N found beside the target, says a several-tests
   claim's chance is for one test, names a meta-analysis's subgroup, slope or heterogeneity test, treats
   observed power as retrospective with no case for recruiting, and leaves the investigators' weighing of
-  burden against precision for them to state. Still to fix from the same audit: `next.md` items 28 and 29. "Plan my whole study" makes or fills a study
+  burden against precision for them to state. A study plan's page and document check the shared N: each
+  analysis the engine can calculate is rerun at the largest separate requirement, its power shown, and
+  N stepped up to the first value meeting every target (an analysis that can't be rerun leaves the N an
+  unchecked candidate), and a replication plan's agreement criterion has a third, inconclusive outcome
+  (Lakens, 2017). That audit's findings are all fixed. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
   the guided screens from the plan's page. A plan's significance level
