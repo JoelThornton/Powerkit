@@ -1487,7 +1487,7 @@ result_details_ui <- function(usual, actual, reasoning, detail) {
 }
 
 # What power can't tell you, under every result.
-power_limits <- "Power is only about how often a study like this would get a significant result. It can't tell you whether your measures are valid and reliable, whether the design tests your theory, or whether the effect is worth caring about."
+power_limits <- "Power says how often a study like this gets a significant result. It says nothing about whether your measures are valid and reliable, whether the design tests your theory, or whether the effect matters."
 
 # Where the effect size comes from, in the user's own words, beside the
 # number.
@@ -2125,7 +2125,7 @@ explore_ui <- function(spec, result = NULL) {
   step <- if (e$max <= 0.5) 0.005 else 0.01
   div(class = "explore-panel",
     h5(class = "h6", "If the effect were different"),
-    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks this analysis's answer. Exploring doesn't change it."),
+    p(class = "small", "Power at each sample size for the effect on the slider. The circle is your answer."),
     sliderInput("explore_effect", e$label, min = e$min, max = e$max, value = round(start, if (step < 0.01) 3 else 2), step = step, width = "100%"),
     plotOutput("explore_plot", height = "300px"),
     tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
@@ -2201,10 +2201,9 @@ scenarios_ui <- function(spec, result = NULL) {
   if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || isTRUE(all.equal(planned, e$null))) return(NULL)
   div(class = "scenario-panel",
     h5(class = "h6", "What if the true effect is smaller?"),
-    p(class = "small", "The main answer depends on the effect and other assumptions you entered. Compare plausible alternatives before settling on a sample size. These comparisons keep the analysis and any chosen between-study variation unchanged."),
     p(class = "small", sprintf(paste0(
-      "This analysis uses %s = %s. Enter a weaker effect (closer to %s, keeping its direction) you would still find plausible, and a stronger one, ",
-      "and Powerkit draws power for all three. Choose values you could defend; Powerkit won't suggest them."),
+      "You planned for %s = %s. Enter the smallest effect you'd still find plausible (closer to %s, in the same direction) and the largest, ",
+      "and Powerkit shows power for all three, with the analysis and any between-study variation as planned. It doesn't suggest values."),
       e$label, format(round(planned, 3)), explore_null_text(e))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
@@ -2421,9 +2420,9 @@ critical_effect_note <- function(spec, result) {
   if (is.null(ce) || identical(spec$goal$type, "sensitivity")) return(NULL)
   sides <- if (identical(ce$alternative, "two_sided")) "two-sided" else "one-sided"
   paste0(sprintf(paste(
-    "Critical effect size: at N = %s%s, alpha = %s, %s, an observed %s would be statistically significant, whatever the true effect",
-    "(Perugini et al., 2025). It describes the result your data can show, not the effect assumed for power: a smaller observed",
-    "effect would not be significant."),
+    "Critical effect size: at N = %s%s, alpha = %s, %s, an observed %s is significant",
+    "(Perugini et al., 2025). Anything smaller in your data won't be, whatever the true effect. This is about the result your data",
+    "can show, not the effect assumed for power."),
     whole(ce$n), group_text(spec, ce$n), writeup_alpha(ce$alpha), sides, critical_effect_value_text(ce)),
     critical_effect_welch_text(ce))
 }
@@ -2570,7 +2569,7 @@ percent_attrition <- function(a) paste0(format(100 * a), "%")
 attrition_caveat <- "Dividing by (1 \u2212 attrition) is a common but crude heuristic: it ignores how missing data will be handled in the analysis (Rubin, M., 2025, International Journal of Psychology, doi:10.1002/ijop.70017)."
 
 # Planned power, not "observed power" (setting result_wording).
-not_observed_power <- "This is planned power for the effect you entered, before the study is run. It is not \"observed power\" calculated from a finished study's results, which says nothing beyond the study's p-value."
+not_observed_power <- "This is planned power for the effect you entered, before the study is run. \"Observed power\" worked out from a finished study adds nothing to its p-value."
 
 # --- The result screen -------------------------------------------------------------
 
@@ -3458,10 +3457,10 @@ labs_learn_ui <- function(spec, result) {
   link <- function(id, words) as.character(actionLink(id, words))
   div(class = "result-learn small", HTML(paste0(
     "<strong>Learning aids under Tools:</strong> ",
-    link("learn_picture", "see what this power means"), " (the power visualiser, at this sample size and effect)",
-    if (!is.null(variation)) paste0("; ", link("learn_variation", "see why significant results overestimate effects"),
+    link("learn_picture", "what this power means"),
+    if (!is.null(variation)) paste0("; ", link("learn_variation", "why significant results overestimate effects"),
       " (this study repeated 1,000 times)"),
-    " (both drawn for the textbook version of the test).")))
+    ". Both use the textbook version of the test.")))
 }
 
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
@@ -3557,11 +3556,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if ((length(known) || length(departures_in_view)) &&
         !(isTRUE(grepl(", the same.", calc$usual_line %||% "", fixed = TRUE)) && !length(known) && identical(names(departures_in_view), "21")))
       p(class = "result-differs-pointer small",
-      "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below."),
+      "Other tools can give a slightly different answer for this design (see \u201cHow it was calculated\u201d)."),
     keep_result_ui(can_export, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
     if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "What if your assumptions change?"),
-      if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
+      if (is.null(telescope_sure)) p(class = "small", "Your answer assumes the effect you entered. Try other values here; your answer stays as it is."),
       telescope_sure,
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
@@ -4382,10 +4381,10 @@ simulated_data_ui <- function(spec, result) {
   div(class = "simulated-data",
     download_button("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
     p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
-      "A made-up data set of the planned size, for writing and checking your analysis code before the real data arrive."),
+      "A made-up data set of the planned size, for writing your analysis code before the real data arrive."),
     tags$details(class = "result-more simulated-data-more small",
       tags$summary("More about the simulated data"),
-      p("Drawn from the population you entered. Use it in R, SPSS, JASP, jamovi or Python. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
+      p("Drawn from the population you entered, so it tells you nothing about your effect. Use it in R, SPSS, JASP, jamovi or Python. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
         # A choice the data set makes that the plan leaves open (the engine's
         # simulated_data_note()).
         tryCatch(engine_function("simulated_data_note")(spec), error = function(e) NULL))))
@@ -4413,7 +4412,7 @@ writeup_ui <- function(text) {
       onclick = sprintf("pkCopyText(document.getElementById('%s').value, this.parentNode.querySelector('.writeup-copied'))", id), "Copy"),
     tags$span(class = "writeup-copied small visually-hidden", role = "status"))
   div(class = "result-writeup",
-    p(class = "small", "A methods paragraph built from your answers. Edit it as you like, then copy it."),
+    p(class = "small", "A methods paragraph from your answers, to edit and copy."),
     div(class = "writeup-head", tags$label(`for` = "writeup_short", "Short version (for the paper)"), copy("writeup_short")),
     tags$textarea(id = "writeup_short", class = "form-control writeup", rows = 6, text[["short"]]),
     tags$details(class = "result-more",
@@ -4422,7 +4421,7 @@ writeup_ui <- function(text) {
       tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]])),
     if (!is.na(text["ethics"])) tags$details(class = "result-more",
       tags$summary("Plain-words version (for an ethics application)"),
-      p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
+      p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan, not whether the study is ethical."),
       div(class = "writeup-head", tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"), copy("writeup_ethics")),
       tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
 }
@@ -4671,7 +4670,7 @@ bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
   if (!bayes_companion_applies(tree, ep_id, spec, result)) return(NULL)
   div(class = "result-card result-bayes", id = "result-bayes",
     h4(class = "h5", "Planning to interpret a non-significant result?"),
-    p("A non-significant result is not evidence that an effect is absent. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in Powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
+    p("A non-significant result doesn't show there is no effect. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in Powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
     actionButton("bayes_companion_show", "See what a Bayes factor would add to this plan", class = "btn btn-outline-primary",
       onclick = "this.hidden = true;"),
     uiOutput("bayes_companion"))

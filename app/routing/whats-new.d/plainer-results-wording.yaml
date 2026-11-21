@@ -1,0 +1,8 @@
+entries:
+  - date: "2026-11-21"
+    title: "Plainer wording on the results screen"
+    text: >-
+      The results screen's explanations are shorter and plainer: the sliders, the
+      scenarios, which assumption matters most, the notes on planned power and what power
+      can't tell you, the simulated data, the downloads and the evidence panel. The numbers, methods and
+      warnings are unchanged.

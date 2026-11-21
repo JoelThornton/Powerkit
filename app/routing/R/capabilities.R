@@ -16,7 +16,7 @@ evidence_lines <- function(record) {
     note <- if (identical(item$status %||% "not_linked", "not_linked")) "" else item$note %||% ""
     trimws(paste0(labels[[k]], ": ", state, ". ", note))
   }, ""), paste("Coverage:", sub("Complete inputs may narrow the variant. No linked record is not a failed check.",
-      "filling in all your settings can narrow which checks apply. \"None recorded\" is not a failed check.", record$scope, fixed = TRUE)),
+      "the checks that apply can narrow as you fill in your settings.", record$scope, fixed = TRUE)),
     sprintf("For reference: evidence registry %s, record %s, SHA-256 %s.", record$registry_version, record$record_id, record$registry_sha256))
 }
 
@@ -54,7 +54,7 @@ evidence_ui <- function(record, title = "Evidence for this analysis method") {
     tags$ul(lapply(evidence_lines(record), tags$li)),
     lapply(record$sources, function(s) p(tags$a(href = s$url, target = "_blank", rel = "noopener",
       paste("Source record", s$date)), ": ", s$note)),
-    p("These are checks of example cases, not of every value you could enter. \"Recorded\" means a check exists for this method with these options, usually at other values than yours: a published example is matched on the method, not on your sample size, effect or alpha. \"None recorded\" means no separate check exists for this method with these options, not that one failed; the checks for this analysis in general are listed just below. A statistician's review of the methods is a different kind of evidence, and is still to come."))
+    p("Each check is of example cases, usually at other values than yours: a published example is matched on the method, not on your sample size, effect or alpha. \"None recorded\" means no separate check exists for this method with these options, not that one failed. The checks for this analysis in general are listed just below. A statistician's review of the methods is still to come."))
 }
 
 capability_metadata <- function(form, fields, values) {

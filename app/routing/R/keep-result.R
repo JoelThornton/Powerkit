@@ -36,7 +36,7 @@ keep_result_ui <- function(can_export, plan = TRUE, kept = FALSE) {
       if (plan) uiOutput("study_plan_bar", inline = TRUE),
       download_button("download_project", "Save analysis", class = if (plan) "btn btn-outline-primary" else "btn btn-primary"),
       share_link_ui("project")),
-    p(class = "small mb-0", "A study plan keeps several analyses of one study together; an analysis file holds this one. Both open again in Powerkit with your answers and result. Share, at the top, puts this analysis in a link."))
+    p(class = "small mb-0", "An analysis file reopens this result in Powerkit. A study plan collects several analyses of one study."))
 }
 
 # The documents, in "Write it up".
@@ -49,10 +49,10 @@ documents_ui <- function(can_export, backend, planning_menu) {
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) download_button("download_bundle", "Download analysis and files (.zip)", class = "btn btn-outline-primary")),
     tags$ul(class = "result-downloads-notes small",
-      if (can_export) tags$li(tags$strong("Print or save PDF: "), "opens your browser’s print dialog for the report. The arrow beside it offers Word and Markdown."),
-      if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone; Powerkit isn't needed."),
-      tags$li(tags$strong("Citations: "), "the package's own citation(), its method paper and the software used."),
-      if (can_export) tags$li(tags$strong("Analysis ZIP: "), "the analysis file, Word and Markdown reports, R script, citations and simulated data where available. Open the ZIP in Powerkit to carry on.")))
+      if (can_export) tags$li(tags$strong("Print or save PDF: "), "the report. The arrow beside it gives Word and Markdown."),
+      if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone, without Powerkit."),
+      tags$li(tags$strong("Citations: "), "the package, its method paper and the software used."),
+      if (can_export) tags$li(tags$strong("Analysis ZIP: "), "the analysis file, Word and Markdown reports, R script, citations and any simulated data. Powerkit can open it.")))
 }
 
 keep_result_css <- "

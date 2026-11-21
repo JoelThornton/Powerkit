@@ -52,7 +52,7 @@ test_that("the panel suggests no values, and only formula results show it", {
   x <- assumption_setup("E2")
   html <- as.character(assumptions_ui(x$calc$spec, x$calc$result, x$candidates))
   expect_match(html, "Which assumption matters most?", fixed = TRUE)
-  expect_match(html, "won't suggest the values", fixed = TRUE)
+  expect_match(html, "doesn&#39;t suggest values|doesn't suggest values")
   expect_false(grepl('value="0', html, fixed = TRUE))
   sens <- x$calc$result; sens$goal_type <- "sensitivity"
   spec <- x$calc$spec; spec$goal$type <- "sensitivity"
