@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-21"
+    title: "The smallest effect you could detect, for repeated counts, yes/no answers and ratings"
+    text: "The card for people measured more than once with a count, a yes/no answer or a rating now offers \"the smallest effect I'd have a good chance of finding\": the smallest rate or odds ratio between the conditions, or with groups the smallest difference in how the groups change. It comes as an R script to run on your own computer, as the required sample size does. Cochran's Q works it out here in the app."

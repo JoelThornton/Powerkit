@@ -356,6 +356,7 @@ repeated_glmm_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
+    simulated_sensitivity = function(n, power, nrep, seed, cores) simulated_effect_sensitivity(spec, n, power, nrep, seed, cores),
     check_run = function() repeated_glmm_check_run(spec, inputs, seed)
   )
 }
