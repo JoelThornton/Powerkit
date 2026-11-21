@@ -19,8 +19,8 @@ selected_warning_spec <- function(form, fields, values) {
 
 # The input screen shows only the warnings that apply to the answers so
 # far (a known limitation of the chosen method). The checks recorded for
-# exactly these settings are on the result ("Checks recorded for exactly
-# these settings"), not above the form while it is being filled in (15
+# the chosen method and options are on the result ("Evidence for this
+# analysis method"), not above the form while it is being filled in (15
 # November 2026).
 selected_evidence_ui <- function(forms, id, fields, values) {
   tagList(planning_warnings_ui(selected_warning_spec(forms$forms[[id]], fields, values)))
