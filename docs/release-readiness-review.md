@@ -241,7 +241,7 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   result page, methods paragraphs and planning document were read in
   full: no claim needed changing. The Bayesian result variants were checked on 21 November 2026 (priors, assurance, misleading-evidence
   wording) and the failed-simulation warning was reworded in plain words.
-  Not yet read: the multilevel result variants and saved-result restoration.
+  The multilevel cluster-trial sentences and the saved-result restoration notices (project opened, last result back, saved result shown as saved and not run again) were read on 21 November 2026: one overstatement was fixed, the rest read plainly and accurately.
 - [ ] Review Labs, About, glossary, evidence explanations and citations.
 - [ ] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.
