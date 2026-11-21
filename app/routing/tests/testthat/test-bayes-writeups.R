@@ -77,3 +77,20 @@ test_that("a plan that reports both has a write-up with the Bayes factor as its 
   expect_match(bayes_companion_writeup(forms$forms$E2, calc$spec, calc$result, fields, modifyList(values, list(just_source = "")), comp)[["short"]],
     "No reason for this choice was recorded.", fixed = TRUE)
 })
+
+test_that("a simulated zero chance of evidence for no association is reported as none of the simulated studies, not as impossible", {
+  # A 2x2 table of 24 people at BF01 >= 3: no simulated study reached the
+  # threshold, but an exact count shows some tables do (so it isn't impossible).
+  spec <- list(template = "chi_square_independence", target_test = list(method = "bayes_factor"),
+    variables = list(X = list(levels = c("a", "b")), Y = list(levels = c("yes", "no"))))
+  sim <- list(bayes = list(evidence_threshold = 3, n = 24, evidence_for_null = 0, misleading_evidence = 0.02, null_nrep = 1000))
+  w <- bayes_null_writeup(spec, sim)
+  expect_match(w, "none of 1,000 simulated studies of 24 reached evidence at the threshold", fixed = TRUE)
+  expect_match(w, "a one-sided 95% upper bound of 0.3% for its probability", fixed = TRUE)
+  expect_no_match(w, "could not reach", fixed = TRUE)
+  # An exact zero (no simulation) keeps the wording that it can't happen.
+  exact <- sim
+  exact$bayes$null_nrep <- NULL
+  expect_match(bayes_null_writeup(spec, exact), "could not reach evidence at the threshold for its absence", fixed = TRUE)
+  expect_identical(simulated_zero_bound(1000), "0.3%")
+})

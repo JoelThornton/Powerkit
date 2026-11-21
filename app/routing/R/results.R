@@ -2824,7 +2824,10 @@ bayes_sentence <- function(spec, result) {
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the average power over your uncertainty:",
       "the chance of evidence at the threshold given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
-    if (!is.null(b$null_nrep)) sprintf(
+    if (simulated_zero(b)) sprintf(
+      "If there were no %s, none of %s simulated studies of %s gave evidence at the threshold that there is none (BF01 of at least %s), so the chance is below about %s (a one-sided 95%% upper bound), not zero; misleading evidence at the threshold for %s came %s of the time.",
+      bayes_null_what(spec), whole(b$null_nrep), whole(b$n), k, simulated_zero_bound(b$null_nrep), bayes_null_article(spec), percent(b$misleading_evidence)
+    ) else if (!is.null(b$null_nrep)) sprintf(
       "If there were no %s, a study of %s would give evidence at the threshold that there is none (BF01 of at least %s) %s of the time, and misleading evidence at the threshold for %s %s of the time (from %s simulated studies with no %s).",
       bayes_null_what(spec), whole(b$n), k, percent(b$evidence_for_null), bayes_null_article(spec), percent(b$misleading_evidence), whole(b$null_nrep), bayes_null_what(spec)
     ) else if (b$evidence_for_null > 0) sprintf(
@@ -2860,11 +2863,22 @@ bayes_design_prior_sentence <- function(spec, result) {
 bayes_null_what <- function(spec) if (is_bayes_table(spec)) "association" else "effect"
 bayes_null_article <- function(spec) paste("an", bayes_null_what(spec))
 
+# A simulated probability of 0: none of nrep studies, with the exact
+# one-sided 95% upper bound (1 - 0.05^(1/nrep)), since a simulation can't
+# show the event is impossible.
+simulated_zero_bound <- function(nrep) sprintf("%.2g%%", 100 * (1 - 0.05^(1 / nrep)))
+simulated_zero <- function(b) !is.null(b$null_nrep) && isTRUE(b$evidence_for_null == 0)
+
 bayes_null_writeup <- function(spec, result) {
   b <- result$bayes
   if (is.null(b)) return(NULL)
   k <- format(b$evidence_threshold)
   what <- bayes_null_what(spec)
+  if (simulated_zero(b)) {
+    return(sprintf(paste("If there were no %s, none of %s simulated studies of %s reached evidence at the threshold for its absence (BF01 of at least %s;",
+      "a one-sided 95%% upper bound of %s for its probability), and the probability of misleading evidence at the threshold for an %s (BF10 of at least %s) would be %s."),
+      what, whole(b$null_nrep), whole(b$n), k, simulated_zero_bound(b$null_nrep), what, k, percent(b$misleading_evidence)))
+  }
   if (b$evidence_for_null > 0) {
     sprintf(paste("If there were no %s, the probability of evidence at the threshold for its absence (BF01 of at least %s) would be %s,",
       "and of misleading evidence at the threshold for an %s (BF10 of at least %s) %s%s."),
@@ -4176,7 +4190,9 @@ ethics_text <- function(spec, result, fields, values) {
     }
     k <- format(spec$target_test$evidence_threshold %||% 10)
     null_line <- if (!is.null(b)) {
-      if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds evidence at the threshold that there is none is %s, and the chance that it wrongly finds evidence at the threshold for an effect is %s.",
+      if (simulated_zero(b)) sprintf("If there is no effect, none of %s simulated studies found evidence at the threshold that there is none, so the chance is small (below about %s) but not zero; the chance that the study wrongly finds evidence at the threshold for an effect is %s.",
+        whole(b$null_nrep), simulated_zero_bound(b$null_nrep), percent(b$misleading_evidence))
+      else if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds evidence at the threshold that there is none is %s, and the chance that it wrongly finds evidence at the threshold for an effect is %s.",
         percent(b$evidence_for_null), percent(b$misleading_evidence))
       else sprintf("A study of this size could not find evidence at the threshold that there is no effect, however the data fall; the chance that it wrongly finds evidence at the threshold for an effect is %s.", percent(b$misleading_evidence))
     }
