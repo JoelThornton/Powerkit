@@ -139,6 +139,15 @@ plans page, 21 November 2026) the same day, and:
 - the keep-open message stops after 10 minutes without use rather than
   20, so a tab left open in view stops holding the app up sooner.
 
+Connect Cloud's Compute settings page gives the rate: credits per hour =
+0.75 x CPUs + 0.25 x memory in GB (1.75 an hour at 1 CPU and 4 GB, 1.25
+at 1 CPU and 2 GB). Posit's usage export for 15 to 21 November 2026 shows
+the app's memory never above 1.5 GB while serving, so it runs at 1 CPU
+and 2 GB from 21 November; if visitors see it run out of memory, 3 GB
+(1.5 an hour) is the next step. Most of its running time is visitors'
+sessions (each wake lasts at least about six minutes, and a tab left in
+use holds it up for longer); a publish costs about ten minutes.
+
 What a larger plan changes: credits are charged by the hour at a rate set
 by the app's own CPU and memory settings, so the plan raises the limit
 and the largest setting allowed, not the speed by itself. A single
