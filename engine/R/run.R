@@ -422,7 +422,7 @@ run_spec <- function(spec) {
       sem = sem_summary(spec),
       bayes = bayes_summary(spec, n_analysed, backend, nrep, seed),
       manova = manova_summary(spec, backend, method, n_analysed),
-      type1 = its_type1(spec, n_analysed, nrep, seed %||% 1L),
+      type1 = its_type1(spec, n_analysed, nrep, seed %||% 1L) %||% repeated_glmm_type1(spec, n_analysed, nrep, seed %||% 1L, cores),
       details = test_details(backend, goal$type, simulating, n_analysed) %||%
         if (identical(goal$type, "power") || identical(goal$type, "sample_size")) critical_effect_details(critical, exact = correlation_exact(spec)),
       critical_effect = critical,

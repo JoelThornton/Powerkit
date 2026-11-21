@@ -552,6 +552,9 @@ observation_units <- function(text, spec) {
 type1_sentence <- function(result) {
   t1 <- result$type1
   if (is.null(t1)) return(NULL)
+  # Repeated yes/no answers (E75) are a planning warning instead
+  # (repeated_yes_no_type1_note()).
+  if (identical(t1$kind, "repeated_yes_no")) return(NULL)
   sprintf(paste("With no real change, this analysis would still find a significant one in %s of series this long",
     "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points). %s"),
     percent(t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
@@ -560,6 +563,22 @@ type1_sentence <- function(result) {
     } else {
       "That is close to alpha, as it should be."
     })
+}
+
+# Repeated yes/no answers (E75): the engine simulates the test with no
+# difference at the planned size (repeated_glmm_type1()). When it rejects
+# clearly more often than alpha, which happens when one answer is rare
+# (validation-log.md, 21 November 2026), the result, the write-up and the
+# planning document say so among the analysis's limitations.
+repeated_yes_no_type1_note <- function(result) {
+  t1 <- result$type1
+  if (is.null(t1) || !identical(t1$kind, "repeated_yes_no") || t1$rate <= t1$alpha + 2 * t1$mcse) return(NULL)
+  sprintf(paste("With no real difference, this test was significant in %s of studies this size",
+    "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points): more than alpha, so part of the power comes from false positives.",
+    "The likelihood-ratio test does this when one answer is rare (here a typical person gives about %s of the rarer answer in the rarest cell).",
+    "More answers from each person in each condition bring it closer to alpha; more people help less."),
+    sprintf("%.1f%%", 100 * t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
+    formatC(t1$rarest, digits = 1, format = "f"))
 }
 
 # The number of items as the sample size (E33): the write-up counts items,
