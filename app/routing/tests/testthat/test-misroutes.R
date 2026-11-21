@@ -184,7 +184,7 @@ test_that("two measurements still reach the before/after tests, and one measurem
   # conditions, so it goes straight to the paired test.
   expect_identical(follow_answers(tree, c(screen_score, "Twice", "A difference between groups or conditions", "One")), "E3")
   once <- c(screen_score, "Once", "A difference between groups or conditions")
-  expect_identical(follow_answers(tree, c(once, "Two groups, different people in each")), "E2")
+  expect_identical(follow_answers(tree, c(once, "Two groups, different people in each", "One outcome score, compared as it is")), "E2")
   f1 <- vapply(visible_options(tree, tree$nodes$f1, list(outcome = "score", times = "once")), `[[`, "", "label")
   expect_false(any(grepl("same people", f1, fixed = TRUE)))
 })
@@ -407,7 +407,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
   rows <- list(
     "One-sample t-test" = list(c(once(score), diff, "One group, compared with a fixed value"), "E1"),
     "Binomial test" = list(c(once(yesno), diff, "One group against a known proportion"), "E25"),
-    "Two independent samples t-test" = list(c(once(score), diff, "Two groups, different people in each"), "E2"),
+    "Two independent samples t-test" = list(c(once(score), diff, "Two groups, different people in each", "One outcome score, compared as it is"), "E2"),
     "Chi-square test of independence" = list(c(once(yesno), diff, "Groups, with an outcome in categories (not just yes/no)"), "E6"),
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
     "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),

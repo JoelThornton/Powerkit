@@ -71,6 +71,20 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
       "You said the same people are in three or more conditions. This card compares two (McNemar's test). For three or more,",
       "use the card for the same people measured more than once with a yes/no outcome, which plans Cochran's Q."))
   }
+  if (identical(ep_id, "E2") && identical(ctx$outcomes, "separate")) {
+    out <- c(out, paste(
+      "You said each outcome score is a claim of its own. Plan each one on this card, and on its input screen answer",
+      "\u201cHow many tests does your conclusion rest on?\u201d: separate claims need no correction (Rubin, 2021), a related",
+      "group corrected together (Mayo, 2018) or a claim that any one result supports needs a stricter significance level,",
+      "and a claim that needs every result needs more power for each. For one joint test of all the scores instead, use",
+      "the card for groups compared on several outcomes at once."))
+  }
+  if (identical(ep_id, "E24") && identical(ctx$shape, "curve")) {
+    out <- c(out, paste(
+      "You expect a curved relationship, such as an inverted U. A correlation measures a straight line, so it can miss a",
+      "strong curve. On this card, plan the curve as the R-squared a squared term adds: choose \u201cWhether some predictors",
+      "add to the others\u201d, with two predictors in the full model (the score and its square) and one tested (the square)."))
+  }
   if (identical(ep_id, "E41") && identical(ctx$hypothesis, "mediation")) {
     out <- c(out, paste(
       "You said the effect works through something else (mediation), with the same people measured more than once.",
@@ -150,6 +164,9 @@ finder_form_fills <- list(
     E68 = list(field = "three_outcome", values = c(score = "continuous", yesno = "binary")),
     E34 = list(field = "outcome_type", values = c(score = "standardised", yesno = "proportion")),
     E75 = list(field = "glmm_outcome", values = c(count = "count", yesno = "binary", ordinal = "categorical"))
+  ),
+  shape = list(
+    E24 = list(field = "question", values = c(curve = "r2_increase"))
   ),
   trajectory = list(
     E41 = list(field = "two_level_effect", values = c(one_group = "within_effect"))

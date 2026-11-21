@@ -197,3 +197,29 @@ test_that("one group's change, and mediation over time, say what the within-pers
   f <- follow_with_context(tree, c("A score or scale", "Independent people", "Twice", "Both: it works through something that depends on something else"))
   expect_match(route_fit_messages(tree, f$id, f$ctx), "indirect effect", fixed = TRUE)
 })
+
+test_that("two groups measured once are asked about a covariate and several outcomes; a curve and factor counts are named", {
+  two <- c("A score or scale", "Independent people", "Once", "A difference between groups or conditions", "Two groups, different people in each")
+  expect_identical(follow_answers(tree, two), "f1_two")
+  expect_identical(follow_answers(tree, c(two, "One outcome score, compared as it is")), "E2")
+  expect_identical(follow_answers(tree, c(two, "One outcome score, adjusted for a covariate measured beforehand")), "E23")
+  expect_identical(follow_answers(tree, c(two, "Several outcome scores, tested together in one comparison")), "E59")
+  f <- follow_with_context(tree, c(two, "Several outcome scores, each a claim of its own"))
+  expect_identical(f$id, "E2")
+  msg <- route_fit_messages(tree, "E2", f$ctx)
+  expect_match(msg, "How many tests does your conclusion rest on?", fixed = TRUE)
+  expect_match(msg, "Rubin, 2021", fixed = TRUE)
+  expect_length(route_fit_messages(tree, "E2", follow_with_context(tree, c(two, "One outcome score, compared as it is"))$ctx), 0)
+  # The claim question it names is the input screen's.
+  expect_identical(claim_groups()[[1]]$fields[[1]]$label, "How many tests does your conclusion rest on?")
+  # A curve: multiple regression, set to the R-squared a term adds.
+  rel <- c("A score or scale", "Independent people", "Once", "A relationship between two things you measure")
+  f <- follow_with_context(tree, c(rel, "A score, with a curved relationship such as an inverted U"))
+  expect_identical(f$id, "E24")
+  expect_match(route_fit_messages(tree, "E24", f$ctx), "squared term", fixed = TRUE)
+  expect_identical(finder_form_values(forms, "E24", f$ctx), list(question = "r2_increase"))
+  expect_match(tree$nodes$r1$options[[1]]$help, "straight-line", fixed = TRUE)
+  # Exploratory factor analysis: retaining factors is a different question.
+  efa <- Filter(function(o) identical(o$`next`, "E73"), tree$nodes$q1_more$options)[[1]]
+  expect_match(efa$help, "how many factors to retain", fixed = TRUE)
+})

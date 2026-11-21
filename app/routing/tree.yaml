@@ -498,7 +498,7 @@ nodes:
       - {label: "Something about latent variables", help: "That a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM).", next: E37}
       - {label: "That a test's items work the same in two groups", next: E71, help: "Differential item functioning, in item response theory. e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
       - {label: "That people detect a signal better in one condition or group", next: E72, help: "Sensitivity, d', in signal detection. e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
-      - {label: "That a questionnaire's items form the factors you expect", next: E73, help: "Found by exploratory factor analysis. e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
+      - {label: "That a questionnaire's items form the factors you expect", next: E73, help: "Found by exploratory factor analysis. e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which. This plans whether the loadings you expect are recovered; deciding how many factors to retain (for example by parallel analysis) is a different question that Powerkit doesn't plan yet."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -518,7 +518,7 @@ nodes:
     options:
       - {label: "One group, compared with a fixed value", next: E1, when: {times: once}, group: "One thing",
          help: "e.g. a class's mean score compared with the national norm."}
-      - {label: "Two groups, different people in each", next: E2, when: {times: once}, group: "One thing",
+      - {label: "Two groups, different people in each", next: f1_two, when: {times: once}, group: "One thing",
          help: "e.g. a training group and a control group."}
       - {label: "Three or more groups, different people in each", next: f2a, when: {times: once}, group: "One thing"}
       - {label: "One", next: f2_by_times, when: {times: [twice, many_conditions]}}
@@ -532,6 +532,17 @@ nodes:
          help: "e.g. a clinic sample's anxiety, depression and stress compared with the scales' published norms together (one-sample Hotelling's T-squared)."}
       - {label: "Two or more groups, compared on several outcomes at once", next: E59, when: {times: once}, group: "Several outcomes at once",
          help: "e.g. three therapy groups compared on anxiety, depression and stress together (MANOVA; Hotelling's T-squared for two groups)."}
+  # Two groups measured once (finder audit, 21 November 2026): the plain
+  # comparison stays one click away, beside an adjusted outcome and the
+  # two readings of several outcomes, which need different analyses.
+  f1_two:
+    doc_id: F1b
+    text: "What does the comparison use?"
+    options:
+      - {label: "One outcome score, compared as it is", next: E2, help: "e.g. words recalled in a training group and a control group."}
+      - {label: "One outcome score, adjusted for a covariate measured beforehand", next: E23, help: "e.g. a final test score adjusted for a baseline attainment test (ANCOVA)."}
+      - {label: "Several outcome scores, tested together in one comparison", next: E59, help: "e.g. anxiety, depression and stress compared together (Hotelling's T-squared)."}
+      - {label: "Several outcome scores, each a claim of its own", next: E2, sets: {outcomes: separate}, help: "e.g. a separate hypothesis about each of three scales."}
   # Questions with one possible answer for the screening's "times" are
   # skipped: these automatic nodes go straight on. People measured once
   # answer the number of groups in F1.
@@ -762,7 +773,8 @@ nodes:
     doc_id: R1
     text: "What is the other variable like?"
     options:
-      - {label: "A score or scale", next: E4}
+      - {label: "A score or scale", next: E4, help: "A straight-line relationship: the higher one, the higher (or lower) the other."}
+      - {label: "A score, with a curved relationship such as an inverted U", next: E24, sets: {shape: curve}, help: "e.g. performance is best at moderate arousal. A correlation can be near zero even when such a curve is strong."}
       - {label: "Whether a relationship differs between two separate groups", next: E49}
       - {label: "Whether one correlation is stronger than another in the same people", next: E51}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
