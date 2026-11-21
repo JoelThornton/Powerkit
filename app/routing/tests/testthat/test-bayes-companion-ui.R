@@ -104,3 +104,20 @@ test_that("a Bayes factor t-test planned for one exact effect offers the average
   # Averaging changes the chance (here, below 50%, it raises it).
   expect_false(isTRUE(all.equal(at_n$curve$power, run(with_goal(spec_with("0"), list(type = "power", n = 200L)))$curve$power)))
 })
+
+test_that("an informed prior reaches the engine from the form, and is stated with its departure", {
+  v <- modifyList(form_examples$E2, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.2",
+    prior_location = "0.4", prior_df = "3"))
+  v$welch_sd_ratio <- NULL
+  spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), v)
+  expect_equal(spec$target_test$prior_location, 0.4)
+  expect_equal(spec$target_test$prior_df, 3)
+  expect_true(any(grepl("informed prior", departures_for(forms, "E2", spec), ignore.case = TRUE)))
+  # Left empty, they are the default prior's, and the departure isn't shown.
+  plain <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")),
+    modifyList(v, list(prior_location = "", prior_df = "")))
+  expect_null(plain$target_test$prior_location)
+  expect_false(any(grepl("informed prior", departures_for(forms, "E2", plain), ignore.case = TRUE)))
+  # The sequential design takes the default prior only, so it isn't offered.
+  expect_null(bayes_sequential_card_ui(spec, list(goal_type = "sample_size", n_required = list(n = 200))))
+})

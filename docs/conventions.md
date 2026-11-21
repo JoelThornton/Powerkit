@@ -2278,6 +2278,35 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   much".
 - **Shown to users:** on the E25 result when the z test is chosen
   (`departures_for()`), and in the methods paragraph.
+### 37. Bayes factor t-tests with an informed prior: power worked out exactly, not by bfpwr's `powertbf01()`
+
+- **Established convention:** bfpwr's `powertbf01()` (bfpwr 0.1.6, Pawel
+  and Held, the package's citation()) gives the power of the t-test Bayes
+  factor for any t analysis prior, informed ones included.
+- **powerkit:** since 21 November 2026, with a prior whose location isn't
+  0 or whose degrees of freedom aren't 1, powerkit keeps bfpwr's Bayes
+  factor (`tbf01()`) and works out the chance itself: it finds the t
+  values where BF01 crosses the threshold (BF01 has one peak in t, so
+  there are at most two), adds up the noncentral t distribution's chance
+  beyond them, and averages over the normal design prior by numerical
+  integration (`bayes-informed-t.R`). The default JZS prior still uses
+  `powertbf01()`.
+- **Why:** for an informed prior at small samples `powertbf01()` is wrong,
+  not approximate (docs/upstream-questions.md, bfpwr question 2): the
+  threshold can't be reached on one side of an informed prior, and the
+  critical values seem to be taken as if it could. The exact calculation
+  needs no simulation and agrees with Bayes factors computed by
+  `tbf01()` on simulated t statistics at every size checked.
+- **Size:** one sample, prior t(location 0.3, scale 0.15, 1 df), design
+  prior N(0.4, 0.1), BF10 at least 10: at n = 10, 5.4% (simulated
+  studies: 5.5%) against `powertbf01()`'s 0; at n = 3, 0.05% against 1;
+  from about n = 30 the two agree within about 1.5 points (37.8% against
+  36.5%) and at n = 80 within 0.1 (78.05% against 78.13%).
+- **Test:** `engine/tests/testthat/test-bayes-informed-t.R`, "the chance
+  matches simulated studies where bfpwr's powertbf01() does not"; and
+  `test-validation-bayes-informed.R` (validation chunk `bayes`).
+- **Shown to users:** on the E1, E2 and E3 Bayes factor results with an
+  informed prior (`departures_for()`), and in the methods paragraph.
 
 ## Known differences
 
