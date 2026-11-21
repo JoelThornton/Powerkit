@@ -76,8 +76,10 @@ instead of glmer()'s default fit didn't cure it (up to 10% in small
 or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
-Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 28). Validation expectations
+When one answer is rare it still finds a difference too often (6.3% to
+8.9% in the 21 November grid), so every yes/no run also simulates the
+test with no difference and the result warns with that rate when it is
+above alpha. Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
