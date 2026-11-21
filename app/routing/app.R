@@ -353,7 +353,7 @@ app_css <- "
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label:has(strong) { font-weight: 400; color: #2b3644; }
   .replication-workspace .shiny-input-radiogroup:not(#rep_section) .shiny-options-group label strong { font-weight: 650; color: var(--pk-navy); }
   .rep-answer:has(.result-panel, table, .alert) { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--pk-shadow); }
-  @media (max-width: 600px) { .replication-workspace table.result-table { display: block; overflow-x: auto; white-space: nowrap; } }
+  @media (max-width: 600px) { .replication-workspace table.result-table { width: 100%; font-size: 0.9rem; } .replication-workspace table.result-table th, .replication-workspace table.result-table td { padding: 0.3rem 0.35rem; vertical-align: top; } }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
   .validation-line .badge-progress { margin-right: 0; }
   .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }

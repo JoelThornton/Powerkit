@@ -1,0 +1,7 @@
+entries:
+  - date: "2026-11-21"
+    title: Replication plan tables fit a phone screen
+    text: >
+      On a narrow screen the replication planner's result tables now wrap
+      their text so every column is visible, instead of scrolling sideways
+      with the heading and some columns out of sight.
