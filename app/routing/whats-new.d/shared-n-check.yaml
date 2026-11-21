@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-21"
+    title: "Study plans check the sample size they share"
+    text: >-
+      When a study plan's analyses need different sample sizes, its page and report
+      no longer assume the largest one is enough for all of them. Powerkit works out
+      each analysis's power at that number and, if one falls short of its target,
+      finds the first number at which every analysis reaches its own. A replication
+      plan's agreement check now has three outcomes: the two studies agree, they differ
+      by more than matters, or the result is inconclusive.

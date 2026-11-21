@@ -454,7 +454,7 @@ replication_prior_notes <- c(
 replication_ref_keys <- c("Pawel2026_replication", "Anderson2016_replication", "Simonsohn2015_telescopes", "Kenny2019_heterogeneity",
   "VerhagenWagenmakers2014_replication", "Ly2019_replication_bf", "Ly2018_summary_reanalysis", "McLatchie2020_bayes_factors",
   "bfpwr_method", "Lakens2013_effectsizes", "Anderson2017_bucss", "AndersonKelley2024_replication_design",
-  "Schmidt1996_measurement")
+  "Schmidt1996_measurement", "TOSTER_method")
 
 # The replication planner's sections, inside a replication plan's
 # workspace (replication_workspace_ui(), R/study-plan-replication.R; a Labs tool
@@ -2100,7 +2100,9 @@ replication_design_table <- function(plan, ch, keeps = NULL) {
   reading <- c(
     significance = "Significant: the effect replicates. Not significant: inconclusive on its own; read it with the criterion for absence.",
     pooled = "Significant: the two studies together support the effect. Not significant: together they are not enough.",
-    agreement = "Inside the bound: the replication agrees with the original. Outside: the two effects differ by more than matters.",
+    # Three outcomes, not two: an interval that crosses a bound shows neither
+    # agreement nor a difference that matters (Lakens, 2017, "undetermined").
+    agreement = "Inside the bound: the replication agrees with the original. Entirely beyond the bound: the two effects differ by more than matters. Crossing the bound: inconclusive, showing neither agreement nor a difference that matters (Lakens, 2017).",
     bf_replication = sprintf("%s or more for the original's effect: it replicates. %s or more for no effect: evidence against it. In between: inconclusive.", thr, thr),
     bf_sceptical = "Reached: convincing even to a sceptic. Not reached: not convincing to a sceptic.",
     bf_repeat = sprintf("BF10 of %s or more: evidence for an effect. Less: not evidence for an effect.", thr),
@@ -2374,7 +2376,8 @@ replication_ref_keys_used <- function(plan) {
     if (any(c("bf_repeat", "bf_null") %in% goals)) "bfpwr_method",
     if (isTRUE(i$original_effect_type %in% c("t", "d_rm"))) "Lakens2013_effectsizes",
     if (!is.null(plan$bias_corrected)) "Anderson2017_bucss",
-    if (!is.null(plan$original$attenuation)) "Schmidt1996_measurement")
+    if (!is.null(plan$original$attenuation)) "Schmidt1996_measurement",
+    if ("agreement" %in% goals) "TOSTER_method")
   intersect(replication_ref_keys, keys)
 }
 

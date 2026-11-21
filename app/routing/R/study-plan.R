@@ -251,6 +251,73 @@ plan_largest_entry <- function(entries) {
   if (length(comparable)) comparable[[which.max(vapply(comparable, function(e) e$n, numeric(1)))]]
 }
 
+# The shared sample size, checked (audit of the exports, 21 November 2026):
+# the largest separate requirement need not give every analysis its target,
+# since power can drop when one person is added (two one-proportion tests
+# needing 20 and 21 have 76.9% and 85.2% at 21, and first both reach 80% at
+# 24). Each analysis is run again by the engine at the shared N, stepping up
+# until every target is met. An analysis whose power is simulated, or that
+# has no power target, isn't rerun, and the N is then an unchecked
+# candidate. Each test's own power, not the chance that all succeed.
+plan_shared_n <- function(entries, run = engine_function("run_spec"), max_steps = 200L) {
+  largest <- plan_largest_entry(entries)
+  if (is.null(largest) || length(entries) < 2) return(NULL)
+  calcs <- lapply(entries, plan_entry_calc)
+  labels <- vapply(entries, function(e) e$label %||% "an analysis", character(1))
+  checkable <- vapply(calcs, function(calc) {
+    r <- calc$result
+    identical(r$goal_type, "sample_size") && !simulated(r) && is.numeric(calc$spec$goal$power)
+  }, logical(1))
+  out <- list(largest = largest$n, largest_label = largest$label, labels = labels, checked = all(checkable) && !is.null(run),
+    unchecked = labels[!checkable], targets = vapply(calcs, function(calc) calc$spec$goal$power %||% NA_real_, numeric(1)))
+  if (!out$checked) return(out)
+  power_at <- function(calc, n) {
+    spec <- calc$spec
+    spec$goal$type <- "power"
+    spec$goal$n <- n
+    spec$goal$power <- NULL
+    at <- tryCatch(run_calculation(spec, run, seed = calc$result$provenance$seed %||% 1L), error = function(e) NULL)
+    if (is.null(at) || !identical(at$status, "ok")) return(NA_real_)
+    at$result$curve$power[1] %||% NA_real_
+  }
+  powers <- function(n) vapply(calcs, power_at, numeric(1), n = n)
+  out$at_largest <- powers(largest$n)
+  n <- largest$n
+  p <- out$at_largest
+  steps <- 0L
+  # A size the engine refuses (an odd total for two equal groups, say) is
+  # passed over.
+  while ((anyNA(p) || any(p < out$targets - 1e-9)) && steps < max_steps) {
+    n <- n + 1L
+    steps <- steps + 1L
+    p <- powers(n)
+  }
+  if (anyNA(p) || any(p < out$targets - 1e-9)) {
+    out$checked <- FALSE
+    out$unchecked <- labels[is.na(p) | p < out$targets - 1e-9]
+    return(out)
+  }
+  out$shared <- n
+  out$at_shared <- p
+  out
+}
+
+# The shared N in words, for the plan's page and its document.
+plan_shared_n_text <- function(shared) {
+  if (is.null(shared)) return(NULL)
+  each <- function(p) paste(sprintf("%s %.1f%%", shared$labels, 100 * p), collapse = ", ")
+  own <- "This is each analysis's own power at that N, not the chance that all of them succeed in the same study."
+  if (!isTRUE(shared$checked)) {
+    return(sprintf("N = %s is an unchecked candidate: the power of %s at that N couldn't be worked out here, so check each analysis at the common N before using it.",
+      whole(shared$largest), paste(shared$unchecked, collapse = " and ")))
+  }
+  if (identical(shared$shared, shared$largest)) {
+    return(paste(sprintf("At N = %s, every analysis reaches its target (%s).", whole(shared$shared), each(shared$at_shared)), own))
+  }
+  paste(sprintf("At N = %s, not every analysis reaches its target (%s). The first N at which each one does is N = %s (%s).",
+    whole(shared$largest), each(shared$at_largest), whole(shared$shared), each(shared$at_shared)), own)
+}
+
 # One analysis on its plan's page: what it found, its N, its role and
 # note, and Open and Remove.
 plan_item_ui <- function(e, sets = FALSE) {
@@ -351,7 +418,7 @@ plan_running_ui <- function(runs) {
     })))
 }
 
-plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
+plan_page_ui <- function(plan, plans_n = 1L, running = list(), shared = NULL) {
   entries <- plan$entries
   k <- length(entries)
   largest <- plan_largest_entry(entries)
@@ -402,8 +469,9 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
         tags$span(class = "result-figure-label", paste("largest requirement in", plan_entry_sample(largest)$unit)),
         tags$span(class = "result-figure-sub", if (k == 1) "from your one analysis so far" else sprintf("the largest of your %d analyses", k))),
       p(class = "plan-hero-text", HTML(sprintf(
-        "The largest comparable requirement is <strong>N = %s</strong>, for %s. %s",
-        whole(largest$n), esc(largest$label), esc(plan_common_recruitment_caveat))))),
+        "The largest comparable requirement is <strong>N = %s</strong>, for %s. %s%s",
+        whole(largest$n), esc(largest$label), if (is.null(shared)) "" else paste0(esc(plan_shared_n_text(shared)), " "),
+        esc(plan_common_recruitment_caveat))))),
     if (k > 0) tags$ol(class = "study-plan-list",
       lapply(entries, function(e) plan_item_ui(e, sets = !is.null(largest) && identical(e$key, largest$key)))),
     if (k > 1 && is.null(largest)) div(class = "plan-note", rep_note(plan_incomparable_text(entries), keep = TRUE)),
