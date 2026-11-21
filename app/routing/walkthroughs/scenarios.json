@@ -580,8 +580,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Three or more groups, different people in each",
-   "Any difference among the groups"
+   "Two or more groups, compared on several outcomes at once"
   ],
   "known": {
    "answers": [
@@ -589,7 +588,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Do two or more groups differ on several outcomes at once?"
   },
   "guided": {
    "answers": [
@@ -599,7 +598,7 @@
    ],
    "vars": {
     "x": "cond3",
-    "outcome": "score",
+    "outcome": "notsure",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -607,9 +606,9 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E18",
-   "known": "E-unsure",
-   "guided": "E18"
+   "choose": "E59",
+   "known": "E59",
+   "guided": "E-unsure"
   }
  },
  {
@@ -757,7 +756,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Compare two separate groups on a score"
   },
   "guided": {
    "answers": [
@@ -776,7 +775,7 @@
   },
   "reaches": {
    "choose": "E2",
-   "known": "E-unsure",
+   "known": "E2",
    "guided": "E2"
   }
  },
@@ -808,8 +807,8 @@
     "Once"
    ],
    "vars": {
-    "x": "score",
-    "outcome": "score",
+    "x": "notsure",
+    "outcome": "notsure",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -819,7 +818,7 @@
   "reaches": {
    "choose": "E37",
    "known": "E37",
-   "guided": "E4"
+   "guided": "E-unsure"
   }
  },
  {
@@ -949,7 +948,7 @@
    "Independent people",
    "Once",
    "Something else: spread, structure, item bias, signal detection or types",
-   "Something about latent variables"
+   "That a questionnaire's items form the factors you expect"
   ],
   "known": {
    "answers": [
@@ -957,7 +956,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Latent-variable models: fit, invariance, correlations and paths"
+   "pick": "Whether an exploratory factor analysis will recover the factors you expect"
   },
   "guided": {
    "answers": [
@@ -975,8 +974,8 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E37",
-   "known": "E37",
+   "choose": "E73",
+   "known": "E73",
    "guided": "E-unsure"
   }
  },
@@ -1149,7 +1148,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Compare one group's average with a fixed value"
   },
   "guided": {
    "answers": [
@@ -1168,7 +1167,7 @@
   },
   "reaches": {
    "choose": "E1",
-   "known": "E-unsure",
+   "known": "E1",
    "guided": "E-unsure"
   }
  },
@@ -1225,7 +1224,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "One group against a known proportion"
+   "One group's categories against expected proportions"
   ],
   "known": {
    "answers": [
@@ -1233,7 +1232,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Compare one group's proportion with a fixed value"
+   "pick": "Compare one categorical variable with expected proportions"
   },
   "guided": {
    "answers": [
@@ -1243,7 +1242,7 @@
    ],
    "vars": {
     "x": "notsure",
-    "outcome": "yesno",
+    "outcome": "categories",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -1251,8 +1250,8 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E25",
-   "known": "E25",
+   "choose": "E48",
+   "known": "E48",
    "guided": "E-unsure"
   }
  },
@@ -1317,7 +1316,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Compare two separate groups on a score"
   },
   "guided": {
    "answers": [
@@ -1336,7 +1335,7 @@
   },
   "reaches": {
    "choose": "E2",
-   "known": "E-unsure",
+   "known": "E2",
    "guided": "E2"
   }
  },
@@ -1505,7 +1504,7 @@
     "Independent people",
     "Twice"
    ],
-   "pick": "safety"
+   "pick": "Compare the same people in two conditions (or before and after)"
   },
   "guided": {
    "answers": [
@@ -1524,7 +1523,7 @@
   },
   "reaches": {
    "choose": "E3",
-   "known": "E-unsure",
+   "known": "E3",
    "guided": "E3"
   },
   "changes": [
@@ -1652,7 +1651,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Any difference among three or more groups"
   },
   "guided": {
    "answers": [
@@ -1671,7 +1670,7 @@
   },
   "reaches": {
    "choose": "E18",
-   "known": "E-unsure",
+   "known": "E18",
    "guided": "E18"
   }
  },
@@ -1792,7 +1791,7 @@
     "Many times",
     "The same people in three or more conditions"
    ],
-   "pick": "safety"
+   "pick": "Any difference among three or more conditions, the same people in each"
   },
   "guided": {
    "answers": [
@@ -1809,7 +1808,7 @@
   },
   "reaches": {
    "choose": "E54",
-   "known": "E-unsure",
+   "known": "E54",
    "guided": "E54"
   }
  },
@@ -2098,7 +2097,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Test whether two scores are related"
   },
   "guided": {
    "answers": [
@@ -2117,7 +2116,7 @@
   },
   "reaches": {
    "choose": "E4",
-   "known": "E-unsure",
+   "known": "E4",
    "guided": "E4"
   }
  },
@@ -2341,7 +2340,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two or more groups, compared on several outcomes at once"
   ],
   "known": {
    "answers": [
@@ -2349,7 +2348,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "safety"
+   "pick": "Do two or more groups differ on several outcomes at once?"
   },
   "guided": {
    "answers": [
@@ -2359,7 +2358,7 @@
    ],
    "vars": {
     "x": "cond2",
-    "outcome": "score",
+    "outcome": "notsure",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -2367,9 +2366,9 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E2",
-   "known": "E-unsure",
-   "guided": "E2"
+   "choose": "E59",
+   "known": "E59",
+   "guided": "E-unsure"
   }
  },
  {
@@ -2425,7 +2424,7 @@
    "Independent people",
    "Once",
    "Something else: spread, structure, item bias, signal detection or types",
-   "Something about latent variables"
+   "That a questionnaire's items form the factors you expect"
   ],
   "known": {
    "answers": [
@@ -2433,7 +2432,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Latent-variable models: fit, invariance, correlations and paths"
+   "pick": "Whether an exploratory factor analysis will recover the factors you expect"
   },
   "guided": {
    "answers": [
@@ -2451,8 +2450,8 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E37",
-   "known": "E37",
+   "choose": "E73",
+   "known": "E73",
    "guided": "E-unsure"
   }
  },

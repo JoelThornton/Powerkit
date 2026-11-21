@@ -163,7 +163,15 @@ each area, is at the end of
   "No matching design" unless the user chooses it, apart from a short list
   of known gaps that two tests in `test-misroutes.R` hold fixed: a new
   gap fails them (8 November 2026, after counts and ratings measured twice
-  had reached it).
+  had reached it). The 61 walkthrough examples were re-recorded against
+  today's cards on 21 November 2026: the MANOVA, factor-analysis,
+  goodness-of-fit and rank-test examples now reach E59, E73, E48 and the
+  cards offering each rank test, and the whole-study route sends several
+  outcomes or latent variables to the safety net rather than a one-score
+  card (`walkthroughs.md`). Whether researchers give those answers is for
+  testers (`next.md` item 23). The result's evidence panel is headed
+  "Evidence for this analysis method", since its records match the method
+  and options, not the sample size, effect or alpha entered.
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;

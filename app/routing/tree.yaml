@@ -998,7 +998,7 @@ endpoints:
     doc_name: "One-sample t-test"
     technical_name: "One-sample t-test"
     plain_name: "Compare one group's average with a fixed value"
-    search_words: "one sample t test cohen's d effect size sequential bayes factor optional stopping"
+    search_words: "one sample t test cohen's d effect size sequential bayes factor optional stopping wilcoxon signed rank one-sample rank test median skewed"
     card_points:
       - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / one_sample_t"
@@ -1034,7 +1034,7 @@ endpoints:
     doc_name: "Paired-samples t-test"
     technical_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
-    search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing yuen trimmed means robust paired t test outliers heavy tails wrs2 sequential bayes factor optional stopping"
+    search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing yuen trimmed means robust paired t test outliers heavy tails wrs2 sequential bayes factor optional stopping wilcoxon signed rank test skewed"
     card_points:
       - "For a crossover (AB/BA), use this card only if the planned analysis is an ordinary paired comparison with no period, sequence or carry-over terms. It does not plan an adjusted crossover analysis or establish that ignoring those effects is reasonable. A dedicated crossover model remains planned."
       - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
@@ -1053,7 +1053,7 @@ endpoints:
     doc_name: "Pearson correlation"
     technical_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
-    search_words: "pearson r association"
+    search_words: "pearson r association spearman rank correlation kendall tau rank correlation"
     template: "basic_test / correlation"
     backend: "pwrss: power.exact.onecor(), the exact distribution of r, as G*Power (pwr's pwr.r.test(), Fisher's z, or Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations; BayesFactor's correlationBF() for the Bayes factor test (JASP's Bayes factor), with SuppDists for the distribution of r"
     refs: "Departure 15, Known differences 11 and 12 (docs/conventions.md)"

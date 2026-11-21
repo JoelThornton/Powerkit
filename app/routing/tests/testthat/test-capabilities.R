@@ -53,4 +53,9 @@ test_that("results show captured evidence and older results remain explicitly un
   html <- as.character(evidence_ui(record))
   for (label in c("Software agreement", "Independent reference", "Published example", "Method-validation run")) expect_match(html, label, fixed = TRUE)
   expect_match(html, record$registry_sha256, fixed = TRUE)
+  # The records match the method and its options, not the values entered,
+  # so the panel doesn't claim to cover exactly these settings.
+  expect_match(html, "Evidence for this analysis method", fixed = TRUE)
+  expect_match(html, "not on your sample size, effect or alpha", fixed = TRUE)
+  expect_no_match(html, "exactly these settings", fixed = TRUE)
 })
