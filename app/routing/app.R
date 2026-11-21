@@ -1377,6 +1377,13 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # What the finder set on this screen, redrawn as fields change, so a
+  # field changed afterwards is named beside the others (route-fit.R).
+  output$finder_filled_note <- renderUI({
+    req(length(state$finder_filled))
+    finder_filled_note_ui(forms, state$endpoint, state$finder_filled,
+      utils::modifyList(isolate(state$form_values) %||% list(), current_form_values()))
+  })
   # Metadata only: this validates inputs and looks up recorded evidence; it
   # never runs a power calculation when a field changes.
   output$selected_evidence <- renderUI({
@@ -3549,7 +3556,7 @@ server <- function(input, output, session) {
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
           carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled)
-            else finder_filled_note_ui(forms, state$endpoint, state$finder_filled, isolate(state$form_values)))),
+            else if (length(state$finder_filled)) uiOutput("finder_filled_note"))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = tagList(

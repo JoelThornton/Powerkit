@@ -197,19 +197,37 @@ finder_form_values <- function(forms, ep_id, ctx = list()) {
 }
 
 #' The note at the top of an input screen opened from the finder: which
-#' fields were set from the answers (`filled`) and still hold them in
-#' `values`, as the screen labels them.
+#' fields were set from the answers (`filled`), as the screen labels them,
+#' and any that `values` (what the screen holds now) no longer matches. The
+#' screen redraws it as fields change (app.R, `output$finder_filled_note`),
+#' so a field changed after the finder set it says so beside the others
+#' (finder record, 21 November 2026): the calculation follows the screen,
+#' and a change can mean the screen no longer plans the study described.
 finder_filled_note_ui <- function(forms, ep_id, filled, values = filled) {
-  # Only what still holds the finder's value (a test version or Bayes
-  # factor choice made afterwards may have set it).
-  filled <- filled[vapply(names(filled), function(id) identical(values[[id]], filled[[id]]), logical(1))]
   if (!length(filled)) return(NULL)
   fields <- form_fields(form_groups(forms, ep_id))
-  items <- lapply(names(filled), function(id) {
-    f <- Filter(function(x) identical(x$id, id), fields)[[1]]
-    tags$li(paste0(f$label, ": "), tags$strong(f$choices[[filled[[id]]]]))
+  field_for <- function(id) Filter(function(x) identical(x$id, id), fields)[[1]]
+  choice <- function(f, v) f$choices[[as.character(v)]] %||% as.character(v)
+  # A field the screen hasn't drawn yet still holds the finder's value.
+  now <- function(id) if (is.null(values[[id]])) filled[[id]] else values[[id]]
+  changed <- names(filled)[!vapply(names(filled), function(id) identical(as.character(now(id)), as.character(filled[[id]])), logical(1))]
+  kept <- setdiff(names(filled), changed)
+  kept_items <- lapply(kept, function(id) {
+    f <- field_for(id)
+    tags$li(paste0(f$label, ": "), tags$strong(choice(f, filled[[id]])))
   })
-  div(class = "alert alert-info carried-note finder-filled-note", role = "note",
-    p(tags$strong("Set from your answers. "), "Check these match your study; change them below if they don't."),
-    tags$ul(items))
+  changed_items <- lapply(changed, function(id) {
+    f <- field_for(id)
+    tags$li(paste0(f$label, ": "), tags$strong(choice(f, now(id))),
+      " (your answers gave ", tags$strong(choice(f, filled[[id]]), .noWS = "outside"), ")")
+  })
+  div(class = paste("alert carried-note finder-filled-note", if (length(changed)) "alert-warning" else "alert-info"),
+    role = if (length(changed)) "status" else "note", `aria-live` = "polite",
+    if (length(kept)) tagList(
+      p(tags$strong("Set from your answers. "), "Check these match your study; change them below if they don't."),
+      tags$ul(kept_items)),
+    if (length(changed)) tagList(
+      p(tags$strong("Changed since the design finder set it. "),
+        "The calculation uses what the screen says, so check it describes your study. If it doesn't, change it back; if your answers in the finder were wrong, the finder may suggest a different analysis."),
+      tags$ul(class = "finder-changed", changed_items)))
 }
