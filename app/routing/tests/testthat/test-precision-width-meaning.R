@@ -12,6 +12,9 @@ test_that("width explanations follow the backend's actual planning quantity", {
   words <- precision_sentences(proportion, result)
   expect_match(words[["reading"]], "values you specified", fixed = TRUE)
   expect_no_match(words[["reading"]], "average|half of", ignore.case = TRUE)
+  # The write-up and the result's "Assuming" list say the same (queue item 29).
+  expect_identical(precision_width_basis(result), " at the values assumed")
+  expect_no_match(as.character(precision_hero_ui(proportion, result)), "on average", fixed = TRUE)
   standardised$goal$assurance <- 0.8
   words <- precision_sentences(standardised, run(standardised))
   expect_match(words[["headline"]], "80% of studies", fixed = TRUE)

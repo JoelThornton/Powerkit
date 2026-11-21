@@ -19,8 +19,8 @@ the plan (`decisions.md`, 13 November 2026).
 Colleague testing began on 16 November 2026. What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
-smaller items), is `next.md` item 24 and comes first while testing runs;
-with it, item 26 audits every card that runs for a check independent of
+smaller items), is `next.md` item 23 and comes first while testing runs;
+with it, item 25 audits every card that runs for a check independent of
 the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
@@ -69,7 +69,7 @@ and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
 maintainer, with TOSTER's and pmsampsize's faults); E77 says when
 pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
-labels and wording (item 29) go with item 28. E75 keeps refusing one
+labels and wording are fixed too: E51 says which correlation is the value under no difference, E2's converter asks for a pooled t, E77 says its calibration slope doesn't change the sample size, E69's agreement note gives each limit's level, E74's help says measurement error biases a cross-lagged path either way, and a simulated design whose fits sometimes fail now says how many studies could be analysed. E75 keeps refusing one
 yes/no answer per condition: in simulations its tests found a difference
 too often when there was none, and fitting by adaptive quadrature
 instead of glmer()'s default fit didn't cure it (up to 10% in small
@@ -77,7 +77,7 @@ or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
 Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 30). Validation expectations
+condition (queue item 29). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
@@ -401,7 +401,7 @@ each area, is at the end of
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
   and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
-  of item 27 (unequal groups for an ANOVA original, reliability for
+  of item 26 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 
@@ -459,7 +459,7 @@ November 2026), which gives .051.
   above 5%); the results screen states it (`validation-log.md`,
   14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
-  (`hosting-options.md`, `next.md` item 11).
+  (`hosting-options.md`, `next.md` item 12).
 - No usability sessions with researchers yet
   ([`usability-session-pack.md`](usability-session-pack.md)); no
   ease-of-use result is claimed.
