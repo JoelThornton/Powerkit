@@ -239,8 +239,9 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   recorded evidence (the union-bound and product rules, Cochran's
   expected-count rule, the 1 - .01/10 confirmation level), and a Welch
   result page, methods paragraphs and planning document were read in
-  full: no claim needed changing. Not yet read: the Bayesian, simulation
-  and multilevel result variants and saved-result restoration.
+  full: no claim needed changing. The Bayesian result variants were checked on 21 November 2026 (priors, assurance, misleading-evidence
+  wording) and the failed-simulation warning was reworded in plain words.
+  Not yet read: the multilevel result variants and saved-result restoration.
 - [ ] Review Labs, About, glossary, evidence explanations and citations.
 - [ ] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.

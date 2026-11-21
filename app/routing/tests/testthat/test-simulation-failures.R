@@ -6,7 +6,7 @@ test_that("failed decisions expose both denominators without changing reported p
   expect_match(words, "900", fixed = TRUE)
   expect_match(words, "80%", fixed = TRUE)
   expect_match(words, "72%", fixed = TRUE)
-  expect_match(words, "valid decisions only", fixed = TRUE)
+  expect_match(words, "only the studies that could be analysed", fixed = TRUE)
   expect_match(as.character(simulation_failures_ui(result)), "Some simulated studies", fixed = TRUE)
   result$provenance$simulations <- data.frame(n = 200, rejections = 720, nrep = 900)
   expect_length(simulation_outcome_text(result), 0)

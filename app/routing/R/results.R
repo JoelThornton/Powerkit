@@ -3118,11 +3118,11 @@ simulation_outcome_text <- function(result) {
   s <- result$provenance$simulations
   if (!is.data.frame(s) || !all(c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator") %in% names(s))) return(character())
   vapply(seq_len(nrow(s)), function(i) sprintf(
-    "At N = %s: %s studies attempted, %s analysable decisions, %s failed, %s met the analysis criterion. Criterion met among valid decisions: %s; criterion met per attempted study: %s. Reported power uses %s.",
+    "At N = %s: %s studies were simulated, %s could be analysed, %s could not, and %s met the success rule. Among the studies that could be analysed that is %s; among all simulated studies it is %s. The power reported counts %s.",
     whole(s$n[i]), whole(s$attempted[i]), whole(s$valid[i]), whole(s$failed[i]), whole(s$successful[i]),
     if (is.na(s$conditional_power[i])) "not estimable" else percent(s$conditional_power[i]),
     percent(s$successful_study_probability[i]),
-    switch(s$denominator[i], valid = "valid decisions only", attempted = "all attempts, including failed decisions as unsuccessful", "all decisions (none failed)")), character(1))
+    switch(s$denominator[i], valid = "only the studies that could be analysed", attempted = "all simulated studies, with the failed ones counted as misses", "all simulated studies (none failed)")), character(1))
 }
 
 simulation_failures_ui <- function(result) {
@@ -3130,7 +3130,7 @@ simulation_failures_ui <- function(result) {
   if (!is.data.frame(s) || !"failed" %in% names(s) || !any(s$failed > 0)) return(NULL)
   div(class = "alert alert-warning", role = "status",
     tags$strong("Some simulated studies could not be analysed. "),
-    "Conditional power describes valid decisions only. Successful-study probability includes failures as unsuccessful attempts. A Monte Carlo interval does not resolve model-fitting failures.",
+    "The power reported either counts only the studies that could be analysed, or counts the failed ones as misses, which gives a lower figure: both are listed below. Simulating more studies narrows the random error but does not remove the failures.",
     tags$ul(lapply(simulation_outcome_text(result)[s$failed > 0], tags$li)))
 }
 
@@ -4796,7 +4796,7 @@ bayes_sequential_card_ui <- function(spec, result) {
   unit <- if (identical(spec$template, "independent_t")) " in each group" else ""
   div(class = "result-card result-sequential", id = "result-sequential",
     h4(class = "h5", "Check as you go?"),
-    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. Most studies then stop well before the maximum. Decide every setting below before collecting data, and report them.", whole(per), unit)),
+    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. If the effect is as you planned, most studies then stop well before the maximum; with no effect, many run longer. Decide every setting below before collecting data, and report them.", whole(per), unit)),
     div(class = "row g-2",
       div(class = "col-sm-4", numericInput("seq_n_min", sprintf("First look, after this many%s", unit), value = min(20, max(3, floor(per / 4))), min = 3, max = per, step = 1, width = "100%")),
       div(class = "col-sm-4", numericInput("seq_step", sprintf("Then look again after every%s", if (nzchar(unit)) " (in each group)" else ""), value = 1, min = 1, max = per, step = 1, width = "100%")),
