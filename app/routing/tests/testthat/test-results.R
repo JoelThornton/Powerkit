@@ -3180,6 +3180,26 @@ test_that("the result leads with one figure, the same number as its sentence", {
   expect_null(result_figure(list(design = "x"), list(goal_type = "something_else")))
 })
 
+test_that("power just either side of a usual target isn't shown as the target", {
+  # Student's t, d = 0.5: 79.52% with 126 people and 80.15% with 128 both
+  # rounded to 80%, though only one meets a requirement of 80%.
+  expect_identical(power_figure(0.795168), "79.5%")
+  expect_identical(power_figure(0.801460), "80.1%")
+  expect_identical(power_figure(0.79996), "79.996%")
+  expect_identical(power_figure(0.8), "80%")
+  expect_identical(power_figure(0.7312), "73%")
+  expect_identical(power_figure(0.9496), "94.96%")
+  skip_without_run()
+  for (n in c(126L, 128L)) {
+    fields <- form_fields(form_groups(forms, "E2"))
+    v <- modifyList(form_examples$E2, list(method = "student_t", d = "0.5", goal = "power", n = as.character(n), power = NULL))
+    calc <- run_calculation(build_spec(forms, "E2", fields, v), seed = forms$default_seed)
+    fig <- result_figure(calc$spec, calc$result)
+    expect_identical(fig$value, if (n == 126L) "79.5%" else "80.1%")
+    expect_match(result_sentences(calc$spec, calc$result)[["headline"]], fig$value, fixed = TRUE)
+  }
+})
+
 test_that("the result's sections are linked along its top, and the write-up can be copied", {
   skip_without_run()
   calc <- run_calculation(light_spec("E2", list(type = "sample_size", power = 0.8)), seed = forms$default_seed)
