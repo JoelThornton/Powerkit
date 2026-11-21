@@ -1,3 +1,7 @@
+# powerkit 0.80.17
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.80.16
 
 * No developer-facing changes; see the Updates entries.
