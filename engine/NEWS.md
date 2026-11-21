@@ -1,3 +1,75 @@
+# powerkit 0.81.2
+
+* The repeated-measures card for a count, a yes/no answer or ordered
+  categories (`mixed_model` / `repeated_glmm`, E75) and Cochran's Q (E78)
+  find the smallest detectable effect by the simulated search
+  (`repeated_glmm_search()`, `simulated_effect_sensitivity()`). The
+  conditions' differences on the model's scale (log rates, log odds or log
+  odds ratios of a higher category) are multiplied by the scale, the first
+  condition kept; with groups, only the group-by-condition interaction
+  coefficients (treatment coding) are, so the groups' and conditions' own
+  differences are kept. The result is the rate or odds ratio between the
+  conditions furthest apart, or the largest ratio of ratios between two
+  groups and two conditions (`ratio_of_rate_ratios`,
+  `ratio_of_odds_ratios`). The person SD, category shares and
+  overdispersion are kept, and the search stops where two cells would be
+  1,000 times apart. The exported scripts' `set_effect()` repeats the
+  change, recomputing simr's fixed effects with groups.
+
+# powerkit 0.81.1
+
+* App: the walkthrough examples were re-recorded against today's cards
+  (`scenarios.json`): MANOVA reaches E59, exploratory factor analysis E73,
+  goodness of fit E48, and the rank-test examples the cards that offer each
+  test; the whole-study route sends several outcomes or latent variables
+  to the safety net. E1, E3 and E4 find their rank tests by name. The
+  result's evidence panel is headed "Evidence for this analysis method",
+  as its records match the method and options, not the values entered.
+
+# powerkit 0.81.0
+
+* Bayes factor t-tests (one sample, paired, two groups) take an informed
+  t analysis prior: `target_test > prior_location` and `prior_df` join
+  `prior_scale`. With a prior other than the default JZS one, the chance
+  of evidence is worked out exactly from `bfpwr::tbf01()` by
+  root-finding its threshold crossings and summing noncentral t
+  probabilities over the normal design prior (new `bayes-informed-t.R`),
+  because `bfpwr::powertbf01()` is wrong for informed priors at small
+  samples (Departure 37). The check run, the exported R script and the
+  methods paragraph follow; validation in
+  `test-validation-bayes-informed.R` (chunk `bayes`).
+* `bayes_robustness()` compares an informed prior with the default
+  prior's three named widths, centred on 0; the sequential design card
+  (`bayes_sequential()`, Cauchy prior only) isn't offered for an
+  informed prior.
+
+# powerkit 0.80.30
+
+* One proportion (E25): the z test of one proportion, R's `prop.test()`
+  without (`method = "z_test"`) or with (`"z_test_corrected"`) the
+  continuity correction, beside the exact binomial tests. Power is summed
+  over every count of `prop.test()`'s decisions (`prop_test_p()`, checked
+  against `prop.test()` on every count), not pwrss's normal approximation
+  (Departure 36: 78 against 86 people for 20% against 10% at 80% power).
+  The R script reproduces each goal with base R. The continuity-correction
+  helpers for two proportions and 2 by 2 tables now name their templates,
+  so they don't apply to the one-proportion test.
+
+# powerkit 0.80.29
+
+* E75 (repeated yes/no answers): every run also simulates the
+  likelihood-ratio test with no difference at the planned sample size,
+  `repeated_glmm_type1()` (the tested coefficients set to 0, the run's
+  seed and number of studies), and records it in `result$type1` with
+  `kind = "repeated_yes_no"` and the expected number of the rarer answer
+  in the rarest cell (`repeated_glmm_rarest()`). A 19-setting grid
+  (validation-log.md, 21 November 2026) found 6.3% to 8.9% at alpha .05
+  with two or fewer of the rarer answer in the rarest cell, and 7.3% with
+  a 2% chance of yes even at 100 people a group, so no input rule marks
+  where the excess starts. The app lists the rate among the analysis's
+  limitations (result, write-up, planning document) when it is more than
+  2 Monte Carlo SEs above alpha (`repeated_yes_no_type1_note()`).
+
 # powerkit 0.80.28
 
 * The smallest detectable effect for the mixed models simr fits, by the

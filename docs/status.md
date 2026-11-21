@@ -19,8 +19,8 @@ the plan (`decisions.md`, 13 November 2026).
 Colleague testing began on 16 November 2026. What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
-smaller items), is `next.md` item 23 and comes first while testing runs;
-with it, item 25 audits every card that runs for a check independent of
+smaller items), is `next.md` item 22 and comes first while testing runs;
+with it, item 24 audits every card that runs for a check independent of
 the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
@@ -52,7 +52,10 @@ A review of Tools, the exports and the exact tests (19 November 2026)
 found that a one-sided exact test of one proportion or Fisher's test,
 given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
-equal tails (the default) and names the rule in the write-up. Which rule
+equal tails (the default) and names the rule in the write-up, and (21
+November 2026) the z test of one proportion, `prop.test()` with or
+without the continuity correction, its power summed over every count
+rather than pwrss's normal approximation (Departure 36). Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
 calculation audit the same day found wrong numbers on several cards,
 package faults powerkit passed through, and export and wording errors.
@@ -76,8 +79,10 @@ instead of glmer()'s default fit didn't cure it (up to 10% in small
 or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
-Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 28). Validation expectations
+When one answer is rare it still finds a difference too often (6.3% to
+8.9% in the 21 November grid), so every yes/no run also simulates the
+test with no difference and the result warns with that rate when it is
+above alpha. Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
@@ -144,7 +149,7 @@ each area, is at the end of
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 18) waits on a decision.
+  Bayes mode (item 17) waits on a decision.
 
 - **What calculates:** About groups supported analyses by the route in
   `forms.yaml`. Some finish in the app, immediately or in the background.
@@ -158,7 +163,15 @@ each area, is at the end of
   "No matching design" unless the user chooses it, apart from a short list
   of known gaps that two tests in `test-misroutes.R` hold fixed: a new
   gap fails them (8 November 2026, after counts and ratings measured twice
-  had reached it).
+  had reached it). The 61 walkthrough examples were re-recorded against
+  today's cards on 21 November 2026: the MANOVA, factor-analysis,
+  goodness-of-fit and rank-test examples now reach E59, E73, E48 and the
+  cards offering each rank test, and the whole-study route sends several
+  outcomes or latent variables to the safety net rather than a one-score
+  card (`walkthroughs.md`). Whether researchers give those answers is for
+  testers (`next.md` item 22). The result's evidence panel is headed
+  "Evidence for this analysis method", since its records match the method
+  and options, not the sample size, effect or alpha entered.
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;
@@ -182,7 +195,10 @@ each area, is at the end of
   "Bayes mode" on the start screen), opens every card on its Bayes factor
   version and asks how unsure the user is about the effect instead of
   assuming 0.
-  Informed priors wait on a bfpwr fault (`upstream-questions.md`).
+  The three Bayes factor t-tests also take an informed prior (a t prior
+  with its own location, scale and degrees of freedom); its power is
+  worked out exactly around bfpwr's Bayes factor, because bfpwr's own
+  power function fails for these priors at small samples (Departure 37).
 
 - **Effect sizes:** the commonest cards take what researchers have: a
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the
@@ -214,7 +230,9 @@ each area, is at the end of
   profiles (the separation) and factor recovery (the loading), and by
   InteractionPoweR's formula the three-way interaction; and the mediation
   cards' smallest indirect effect or index of moderated mediation, and the
-  mixed models' smallest difference, slope, d or coefficient, by the same
+  mixed models' smallest difference, slope, d or coefficient, and the
+  repeated count, yes/no or rating card's smallest rate or odds ratio
+  (Cochran's Q in the app), by the same
   search through the R script they hand out (the rest is `next.md` item
   11). Results show the critical effect size for the
   t-tests (Student's) and the correlation. The "If the effect were
@@ -403,8 +421,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
-  of item 26 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 27 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  of item 25 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 
@@ -462,7 +480,7 @@ November 2026), which gives .051.
   above 5%); the results screen states it (`validation-log.md`,
   14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
-  (`hosting-options.md`, `next.md` item 12).
+  (`hosting-options.md`, `next.md` item 11).
 - No usability sessions with researchers yet
   ([`usability-session-pack.md`](usability-session-pack.md)); no
   ease-of-use result is claimed.

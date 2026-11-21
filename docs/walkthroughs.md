@@ -1,6 +1,6 @@
 # Walkthroughs: example studies through every route
 
-*Last updated: 16 October 2026.*
+*Last updated: 21 November 2026.*
 
 For each design in [`routing-audit.md`](routing-audit.md), this page gives:
 - a two-sentence example study, written the way a psychologist might
@@ -25,6 +25,33 @@ removed), E36 (names non-inferiority) and E44 (dyadic wording). The flags
 cover
 anything confusing, inconsistent between routes, or claiming more than the
 audit supports. No typos were found to fix.
+
+**Re-recorded against today's cards (21 November 2026).** The recorded
+answers had been kept as first written, so the test that replays them
+passed while routes ended at cards that drop part of the study (an audit
+of the checks, 21 November 2026, pointed this out for the MANOVA and SEM
+examples). Thirteen examples now take the answers a researcher reading the
+brief would give with today's finder, and reach these end points (Help me
+choose / I know my analysis / Plan my whole study):
+
+| Example | Before | Now | Why |
+|---|---|---|---|
+| [Multiple outcomes (MANOVA)](#manova), [One-way MANOVA](#u-manova) | E18 or E2 / E-unsure / E18 or E2 | E59 / E59 / E-unsure | "Two or more groups, compared on several outcomes at once" leads to E59; the whole-study route has no several-outcomes answer, so "not sure" takes it to the safety net |
+| [SEM with latent variables](#sem) | E37 / E37 / E4 | E37 / E37 / E-unsure | the whole-study route answered the latent variables as ordinary scores; it has no latent-variable answer |
+| [Factor analysis (exploratory)](#efa), [Factor analysis](#u-fa) | E37 / E37 / E-unsure | E73 / E73 / E-unsure | "That a questionnaire's items form the factors you expect" leads to the exploratory factor analysis card |
+| [Chi-square goodness-of-fit](#u-gof) | E25 / E25 / E-unsure | E48 / E48 / E-unsure | four snacks are four categories: "One group's categories against expected proportions" |
+| [Non-parametric tests](#nonparam), [Wilcoxon–Mann–Whitney](#u-mww), [Wilcoxon signed ranks](#u-wsr), [Kruskal–Wallis](#u-kw), [Friedman](#u-friedman), [Non-parametric correlation](#u-spearman), [One-sample median](#u-median) | the parametric card / E-unsure / the parametric card | the same card in every route that reaches one | each card now offers the rank test (E1 and E3 Wilcoxon's signed-rank test, E2 Mann-Whitney, E4 Spearman and Kendall, E18 Kruskal-Wallis, E54 Friedman), so "I know my analysis" picks the card; E1, E3 and E4 now find the rank tests by name in the search |
+
+The one-sample median example reaches E1, whose rank test is Wilcoxon's
+signed-rank test (a test of the median when scores are symmetric about
+it); powerkit has no sign test. Examples still ending in different places
+are either legitimately so (several cards fit) or a design with no card:
+item response theory calibration (E37 in "Help me choose", whose card
+points to E71 for differential item functioning only), curvilinear effects, multivariate multiple regression
+and canonical correlation. Replaying recorded answers shows only that the
+finder still follows them; whether researchers choose those answers is for
+testing with people (next.md). The screenshots and the entries' answer
+lists below are from 16 October.
 
 **Re-run after the judgement-calls PR (16 October 2026).** No end point
 changed. What the screenshots now show differently:
@@ -70,7 +97,7 @@ name pwr's formula as their default (17 October 2026).
 | F3 | Inconsistent between routes; claims more than the audit supports | **Factorial logistic regression gets opposite advice.** "Help me choose" and the list reach E27, which names tools (Spower's `p_glm()`, pwrss). The guided route reaches E32 ("moderation … when the outcome isn't a score"), which says there is no ready-made tool. The audit only establishes E27 for this design, so E32's no-ready-made-tool claim isn't supported here. | **Fixed:** both routes reach E47, a generic card with the neutral tools sentence (open question 18 decides whether it names tools). Still open: Q1's moderation answer with a yes/no outcome leads to E32 for this design (audit, "What's left"). | [Factorial logistic regression](#u-factlogit) |
 | F4 | Inconsistent between routes | **ANCOVA with a covariate other than a baseline.** "Help me choose" never asks about it and reaches E2. The list and the guided route reach E23. The audit lists this under "What's left" (item 6). | Open: already in the audit's "What's left". | [Analysis of covariance](#u-ancova) |
 | F5 | Inconsistent between routes | **The end-point list ignores the screening.** After "Twice" it still offers the independent-groups tests, and after "Yes/no" it still offers the score tests. No scenario here picked a contradicting card, but nothing stops a user from doing so. | **Fixed:** the list shows only the analyses that fit the screening answers, and says how many it shows. | — (general) |
-| F6 | Inconsistent between routes | **Tests that aren't on the list by name.** These lead to the safety net (E-unsure) in "I know my analysis", but to a parametric or single-outcome end point in "Help me choose" and the guided route. Most are already in the audit's "What's left" (rank-based tests, judgement call 3.8; MANOVA; curvilinear effects). | Open: mostly in the audit's "What's left" (judgement call 3.8 and others). | [Multiple outcomes (MANOVA)](#manova), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [One-sample median](#u-median), [Wilcoxon–Mann–Whitney](#u-mww), [Wilcoxon signed ranks](#u-wsr), [Kruskal–Wallis](#u-kw), [Friedman](#u-friedman), [Non-parametric correlation](#u-spearman), [One-way MANOVA](#u-manova), [Multivariate multiple regression](#u-mmreg), [Canonical correlation](#u-canon) |
+| F6 | Inconsistent between routes | **Tests that aren't on the list by name.** These lead to the safety net (E-unsure) in "I know my analysis", but to a parametric or single-outcome end point in "Help me choose" and the guided route. Most are already in the audit's "What's left" (rank-based tests, judgement call 3.8; MANOVA; curvilinear effects). | **Mostly fixed** (21 November 2026): MANOVA (E59) and the rank tests (on E1, E2, E3, E4, E18 and E54) have cards, found in every route that offers them; curvilinear effects, multivariate multiple regression and canonical correlation still have none. | [Multiple outcomes (MANOVA)](#manova), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [One-sample median](#u-median), [Wilcoxon–Mann–Whitney](#u-mww), [Wilcoxon signed ranks](#u-wsr), [Kruskal–Wallis](#u-kw), [Friedman](#u-friedman), [Non-parametric correlation](#u-spearman), [One-way MANOVA](#u-manova), [Multivariate multiple regression](#u-mmreg), [Canonical correlation](#u-canon) |
 | F7 | Audit mismatch; confusing | **IRT and exploratory factor analysis reach E37.** The audit says IRT is "not reachable" in every route, but Q1's "a questionnaire structure" plausibly leads an IRT user to E37. For exploratory factor analysis, the audit already notes that the nearest answer leads to E37. In both cases the card is about CFA and SEM and doesn't mention the user's analysis. | **Decided** (16 October 2026): the audit now says IRT reaches E37, and E37 says IRT designs aren't covered. Routing not changed. | [Factor analysis (exploratory)](#efa), [IRT](#irt), [Factor analysis](#u-fa) |
 | F8 | Claims more than the audit supports (audit mismatch) | **SEM with latent variables in the guided route.** The audit's "after" column says Q1 now names SEM and leads to E37. That holds only in "Help me choose": the guided route has no SEM option, so a latent-variable model described as "X is a score" still reaches E4. | Open: the guided route still has no SEM option. | [SEM with latent variables](#sem) |
 | F9 | Claims more than the audit supports | **E44's card says treating partners as independent "would overstate power".** The audit says only that ignoring the pairing is wrong. Whether power is overstated or understated depends on the design (e.g. whether the predictor varies between or within couples). | **Fixed:** the card now says that ignoring the pairing can overstate or understate power, depending on whether the predictor varies between or within dyads, so dyadic methods are needed. | [Dyadic data](#dyadic) |
@@ -452,6 +479,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with three or more groups; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E18 (Any difference among three or more groups or conditions); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E18 (Any difference among three or more groups or conditions). **The routes differ.**
 
 ![E18 card](figures/walkthroughs/E18.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -536,6 +565,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E2 (Compare two separate groups on a score); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E2 (Compare two separate groups on a score). **The routes differ.**
 
 ![E2 card](figures/walkthroughs/E2.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -558,6 +589,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 - **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Latent-variable models: fit, invariance, correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A measured score; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E37 (Latent-variable models: fit, invariance, correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E4 (Test whether two scores are related). **The routes differ.**
 
@@ -636,6 +669,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 - **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Latent-variable models: fit, invariance, correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E37 (Latent-variable models: fit, invariance, correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
@@ -744,6 +779,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E1 (Compare one group's average with a fixed value); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E1 card](figures/walkthroughs/E1.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -783,6 +820,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One group against a known proportion*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → list: *Compare one group's proportion with a fixed value*
 - **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E25 (Compare one group's proportion with a fixed value); I know my analysis: E25 (Compare one group's proportion with a fixed value); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
@@ -825,6 +864,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with different people in each*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E2 (Compare two separate groups on a score); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E2 (Compare two separate groups on a score). **The routes differ.**
 
@@ -914,6 +955,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E3 (Compare the same people in two conditions (or before and after)); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E3 (Compare the same people in two conditions (or before and after)). **The routes differ.**
 
 ![E3 card](figures/walkthroughs/E3.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -981,6 +1024,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with three or more groups; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E18 (Any difference among three or more groups or conditions); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E18 (Any difference among three or more groups or conditions). **The routes differ.**
 
 ![E18 card](figures/walkthroughs/E18.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -1043,6 +1088,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Any difference among the groups*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *One* → *Three or more* → *Any difference among the groups*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E18 (Any difference among three or more groups or conditions); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E18 (Any difference among three or more groups or conditions). **The routes differ.**
 
@@ -1187,6 +1234,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A measured score; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E4 (Test whether two scores are related); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E4 (Test whether two scores are related). **The routes differ.**
 
 ![E4 card](figures/walkthroughs/E4.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -1307,6 +1356,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
+
 **End points:** Help me choose: E2 (Compare two separate groups on a score); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E2 (Compare two separate groups on a score). **The routes differ.**
 
 ![E2 card](figures/walkthroughs/E2.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
@@ -1348,6 +1399,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 - **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Latent-variable models: fit, invariance, correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+
+**Re-recorded 21 November 2026:** see the table at the top of this page for the answers and end points now.
 
 **End points:** Help me choose: E37 (Latent-variable models: fit, invariance, correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 

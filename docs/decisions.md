@@ -4806,3 +4806,71 @@ replications is reported as such and does not set the sample size. Every
 total up to 1,000 is checked; beyond it a 400-point grid, with each change
 pinned to the exact total by bisection, since the standard error falls
 smoothly as the total grows. The exported R scripts use the same search.
+
+## 2026-11-21 · Repeated yes/no answers: warn with the simulated Type I error
+
+E75's likelihood-ratio test of a yes/no outcome finds differences that
+aren't there more often than alpha when one answer is rare: 6.3% to
+8.9% at alpha .05 with two or fewer of the rarer answer expected in the
+rarest cell, and 7.3% with a 2% chance of yes even at 100 people a group
+(validation-log.md, 21 November 2026). Fitting by quadrature did not
+remove it (20 November 2026). Options were to refuse designs below a
+minimum expected number of the rarer answer, or to run them and warn.
+The design is a real one researchers run, so powerkit runs it and
+warns. The grid showed no rule on the inputs that marks where the excess
+starts (the expected count in the rarest cell, people a group and the
+chance of yes each matter), so every yes/no run also simulates the test
+with no difference at the planned sample size, with the run's seed and
+number of studies, and the result, the write-up and the planning
+document state that rate among the analysis's limitations when it is
+more than 2 Monte Carlo SEs above alpha, with the advice the grid
+supports: more answers from each person in each condition, which helps
+more than more people. The extra cost is one simulation at the planned
+sample size. Counts and ordered categories are unchanged.
+
+## 2026-11-21 · One proportion: the z test offered beside the exact binomial test, its power summed over the counts
+
+Many researchers test one proportion against a fixed value with the z test
+(R's `prop.test()`, which applies the continuity correction by default, or
+the equivalent chi-square test against the fixed value). E25's card named it as an alternative but offered only the exact
+binomial tests, so a researcher who will run `prop.test()` planned for a
+different test. Part of the audit of method choices (next.md item 25).
+
+- **Choice:** E25 offers the z test without (`z_test`) and with
+  (`z_test_corrected`) the continuity correction beside the two exact
+  binomial tests. The exact binomial test with alpha / 2 in each tail stays
+  preselected, as in G*Power and pwrss; nothing about the researcher's study
+  decides between the tests, so the dropdown shows the default and the help
+  says to choose the test that will be run.
+- **Method:** power is the probability of every count times whether
+  `prop.test()` rejects on it, summed, as for `binom.test()`'s rule (19
+  November 2026) and the corrected two-proportion test (worked out exactly
+  over every possible result). pwrss's `power.z.oneprop()` uses a normal
+  approximation, which is off by a few percentage points either way and
+  cannot show that the correction often changes no decision; the sum is the
+  test's own power, with no random error. Recorded as Departure 36
+  (conventions.md), with its size: 78 people against pwrss's 86 without the
+  correction, 89 against 96 with it, for 20% against 10% at 80% power.
+- **Not offered:** the Wald version of the z test (the standard error from
+  the observed proportion). `prop.test()` and pwrss's default
+  (`std.error = "null"`) use the standard error under the fixed value, the
+  score test; the Wald version can be added if researchers ask for it.
+
+## 2026-11-21 · Informed priors for the Bayes factor t-tests, worked out exactly
+
+- **Decided by the maintainer (17 November 2026):** plan Bayes factor
+  t-tests with an informed analysis prior by an exact calculation in the
+  engine, rather than waiting for a corrected `bfpwr::powertbf01()` or
+  simulating studies.
+- **What it covers.** E1, E2 and E3's Bayes factor version take a t
+  analysis prior with any location, scale and degrees of freedom
+  (`target_test > prior_location`, `prior_scale`, `prior_df`), as bfpwr's
+  `tbf01()` defines it. Empty location and degrees of freedom keep the
+  default JZS prior, which still goes to `powertbf01()`.
+- **Method.** bfpwr's own Bayes factor; the t values where BF01 crosses
+  the threshold found by root-finding (BF01 has one peak in t); the
+  noncentral t distribution's chance beyond them; numerical integration
+  over the normal design prior (`bayes-informed-t.R`). No simulation, so
+  no random error, and a run takes a fraction of a second.
+- **Departure 37** in docs/conventions.md records the difference from
+  `powertbf01()` and its size.

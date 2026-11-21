@@ -5,7 +5,7 @@ evidence_lines <- function(record) {
   labels <- c(package_agreement = "Software agreement", independent = "Independent reference",
     published = "Published example", full_validation = "Method-validation run")
   states <- c(recorded = "recorded cases", scoped_only = "scoped checks only",
-    pending = "a published benchmark is still to be transcribed", not_linked = "none recorded for exactly these settings",
+    pending = "a published benchmark is still to be transcribed", not_linked = "none recorded for this method with these options",
     outside_scope = "outside the recorded case settings")
   c(vapply(names(labels), function(k) {
     item <- record$categories[[k]]
@@ -44,13 +44,17 @@ evidence_reader_lines <- function(record) {
     sprintf("(Evidence record %s, registry version %s.)", record$record_id, record$registry_version))
 }
 
-evidence_ui <- function(record, title = "Checks recorded for exactly these settings") {
+# The records match on the method and its options (the test, its sides,
+# the allocation, the calculation and the goal), not on the sample size,
+# effect or alpha entered, so the heading names the method (21 November
+# 2026).
+evidence_ui <- function(record, title = "Evidence for this analysis method") {
   tags$details(class = "result-validation small",
     tags$summary(title),
     tags$ul(lapply(evidence_lines(record), tags$li)),
     lapply(record$sources, function(s) p(tags$a(href = s$url, target = "_blank", rel = "noopener",
       paste("Source record", s$date)), ": ", s$note)),
-    p("These are checks of example cases, not of every value you could enter. \"None recorded\" means no separate check exists for exactly these settings, not that one failed; the checks for this analysis in general are listed just below. A statistician's review of the methods is a different kind of evidence, and is still to come."))
+    p("These are checks of example cases, not of every value you could enter. \"Recorded\" means a check exists for this method with these options, usually at other values than yours: a published example is matched on the method, not on your sample size, effect or alpha. \"None recorded\" means no separate check exists for this method with these options, not that one failed; the checks for this analysis in general are listed just below. A statistician's review of the methods is a different kind of evidence, and is still to come."))
 }
 
 capability_metadata <- function(form, fields, values) {
