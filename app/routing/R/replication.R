@@ -1282,8 +1282,27 @@ replication_n_words <- function(plan, n, split = engine_function("replication_re
     sprintf("%s participants", format(n, big.mark = ",")))
 }
 
+# The smaller totals that also meet a goal, from the engine's `also`
+# ("3-9,40-52"), in words: "3 to 9 and 40 to 52"; NULL when none.
+replication_also_words <- function(also) {
+  if (is.null(also) || length(also) != 1 || is.na(also) || !nzchar(also)) return(NULL)
+  runs <- vapply(strsplit(strsplit(also, ",", fixed = TRUE)[[1]], "-", fixed = TRUE), function(r) {
+    r <- format(as.numeric(r), big.mark = ",", scientific = FALSE, trim = TRUE)
+    if (identical(r[1], r[2])) r[1] else paste(r[1], "to", r[2])
+  }, "")
+  if (length(runs) > 1) paste(paste(runs[-length(runs)], collapse = ", "), "and", runs[length(runs)]) else runs
+}
+
 replication_cell <- function(plan, row) {
-  if (!is.na(row$n)) return(replication_n_words(plan, row$n))
+  also <- replication_also_words(row$also)
+  if (!is.na(row$n)) {
+    n <- replication_n_words(plan, row$n)
+    return(if (is.null(also)) n else sprintf("%s (smaller replications of %s also reach it; those in between don't)", n, also))
+  }
+  if (identical(row$reason, "within_range") && !is.null(also)) {
+    return(sprintf("Only replications of %s: larger ones fall short (%s with the largest)", also,
+      if (is.na(row$limit)) "less" else replication_pct(row$limit)))
+  }
   switch(row$reason %||% "",
     any_size = sprintf("Any size: even the smallest replication has %s, because the original's result already carries it",
       if (is.na(row$limit)) "more than the chance aimed for" else if (row$limit >= 0.995) "a chance above 99%"
@@ -1899,6 +1918,11 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     return(sprintf("The chosen goal (%s) has more than %s chance with a replication of any size, %s, because the original study's result counts towards it; it does not set the replication's sample size, so another goal should.",
       replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_a_pct(i$power), if (m$no_effect) "planned for no effect" else belief))
   }
+  also <- replication_also_words(m$row$also)
+  if (is.na(m$row$n) && identical(m$row$reason, "within_range") && !is.null(also)) {
+    return(sprintf("The chosen goal (%s) reaches %s chance %s only with a replication of %s, because the original study's result counts towards it and a larger replication outweighs it; it does not set the replication's sample size, so another goal should.",
+      replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_a_pct(i$power), belief, also))
+  }
   if (is.na(m$row$n)) {
     return(sprintf("The replication's sample size was planned with powerkit's replication planner, but the chosen goal (%s) cannot reach %s chance %s.",
       replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_a_pct(i$power), if (m$no_effect) "" else belief))
@@ -1919,8 +1943,9 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     sprintf("%s%s, %s%s, with the original estimate (%s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign%s",
       replication_lc(replication_goal_written(goal, plan$inputs$threshold)), replication_sided_words(plan, goal), belief, varies, shown, scaled)
   }
-  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s%s",
+  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s%s%s",
     replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n),
+    if (is.null(also)) "" else sprintf(" Every larger replication has that chance; smaller replications of %s also have it, because the original study's result counts towards the goal, but those in between do not.", also),
     if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "",
     if (identical(goal, plan$choice$goal)) paste0(replication_either_sentence(plan, m$row$n), replication_recruit_sentence(plan)) else "")
 }

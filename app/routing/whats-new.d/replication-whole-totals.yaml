@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-21"
+    title: The replication planner checks every replication size it reports
+    text: >
+      The replication planner now checks each goal at whole numbers of
+      participants rather than trusting a search that could stop short. A
+      pooled-significance goal after a strong original study is no longer
+      reported as out of reach, a plan with very unequal groups no longer
+      asks for a few more people than needed, and where a small replication
+      meets a goal that moderate ones miss, the table says so instead of
+      giving the small size alone.
