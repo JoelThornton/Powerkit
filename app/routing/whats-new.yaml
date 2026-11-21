@@ -8,6 +8,19 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: "Write-ups keep your words as written and give the power reached"
+    text: >-
+      Your reasons, quoted in the methods and ethics paragraphs, are no longer
+      changed when Powerkit rewords its units (a quoted "140 participants" stays as
+      you wrote it). The ethics paragraph gives the power your sample size actually
+      reaches beside the target, says when a chance is for one of several tests,
+      names what a meta-analysis tests, and leaves it to you to say how you weighed
+      participants' time against precision. A calculation from a finished study's own
+      result (observed power) is described as retrospective.
+  - date: "2026-11-21"
+    title: "Plan the moderator's own effect"
+    text: "A study plan with a moderator can now include the moderator's own effect on the outcome (its main effect) as an analysis, with its own card, and simulating the whole study includes it: in a regression study as the outcome on the moderator, in an experiment as the moderator's main effect in the ANOVA."
+  - date: "2026-11-21"
     title: "Study plans and planning documents state the same decision as the write-up"
     text: >-
       A study plan's design table and target, and an analysis's planning document,

@@ -177,7 +177,7 @@ test_that("the guided route offers the comparison for every study, and moderatio
   ids <- function(answers) vapply(applicable_analyses(tree, answers), function(a) a$id, character(1))
   base <- list(x = "cond2", outcome = "score", mediators = "none", moderator = "none", covariate = "none")
   expect_identical(ids(base), "compare")
-  expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "mediation", "check", "modmed"))
+  expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "w_main", "mediation", "check", "modmed"))
 })
 
 test_that("cards never show test file names to users", {

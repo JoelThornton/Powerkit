@@ -454,3 +454,21 @@ test_that("a two-group X may differ on the covariates: each is drawn from those 
   expect_true(all(result$check_run$ok))
   expect_true("X<->C1" %in% result$check_run$parameter)
 })
+
+test_that("the moderator's own effect is Y on W alone, and its power is the correlation test's", {
+  skip_on_cran()
+  spec <- regression_study(nrep = 2000, seed = 41)
+  spec$analyses[[1]] <- list(id = "w_main", label = "Support and exhaustion", test = "w_y", role = "main")
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  expect_identical(inputs$analyses[[1]]$fit_model, "Y ~ W")
+  r <- run_whole_study(validate_whole_study(spec))
+  expect_true(all(r$check_run$ok))
+  implied <- r$implied$w_main$values[["r"]]
+  exact <- pwr::pwr.r.test(n = 150, r = implied, sig.level = 0.05)$power
+  row <- r$analyses[r$analyses$id == "w_main", ]
+  expect_lt(abs(row$power - exact), 4.5 * sqrt(exact * (1 - exact) / 2000))
+  # On its own, the moderator's effect adds a path W -> Y beside X -> Y.
+  alone <- regression_study()
+  alone$analyses <- list(list(id = "w_main", label = "W", test = "w_y", role = "main"))
+  expect_identical(whole_study_parameters(alone[setdiff(names(alone), "population")])$paths, c("X->Y", "W->Y"))
+})

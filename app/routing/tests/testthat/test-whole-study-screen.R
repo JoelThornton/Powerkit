@@ -543,3 +543,33 @@ test_that("the same people in three or more conditions: the plan offers it and s
   expect_identical(plan$template, "mixed")
   expect_identical(plan$x_factor, "B")
 })
+
+test_that("the moderator's own effect is a planned analysis: Y on W in a regression study, W's main effect in an experiment", {
+  w_main <- analysis_by_id(tree, "w_main")
+  expect_false(is.null(w_main))
+  expect_true("w_main" %in% vapply(applicable_analyses(tree, ws_answers), `[[`, "", "id"))
+  expect_false("w_main" %in% vapply(applicable_analyses(tree, modifyList(ws_answers, list(moderator = "none"))), `[[`, "", "id"))
+  expect_identical(resolve_analysis(tree, w_main, ws_answers)$endpoint, "E4")
+  expect_identical(resolve_analysis(tree, w_main, modifyList(ws_answers, list(x = "cond2", moderator = "two")))$endpoint, "E7")
+  expect_identical(resolve_analysis(tree, w_main, modifyList(ws_answers, list(x = "within3", moderator = "two", times = "many_conditions")))$endpoint, "E55")
+  # A regression study: Y on W alone, beside the interaction.
+  plan <- whole_study_plan(tree, ws_answers, c("moderation", "w_main"), c("moderation", "w_main"), list())
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("interaction", "w_y"))
+  expect_equal(plan$roles, c("X", "W", "Y"))
+  alone <- whole_study_plan(tree, ws_answers, "w_main", "w_main", list())
+  expect_true(alone$ok)
+  expect_equal(alone$roles, c("X", "W", "Y"))
+  twice <- whole_study_plan(tree, modifyList(ws_answers, list(x = "cond2", times = "twice")), "w_main", "w_main", list())
+  expect_true(twice$ok)
+  expect_identical(twice$analyses[[1]]$test, "w_y")
+  # An experiment: the main effect of the moderator's factor.
+  exp <- whole_study_plan(tree, modifyList(ws_answers, list(x = "cond2", moderator = "three", mediators = "none")),
+    c("compare", "w_main"), "w_main", list())
+  expect_true(exp$experiment)
+  expect_identical(vapply(exp$analyses, function(a) a$effect, ""), c("main_effect_A", "main_effect_B"))
+  mixed <- whole_study_plan(tree, list(x = "within3", outcome = "score", mediators = "none", moderator = "two", covariate = "none",
+    times = "many_conditions"), c("compare", "w_main"), "compare", list())
+  expect_identical(vapply(mixed$analyses, function(a) a$effect, ""), c("main_effect_B", "main_effect_A"))
+  expect_match(whole_study_experiment_label("w_main", c(X = "Task", W = "Group", Y = "Score")), "The main effect of Group", fixed = TRUE)
+})

@@ -2543,6 +2543,24 @@ guided:
         - {when: {x: cond2, moderator: score}, endpoint: E15}
         - {when: {x: score, moderator: two}, endpoint: E15}
         - {when: {x: score, moderator: score}, endpoint: E9}
+    # The moderator's own effect on the outcome (its main effect), as its
+    # own card would analyse it: the regression or comparison of the
+    # outcome on W, or W's main effect in the factorial ANOVA.
+    - id: w_main
+      label: "The effect of the moderator on the outcome (its main effect)"
+      requires: {moderator: [score, two, three, within], outcome: score}
+      rules:
+        - {when: {moderator: within}, endpoint: E20}
+        - {when: {x: within3, moderator: [two, three]}, endpoint: E55}
+        - {when: {x: within2, moderator: two}, endpoint: E8}
+        - {when: {x: within2, moderator: three}, endpoint: E55}
+        - {when: {times: twice, moderator: score}, endpoint: E24}
+        - {when: {times: twice, moderator: [two, three]}, endpoint: E23}
+        - {when: {x: cond2, moderator: two}, endpoint: E7}
+        - {when: {x: [cond2, cond3], moderator: [two, three]}, endpoint: E21}
+        - {when: {moderator: score}, endpoint: E4}
+        - {when: {moderator: two}, endpoint: E2}
+        - {when: {moderator: three}, endpoint: E18}
     - id: mediation
       label: "Whether X affects the outcome through the mediator(s)"
       requires: {mediators: [one, several, notscore]}
