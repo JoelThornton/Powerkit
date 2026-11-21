@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-21"
+    title: Replication plans for a claim that rests on several tests
+    text: >
+      If your replication needs several tests to succeed together, such as a
+      crossover interaction and its two simple effects, enter the number of
+      tests in "How sure the replication should be". This test is then
+      planned at a higher chance so that all of them succeed together at the
+      chance you chose. You can say whether the tests are independent or you
+      don't know how they relate; the safe choice is not knowing. The result
+      and the written plan say what was assumed.

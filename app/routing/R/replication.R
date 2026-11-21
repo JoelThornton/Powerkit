@@ -544,7 +544,7 @@ rep_note <- function(text, label = "More context", keep = FALSE) {
 # that can't be negative also bring up a number keyboard on phones.
 replication_number_fields <- c("rep_levels_a", "rep_levels_b", "rep_levels_c", "rep_anova_f", "rep_eta", "rep_df_error", "rep_epsilon", "rep_anova_smallest",
   "rep_bf", "rep_bf_both", "rep_prior_scale", "rep_post_sd", "rep_cri_level", "rep_se", "rep_ci_level", "rep_f",
-  "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_smallest", "rep_tau_value", "rep_n_at", "rep_alpha", "rep_power")
+  "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_smallest", "rep_tau_value", "rep_n_at", "rep_alpha", "rep_power", "rep_claim_tests")
 replication_signed_fields <- c("rep_effect", "rep_post_mean", "rep_effect_r", "rep_statistic", "rep_cri_lower", "rep_cri_upper",
   "rep_ci_lower", "rep_ci_upper")
 rep_number_input <- function(input, id) {
@@ -781,6 +781,13 @@ replication_planner_sections <- function() {
           rep_note("Either way, only a result in the original's direction counts as a success. A one-sided test at .05 needs fewer people than a two-sided test at .05, as a one-sided test at .025 is the two-sided one; choose it only if the replication's preregistration says so.")),
         shortcut_field("rep_power", "Chance of success (power)", c("0.8", "0.9", "0.95"), c("80%", "90%", "95%"),
           help = "The main criterion's sample size gives it this chance; a higher chance needs more people."),
+        field("rep_claim_tests", "Optional: number of tests that must all succeed",
+          help = "Leave it blank if the replication rests on one test. For a claim that needs several to succeed together, such as a crossover interaction and its two simple effects, enter 3: this test is then planned at a higher chance so that all of them succeed together at the chance above."),
+        conditionalPanel("input.rep_claim_tests && Number(input.rep_claim_tests) >= 2",
+          radioButtons("rep_claim_dependence", "Planning for all tests: what can you assume?",
+            choices = c("Dependence unknown: a safe target that may be conservative" = "unknown",
+              "Independent tests: the product of their chances" = "independent"), selected = "unknown", width = "100%"),
+          rep_note("If you can't say how the tests' results are related, choose unknown: measuring the same participants does not make the tests independent. Powerkit does not work out the joint chance; plan each of the other tests the same way, on its own effect.")),
         conditionalPanel("output.rep_criteria && output.rep_criteria.bf",
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors",
             choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
@@ -891,7 +898,7 @@ replication_field_ids <- c("rep_study", "rep_design", "rep_analysis", "rep_bf", 
   "rep_post_from", "rep_post_mean", "rep_post_sd", "rep_cri_lower", "rep_cri_upper", "rep_cri_level",
   "rep_pool_from", "rep_pool_se", "rep_pool_lower", "rep_pool_upper", "rep_pool_level", "rep_effect_name", "rep_scale", "rep_effect", "rep_effect_type", "rep_effect_r", "rep_se_from", "rep_se",
   "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_f", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha", "rep_published",
-  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
+  "rep_purpose", "rep_also", "rep_sided", "rep_smallest", "rep_tau", "rep_tau_r", "rep_tau_value", "rep_alpha", "rep_power", "rep_claim_tests", "rep_claim_dependence", "rep_threshold", "rep_n_at", "rep_ratio", "rep_attrition", "rep_rel_original", "rep_rel_replication", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect", "rep_keeps", "rep_diff_checks",
   "rep_anova_kind", "rep_levels_a", "rep_levels_b", "rep_levels_c", "rep_between_factors", "rep_anova_effect", "rep_f_from", "rep_anova_f", "rep_eta", "rep_df_error",
   "rep_epsilon", "rep_assurance", "rep_anova_smallest")
@@ -921,7 +928,7 @@ replication_args <- function(values) {
   if (identical(design, "anova") && !replication_anova_one_df(values)) return(replication_anova_args(values))
   args <- list(design = design, original_effect = num("rep_effect", NA_real_),
     original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
-    power = num("rep_power", 0.8), tau = replication_tau_value(values), smallest_effect = num("rep_smallest"),
+    power = replication_claim_power(values, num("rep_power", 0.8)), tau = replication_tau_value(values), smallest_effect = num("rep_smallest"),
     threshold = num("rep_threshold", 10), n = num("rep_n_at"))
   if (identical(v("rep_published"), "any")) args$publication_filter <- FALSE
   if (identical(v("rep_sided"), "one.sided")) args$alternative <- "one.sided"
@@ -1038,7 +1045,7 @@ replication_anova_args <- function(values) {
     levels_b = levels_b, levels_c = levels_c,
     between_factors = if (identical(kind, "mixed") && !is.null(levels_c)) num("rep_between_factors", 1) else NULL,
     effect = effect, original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
-    power = num("rep_power", 0.8), assurance = sort(unique(c(replication_assurance_levels, assurance))))
+    power = replication_claim_power(values, num("rep_power", 0.8)), assurance = sort(unique(c(replication_assurance_levels, assurance))))
   if (!identical(kind, "between")) args$epsilon <- num("rep_epsilon", 1)
   if (identical(v("rep_published"), "any")) args$publication_filter <- FALSE
   if (identical(v("rep_f_from"), "eta")) {
@@ -1050,6 +1057,54 @@ replication_anova_args <- function(values) {
   args
 }
 
+# A claim that rests on several tests, all of which must succeed (the
+# cards' "all of several tests" rule, the engine's all_tests_target()): the
+# number of tests, or NA when none or not a whole number of at least 2.
+replication_claim_tests <- function(values) {
+  k <- suppressWarnings(as.numeric(trimws(as.character(values$rep_claim_tests %||% ""))))
+  if (length(k) != 1 || is.na(k) || k < 2 || k != floor(k)) NA_real_ else k
+}
+
+replication_claim_dependence <- function(values) {
+  if (identical(values$rep_claim_dependence, "independent")) "independent" else "unknown"
+}
+
+# The chance each test is planned at, so that all of them succeed together
+# at the chance chosen: the product rule for independent tests, or the
+# union-bound target, which assumes nothing about how the tests relate.
+replication_claim_power <- function(values, power) {
+  k <- replication_claim_tests(values)
+  if (is.na(k) || is.null(power) || is.na(power)) return(power)
+  engine_function("all_tests_target")(power, k, replication_claim_dependence(values))
+}
+
+# What the plan records about the claim, from the fields and the plan's
+# own chance (already raised): NULL for one test.
+replication_add_claim <- function(plan, values) {
+  k <- replication_claim_tests(values)
+  if (is.na(k)) return(plan)
+  plan$claim <- list(tests = k, dependence = replication_claim_dependence(values),
+    target = suppressWarnings(as.numeric(trimws(as.character(values$rep_power %||% "")))), per_test = plan$inputs$power)
+  plan
+}
+
+# The claim in words, on the result and in the write-up.
+replication_claim_text <- function(plan) {
+  cl <- plan$claim
+  if (is.null(cl)) return(NULL)
+  how <- if (identical(cl$dependence, "independent")) "the product of their chances (it assumes the tests are independent)"
+    else "a safe target that assumes nothing about how the tests relate and may be conservative"
+  sprintf(paste("Your claim needs all %s tests to succeed. This test is planned at %s so that all %s succeed together at least %s of the time, by %s.",
+    "That holds if every other test also reaches at least %s under the same assumptions: powerkit does not check them, so plan each one the same way on its own effect."),
+    whole(cl$tests), replication_pct(cl$per_test), whole(cl$tests), replication_pct(cl$target), how, replication_pct(cl$per_test))
+}
+
+replication_claim_ui <- function(plan) {
+  words <- replication_claim_text(plan)
+  if (is.null(words)) return(NULL)
+  p(class = "small", id = "rep-claim", tags$strong("Several tests: "), words)
+}
+
 # What is missing before the engine can plan, in the field's words.
 # The replication's own settings under Goals, which start empty (P-04):
 # what is still to choose, in words.
@@ -1059,6 +1114,8 @@ replication_settings_missing <- function(values) {
   c(if (settings$alpha && !v("rep_alpha")) "the significance level",
     if (!v("rep_power")) "the chance of success to aim for",
     if (isTRUE(settings$bound_needed)) "the smallest effect that would matter",
+    if (v("rep_claim_tests") && is.na(replication_claim_tests(values)))
+      "the number of tests as a whole number of at least 2, such as 3",
     if (v("rep_attrition") && is.na(replication_attrition(values)) && !identical(trimws(as.character(values$rep_attrition)), "0"))
       "the dropout as a proportion between 0 and 1, such as 0.1",
     if (v("rep_ratio") && identical(values$rep_design %||% "two_groups", "two_groups") && is.na(replication_ratio(values)))
@@ -1227,7 +1284,7 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
         error = function(e) list(problem = replication_problem(e)))
     }
     plan$without_publication_filter <- replication_without_filter(plan, values, bucss)
-    return(replication_add_recruitment(plan, values))
+    return(replication_add_claim(replication_add_recruitment(plan, values), values))
   }
   plan <- do.call(engine, args)
   bounded <- c("agreement", "negligible")
@@ -1262,7 +1319,7 @@ replication_run <- function(values, engine, bucss = NULL, smallest = NULL) {
     at <- do.call(engine, utils::modifyList(args, list(n = main$row$n)))$at_n
     plan$at_main <- list(n = main$row$n, chances = at[at$goal %in% c(choice$goal, choice$also), , drop = FALSE])
   }
-  replication_add_recruitment(plan, values)
+  replication_add_claim(replication_add_recruitment(plan, values), values)
 }
 
 replication_n_words <- function(plan, n, split = engine_function("replication_recruitment")) {
@@ -1625,6 +1682,7 @@ replication_bucss_result_ui <- function(plan) {
   div(class = "result-panel mt-2", role = "status",
     p(class = "result-headline lead", headline),
     replication_recruit_ui(plan),
+    replication_claim_ui(plan),
     beside,
     p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_bucss_validation_text),
     if (any(!is.na(sz$reason))) p(replication_bucss_reason_words(plan)),
@@ -1752,6 +1810,7 @@ replication_result_ui <- function(plan) {
     div(class = "result-panel mt-2", role = "status",
       if (is.null(plan$choice)) replication_headline_ui(plan) else replication_main_headline(plan),
       replication_recruit_ui(plan),
+      replication_claim_ui(plan),
       p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_validation_text),
       replication_anova_one_df_note(plan),
       replication_main_chances_ui(plan),
@@ -1940,10 +1999,11 @@ replication_either_sentence <- function(plan, n_main) {
 # recruit ...", or "" without a dropout.
 replication_recruit_sentence <- function(plan) {
   r <- plan$recruit
-  if (is.null(r)) return("")
-  sprintf(" Allowing for an expected dropout of %s, each group's analysed size was divided by %s and rounded up, so we will recruit %s.",
+  claim <- if (is.null(plan$claim)) "" else paste0(" ", replication_claim_text(plan))
+  if (is.null(r)) return(claim)
+  paste0(sprintf(" Allowing for an expected dropout of %s, each group's analysed size was divided by %s and rounded up, so we will recruit %s.",
     sub("\\.0+%$", "%", sprintf("%.1f%%", 100 * r$attrition)), format(signif(1 - r$attrition, 6)),
-    sub(", allowing for .*$", "", replication_recruit_words(plan)))
+    sub(", allowing for .*$", "", replication_recruit_words(plan))), claim)
 }
 
 # How a significance or pooled goal is tested, in words.
