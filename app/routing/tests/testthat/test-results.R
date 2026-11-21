@@ -3776,3 +3776,28 @@ test_that("the sample-size rule and the ethics count give the design the engine 
   expect_match(analysed_text(its, 24), "24 time points after the intervention (and 24 before it)", fixed = TRUE)
   expect_false(grepl("participants", sample_rule_text(its, result_at(24)), fixed = TRUE))
 })
+
+test_that("the ethics paragraph says what success means: close fit for the test of not-close fit, recovery for E73 and E58", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  result_at <- function(n, p) list(goal_type = "power", curve = data.frame(n = n, power = p))
+  values <- list(situation = "fixed", just_type = "none", just_source = "Example.")
+  # Not-close fit: significance supports the model.
+  fit <- read_example("sem_model_fit")
+  fit$target_test$method <- "chi_square_not_close_fit"
+  fit$population$rmsea <- 0.02
+  fit$population$rmsea_null <- 0.05
+  e <- ethics_text(fit, result_at(200, 0.495), form_fields(form_groups(forms, "E37")), values)
+  expect_match(e, "If the model's RMSEA in the population is 0.02, the chance that a study of this size shows it fits closely (that its RMSEA is below 0.05", fixed = TRUE)
+  expect_no_match(e, "detects it", fixed = TRUE)
+  # The test of exact fit keeps the misfit wording.
+  exact <- read_example("sem_model_fit")
+  expect_match(ethics_text(exact, result_at(200, 0.5), form_fields(form_groups(forms, "E37")), values), "If our model is wrong by the amount we set", fixed = TRUE)
+  # No significance test: no threshold, and success named.
+  for (case in list(list(name = "efa", ep = "E73", words = "recovers every factor's loadings"),
+                    list(name = "lpa", ep = "E58", words = "finds the 3 profiles we expect"))) {
+    spec <- read_example(case$name)
+    e <- ethics_text(spec, result_at(300, 0.7), form_fields(form_groups(forms, case$ep)), values)
+    expect_match(e, case$words, fixed = TRUE, label = case$ep)
+    expect_no_match(e, "NA threshold|statistically significant", label = case$ep)
+  }
+})
