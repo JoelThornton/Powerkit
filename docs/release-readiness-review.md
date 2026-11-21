@@ -229,8 +229,24 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   shares names across list/card/form/recent-entry headings; common test
   selectors are short while method guidance and warnings stay visible.
 - [ ] Review all remaining finder questions, card summaries and alternative-method text.
-- [ ] Review all form labels, defaults, optional/required fields, tooltips,
+- [x] Review all form labels, defaults, optional/required fields, tooltips,
   errors and empty states; check that people know what to do when unsure.
+  Card forms, 21 November 2026: the 180 help, note, choice and default-source
+  texts in `forms.yaml` that carry a number, a threshold or a strength claim
+  ("usually", "never", "recommended", "at least") were read across all 77 cards
+  and the checkable ones were checked: the arithmetic (an SD of 0.33 against a
+  residual SD of 1 is an intraclass correlation of 0.1; an odds ratio of 1.8
+  takes 20% to 31%; an SD of 0.3 on the log-odds scale around 30% spans 19% to
+  44% and odds ratios within a factor of 1.8; exp(0.5) is 1.65), the exact
+  binomial's 94 against 83 people (recorded in the engine's tests), and the
+  Bland-Altman card's 26 subjects by formula (82% power) and 33 by simulation
+  (80%). The card says the simulation has about 69% power at 26; a run of 2,000
+  simulated studies gave 67.4%, within the random error of that figure. Texts
+  without such a claim (labels and plain explanations) were not each re-read.
+  For the maintainer: E75's note that the likelihood-ratio test "stayed near
+  5%" for yes/no answers holds for the case it describes (an SD of 1.5), but
+  queue item 31 records that it exceeds 5% for small groups with a rare yes;
+  the note stays until that item is decided.
 - [x] Review all result variants, warning visibility, uncertainty, methods,
   technical details and saved-result restoration, including Bayesian routes.
   Partly done (20 November 2026): the claim, sphericity, attrition,
