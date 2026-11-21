@@ -157,9 +157,14 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
   w <- answers$moderator %||% "none"
   times <- answers$times %||% "once"
   between_x <- x %in% c("cond2", "cond3") && identical(times, "once")
-  within_x <- identical(x, "within2") && identical(times, "twice")
+  # Within people: two conditions measured twice, or, in three or more
+  # conditions per person, three or more conditions of X, or X crossed
+  # with a moderator whose conditions everyone takes too.
+  w_within <- identical(w, "within") && identical(times, "many_conditions") && x %in% c("within2", "within3")
+  within_x <- (identical(x, "within2") && identical(times, "twice")) ||
+    (identical(x, "within3") && identical(times, "many_conditions")) || w_within
   if (!(between_x || within_x)) return(NULL)
-  if (!w %in% c("none", "two", "three")) return(NULL)
+  if (!w %in% c("none", "two", "three") && !w_within) return(NULL)
   if (identical(x, "cond2") && identical(w, "none")) return(NULL)
   # Other outcomes, covariates and mediators: the general route says why
   # it can't simulate the plan.
@@ -173,21 +178,23 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
   if (length(intersect(ticked, primary)) == 0) reasons <- c(reasons, "at least one analysis is a main analysis")
   if (length(reasons)) return(list(ok = FALSE, reasons = reasons))
   has_w <- !identical(w, "none")
-  template <- if (within_x) {
-    if (!has_w) "oneway_within" else if (identical(w, "two")) "2x2_mixed" else "mixed"
+  template <- if (w_within) {
+    "factorial_within"
+  } else if (within_x) {
+    if (!has_w) "oneway_within" else if (identical(w, "two") && identical(x, "within2")) "2x2_mixed" else "mixed"
   } else {
     if (!has_w) "oneway_between" else if (identical(x, "cond2") && identical(w, "two")) "2x2_between" else "factorial_between"
   }
   # Factor A is the between factor: X measured once, W in a mixed design.
-  # With W measured once, X is A and W is B.
-  x_factor <- if (within_x && has_w) "B" else "A"
+  # With W measured once, or both within people, X is A and W is B.
+  x_factor <- if (within_x && has_w && !w_within) "B" else "A"
   effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction")
   analyses <- lapply(ticked, function(id) {
     list(id = id, label = whole_study_experiment_labels[[id]], test = "anova_effect", effect = effect_of[[id]],
       role = if (id %in% primary) "main" else "extra")
   })
   list(ok = TRUE, experiment = TRUE, analyses = analyses, template = template, x_factor = x_factor,
-    x_within = within_x, has_w = has_w, x_levels = if (identical(x, "cond3")) 3L else 2L,
+    x_within = within_x, w_within = w_within, has_w = has_w, x_levels = if (x %in% c("cond3", "within3")) 3L else 2L,
     w_levels = if (identical(w, "three")) 3L else 2L, roles = c("X", if (has_w) "W", "Y"))
 }
 
@@ -809,6 +816,8 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
   value_of <- function(key, default = "") values[[key]] %||% default
   design_words <- if (!plan$has_w) {
     if (plan$x_within) "the same people in each condition: a repeated-measures ANOVA" else "different people in each condition: a one-way ANOVA"
+  } else if (isTRUE(plan$w_within)) {
+    sprintf("%s crossed with %s, everyone taking part in every combination: a two-way repeated-measures ANOVA", labels[["X"]], labels[["W"]])
   } else if (plan$x_within) {
     sprintf("%s within participants crossed with groups of %s: a mixed ANOVA", labels[["X"]], labels[["W"]])
   } else {
@@ -830,15 +839,15 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     textInput("ws_x_levels", sprintf("Levels of %s", labels[["X"]]),
       value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%", placeholder = "Separate with commas"),
     if (plan$has_w) textInput("ws_w_levels", sprintf("Levels of %s", labels[["W"]]),
-      value = value_of("w_levels", whole_study_experiment_default_levels("Group", plan$w_levels)), width = "100%", placeholder = "Separate with commas"),
+      value = value_of("w_levels", whole_study_experiment_default_levels(if (isTRUE(plan$w_within)) "Condition" else "Group", plan$w_levels)), width = "100%", placeholder = "Separate with commas"),
     p(class = "text-muted", "The means you expect, in the outcome's own units. Their pattern sets every effect: equal means in a row and a column mean no effect there, and parallel rows mean no interaction."),
     uiOutput("ws_means_grid"),
     textInput("ws_sd", sprintf("SD of %s within each cell", labels[["Y"]]), value = value_of("sd"), width = "100%", placeholder = "The same in every cell"),
-    if (plan$x_within) textInput("ws_r", sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
+    if (plan$x_within) textInput("ws_r", if (isTRUE(plan$w_within)) "Correlation between a person's scores in any two conditions" else sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
       value = value_of("r"), width = "100%"),
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
-    p(class = "text-muted small", if (plan$x_within && !plan$has_w) "Everyone takes part in every condition." else "Split equally between the groups."),
+    p(class = "text-muted small", if (plan$x_within && (!plan$has_w || isTRUE(plan$w_within))) "Everyone takes part in every condition." else "Split equally between the groups."),
     textInput("ws_alpha", "Significance level", value = value_of("alpha", "0.05"), width = "100%"),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about ±%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
@@ -897,12 +906,16 @@ whole_study_experiment_spec <- function(plan, labels, values, rule, nrep) {
   seed <- num(values$seed)
   if (is.na(seed) || seed != round(seed) || seed < 1 || seed > 2147483647) problems <- c(problems, "Random seed: enter a whole number of 1 or more.")
   if (length(problems)) return(list(problems = problems))
-  factor_type <- function(role) if (identical(role, "X") && plan$x_within) "within_factor" else "between_factor"
+  factor_type <- function(role) {
+    if ((identical(role, "X") && plan$x_within) || (identical(role, "W") && isTRUE(plan$w_within))) "within_factor" else "between_factor"
+  }
   variables <- list(A = list(type = factor_type(axes$rows$role), label = labels[[axes$rows$role]], levels = as.list(rows)))
   if (!is.null(axes$columns)) variables$B <- list(type = factor_type(axes$columns$role), label = labels[[axes$columns$role]], levels = as.list(cols))
   variables$Y <- list(type = "continuous", label = labels[["Y"]])
   template <- if (is.null(axes$columns)) {
     if (plan$x_within) "oneway_within" else "oneway_between"
+  } else if (isTRUE(plan$w_within)) {
+    "factorial_within"
   } else if (plan$x_within) {
     if (length(rows) == 2 && length(cols) == 2) "2x2_mixed" else "mixed"
   } else {

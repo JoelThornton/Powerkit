@@ -1180,16 +1180,6 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
 # only the option the screening chose (plus the safety net).
 guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   g <- tree$guided
-  if (identical(ctx$times, "many_conditions")) {
-    return(tagList(
-      screen_nav_ui(),
-      trail_ui(history, tree),
-      h2("Plan a whole study: your variables"),
-      div(class = "status status-soon", g$many_conditions_note),
-      placeholders_at(tree, "guided_variables"),
-      action_bar(pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"))
-    ))
-  }
   tagList(
     screen_nav_ui(),
     trail_ui(history, tree),

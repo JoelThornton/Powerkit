@@ -486,3 +486,60 @@ test_that("a two-group predictor can be given as Cohen's d, which the engine tur
   r <- list(group_d = list(Y = 0.4), found_paths = list(`X->Y` = 0.1987))
   expect_match(whole_study_group_d_text(r), "path from X to Y (0.199) gives a Cohen's d of 0.4", fixed = TRUE)
 })
+
+test_that("the same people in three or more conditions: the plan offers it and simulates it as a repeated-measures or two-way within ANOVA", {
+  g <- tree$guided
+  x_var <- Filter(function(v) identical(v$id, "x"), g$variables)[[1]]
+  w_var <- Filter(function(v) identical(v$id, "moderator"), g$variables)[[1]]
+  many <- list(times = "many_conditions")
+  expect_true(all(c("within3", "within2") %in% names(guided_options(x_var, many))))
+  expect_false("within3" %in% names(guided_options(x_var, list(times = "twice"))))
+  expect_true("within" %in% names(guided_options(w_var, many)))
+  expect_false("within" %in% names(guided_options(w_var, list(times = "once"))))
+  base <- list(x = "within3", outcome = "score", mediators = "none", moderator = "none", covariate = "none", times = "many_conditions")
+  compare <- analysis_by_id(tree, "compare")
+  moderation <- analysis_by_id(tree, "moderation")
+  expect_identical(resolve_analysis(tree, compare, base)$endpoint, "E54")
+  expect_identical(resolve_analysis(tree, compare, modifyList(base, list(moderator = "two")))$endpoint, "E55")
+  expect_identical(resolve_analysis(tree, moderation, modifyList(base, list(moderator = "two")))$endpoint, "E55")
+  both <- modifyList(base, list(x = "within2", moderator = "within"))
+  expect_identical(resolve_analysis(tree, compare, both)$endpoint, "E20")
+  expect_identical(resolve_analysis(tree, moderation, both)$endpoint, "E20")
+
+  # One factor in three or more conditions: a repeated-measures ANOVA.
+  plan <- whole_study_plan(tree, base, "compare", "compare", list())
+  expect_true(plan$experiment)
+  expect_identical(plan$template, "oneway_within")
+  expect_identical(plan$x_levels, 3L)
+  labels <- whole_study_labels(plan$roles, list())
+  values <- list(x_levels = "Easy, Medium, Hard", sd = "100", r = "0.6", n = "40", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "600", ws_mean_2_1 = "620", ws_mean_3_1 = "650"))
+  built <- whole_study_experiment_spec(plan, labels, values, "each", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$experiment$template, "oneway_within")
+  expect_identical(built$spec$experiment$variables$A$type, "within_factor")
+  expect_length(whole_study_check(built$spec), 0)
+
+  # Both factors within people: a two-way repeated-measures ANOVA, X as A.
+  plan <- whole_study_plan(tree, both, c("compare", "moderation"), c("compare", "moderation"), list())
+  expect_true(plan$ok)
+  expect_identical(plan$template, "factorial_within")
+  expect_identical(plan$x_factor, "A")
+  expect_true(plan$w_within)
+  html <- as.character(whole_study_experiment_ui(forms, plan, whole_study_labels(plan$roles, list()), 30L, "all"))
+  expect_match(html, "two-way repeated-measures ANOVA", fixed = TRUE)
+  expect_match(html, "Correlation between a person's scores in any two conditions", fixed = TRUE)
+  expect_match(html, "Everyone takes part in every condition.", fixed = TRUE)
+  values <- list(x_levels = "Valid, Invalid", w_levels = "Short, Medium, Long", sd = "80", r = "0.6", n = "30", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "400", ws_mean_1_2 = "410", ws_mean_1_3 = "420", ws_mean_2_1 = "430", ws_mean_2_2 = "450", ws_mean_2_3 = "470"))
+  built <- whole_study_experiment_spec(plan, whole_study_labels(plan$roles, list()), values, "all", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$experiment$template, "factorial_within")
+  expect_identical(built$spec$experiment$variables$B$type, "within_factor")
+  expect_length(whole_study_check(built$spec), 0)
+
+  # X in three or more conditions crossed with groups: a mixed ANOVA.
+  plan <- whole_study_plan(tree, modifyList(base, list(moderator = "three")), c("compare", "moderation"), "moderation", list())
+  expect_identical(plan$template, "mixed")
+  expect_identical(plan$x_factor, "B")
+})
