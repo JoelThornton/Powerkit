@@ -8,6 +8,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: The ethics paragraph says what a result would show
+    text: >
+      For the test of not-close fit on the structural equation modelling card,
+      the plain-words paragraph now says the study's chance of showing that the
+      model fits closely; it had said the chance of showing the model is wrong.
+      For factor recovery and for finding the number of profiles, which have no
+      significance test, it now says what counts as success instead of naming
+      a threshold.
+  - date: "2026-11-20"
     title: Write-ups give the groups and units the calculation used
     text: >
       The result, the sample-size rule and the ethics paragraph now give the
