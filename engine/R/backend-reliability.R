@@ -221,20 +221,25 @@ reliability_check_alpha <- function(inputs, n) {
   )
 }
 
-# Ratings from the common correlation model kappaSize assumes: each
-# subject's category drawn from the proportions, and each rater gives it
-# with probability sqrt(kappa), or else an independent draw from the same
-# proportions, so any two raters' kappa is kappa. Fleiss' kappa recovers
-# kappa, and the shares of ratings the proportions.
+# Ratings from the models kappaSize assumes, so the check run tests the
+# population kappaSize plans for: any two raters' kappa is kappa, and the
+# chance that all raters agree is kappaSize's too. Two categories
+# (PowerBinary()): with probability kappa every rater gives the subject
+# the same category, drawn from the proportions, and otherwise each draws
+# one independently. Three to five (Power3Cats() to Power5Cats()): a
+# Dirichlet-multinomial, each subject's category probabilities drawn from
+# a Dirichlet with means the proportions and intraclass correlation kappa,
+# and each rater draws from them. For 3 raters, a share p and kappa 0.3,
+# all three give that category with probability 0.0656 under the first
+# and 0.0501 under the second (upstream-questions.md, kappaSize question
+# 1); test-backend-reliability.R checks both against kappaSize's cell
+# probabilities. Fleiss' kappa recovers kappa, and the shares of ratings
+# the proportions.
 reliability_check_kappa <- function(inputs, n) {
   p <- inputs$proportions
   m <- inputs$raters
   cats <- length(p)
-  truth <- sample.int(cats, n, replace = TRUE, prob = p)
-  ratings <- vapply(seq_len(m), function(j) {
-    keep <- stats::runif(n) < sqrt(inputs$value)
-    ifelse(keep, truth, sample.int(cats, n, replace = TRUE, prob = p))
-  }, integer(n))
+  ratings <- reliability_kappa_ratings(n, m, p, inputs$value)
   counts <- vapply(seq_len(cats), function(c) rowSums(ratings == c), numeric(n))
   shares <- colSums(counts) / (n * m)
   observed <- mean((rowSums(counts^2) - m) / (m * (m - 1)))
@@ -247,6 +252,23 @@ reliability_check_kappa <- function(inputs, n) {
     recovered = c(kappa_hat, shares),
     ok = c(abs(kappa_hat - inputs$value) < 4 * se_kappa, abs(shares - p) < 4 * sqrt(p * (1 - p) / n))
   )
+}
+
+# n subjects rated by m raters into categories with proportions p, under
+# kappaSize's common correlation model (reliability_check_kappa()).
+reliability_kappa_ratings <- function(n, m, p, kappa) {
+  cats <- length(p)
+  if (cats == 2) {
+    common <- stats::runif(n) < kappa
+    truth <- sample.int(cats, n, replace = TRUE, prob = p)
+    return(vapply(seq_len(m), function(j) ifelse(common, truth, sample.int(cats, n, replace = TRUE, prob = p)), integer(n)))
+  }
+  # Dirichlet draws from gammas: shape p_j (1 - kappa) / kappa.
+  shape <- p * (1 - kappa) / kappa
+  g <- matrix(stats::rgamma(n * cats, shape = rep(shape, each = n)), n, cats)
+  probs <- g / rowSums(g)
+  cum <- t(apply(probs, 1, cumsum))
+  vapply(seq_len(m), function(j) 1L + as.integer(rowSums(stats::runif(n) > cum[, -cats, drop = FALSE])), integer(n))
 }
 
 check_reliability <- function(spec) {

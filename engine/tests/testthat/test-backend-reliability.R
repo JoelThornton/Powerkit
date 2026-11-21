@@ -135,6 +135,37 @@ test_that("kappa: the required n is kappaSize's, rounded up, and power inverts i
   expect_equal(result$n_required$n, ceiling(kappaSize::Power3Cats(0.4, 0.6, c(0.3, 0.3, 0.4), raters = 3)$N))
 })
 
+test_that("the kappa check run simulates raters from kappaSize's own models (queue item 30)", {
+  # kappaSize's cell probabilities (its source, version 1.2): for two
+  # categories, PowerBinary()'s P0 to P3 for 3 raters; for three, Power3Cats()'s
+  # P1, the chance that all 3 raters give category 1. A model with only the
+  # same pairwise kappa (the check run's before 21 November 2026) gave a
+  # different chance that all agree, so the check tested less than it seemed.
+  n <- 200000
+  set.seed(30)
+  p <- 0.2
+  k <- 0.3
+  binary <- reliability_kappa_ratings(n, 3, c(1 - p, p), k)
+  positives <- rowSums(binary == 2)
+  expected <- c((1 - p)^3 + p * k * ((1 - p)^2 + (1 - p)), 3 * p * (1 - k) * (1 - p)^2,
+    3 * p^2 * (1 - p) * (1 - k), p^3 + k * p * (1 - p^2))
+  observed <- tabulate(positives + 1, 4) / n
+  expect_true(all(abs(observed - expected) < 4 * sqrt(expected * (1 - expected) / n)), label = "two categories, 3 raters")
+  props <- c(p, 0.4, 0.4)
+  three <- reliability_kappa_ratings(n, 3, props, k)
+  all_first <- mean(rowSums(three == 1) == 3)
+  expected <- p^3 * ((p^2 + 3 * k * p - 2 * k * p^2 + 2 * k^2 - 3 * k^2 * p + k^2 * p^2) / p^2) / (1 + k)
+  expect_lt(abs(all_first - expected), 4 * sqrt(expected * (1 - expected) / n))
+  # Any two raters' agreement beyond chance is kappa in both.
+  pair_kappa <- function(r) {
+    po <- mean(r[, 1] == r[, 2])
+    pe <- sum((tabulate(r[, 1], max(r)) / n)^2)
+    (po - pe) / (1 - pe)
+  }
+  expect_equal(pair_kappa(binary), k, tolerance = 0.02)
+  expect_equal(pair_kappa(three), k, tolerance = 0.02)
+})
+
 test_that("the R scripts reproduce the runs", {
   for (name in c("reliability_icc", "reliability_cronbach_alpha", "reliability_kappa")) {
     spec <- example_spec(name)

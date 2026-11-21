@@ -35,6 +35,7 @@ below retain their reproduction information and limitations.
 | BayesRepDesign: `porsMeta()` with an estimate below zero and several standard errors | BayesRepDesign question 2; `porsMeta()`'s source, and a check in `test-replication-planning.R` that a ratio below 1 is planned like its inverse | Workaround: the planner calls `porsMeta()` one standard error at a time | A new version; recheck `porsMeta()` on a vector `sr` with `to < 0` against the same values one at a time |
 | BayesRepDesign: `ssdMeta()` and the other `ssd*()` searches stop short | BayesRepDesign question 3; whole-total enumeration in `test-replication-planning.R` | Bypassed: the planner searches every whole total with the `pors*()` chances and no longer calls `ssd*()` | A new version; compare `ssdMeta()` with the enumeration for a one-sample original with z = 3.3 |
 | pmvalsampsize: the anticipated calibration slope doesn't change the sample size | pmvalsampsize question 2 | Said on E77's form | A new version; compare criterion 2's size for slopes of 0.8 and 1.2 |
+| kappaSize: two categories and three or more assume different models of agreement | kappaSize question 1; `test-backend-reliability.R` | Followed: the check run simulates the model of the function called | A new version; compare `PowerBinary()` and `Power3Cats()`'s chance that 3 raters all agree |
 | pwrss: `power.z.mediation()`'s default R-squared of Y | pwrss 1.3.3: with `r.squared.outcome` left out, R-squared of Y is computed as (b^2 var(M) + c'^2 var(X)) / var(Y), leaving out 2 a b c' var(X), the part due to M and X being correlated; with a direct path the standard error of b is then a little off | powerkit passes R-squared of Y explicitly, b^2 + c'^2 + 2 a b c' for standardised paths (`backend-mediation-joint.R`; size in `test-backend-mediation-joint.R`) | Ask the authors whether the default is intended |
 | presize: `prec_prop()` Clopper-Pearson upper limit | presize 0.3.11 sets `upr[x == 1] <- 1` where the convention is `x == n`, so p = 0.01 at n = 100 gives [0.000253, 1] instead of `binom.test()`'s [0.000253, 0.0545] | Workaround: the limits are worked out with that line corrected and width plans walk to the smallest whole n (`backend-precision.R`; `test-backend-precision.R`) | presize update; compare its limits at n p = 1 with `binom.test()` |
 | pwrss: group 1 rounded up from `n.ratio` | pwrss 1.3.3: `power.z.twocors()` computes `ceiling(n2 * n.ratio)` even with `ceil.n = FALSE`, and `power.z.twoprops()` does so by default, so 27 / 21 * 21 (a hair above 27) is scored as 28 | Workaround: `ceil.n = FALSE` for the z test, and a ratio of `(n1 - 1e-9) / n2` for Fisher's z (`backend-pwr.R`, `backend-pwrss.R`; `test-backend-pwr.R`) | pwrss update; rerun 27 + 21 and 7 + 25 |
@@ -440,6 +441,26 @@ Questions about PITS 0.1.0, from running it (6 November 2026).
    test's degrees of freedom, suit the package, or a note on the Type I
    error at the planned length?
 
+
+## kappaSize
+
+Questions about kappaSize 1.2, from its source (21 November 2026).
+
+1. **Two categories and three or more use different models of
+   agreement.** `PowerBinary()`'s cell probabilities come from a mixture:
+   with probability kappa every rater gives the same category, and
+   otherwise each rates independently (for 3 raters, all give the
+   category with share p with probability kappa p + (1 - kappa) p^3).
+   `Power3Cats()` to `Power5Cats()` use a Dirichlet-multinomial with
+   intraclass correlation kappa (the same chance is
+   p (p + theta)(p + 2 theta) / ((1 + theta)(1 + 2 theta)), theta =
+   kappa / (1 - kappa)). Both give any two raters a kappa of kappa, and
+   they agree for 2 raters, but for 3 to 6 raters they differ: 0.0656
+   against 0.0501 for p = 0.2 and kappa = 0.3 with 3 raters, and 0.0600
+   against 0.0171 with 6. Is the difference intended (a published
+   source for each), or should the two use one model? powerkit's check
+   run simulates whichever model the function it calls assumes
+   (`reliability_kappa_ratings()`).
 
 ## pmvalsampsize
 

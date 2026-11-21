@@ -16,7 +16,7 @@
 // scripts. It exits with status 1 when any card has a problem.
 const { chromium } = require('playwright');
 const fs = require('fs');
-const { downloadLinkProblem, downloadResponseProblem, printDocumentProblem } = require('./export-checks');
+const { downloadLinkProblem, downloadResponseProblem, printDocumentProblem, missingControlsProblem } = require('./export-checks');
 const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
 const cards = JSON.parse(fs.readFileSync(process.argv[2] || 'cards.json', 'utf8'));
 const OUT = process.argv[3] || 'every-card.json';
@@ -135,6 +135,10 @@ const SHOTS = process.env.SHOTS || null;
           disabled: a.getAttribute('aria-disabled') === 'true' || a.classList.contains('disabled'),
           text: a.innerText.trim() })));
       if (await formats.count()) await formats.click();
+      if (state === 'result') {
+        const missing = missingControlsProblem(links.map(l => l.id), (await page.locator('#planning_document_button:visible').count()) > 0);
+        if (missing) r.problems.push(missing);
+      }
       for (const l of links) {
         const d = { id: l.id, text: l.text, disabled: l.disabled };
         r.downloads.push(d);
