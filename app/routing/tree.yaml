@@ -1153,6 +1153,8 @@ endpoints:
     template: "mediation / process_4 (mediator M)"
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI; pwrss's power.z.mediation(method = 'joint') for the quick estimate (joint-significance test)"
     method: Simulation
+    card_points:
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run of the simulation (Monte Carlo interval) passed on 16 October 2026. The quick estimate, the method the input screen starts on, has no validation run yet. A check against a published example is still to come."}
@@ -1165,6 +1167,8 @@ endpoints:
     template: "mediation / process_4 (mediators M1, M2, ...)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
+    card_points:
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Whether X is a score or two groups or conditions", "Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
@@ -1177,6 +1181,8 @@ endpoints:
     template: "mediation / process_6 (M1 to M4)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
+    card_points:
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Whether X is a score or two groups or conditions", "Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
@@ -1189,6 +1195,8 @@ endpoints:
     template: "moderated_mediation / process_7"
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
+    card_points:
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths, including the interaction XW -> M"]
     status: runs_validated
     validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
@@ -1202,6 +1210,8 @@ endpoints:
     template: "moderated_mediation / process_14"
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
+    card_points:
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths, including the interaction MW -> Y"]
     status: runs_validated
     validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
@@ -1240,6 +1250,7 @@ endpoints:
       - "You give X's effects as Cohen's d of the groups (on M, and on Y overall), or as standardised paths per SD of X; with d, Powerkit finds the paths and shows them with the result."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["X's two groups or conditions, and the share in each", "X's effects, and the path M -> Y"]
     refs: "phase 3b decisions, 29 October 2026 (docs/decisions.md)"
     tier: MVP
@@ -1259,6 +1270,7 @@ endpoints:
       - "A yes/no variable is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so its paths are per SD, as for a score; it must be uncorrelated with the other predictor, as a randomised condition is."
       - "With X as two groups, you can give X's effects as Cohen's d of the groups (on M, and on Y overall) instead; Powerkit finds the paths and shows them with the result."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
     alternatives: ["conditional indirect effects for each group"]
@@ -1604,6 +1616,7 @@ endpoints:
       - "For mediation you give X's effect on the mediator in the mediator's SD, the chance of 'yes' or the mean count in the first group, and the odds or rate ratio per SD of the mediator. For a yes/no outcome the indirect effect is on the log odds-ratio scale, which approximates the risk ratio scale when 'yes' is rare."
       - "Simulated, so the answer carries a little random error. On the log-odds or log-count scale an interaction can differ from one on the proportions or counts themselves."
       - "Not calculated here yet: mediation of a categorical outcome (three or more unordered answers). For mediation through a yes/no mediator, use the card \"Mediation when a mediator isn't a score\"."
+      - "For the natural indirect effect, a causal quantity, the estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X. Randomising X covers the first two only, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     packages:
       - {name: regmedint, url: "https://cran.r-project.org/package=regmedint", what: "Regression-based causal mediation analysis (Valeri and VanderWeele), the analysis Powerkit simulates for mediation of a yes/no or count outcome."}
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For the designs not calculated here yet: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
@@ -1720,6 +1733,7 @@ endpoints:
       - "Moderated mediation where W changes both links of the indirect effect (PROCESS model 58), the first link and the direct path (model 8), or all three (model 59)."
       - "These models have no single index of moderated mediation, so Powerkit plans for the difference between the indirect effects at two values of W (by default one SD below and above its mean), tested by its Monte Carlo confidence interval."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Which links W changes", "Standardised paths, including the interactions", "The two values of W to compare"]
     tier: v2
     alternatives: ["the conditional indirect effect at each value of W, each tested on its own", "a model with W on one link only (PROCESS model 7 or 14), if theory allows"]
@@ -1740,6 +1754,7 @@ endpoints:
       - "For a mediator in ordered categories, such as a rating from 'unlikely' to 'certain', the card uses the usual structural equation model for an ordered variable: the categories are cut from an underlying score, and the indirect effect runs through that score. You give the share of people in each category and the paths on the underlying score."
       - "PROCESS fits a linear regression to the mediator even when it is yes or no or a few categories; this card models the mediator as it is measured. An interaction between X and the mediator, and a mediator in unordered categories, aren't covered yet."
       - "Simulated with Spower, in under a minute for power."
+      - "For the natural indirect effect, a causal quantity, the estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X. Randomising X covers the first two only, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["What X, the mediator and the outcome are", "How X changes the mediator, and how the mediator changes the outcome"]
     tier: v2
     alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in unordered categories, a model for each category (not yet in Powerkit)"]
@@ -1757,6 +1772,7 @@ endpoints:
       - "The test is the index of moderated mediation for the mediator you choose: whether that mediator's indirect effect depends on W."
       - "X and W can each be a score or yes/no (two groups); the mediators are scores, and a mediator chain isn't covered yet."
       - "Simulated with power4mome, as for one mediator: the full run can take a while, so the app gives a quick preview and an R script for the full analysis."
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Which link W changes, and which variables are yes/no", "Standardised paths for each mediator, including the interactions with W", "Correlations between the mediators' residuals, and of X with W", "Which mediator's index of moderated mediation the hypothesis is about"]
     tier: later
     alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
@@ -1918,6 +1934,7 @@ endpoints:
       - "You give each group's Cohen's d against the first on M, the path M -> Y within groups, and, if you expect them, the direct effects on Y; the groups are equal in size."
       - "You choose whether one comparison or every comparison must be significant; each is tested with a Monte Carlo confidence interval, as on the other mediation cards."
       - "Simulated with Spower: a quick preview in the app, and the full run or the sample size from an R script."
+      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["X's groups or conditions, the first the reference group", "Each group's difference from the first on M, the path M -> Y, and the direct effects"]
     tier: v2
     alternatives: ["a bootstrap confidence interval, which PROCESS reports by default", "a comparison coding other than dummy coding (sequential, Helmert or effect coding)"]

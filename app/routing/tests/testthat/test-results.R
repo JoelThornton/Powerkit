@@ -3825,3 +3825,18 @@ test_that("the ethics paragraph says what success means: close fit for the test 
     expect_no_match(e, "NA threshold|statistically significant", label = case$ep)
   }
 })
+
+test_that("a mediation write-up and card say the indirect effect is a statistical path unless its causal assumptions hold", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  path <- mediation_causal_sentence(read_example("mediation_simple"))
+  expect_match(path, "statistical path", fixed = TRUE)
+  expect_match(path, "which randomising X does not ensure", fixed = TRUE)
+  nie <- mediation_causal_sentence(read_example("mediation_binary_mediator"))
+  expect_match(nie, "The natural indirect effect is a causal quantity", fixed = TRUE)
+  expect_match(nie, "no common cause of the mediator and Y is itself changed by X", fixed = TRUE)
+  expect_null(mediation_causal_sentence(read_example("anova_2x2_between")))
+  # Every mediation card says so too.
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E16", "E17", "E32", "E38", "E39", "E40", "E42")) {
+    expect_true(any(grepl("common causes of M and Y you adjust for", unlist(tree$endpoints[[ep]]$card_points), fixed = TRUE)), info = ep)
+  }
+})
