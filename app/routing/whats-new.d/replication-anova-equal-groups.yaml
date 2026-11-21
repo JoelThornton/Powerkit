@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-21"
-    title: Replication plans say how an ANOVA original's groups are treated
-    text: >
-      When the original study was an ANOVA, the planner now says on screen
-      that it takes the original's groups to be the same size, and that the
-      plan is approximate if they clearly were not.
