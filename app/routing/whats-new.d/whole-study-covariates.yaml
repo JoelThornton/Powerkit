@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-21"
-    title: "Covariates in the whole-study simulation"
-    text: "When your plan has covariates, simulating the whole study now includes them: say how many (up to three), how strongly each relates to your other variables, and every analysis adjusts for them, the mediators included. Before, a plan with covariates couldn't be simulated as a whole study."
