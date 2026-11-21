@@ -104,21 +104,21 @@ jobs:
             app/routing/walkthroughs/test-results/
           retention-days: 7
 
-  # Two jobs side by side: test-results.R, which runs calculations and the
-  # exported scripts and takes about two thirds of the time, and every
-  # other test file. Together they are the whole suite.
+  # The whole suite in two parts, each on its own runner, and within a
+  # part four lanes side by side, each lane its own R process running its
+  # files one after another (.github/ci/run-test-part.R). The files are
+  # dealt to the eight lanes by the time each took in an earlier run
+  # (.github/ci/app-test-times.csv), longest first, so the lanes take
+  # about the same time. Each part prints the seconds each of its files
+  # took at the end of its log ("app-test-times").
   app-tests:
     needs: [changes, image]
     if: needs.changes.outputs.docs_only != 'true'
-    name: app-tests (${{ matrix.part }})
+    name: app-tests (part ${{ matrix.part }} of 2)
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - part: results
-            invert: "FALSE"
-          - part: the rest
-            invert: "TRUE"
+        part: [1, 2]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -154,10 +154,7 @@ jobs:
       - name: Run the routing prototype's tests
         env:
           POWERKIT_APP_TESTS_NEED_ENGINE: "true"
-        shell: Rscript {0}
-        run: |
-          testthat::test_dir("app/routing/tests/testthat", filter = "^results$",
-            invert = ${{ matrix.invert }}, stop_on_failure = TRUE)
+        run: Rscript .github/ci/run-test-part.R app ${{ matrix.part }} 2 4
 
   # For a documentation-only pull request: the app tests that read docs/
   # or the top-level Markdown files (the docs-match checks, the queue and

@@ -3,22 +3,6 @@
 # runs it from its screen with the effect left empty where it may be, and
 # words the answer with the effect's own name.
 
-smallest_effect_values <- function(ep, extra = list()) {
-  values <- modifyList(form_examples[[ep]], list(goal = "sensitivity", n = "120", power = "0.8", alpha = "0.05"))
-  modifyList(values, extra)
-}
-
-smallest_effect_run <- function(ep, extra = list()) {
-  fields <- form_fields(form_groups(forms, ep))
-  values <- smallest_effect_values(ep, extra)
-  problems <- form_problems(fields, values)
-  expect_length(problems, 0)
-  spec <- build_spec(forms, ep, fields, values)
-  calc <- run_calculation(spec, seed = forms$default_seed)
-  expect_identical(calc$status, "ok", label = ep)
-  list(spec = spec, result = calc$result, values = values, fields = fields)
-}
-
 test_that("the formula cards offer the smallest detectable effect, at one sample size and across a range", {
   for (ep in c("E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49")) {
     goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, ep)))[[1]]
@@ -211,55 +195,10 @@ test_that("ordinal two groups, survival, growth curves and reliability give the 
   expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "bland_altman")))
 })
 
-test_that("paired variances, the trend tests, d', factorial logistic regression and moderation by groups find the smallest effect by a simulated search", {
-  cases <- list(
-    list(ep = "E57", extra = list(var1 = ""), label = "the smallest variance ratio you could detect", name = "variance ratio = "),
-    list(ep = "E66", extra = list(), label = "the smallest difference between the highest and lowest proportions you could detect",
-      name = "difference between the highest and lowest proportions = "),
-    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = "),
-    list(ep = "E64", extra = list(), label = "the smallest difference between the largest and smallest mean you could detect",
-      name = "difference between the largest and smallest mean = "),
-    list(ep = "E30", extra = list(), label = "the smallest difference between the largest and smallest group's correlation you could detect",
-      name = "difference between the largest and smallest group's correlation = "),
-    list(ep = "E45", extra = list(level_change = ""), label = "the smallest change in level you could detect", name = "change in level = "),
-    list(ep = "E32", extra = list(odds_ratio_xw = ""), label = "the smallest interaction odds ratio you could detect", name = "interaction odds ratio = "),
-    list(ep = "E15", extra = list(r_XW_Y = ""), label = "the smallest correlation of the interaction with Y you could detect",
-      name = "is correlation of the interaction with Y = "),
-    list(ep = "E70", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
-    list(ep = "E47", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
-    list(ep = "E47", extra = list(effect = "interaction"), label = "the smallest ratio of odds ratios you could detect",
-      name = "ratio of odds ratios = ")
-  )
-  # Mediation on the moderation card has no smallest-effect goal.
-  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E32")))[[1]]
-  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(analysis = "mediation")))
-  for (case in cases) {
-    n <- switch(case$ep, E47 = "420", E30 = "300", E45 = "24", E32 = "400", E70 = "400", E15 = "300", "100")
-    run <- smallest_effect_run(case$ep, c(case$extra, list(n = n, simulation_accuracy = "quick")))
-    expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
-    expect_identical(result_figure(run$spec, run$result)$label, case$label)
-    expect_match(result_sentences(run$spec, run$result)[["headline"]], case$name, fixed = TRUE)
-    expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
-  }
-})
-
 test_that("the three-way interaction finds its smallest coefficient by InteractionPoweR's formula", {
   run <- smallest_effect_run("E31", list(b_XWZ = "", n = "300"))
   expect_identical(run$result$sensitivity$effect_name, "b_XWZ")
   expect_identical(result_figure(run$spec, run$result)$label, "the smallest three-way coefficient you could detect")
-})
-
-test_that("latent profiles and factor analysis find their smallest separation and loading", {
-  cases <- list(
-    list(ep = "E58", extra = list(separation = ""), label = "the smallest separation between neighbouring profiles you could detect"),
-    list(ep = "E73", extra = list(loading = ""), label = "the smallest loading you could detect")
-  )
-  for (case in cases) {
-    run <- smallest_effect_run(case$ep, c(case$extra, list(n = "150", simulation_accuracy = "quick")))
-    expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
-    expect_identical(result_figure(run$spec, run$result)$label, case$label)
-    expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
-  }
 })
 
 test_that("the mediation cards offer the smallest indirect effect or index, through the R script", {
@@ -309,26 +248,4 @@ test_that("the mixed-model cards offer the smallest effect through the R script,
   fields <- form_fields(form_groups(forms, "E41"))
   values <- smallest_effect_values("E41", list(two_level_effect = "within_and_interaction"))
   expect_match(form_problems(fields, values), "isn't available with the other answers", fixed = TRUE, all = FALSE)
-})
-
-test_that("repeated counts, yes/no answers and ratings offer the smallest effect through the R script, and Cochran's Q runs it here", {
-  export <- engine_function("export_run_script")
-  fields <- form_fields(form_groups(forms, "E75"))
-  goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
-  expect_true("sensitivity" %in% names(goal$choices))
-  values <- smallest_effect_values("E75", list(n = "40"))
-  expect_length(form_problems(fields, values), 0)
-  spec <- build_spec(forms, "E75", fields, values)
-  spec$options$seed <- 3L
-  expect_true(runs_long(forms, "E75", spec))
-  expect_false(has_preview(forms, "E75", "sensitivity", spec))
-  expect_match(script_run_time(forms, "E75", "sensitivity", spec), "sizes of the effect are simulated", fixed = TRUE)
-  file <- withr::local_tempfile(fileext = ".R")
-  export(spec, file)
-  expect_true(any(grepl("sensitivity", readLines(file), fixed = TRUE)))
-  # Cochran's Q runs in the app, on its own card.
-  run <- smallest_effect_run("E78", list(n = "60", simulation_accuracy = "quick"))
-  expect_true(isTRUE(run$result$sensitivity$simulated))
-  expect_identical(result_figure(run$spec, run$result)$label, "the smallest odds ratio you could detect")
-  expect_false(is.na(usual_seconds(forms, "E78", "sensitivity")))
 })

@@ -9,9 +9,9 @@
 # with the R version renv.lock records.
 #
 # The check and the engine's tests run side by side: R CMD check without
-# its tests, and the test files in three parts, each on its own runner.
-# Together they are what R CMD check alone used to run, in about a third
-# of the time. A push that changes nothing the engine is built or tested
+# its tests, and the test files in five parts, each on its own runner
+# with four files running at a time. Together they are what R CMD check
+# alone used to run. A push that changes nothing the engine is built or tested
 # from (for example an app or docs change, or only engine/NEWS.md and the
 # Version line) skips both, and they show as skipped, which counts as
 # passing.
@@ -125,22 +125,22 @@ jobs:
           args: 'c("--no-manual", "--no-tests")'
           error-on: '"warning"'
 
-  # The engine's test files, in three parts, dealt by the time each file
-  # took in an earlier run (.github/ci/engine-test-times.csv): longest
-  # first, each to the part with the least time so far, so the parts take
-  # about the same time. A file with no recorded time counts as the median.
-  # Within a part the files run four at a time (engine/DESCRIPTION,
-  # Config/testthat/parallel), as in R CMD check. Each part prints the
-  # seconds each of its files took, as rows for that file, at the end of
-  # its log ("engine-test-times").
+  # The engine's test files, in five parts, each on its own runner, and
+  # within a part four lanes side by side, each lane its own R process
+  # running its files one after another (.github/ci/run-test-part.R). The
+  # files are dealt to the twenty lanes by the time each took in an
+  # earlier run (.github/ci/engine-test-times.csv), longest first, so the
+  # lanes take about the same time. Each part prints the seconds each of
+  # its files took, as rows for the times file, at the end of its log
+  # ("engine-test-times").
   engine-tests:
     needs: [changes, image]
     if: needs.changes.outputs.engine == 'true'
-    name: engine-tests (part ${{ matrix.part }} of 3)
+    name: engine-tests (part ${{ matrix.part }} of 5)
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3]
+        part: [1, 2, 3, 4, 5]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -158,7 +158,6 @@ jobs:
       RENV_ACTIVATE_PROJECT: "FALSE"
       # Runs the engine tests that call skip_on_cran().
       NOT_CRAN: "true"
-      TESTTHAT_CPUS: "4"
     steps:
       - uses: actions/checkout@v5
 
@@ -166,31 +165,7 @@ jobs:
         run: R CMD INSTALL engine
 
       - name: Run part ${{ matrix.part }} of the engine's tests
-        shell: Rscript {0}
-        run: |
-          files <- sort(list.files("engine/tests/testthat", pattern = "^test-.*\\.R$"))
-          names <- sub("^test-(.*)\\.R$", "\\1", files)
-          times <- if (file.exists(".github/ci/engine-test-times.csv")) utils::read.csv(".github/ci/engine-test-times.csv") else data.frame(file = character(), seconds = numeric())
-          seconds <- times$seconds[match(names, times$file)]
-          seconds[is.na(seconds)] <- if (all(is.na(seconds))) 1 else stats::median(seconds, na.rm = TRUE)
-          load <- numeric(3)
-          part_of <- integer(length(names))
-          for (i in order(-seconds, seq_along(names))) {
-            part_of[i] <- which.min(load)
-            load[part_of[i]] <- load[part_of[i]] + seconds[i]
-          }
-          part <- ${{ matrix.part }}
-          mine <- names[part_of == part]
-          cat(length(mine), "of", length(names), "test files in this part, about", round(load[part] / 60), "minutes of recorded time\n")
-          library(powerkit)
-          results <- testthat::test_dir("engine/tests/testthat", package = "powerkit", load_package = "installed",
-            filter = paste0("^(", paste(mine, collapse = "|"), ")$"),
-            stop_on_failure = FALSE)
-          df <- as.data.frame(results)
-          took <- tapply(df$real, sub("^test-(.*)\\.R$", "\\1", df$file), sum)
-          cat("\nengine-test-times (file,seconds):\n")
-          cat(sprintf("%s,%.1f", names(took), took), sep = "\n")
-          if (any(df$failed > 0) || any(df$error)) stop("Some engine tests failed; see above.", call. = FALSE)
+        run: Rscript .github/ci/run-test-part.R engine ${{ matrix.part }} 5 4
 
   engine-review-gate:
     if: ${{ always() }}
