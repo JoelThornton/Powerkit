@@ -1,3 +1,15 @@
+# powerkit 0.80.21
+
+* App: run_calculation() drops the engine's "This design spec has N
+  problems:" heading from error messages, and the result's folded JSON is
+  headed "The settings that were run" (queue item 12).
+
+* App: the failed-simulation warning, its per-sample-size lines and the
+  whole-study version no longer use "valid decisions", "conditional power"
+  or "successful-study probability"; the Bayes factor sequential card's
+  claim that most studies stop early is conditional on the effect being as
+  planned (queue item 12).
+
 # powerkit 0.80.20
 
 * The contingency table Bayes factor (E6) now simulates the totals its sampling plan fixes: with the rows or columns fixed, each simulated study sets them at the table's shares of n (`bftable_margin_totals()`, largest remainder) and draws each row or column from its conditional probabilities (`bftable_draw()`); it had drawn every table with only the total fixed, which understated power (36.0% instead of 43.2% with 15 a group, rates .70 and .30, BF10 of at least 10). The exported script and the validation's exact sums follow the plan too.

@@ -26,8 +26,8 @@
     "app/routing/R/planning.R": "1d78a044e9142ba171e7ea1868783ef3",
     "app/routing/R/project.R": "4e9cc41ea7dc8dce1ea1702a639818a3",
     "app/routing/R/replication.R": "680b1bf00ddcf1fa737154370371ad7f",
-    "app/routing/R/results-prediction.R": "e972fc5ad543bea2b4641ada284ef729",
-    "app/routing/R/results.R": "ec8dadf42e8b90bb436f1ce3b6affb42",
+    "app/routing/R/results-prediction.R": "14f102bdf1ad95ce38b4430f65a577e9",
+    "app/routing/R/results.R": "1e356c068c6a25222077b0c0519ea53d",
     "app/routing/R/route-fit.R": "fe1761f3c512c0f930820474c418916e",
     "app/routing/R/sample.R": "7336149c078dfbddde82db3c736b5e68",
     "app/routing/R/scenarios.R": "c4743f92473efebb134740067ac6bd73",
@@ -41,7 +41,7 @@
     "app/routing/R/table-grid.R": "f4c940e4b9969bb033a5aea19fa5c5d5",
     "app/routing/R/tree.R": "01a79d77829f35de16f493fbcd58df7c",
     "app/routing/R/ui.R": "162867fe62b5bc4759eff5a7440db5e5",
-    "app/routing/R/whole-study.R": "e1f658eae1c36fcfe87ada98de0b11cb"
+    "app/routing/R/whole-study.R": "2aee30eb2d62e0d36513bc4fd8dc6224"
   },
   "evidence_registry": "engine/inst/evidence/records.json",
   "limits": ["Discovery metadata only; no calculation or new validation is performed.", "Selectors are individual choices, not valid Cartesian products.", "Shared closing fields are included; generated mediation inputs use two mediators.", "Engine constraints, dynamic UI logic and all generated model sizes still need case-level audit.", "Card status is historical; use analysis_evidence() on a complete selected spec.", "No empirical percentage of research designs is established by this inventory."]

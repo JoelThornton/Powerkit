@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-21"
-    title: Clearer error text and a plainer details heading
-    text: >
-      If the engine rejects your answers, the message no longer opens with
-      "This design spec has a problem". The folded details on a result now
-      say "The settings that were run (JSON)".

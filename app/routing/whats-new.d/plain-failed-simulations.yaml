@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-21"
-    title: Plainer wording when some simulated studies can't be analysed
-    text: >
-      When a few simulated studies fail to fit, the warning now says in plain
-      words which studies the reported power counts, and gives the lower
-      figure that counts the failed ones as misses. The "Check as you go"
-      card for a Bayes factor now says that most studies stop early only if
-      the effect is as you planned.
