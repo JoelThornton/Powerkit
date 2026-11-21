@@ -384,6 +384,8 @@ analysed_text <- function(spec, n, groups = TRUE) {
     return(sprintf("%s time points after the intervention (and %s before it)", whole(n), whole(spec$population$n_pre)))
   }
   if (identical(spec$goal$unit, "items")) return(sprintf("%s items (with %s participants)", whole(n), whole(spec$population$participants)))
+  # Occasions within people: n counts observations, not participants.
+  if (identical(spec$goal$unit, "observations")) return(sprintf("%s observations (%s)", whole(n), people_occasions(n, spec)))
   sprintf("%s participants%s", whole(n), if (groups) group_text(spec, n) else "")
 }
 
@@ -3802,11 +3804,58 @@ without_reason <- function(text) {
   gsub(no_reason_token, "no justification recorded", out, fixed = TRUE)
 }
 
+# The researcher's own words in a write-up (the reason for the effect size,
+# its adjustment and the reasons given for alpha, power, the threshold and
+# a one-sided test) are held as placeholders while the paragraph is built
+# and its units are reworded, then put back as written: a pattern that
+# rewrites "140 participants" as observations or pairs must never reach a
+# quotation (audit of the exports, 21 November 2026).
+held_text_ids <- c("just_source", "just_adjustment", "alpha_reason", "evidence_reason", "alternative_reason", "power_reason", "assurance_reason")
+
+hold_user_text <- function(values) {
+  held <- character()
+  for (id in held_text_ids) {
+    x <- values[[id]]
+    if (blank(x) || identical(x, no_reason_token)) next
+    token <- sprintf("\u27e6heldtext%d\u27e7", length(held) + 1L)
+    held[[token]] <- as.character(x)
+    values[[id]] <- token
+  }
+  attr(values, "held_text") <- held
+  values
+}
+
+# The placeholders back, each as the sentence around it shows it: one line,
+# and a reason without its final full stop, as the paragraph adds one.
+restore_user_text <- function(text, held) {
+  if (!length(held)) return(text)
+  for (token in names(held)) {
+    words <- trimws(gsub("\\s+", " ", held[[token]]))
+    reason <- sub("[.]\\s*$", "", words)
+    for (i in seq_along(text)) {
+      if (is.na(text[[i]])) next
+      t <- text[[i]]
+      # "because <reason>." and ", chosen because <reason>" drop the reason's
+      # own full stop; a quotation keeps it.
+      t <- gsub(paste0("because ", token), paste0("because ", reason), t, fixed = TRUE)
+      text[[i]] <- gsub(token, words, t, fixed = TRUE)
+    }
+  }
+  # A quotation that ends its own sentence takes no second full stop.
+  text[] <- gsub("([.!?])\u201d\\.", "\\1\u201d", text)
+  text
+}
+
 writeup_text <- function(form, spec, result, fields, values, departures = character(), known_methods = character(), known = character()) {
   if (isTRUE(values$source_stale)) return(NULL)
   if (blank(values$just_source)) {
     values$just_source <- no_reason_token
     return(without_reason(writeup_text(form, spec, result, fields, values, departures, known_methods, known)))
+  }
+  if (is.null(attr(values, "held_text"))) {
+    values <- hold_user_text(values)
+    out <- writeup_text(form, spec, result, fields, values, departures, known_methods, known)
+    return(restore_user_text(out, attr(values, "held_text")))
   }
   name <- methods_test_name(form, spec, result)
   telescopes <- result$small_telescopes
@@ -4018,6 +4067,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- gsub("A power analysis was conducted", "A Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) was conducted", main, fixed = TRUE)
     main <- c(main, bayes_null_writeup(spec, result))
   }
+  # Observed power: the finished study's own result, so the calculation is
+  # retrospective, not a plan made in advance.
+  if (identical(values$just_type, "own_study_result")) {
+    main <- sub("^An a priori power analysis was conducted for", "A retrospective power analysis, using the finished study's own result, was conducted for", main)
+    main <- sub("^A power analysis was conducted for", "A retrospective power analysis, using the finished study's own result, was conducted for", main)
+  }
   main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
@@ -4108,8 +4163,21 @@ no_test_success <- function(spec) {
 }
 
 ethics_text <- function(spec, result, fields, values) {
+  if (is.null(attr(values, "held_text"))) {
+    values <- hold_user_text(values)
+    return(restore_user_text(ethics_text(spec, result, fields, values), attr(values, "held_text")))
+  }
   # Generic tests (E50) have no participants to describe.
   if (identical(spec$design, "generic_test")) return(NA_character_)
+  # Observed power describes a finished study after the fact: it is no
+  # reason to recruit anyone (audit of the exports, 21 November 2026).
+  if (identical(values$just_type, "own_study_result")) {
+    p <- result$provenance
+    return(paste(
+      "This calculation used the finished study's own result (observed power), so it describes that study after the fact; it is not a justification for recruiting participants.",
+      "[For a new study, give the earlier study as the source of the effect size and say how its estimate was used.]",
+      sprintf("The calculation was made with %s and the R package %s (version %s).", powerkit_cited(p$packages[["powerkit"]]), p$backend, p$packages[[p$backend]])))
+  }
   alpha <- if (is.null(spec$target_test$alpha)) NA_character_ else paste0(format(100 * spec$target_test$alpha), "%")
   fixed <- identical(values$situation, "fixed")
   effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
@@ -4121,24 +4189,33 @@ ethics_text <- function(spec, result, fields, values) {
       writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning)
   }
   n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  # The chance this study succeeds is the power at the N found, where the
+  # calculation gives it exactly; the target is said beside it (audit of the
+  # exports, 21 November 2026: N = 12 reaches 88.9% for an 80% target).
+  pf <- percent
+  at_n <- if (identical(result$goal_type, "sample_size") && is.data.frame(result$curve)) result$curve$power[result$curve$n == n]
+  achieved <- if (length(at_n) == 1 && is.finite(at_n) && !simulated(result) && !is.null(spec$goal$power)) at_n
+  target_line <- if (!is.null(achieved) && abs(achieved - spec$goal$power) >= 0.0005) {
+    sprintf("It is the smallest number giving at least the %s power we aimed for; at this number the power is %.1f%%.", percent(spec$goal$power), 100 * achieved)
+  }
   chance <- function(p) sprintf(
     "If that effect is real, the chance that a study of this size finds it (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If the real effect is smaller, the chance of missing it is higher.",
-    alpha, percent(p), percent(1 - p))
+    alpha, pf(p), pf(1 - p))
   # Equivalence tests: the aim is to show the difference is too small to
   # matter.
   if (identical(spec$design, "equivalence_test") && is_noninferiority(spec)) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows the new approach is no worse than the margin we set (one test, using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to the margin, the chance of failing is higher.",
-    alpha, percent(p), percent(1 - p))
+    alpha, pf(p), pf(1 - p))
   else if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
-    alpha, percent(p), percent(1 - p))
+    alpha, pf(p), pf(1 - p))
   # A minimum-effect test: the chance of showing the effect is larger than
   # the smallest effect that matters, not of finding an effect at all
   # (decision-rule.R).
   if (is_minimum_effect(spec)) chance <- function(p) sprintf(
     "If the real effect is %s, the chance that a study of this size shows it is %s %s, the smallest effect that would matter (a statistically significant minimum-effect test, using a %s threshold), is %s, and the chance that it fails to show this is %s. If the real effect is closer to %s, the chance of failing is higher.",
     effect %||% "the one we expect", switch(spec$target_test$alternative %||% "two_sided", less = "below minus", greater = "larger than", "further from zero than"),
-    minimum_effect_margin_text(spec), alpha, percent(p), percent(1 - p), minimum_effect_margin_text(spec))
+    minimum_effect_margin_text(spec), alpha, pf(p), pf(1 - p), minimum_effect_margin_text(spec))
   # Bayes factor tests: strong evidence, not a significant result, and
   # with a design prior, averaged over the effects thought plausible.
   if (is_bayes_test(spec)) {
@@ -4159,23 +4236,23 @@ ethics_text <- function(spec, result, fields, values) {
     chance <- function(p) paste(sprintf(
       if (spread) "Averaged over the effect sizes we think plausible, the chance that a study of this size finds evidence at the threshold for an effect (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s."
       else "If that effect is real, the chance that a study of this size finds evidence at the threshold for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
-      k, percent(p), percent(1 - p)), null_line)
+      k, pf(p), pf(1 - p)), null_line)
   }
   # Model fit: the aim is to find out whether the model is wrong.
   if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
-    alpha, percent(p), percent(1 - p))
+    alpha, pf(p), pf(1 - p))
   # The test of not-close fit: a significant result shows the model fits
   # closely (MacCallum, Browne and Sugawara, 1996), the reverse of the
   # other fit tests.
   if (is_sem_fit(spec) && identical(spec$target_test$method, "chi_square_not_close_fit")) chance <- function(p) sprintf(
     "If the model's RMSEA in the population is %s, the chance that a study of this size shows it fits closely (that its RMSEA is below %s: a statistically significant test of not-close fit, using a %s threshold) is %s, and the chance that it fails to show this is %s. If the model fits less well, that chance is lower.",
-    format(spec$population$rmsea), format(spec$population$rmsea_null %||% 0.05), alpha, percent(p), percent(1 - p))
+    format(spec$population$rmsea), format(spec$population$rmsea_null %||% 0.05), alpha, pf(p), pf(1 - p))
   # Factor recovery (E73) and the number of profiles (E58) have no
   # significance test: success is what the simulation counts.
   if (!is.null(success <- no_test_success(spec))) chance <- function(p) sprintf(
     "If the population is as we expect, the chance that a study of this size %s is %s, and the chance that it doesn't is %s.",
-    success, percent(p), percent(1 - p))
+    success, pf(p), pf(1 - p))
   # Small telescopes: the replication is planned for an effect of 0, to
   # show the effect is smaller than the original study could detect.
   if (!is.null(st <- result$small_telescopes)) {
@@ -4184,25 +4261,41 @@ ethics_text <- function(spec, result, fields, values) {
       "the direction of the test: %s."), telescope_original_text(st), effect %||% "as reported", reasoning)
     chance <- function(p) sprintf(
       "If there is no effect, the chance that a study of this size shows the effect is too small for the original study to have detected (a one-sided test using a %s threshold) is %s, and the chance that it fails to show this is %s.",
-      alpha, percent(p), percent(1 - p))
+      alpha, pf(p), pf(1 - p))
   }
   include <- sprintf("We plan to include %s in the analysis%s.", analysed_text(spec, n, groups = FALSE),
     if (grepl(" participants$", analysed_text(spec, n, groups = FALSE))) group_text(spec, n) else "")
   if (is_meta(spec)) {
     include <- sprintf("We plan to include %s studies in the meta-analysis.", whole(n))
+    # What the meta-analysis tests: the average effect, a difference between
+    # kinds of study or a slope across them, or heterogeneity.
+    event <- switch(spec$template,
+      subgroups = c("the kinds of study really differ by that much", "finds the difference", "the difference is smaller"),
+      meta_regression = c("the moderator's slope is really that large", "finds it", "the slope is smaller"),
+      heterogeneity = c("the studies' true effects really vary that much", "finds that they vary", "they vary less"),
+      c("that average effect is real", "finds it", "the real effect is smaller"))
     chance <- function(p) sprintf(
-      "If that average effect is real, the chance that a meta-analysis of this many studies finds it (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If the real effect is smaller, the chance of missing it is higher.",
-      alpha, percent(p), percent(1 - p))
+      "If %s, the chance that a meta-analysis of this many studies %s (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If %s, the chance of missing it is higher.",
+      event[[1]], event[[2]], alpha, pf(p), pf(1 - p), event[[3]])
   }
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf(
     "To allow for about %s who may drop out or be excluded, we will recruit %s.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
   set_by <- if (fixed) "This number is set by the resources available, not chosen by a power analysis."
+  # A claim resting on several tests: the chance above is for this test.
+  k_tests <- claim_tests(values)
+  claim_line <- switch(values$claim %||% "one",
+    all = if (!is.na(k_tests) && !is.null(values$power) && !blank(values$power)) sprintf(
+      "That chance is for this one test. Our claim needs all %s of its tests to succeed, and the plan aims for at least %s chance that they all do.",
+      whole(k_tests), with_article(percent(parse_number(values$power)))) else "That chance is for this one test; our claim needs every one of several tests to succeed.",
+    any = , related = "That chance is for this one test, at its corrected threshold.",
+    each = "That chance is for this one test; each of our tests supports its own claim.",
+    NULL)
   body <- switch(result$goal_type,
-    sample_size = c(include, recruit_line, if (is_bayes_test(spec)) "This number comes from a Bayes factor design analysis." else "This number comes from a power analysis.", basis, chance(spec$goal$power),
-      "With fewer participants the study would be more likely to miss an effect of this size, and its estimate would be less precise. More participants would add precision at the cost of more people's time. This number is our judgement of that balance, and it depends on the effect size assumed above."),
-    power = c(include, recruit_line, set_by, basis, chance(result$curve$power[1])),
+    sample_size = c(include, recruit_line, if (is_bayes_test(spec)) "This number comes from a Bayes factor design analysis." else "This number comes from a power analysis.", target_line, basis, if (is.null(achieved)) chance(spec$goal$power) else { pf <- function(p) sprintf("%.1f%%", 100 * p); chance(achieved) }, claim_line,
+      "With fewer participants the study would be more likely to miss an effect of this size, and its estimate would be less precise. More participants would add precision at the cost of more people's time. [Say how you weighed this balance.] The number depends on the effect size assumed above."),
+    power = c(include, recruit_line, set_by, basis, chance(result$curve$power[1]), claim_line),
     sensitivity = {
       s <- result$sensitivity
       size <- if (is.null(s$cohen_f)) {
