@@ -245,7 +245,7 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   without such a claim (labels and plain explanations) were not each re-read.
   For the maintainer: E75's note that the likelihood-ratio test "stayed near
   5%" for yes/no answers holds for the case it describes (an SD of 1.5), but
-  queue item 31 records that it exceeds 5% for small groups with a rare yes;
+  queue item 30 records that it exceeds 5% for small groups with a rare yes;
   the note stays until that item is decided.
 - [x] Review all result variants, warning visibility, uncertainty, methods,
   technical details and saved-result restoration, including Bayesian routes.
