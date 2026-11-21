@@ -120,3 +120,24 @@ test_that("equivalence: Type I error is at most alpha, and near it with many peo
     expect_gte(power, 0.04, label = template)
   }
 })
+
+# Independent simulation ------------------------------------------------------------
+# The checks above run TOSTER. This one runs the two one-sided t-tests
+# with stats::t.test() on studies drawn as the input screen describes them
+# (n in total, half in each group; the bound in SDs either side of 0).
+
+test_that("equivalence: agrees with two one-sided t-tests on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  cases <- list(
+    list(template = "tost_independent", type = "two", population = list(d = 0.1, bound = 0.4), n = 260, seed = 401),
+    list(template = "tost_paired", type = "one", population = list(dz = -0.05, bound = 0.3), n = 150, seed = 402),
+    list(template = "tost_one_sample", type = "one", population = list(d = 0.15, bound = 0.35), n = 120, seed = 403)
+  )
+  for (case in cases) {
+    spec <- equivalence_spec(case$template, case$population, alpha = 0.05, seed = case$seed, n = case$n)
+    delta <- case$population$d %||% case$population$dz
+    reference <- independent_tost_power(case$type, delta, case$population$bound, case$n,
+      nrep = validation_nrep(), seed = case$seed + 1000)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+})

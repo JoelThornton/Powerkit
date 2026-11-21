@@ -206,3 +206,25 @@ test_that("Mann-Whitney test, heavy-tailed scores: more power than the t-test", 
   t_power <- pwr::pwr.t.test(n = 64, d = 0.5, sig.level = 0.05)$power
   expect_gt(rank, t_power)
 })
+
+# Independent simulation ------------------------------------------------------------
+# The direct calls above pass Spower the shift with its sign reversed, as
+# Spower's p_wilcox.test() expects. These draw the scores as the input
+# screen describes them (the treatment group, or the second measurement,
+# higher by d SDs) and run stats::wilcox.test() one-sided, so a sign
+# passed the wrong way would show.
+
+test_that("Mann-Whitney and signed-rank tests, one-sided: agree with wilcox.test() on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  spec <- rank_validation_spec("independent_t", list(d = 0.4, score_shape = "skewed"), n = 150, seed = 501,
+    alternative = "greater", options = list(allocation_ratio = 2))
+  reference <- independent_wilcox_power(0.4, "skewed", n1 = 50, n2 = 100, alternative = "greater",
+    nrep = validation_nrep(), seed = 1501)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+
+  spec <- rank_validation_spec("paired_t", list(dz = 0.3, score_shape = "heavy_tailed"), n = 50, seed = 502,
+    alternative = "greater")
+  reference <- independent_wilcox_power(0.3, "heavy_tailed", n1 = 50, alternative = "greater",
+    nrep = validation_nrep(), seed = 1502)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+})
