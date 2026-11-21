@@ -3398,6 +3398,22 @@ test_that("an interrupted time series result counts time points and shows the Ty
   expect_null(type1_sentence(list()))
 })
 
+test_that("repeated yes/no answers: the simulated Type I error is a limitation only when it is above alpha", {
+  high <- list(type1 = list(kind = "repeated_yes_no", rarest = 2, rate = 0.07, nrep = 2000, alpha = 0.05,
+    mcse = sqrt(0.07 * 0.93 / 2000)))
+  expect_null(type1_sentence(high))
+  words <- repeated_yes_no_type1_note(high)
+  expect_match(words, "this test was significant in 7.0% of studies this size", fixed = TRUE)
+  expect_match(words, "about 2.0 of the rarer answer in the rarest cell", fixed = TRUE)
+  expect_match(words, "More answers from each person in each condition", fixed = TRUE)
+  near <- high
+  near$type1$rate <- 0.052
+  expect_null(repeated_yes_no_type1_note(near))
+  # Among the analysis's limitations, so the write-up and planning document carry it.
+  spec <- list(template = "repeated_glmm", design = "mixed_model")
+  expect_true(words %in% planning_warning_notes(spec, high))
+})
+
 test_that("a safeguard-power result names the effect the calculation used, with the entered one in brackets", {
   result <- list(goal_type = "sample_size", safeguard = list(effect_name = "Cohen's d", estimate = 0.45, lower = 0.258, conf_level = 0.6, protection = 0.8, n1 = 40, n2 = 40))
   text <- safeguard_wording(c(headline = "You need 634 participants in total for 90% power to detect the effect you entered.",

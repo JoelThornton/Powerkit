@@ -360,6 +360,46 @@ repeated_glmm_backend <- function(spec, seed = NULL) {
   )
 }
 
+# Yes/no answers that are rare (or nearly always yes): the likelihood-
+# ratio test of the mixed model then finds a difference that isn't there
+# more often than alpha, by more the rarer the answer is for each person
+# and the fewer of it there are in a cell (about 7% to 9% with a 2% chance
+# of yes and two answers per condition, even at 100 people a group;
+# validation-log.md, 21 November 2026, "Repeated yes/no answers: where the
+# excess starts"). No simple rule on the inputs marks where it starts, so
+# every yes/no run also simulates the test with no difference at the
+# planned sample size (repeated_glmm_type1()), and the result warns when
+# that rate is above alpha. The expected number of the rarer answer in
+# the rarest cell, for a typical person (the people in a cell times their
+# answers in it times the smaller of p and 1 - p), is recorded with it.
+repeated_glmm_rarest <- function(inputs, n) {
+  p <- stats::plogis(inputs$centre)
+  people <- if (inputs$interaction) n / length(inputs$groups) else if (inputs$between) n / length(inputs$levels) else n
+  people * inputs$measurements * min(p, 1 - p)
+}
+
+# The Type I error at the planned sample size, for a yes/no outcome: the
+# same model with the tested coefficients set to 0 (no group-by-condition
+# interaction, the groups and conditions differing as given in the first
+# condition and first group; or, without groups, every condition as the
+# first), as many studies as the power used, under the run's seed, tested
+# as the power is (a study whose fit fails counts as not significant, as
+# for the power). The record is the one interrupted time series report
+# (its_type1()).
+repeated_glmm_type1 <- function(spec, n, nrep, seed, cores = 1L) {
+  if (!identical(spec$template, "repeated_glmm") || is.null(n) || is.na(n)) return(NULL)
+  inputs <- repeated_glmm_inputs(spec)
+  if (!inputs$binary || inputs$cochran) return(NULL)
+  rarest <- repeated_glmm_rarest(inputs, n)
+  tested <- if (inputs$interaction) grepl(":", inputs$fixef_names, fixed = TRUE) else startsWith(inputs$fixef_names, "cond")
+  inputs$fixef[tested] <- 0
+  inputs$test <- simr::fixed(inputs$term, inputs$simr_method)
+  counts <- simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) simr_rejections(inputs, n, chunk, chunk_seed))
+  rate <- counts$rejections / counts$nrep
+  list(n = n, alpha = inputs$alpha, rate = rate, mcse = sqrt(rate * (1 - rate) / counts$nrep), nrep = counts$nrep,
+    method = inputs$method, kind = "repeated_yes_no", rarest = rarest)
+}
+
 # Check run: one large data set (2,000 people) drawn as the simulation
 # draws them and refitted: each condition's log rate ratio (or log odds
 # ratio) with the first within 5 of its standard errors; the SD of the

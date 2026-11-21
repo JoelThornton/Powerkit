@@ -431,3 +431,43 @@ test_that("Cochran's Q: the exported script reproduces the run", {
   output <- utils::capture.output(sys.source(file, envir = new.env()))
   expect_true(any(grepl("Reproduced powerkit's result", output, fixed = TRUE)))
 })
+
+test_that("a yes/no answer: the run also simulates the test with no difference, recording the rarest cell", {
+  spec <- interaction_spec("yes_no", n = 40L, nrep = 40L)
+  # 20 people a group, two answers each in each condition, the rarest cell
+  # a 35% chance of yes: 20 x 2 x 0.35 = 14 of the rarer answer.
+  expect_equal(repeated_glmm_rarest(repeated_glmm_inputs(spec), 40L), 14)
+  spec$population$probabilities <- list(list(0.05, 0.05), list(0.05, 0.1))
+  expect_equal(repeated_glmm_rarest(repeated_glmm_inputs(spec), 40L), 2)
+  t1 <- suppressWarnings(repeated_glmm_type1(spec, 40L, 40L, 1L))
+  expect_equal(t1$kind, "repeated_yes_no")
+  expect_equal(t1$nrep, 40)
+  expect_equal(t1$rarest, 2)
+  expect_gte(t1$rate, 0)
+  expect_lte(t1$rate, 1)
+  # A near-certain answer is counted from its rarer side; a count has no record.
+  spec$population$probabilities <- list(list(0.95, 0.95), list(0.95, 0.9))
+  expect_equal(repeated_glmm_rarest(repeated_glmm_inputs(spec), 40L), 2)
+  expect_null(repeated_glmm_type1(interaction_spec(), 40L, 40L, 1L))
+})
+
+test_that("a yes/no answer: the null model keeps the groups and conditions and drops only the tested terms", {
+  spec <- interaction_spec("yes_no")
+  spec$population$probabilities <- list(list(0.05, 0.08), list(0.06, 0.2))
+  inputs <- repeated_glmm_inputs(spec)
+  captured <- NULL
+  local_mocked_bindings(simr_rejections = function(inputs, n, nrep, seed) {
+    captured <<- inputs
+    c(1, nrep, nrep, nrep)
+  })
+  t1 <- repeated_glmm_type1(spec, 40L, 20L, 1L)
+  tested <- grepl(":", captured$fixef_names, fixed = TRUE)
+  expect_equal(captured$fixef[tested], 0)
+  expect_equal(captured$fixef[!tested], inputs$fixef[!tested])
+  expect_equal(t1$rate, 1 / 20)
+  # Without groups, every condition as the first.
+  within <- glmm_spec("yes_no", values = c(0.04, 0.1), measurements = 2L, n = 30L)
+  repeated_glmm_type1(within, 30L, 20L, 1L)
+  expect_equal(captured$fixef[-1], 0)
+  expect_equal(captured$fixef[1], stats::qlogis(0.04))
+})
