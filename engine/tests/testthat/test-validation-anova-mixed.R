@@ -5,6 +5,7 @@
 #   2. published examples (placeholders for the maintainer)
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
+#   5. agreement with studies simulated separately in base R (aov())
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -118,4 +119,22 @@ test_that("mixed 2 x 3: Type I error for the interaction is near alpha (simulati
   means <- matrix(c(0, 0.3, 0.5, 0.4, 0.7, 0.9), nrow = 2, byrow = TRUE)
   spec <- larger_mixed_spec(means, sd = 1, r = 0.8, n = 60, effect = "interaction", seed = 401, method = "simulation")
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+
+# 5. Independent simulation ---------------------------------------------------------
+# The checks above all run Superpower. This one draws each group's scores
+# in base R (n is the total, split equally between the groups) and runs
+# aov() with an Error stratum for participants, for each effect.
+
+test_that("mixed 2 x 3: each effect agrees with aov() on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  means <- rbind(c(0, 0.3, 0.5), c(0, 0.1, 0.1))
+  effects <- c(main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+  for (i in seq_along(effects)) {
+    spec <- larger_mixed_spec(means, sd = 1, r = 0.6, effect = names(effects)[i], n = 60, seed = 500 + i)
+    reference <- independent_rm_anova_power(means, 1, 0.6, 60, term = effects[[i]],
+      nrep = validation_nrep(), seed = 1500 + i)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
 })

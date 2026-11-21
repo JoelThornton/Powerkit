@@ -5,6 +5,7 @@
 #   2. published examples: the InteractionPoweR tutorial (AMPPS)
 #   3. direct-call agreement with InteractionPoweR::power_interaction()
 #   4. Type I error
+#   5. agreement with studies simulated separately in base R (lm())
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -185,4 +186,27 @@ test_that("interaction with unreliable measures: Type I error is near alpha", {
   skip_unless_full_validation()
   spec <- interaction_spec(0.3, 0.2, 0, 0.3, n = 300, seed = 402, rel_x = 0.7, rel_w = 0.7)
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+# 5. Independent simulation ---------------------------------------------------------
+# The checks above all run InteractionPoweR. This one builds the studies
+# in base R from the correlations and reliabilities as the input screen
+# describes them (between true scores, each observed score carrying its
+# own error) and tests the product term with lm(): it checks what the
+# inputs mean, not only that they reach the package.
+
+test_that("interaction: agrees with lm() on studies simulated separately, perfectly and imperfectly measured (simulation)", {
+  skip_unless_full_validation()
+  cases <- list(
+    list(r = c(0.2, 0.2, 0.15, 0.3), n = 300, rel = c(1, 1, 1), seed = 501),
+    list(r = c(0.3, 0.1, -0.15, 0.3), n = 400, rel = c(0.8, 0.7, 0.9), seed = 502)
+  )
+  for (case in cases) {
+    spec <- interaction_spec(case$r[1], case$r[2], case$r[3], case$r[4], n = case$n, seed = case$seed,
+      rel_x = case$rel[1], rel_w = case$rel[2], rel_y = case$rel[3])
+    reference <- independent_interaction_power(case$n, case$r[1], case$r[2], case$r[3], case$r[4],
+      rel_x = case$rel[1], rel_w = case$rel[2], rel_y = case$rel[3],
+      nrep = validation_nrep(), seed = case$seed + 1000)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
 })

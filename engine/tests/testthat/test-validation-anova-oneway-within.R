@@ -5,6 +5,7 @@
 #   2. published examples (placeholders for the maintainer)
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
+#   5. agreement with studies simulated separately in base R (aov())
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -111,4 +112,24 @@ test_that("one-way within: Type I error is near alpha at a high correlation (sim
   # within-participant error term.
   spec <- within_spec(c(5, 5, 5, 5), sd = 2, r = 0.9, n = 30, seed = 401, method = "simulation")
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+
+# 5. Independent simulation ---------------------------------------------------------
+# The checks above all run Superpower. This one draws each participant's
+# scores in base R (equal SDs, the same correlation between every pair of
+# conditions) and runs aov() with an Error stratum for participants.
+
+test_that("one-way within: agrees with aov() on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  cases <- list(
+    list(means = c(0, 0.25, 0.4), sd = 1, r = 0.5, n = 30, seed = 501),
+    list(means = c(10, 11, 11, 13), sd = 5, r = 0.2, n = 40, seed = 502)
+  )
+  for (case in cases) {
+    spec <- within_spec(case$means, sd = case$sd, r = case$r, n = case$n, seed = case$seed)
+    reference <- independent_rm_anova_power(case$means, case$sd, case$r, case$n, term = "B",
+      nrep = validation_nrep(), seed = case$seed + 1000)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
 })
