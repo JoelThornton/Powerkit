@@ -183,9 +183,13 @@ November 2026).
    empirical Bayes prior and tau = 0.1), and their root's tolerance can
    put the size a few people above the smallest that meets the power
    (26,086 against 26,074 for `ssdBFr()` in one case). powerkit now
-   searches whole totals with the `pors*()` chances. Would the package
-   accept a search over integer sample sizes, or a warning when the
-   chance is not monotone?
+   searches whole totals with the `pors*()` chances. `porsBFs()` also
+   stops with an error (in `successRegion()`) for very small
+   replications, 4 to 35 people for a correlation of 0.31 with standard
+   error 0.11, where the sceptical Bayes factor has no success region;
+   powerkit counts such a size as not meeting the goal. Would the package
+   accept a search over integer sample sizes, a warning when the chance
+   is not monotone, and a chance of 0 where there is no success region?
 
 ## metapower
 

@@ -569,7 +569,12 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       call = sprintf("porsEqu(level = %s, margin = %s)", format(2 * alpha), format(signif(margin, 4)))),
     bf_replication = list(pors = function(dp, sr) BayesRepDesign::porsBFr(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
       call = sprintf("porsBFr(level = 1/%s, paradox = FALSE)", format(threshold))),
-    bf_sceptical = list(pors = function(dp, sr) BayesRepDesign::porsBFs(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
+    # porsBFs() stops with an error where the sceptical Bayes factor has no
+    # success region (a very small replication of a weak original): that
+    # total doesn't meet the goal (upstream-questions.md, BayesRepDesign
+    # question 3), so it is asked one standard error at a time.
+    bf_sceptical = list(pors = function(dp, sr) vapply(sr, function(one) tryCatch(BayesRepDesign::porsBFs(level = bf_level,
+        dprior = dp, sr = one, paradox = FALSE), error = function(e) NA_real_), numeric(1)),
       call = sprintf("porsBFs(level = 1/%s, paradox = FALSE)", format(threshold)))
   )
   rules <- Filter(Negate(is.null), rules)
@@ -961,7 +966,7 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     "  shrunk = designPrior(to = to, so = so, tau = tau, type = \"EB\")",
     ")",
     "",
-    replication_search_lines(sprintf("totals <- 3:%s  # every replication size searched", top), pooled = uses("pooled")))
+    replication_search_lines(sprintf("totals <- 3:%s  # every replication size searched", top), pooled = uses("pooled"), sceptical = uses("bf_sceptical")))
   if (!is.null(focus)) {
     return(paste(c(head, replication_focused_lines(plan, focus, num, margin)), collapse = "\n"))
   }
@@ -974,7 +979,7 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
 # A script's search over whole totals, as replication_planning() searches:
 # `totals` every replication size it can have, and met_from() the smallest
 # total from which every larger one meets the goal.
-replication_search_lines <- function(totals_line, pooled = TRUE) {
+replication_search_lines <- function(totals_line, pooled = TRUE, sceptical = TRUE) {
   c(totals_line,
     "# The smallest total from which every larger one in `totals` meets the goal: NA when the largest doesn't,",
     "# or when every total does. Its chance is checked at every total up to 1,000 and on a 400-point grid",
@@ -995,7 +1000,11 @@ replication_search_lines <- function(totals_line, pooled = TRUE) {
     "  hi",
     "}",
     if (pooled) c("# porsMeta() one standard error at a time: for an estimate below zero it mishandles several at once",
-      "pooled_chance <- function(dp, sr) vapply(sr, function(s) porsMeta(level = level^2, dprior = dp, sr = s), numeric(1))"))
+      "pooled_chance <- function(dp, sr) vapply(sr, function(s) porsMeta(level = level^2, dprior = dp, sr = s), numeric(1))"),
+    if (sceptical) c("# porsBFs() one standard error at a time: it stops with an error where a very small replication",
+      "# leaves the sceptical Bayes factor no success region, which counts as not meeting the goal",
+      "sceptical_chance <- function(dp, sr, level) vapply(sr, function(s) tryCatch(porsBFs(level = level, dprior = dp, sr = s,",
+      "  paradox = FALSE), error = function(e) NA_real_), numeric(1))"))
 }
 
 # A script's table: each goal's sample size under each belief, and the
@@ -1007,12 +1016,12 @@ replication_table_lines <- function(thr, margin) {
     "  pooled = met_from(function(sr) pooled_chance(dp, sr)),",
     if (!is.null(margin)) "  agreement = met_from(function(sr) porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)),",
     sprintf("  bf_replication = met_from(function(sr) porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)),", thr),
-    sprintf("  bf_sceptical = met_from(function(sr) porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE))", thr),
+    sprintf("  bf_sceptical = met_from(function(sr) sceptical_chance(dp, sr, 1/%s))", thr),
     "))",
     if (!is.null(margin)) c("",
       "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
-      "at_zero <- designPrior(to = 0, so = so, type = \"conditional\")",
-      "met_from(function(sr) porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr))"))
+      "met_from(function(sr) porsTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"),",
+      "  margin = margin, sr = sr))"))
 }
 
 replication_level_line <- function(i) {
@@ -1056,7 +1065,7 @@ replication_focused_lines <- function(plan, focus, num, margin, telescope_lines 
     pooled = "n <- met_from(function(sr) pooled_chance(dp, sr))",
     agreement = "n <- met_from(function(sr) porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr))",
     bf_replication = sprintf("n <- met_from(function(sr) porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE))", thr),
-    bf_sceptical = sprintf("n <- met_from(function(sr) porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE))", thr),
+    bf_sceptical = sprintf("n <- met_from(function(sr) sceptical_chance(dp, sr, 1/%s))", thr),
     negligible = "n <- met_from(function(sr) porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr))",
     small_telescopes = telescope_search,
     bf_repeat = sprintf("n <- bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr),
@@ -1066,7 +1075,7 @@ replication_focused_lines <- function(plan, focus, num, margin, telescope_lines 
     pooled = "pooled_chance(dp, sr)",
     agreement = "porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)",
     bf_replication = sprintf("porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
-    bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
+    bf_sceptical = sprintf("sceptical_chance(dp, sr, 1/%s)", thr),
     negligible = "porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)",
     small_telescopes = "telescope_power(n)",
     bf_repeat = if (isTRUE(bf$uneven)) sprintf("bf_chance(n, k = 1/%s, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr) else
@@ -1293,7 +1302,7 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
         else if (two) sprintf("totals <- seq(4, %s, by = 2)  # every replication size searched: two equal groups", top)
         else if (correlation) sprintf("totals <- 4:%s  # every replication size searched", top)
         else sprintf("totals <- 3:%s  # every replication size searched", top),
-        pooled = uses("pooled"))))
+        pooled = uses("pooled"), sceptical = uses("bf_sceptical"))))
   telescope_lines <- c(
     sprintf("yardstick <- sign(%s) * %s", num(i$original_effect), telescope_call),
     sprintf("telescope_power <- function(n) %s", telescope_power))
