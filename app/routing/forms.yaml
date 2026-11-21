@@ -999,7 +999,7 @@ forms:
              choices: {rows_fixed: "Independent multinomial, rows fixed: the number in each category of the first variable is set in advance", columns_fixed: "Independent multinomial, columns fixed: the number in each category of the second variable is set in advance",
                        joint_multinomial: "Joint multinomial: only the total is set in advance", poisson: "Poisson: not even the total is set in advance"},
              default: rows_fixed, default_source: "JASP's Bayesian contingency tables ('Indep. multinomial, rows fixed')",
-             help: "The sampling plan you will choose when you analyse the data in JASP. Powerkit always simulates studies of the total you enter."}
+             help: "The sampling plan you will choose when you analyse the data in JASP, and how the data are collected. With the rows (or columns) fixed, powerkit simulates studies whose group sizes are set in advance: each row's (or column's) share of the table above, times the total, in whole people. Otherwise each simulated study has the total you enter, divided among the cells by chance."}
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
              default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1) and BayesFactor's contingencyTableBF()",

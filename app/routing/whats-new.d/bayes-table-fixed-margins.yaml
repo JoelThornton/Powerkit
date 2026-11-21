@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-21"
+    title: Bayes factor tables simulate the group sizes you set
+    text: >
+      On the categories card, a Bayes factor plan with the rows (or columns)
+      set in advance now simulates studies whose group sizes are fixed at
+      those numbers. It had let the group sizes vary by chance, which gave
+      too little power: with 15 people in each of two groups and rates of 70%
+      and 30%, the chance of a Bayes factor of at least 10 is 43%, where it
+      had said 36%. Plans with only the total set, or none, are unchanged.

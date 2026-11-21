@@ -769,7 +769,7 @@ the yes/no mediator card.
 | G\*Power | No Bayes factor tests | — | — |
 | JASP (Bayesian contingency tables; analysis only, no planning) | Independence in an r x c table, by BayesFactor's `contingencyTableBF()` | — | "Indep. multinomial, rows fixed" and prior concentration 1 by default; Poisson, joint multinomial and columns fixed offered for any table, hypergeometric for 2 x 2 only |
 | BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
-| **powerkit** | `contingencyTableBF()` with the sampling plan chosen, JASP's by default; each simulated study's table drawn from the cell probabilities with the total n (multinomial), simulated with Spower (E6, from 2 November 2026) [powerkit] | The proportion in each cell | Rows fixed and prior concentration 1 by default, JASP's; the hypergeometric plan not offered. The no-association side simulated with the same number of studies. Not a departure |
+| **powerkit** | `contingencyTableBF()` with the sampling plan chosen, JASP's by default; each simulated study's table drawn as the plan collects it: with the rows (or columns) fixed, each at its share of n (whole people, by largest remainder) from its conditional probabilities (from 21 November 2026); otherwise from the cell probabilities with the total n (multinomial). Simulated with Spower (E6, from 2 November 2026) [powerkit] | The proportion in each cell | Rows fixed and prior concentration 1 by default, JASP's; the hypergeometric plan not offered. The no-association side simulated with the same number of studies. Not a departure |
 
 ## Bayes factor one-way ANOVA (E18)
 

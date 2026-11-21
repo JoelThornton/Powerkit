@@ -45,19 +45,41 @@ all_tables <- function(n, cells) {
   do.call(rbind, lapply(0:n, function(x) cbind(x, all_tables(n - x, cells - 1))))
 }
 
-# The exact chances, from every table: BF10 at least the threshold, and
-# BF01 at least the threshold.
+# The exact chances, from every table the sampling plan can produce: BF10
+# at least the threshold, and BF01 at least the threshold. With a margin
+# fixed, its totals are the table's shares of n (largest remainder, as the
+# engine sets them) and each table's probability is the product of its
+# rows' (or columns') multinomial probabilities; otherwise every table of
+# n people, with its multinomial probability.
 exact_table_chances <- function(n, probs, threshold, sample_type = "indepMulti", margin = "rows") {
-  tables <- all_tables(n, length(probs))
-  cell_p <- as.vector(t(probs))
+  null_probs <- outer(rowSums(probs), colSums(probs))
+  if (is.null(margin)) {
+    tables <- all_tables(n, length(probs))
+    as_matrix <- function(x) matrix(x, nrow(probs), byrow = TRUE)
+    weight <- function(p) apply(tables, 1, function(x) stats::dmultinom(x, prob = as.vector(t(p))))
+  } else {
+    by_rows <- identical(margin, "rows")
+    m <- if (by_rows) probs else t(probs)
+    totals <- engine_function("bftable_margin_totals")(n, rowSums(m))
+    parts <- lapply(seq_len(nrow(m)), function(i) all_tables(totals[i], ncol(m)))
+    index <- as.matrix(expand.grid(lapply(parts, function(x) seq_len(nrow(x)))))
+    tables <- t(apply(index, 1, function(k) unlist(lapply(seq_along(k), function(i) parts[[i]][k[i], ]))))
+    as_matrix <- function(x) { t_m <- matrix(x, nrow(m), byrow = TRUE); if (by_rows) t_m else t(t_m) }
+    weight <- function(p) {
+      pm <- if (by_rows) p else t(p)
+      apply(tables, 1, function(x) {
+        t_m <- matrix(x, nrow(pm), byrow = TRUE)
+        prod(vapply(seq_len(nrow(pm)), function(i) stats::dmultinom(t_m[i, ], prob = pm[i, ]), numeric(1)))
+      })
+    }
+  }
   log_bf <- apply(tables, 1, function(x) {
-    args <- list(matrix(x, nrow(probs), byrow = TRUE), sampleType = sample_type, priorConcentration = 1)
+    args <- list(as_matrix(x), sampleType = sample_type, priorConcentration = 1)
     if (!is.null(margin)) args$fixedMargin <- margin
     BayesFactor::extractBF(do.call(BayesFactor::contingencyTableBF, args), logbf = TRUE)$bf
   })
-  weight <- function(p) apply(tables, 1, function(x) stats::dmultinom(x, prob = p))
-  w_alt <- weight(cell_p)
-  w_null <- weight(as.vector(t(outer(rowSums(probs), colSums(probs)))))
+  w_alt <- weight(probs)
+  w_null <- weight(null_probs)
   list(
     power = sum(w_alt[log_bf >= log(threshold)]),
     for_null = sum(w_null[log_bf <= -log(threshold)]),
@@ -83,4 +105,17 @@ test_that("a 2 x 2 table, rows fixed (JASP's default): agrees with the exact pow
 test_that("a 3 x 2 table, joint multinomial, threshold 10: agrees with the exact power over every table (simulation)", {
   skip_unless_full_validation()
   check_table_case(20, matrix(c(0.30, 0.03, 0.17, 0.17, 0.03, 0.30), 3, byrow = TRUE), 10, "joint_multinomial", "jointMulti", NULL)
+})
+
+test_that("a 2 x 2 table, rows fixed at 15 and 15, threshold 10: agrees with the exact power over every table (simulation)", {
+  skip_unless_full_validation()
+  # The design analysis's own example: two groups of 15 recruited in
+  # advance, rates .70 and .30. With the group sizes left to chance the
+  # simulation gave 36.0%; with them fixed, as the plan says, 43.2%.
+  check_table_case(30, matrix(c(0.35, 0.15, 0.15, 0.35), 2, byrow = TRUE), 10, "rows_fixed", "indepMulti", "rows")
+})
+
+test_that("a 3 x 2 table, columns fixed with unequal shares: agrees with the exact power over every table (simulation)", {
+  skip_unless_full_validation()
+  check_table_case(14, matrix(c(0.25, 0.05, 0.10, 0.15, 0.05, 0.40), 3, byrow = TRUE), 3, "columns_fixed", "indepMulti", "cols")
 })
