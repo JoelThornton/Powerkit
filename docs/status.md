@@ -172,6 +172,15 @@ each area, is at the end of
   testers (`next.md` item 22). The result's evidence panel is headed
   "Evidence for this analysis method", since its records match the method
   and options, not the sample size, effect or alpha entered.
+  The finder's answers set the input screen they settle (outcome type,
+  who is in which condition; `finder_form_values()` in `route-fit.R`),
+  and a yes/no-or-categories answer on trials, in groups or measured
+  twice is asked how many categories it has before a card is offered;
+  three or more reach the safety net with a note on what Powerkit can't
+  plan (21 November 2026, from the finder audit of that day). Still to
+  do from that audit: the repeated-measurement and measured-once branches
+  (one trajectory or a difference in slopes, mediation over time,
+  adjusted or unadjusted, joint or separate outcomes).
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;

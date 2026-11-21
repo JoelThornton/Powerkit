@@ -90,3 +90,81 @@ test_that("the safety net offers search and the methods map", {
   expect_match(ui, "route:known", fixed = TRUE)
   expect_match(ui, "safety_open_map", fixed = TRUE)
 })
+
+# The finder keeps what the researcher told it (finder audit, 21 November
+# 2026): the answers set the input screen, a fact a card can't take is
+# asked before a card is called a fit, and a part of the study no card
+# plans is named.
+
+test_that("the finder's outcome and assignment answers set the input screen", {
+  expect_identical(finder_form_values(forms, "E33", list(outcome = "yesno", assignment = "between")),
+    list(outcome_type = "binary", crossed_participants = "between_factor"))
+  expect_identical(finder_form_values(forms, "E33", list(outcome = "score", assignment = "within")),
+    list(outcome_type = "continuous", crossed_participants = "within_factor"))
+  expect_identical(finder_form_values(forms, "E63", list(outcome = "yesno", assignment = "between"))$crossed_participants, "between_factor")
+  expect_identical(finder_form_values(forms, "E75", list(outcome = "ordinal", times = "twice")), list(glmm_outcome = "categorical"))
+  expect_identical(finder_form_values(forms, "E75", list(outcome = "count", assignment = "between")),
+    list(glmm_outcome = "count", glmm_people = "between_factor"))
+  expect_identical(finder_form_values(forms, "E34", list(outcome = "yesno")), list(outcome_type = "proportion"))
+  expect_identical(finder_form_values(forms, "E62", list(outcome = "yesno"))$two_outcome, "binary")
+  # An answer a card has no choice for sets nothing.
+  expect_identical(finder_form_values(forms, "E34", list(outcome = "count")), list())
+  expect_identical(finder_form_values(forms, "E2", list(outcome = "score")), list())
+  # Every fill names a field the card has and a value among its choices.
+  for (key in names(finder_form_fills)) for (ep in names(finder_form_fills[[key]])) {
+    fill <- finder_form_fills[[key]][[ep]]
+    field <- Filter(function(f) identical(f$id, fill$field), form_fields(form_groups(forms, ep)))
+    expect_length(field, 1)
+    expect_true(all(fill$values %in% names(field[[1]]$choices)), label = paste(key, ep))
+  }
+})
+
+test_that("the input screen opened from the finder says which answers it set", {
+  note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary", crossed_participants = "between_factor")))
+  expect_match(note, "Set from your answers", fixed = TRUE)
+  expect_match(note, "On each trial, the outcome is", fixed = TRUE)
+  # A value changed since (a test version, say) isn't claimed.
+  note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary"), list(outcome_type = "continuous")))
+  expect_identical(note, character(0))
+})
+
+test_that("a yes/no outcome on trials, in groups or answered twice is asked how many categories", {
+  yn <- "Yes/no, or one of several categories"
+  expect_identical(follow_answers(tree, c(yn, "Many trials or stimuli per person")), "s2_trials_cat")
+  expect_identical(follow_answers(tree, c(yn, "Independent people", "Twice", "A difference between groups or conditions")), "q3_cat_twice")
+  expect_identical(follow_answers(tree, c(yn, "People within groups")), "c_cat")
+  for (path in list(c(yn, "Many trials or stimuli per person", "One of three or more categories"),
+                    c(yn, "Independent people", "Twice", "A difference between groups or conditions", "Three or more"),
+                    c(yn, "People within groups", "One of three or more categories"))) {
+    f <- follow_with_context(tree, path)
+    expect_identical(f$id, "E-unsure", label = paste(path, collapse = " > "))
+    msg <- route_fit_messages(tree, f$id, f$ctx)
+    expect_length(msg, 1)
+    expect_identical(msg, tree$finder_gaps[[f$ctx$gap]])
+  }
+  expect_match(tree$finder_gaps$paired_categories, "Stuart-Maxwell", fixed = TRUE)
+  expect_match(tree$finder_gaps$paired_categories, "Bowker", fixed = TRUE)
+  # A count in groups is asked what the hypothesis involves, and the card
+  # says it takes a score or yes/no.
+  f <- follow_with_context(tree, c("A count", "People within groups", "A condition or treatment given to groups, or within groups",
+    "No: one level of groups (for example, classes, or clinics)"))
+  expect_identical(f$id, "E34")
+  expect_match(route_fit_messages(tree, "E34", f$ctx), "You said your outcome is a count", fixed = TRUE)
+  expect_match(route_fit_messages(tree, "E62", list(outcome = "count")), "You said your outcome is a count", fixed = TRUE)
+})
+
+test_that("the app opens the input screen set to the finder's answers", {
+  shiny::testServer(routing_dir, {
+    session$setInputs(pick = "route:choose")
+    session$setInputs(pick = "aim:predict")
+    for (label in c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Yes or no (two categories)",
+                    "Two conditions, and each person is in one of them")) {
+      opts <- visible_options(tree, tree$nodes[[state$node]], state$ctx)
+      session$setInputs(pick = paste0("opt:", which(vapply(opts, function(o) identical(o$label, label), logical(1)))))
+    }
+    expect_identical(state$endpoint, "E33")
+    session$setInputs(pick = "form")
+    expect_identical(state$form_values$outcome_type, "binary")
+    expect_identical(state$form_values$crossed_participants, "between_factor")
+  })
+})
