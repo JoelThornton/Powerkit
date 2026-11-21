@@ -1,3 +1,9 @@
+# powerkit 0.81.4
+
+* Whole-study simulation: tests that fully within-people experiments
+  (`oneway_within` with three conditions, `factorial_within`) give each
+  F test's exact power; the app's study plan now offers them.
+
 # powerkit 0.81.3
 
 * No engine change. The app's results screen was reworded (queue item 27):
