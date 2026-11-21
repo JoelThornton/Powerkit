@@ -302,7 +302,7 @@ each area, is at the end of
   analysis the engine can calculate is rerun at the largest separate requirement, its power shown, and
   N stepped up to the first value meeting every target (an analysis that can't be rerun leaves the N an
   unchecked candidate), and a replication plan's agreement criterion has a third, inconclusive outcome
-  (Lakens, 2017). Still to fix from the same audit: `next.md` item 28. "Plan my whole study" makes or fills a study
+  (Lakens, 2017). That audit's findings are all fixed. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
   the guided screens from the plan's page. A plan's significance level
