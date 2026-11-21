@@ -338,6 +338,21 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
   expect_true(any(grepl("ANOVA_exact2", departures_for(forms, "E8", light_spec("E8")))))
 })
 
+test_that("one proportion: Departure 36 shows for the z test only, and the companion is offered for both versions", {
+  e25 <- light_spec("E25")
+  expect_false(any(grepl("prop.test()", departures_for(forms, "E25", e25), fixed = TRUE)))
+  for (method in c("z_test", "z_test_corrected")) {
+    e25$target_test$method <- method
+    expect_true(any(grepl("prop.test()", departures_for(forms, "E25", e25), fixed = TRUE)), info = method)
+    expect_true(bayes_companion_applies(tree, "E25", e25, list(goal_type = "sample_size")), info = method)
+    expect_identical(companion_freq_name(e25), "z test of one proportion")
+  }
+  # The corrected z test of two proportions still has no companion.
+  e5 <- light_spec("E5")
+  e5$target_test$method <- "z_test_corrected"
+  expect_false(isTRUE(bayes_companion_applies(tree, "E5", e5, list(goal_type = "sample_size"))))
+})
+
 test_that("clustered yes/no outcomes show Known difference 16 (powertools' factor 1.2), scores and group treatment don't", {
   spec <- function(template, metric, method = "logistic_mixed") list(template = template, population = list(metric = metric), target_test = list(method = method))
   for (tpl in c("cluster_randomised", "multisite")) {
@@ -3396,6 +3411,22 @@ test_that("an interrupted time series result counts time points and shows the Ty
   expect_no_match(words[["headline"]], "participants", fixed = TRUE)
   expect_match(type1_sentence(result), "With no real change, this analysis would still find a significant one", fixed = TRUE)
   expect_null(type1_sentence(list()))
+})
+
+test_that("repeated yes/no answers: the simulated Type I error is a limitation only when it is above alpha", {
+  high <- list(type1 = list(kind = "repeated_yes_no", rarest = 2, rate = 0.07, nrep = 2000, alpha = 0.05,
+    mcse = sqrt(0.07 * 0.93 / 2000)))
+  expect_null(type1_sentence(high))
+  words <- repeated_yes_no_type1_note(high)
+  expect_match(words, "this test was significant in 7.0% of studies this size", fixed = TRUE)
+  expect_match(words, "about 2.0 of the rarer answer in the rarest cell", fixed = TRUE)
+  expect_match(words, "More answers from each person in each condition", fixed = TRUE)
+  near <- high
+  near$type1$rate <- 0.052
+  expect_null(repeated_yes_no_type1_note(near))
+  # Among the analysis's limitations, so the write-up and planning document carry it.
+  spec <- list(template = "repeated_glmm", design = "mixed_model")
+  expect_true(words %in% planning_warning_notes(spec, high))
 })
 
 test_that("a safeguard-power result names the effect the calculation used, with the entered one in brackets", {

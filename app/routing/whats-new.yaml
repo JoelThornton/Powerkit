@@ -8,6 +8,28 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: "Plan a Bayes factor t-test with an informed prior"
+    text: "The Bayes factor versions of the one-sample, paired and two-group t-tests now take an informed prior: give its centre and, if you like, its degrees of freedom beside its scale. Powerkit works out the chance of strong evidence exactly, with no simulation, because the package it uses gives wrong answers for informed priors in small samples. Leave the new boxes empty for the default prior centred on no effect."
+  - date: "2026-11-21"
+    title: The z test of one proportion
+    text: >
+      Comparing one proportion with a fixed value now offers the z test
+      (R's prop.test(), with or without the continuity correction) beside
+      the exact binomial tests. Its power is worked out exactly from every
+      possible count rather than approximated, so it can differ from pwrss
+      and the textbook formula by a few percentage points: for 20% against
+      10% at 80% power, 78 people rather than 86 without the correction,
+      and 89 rather than 96 with it. The result says so.
+  - date: "2026-11-21"
+    title: "Repeated yes/no answers: a warning when the test finds too many false differences"
+    text: >-
+      When the same people answer yes or no several times (the card for the same people
+      measured more than once), Powerkit now also checks how often the test would find a
+      difference that isn't there, at your sample size. When one answer is rare, this test
+      can find one in 7% to 9% of studies instead of 5%. If it does in your design, the result,
+      the write-up and the planning document say so, with the rate, and suggest more answers
+      from each person.
+  - date: "2026-11-21"
     title: Replication plan tables fit a phone screen
     text: >
       On a narrow screen the replication planner's result tables now wrap

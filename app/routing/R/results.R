@@ -552,6 +552,9 @@ observation_units <- function(text, spec) {
 type1_sentence <- function(result) {
   t1 <- result$type1
   if (is.null(t1)) return(NULL)
+  # Repeated yes/no answers (E75) are a planning warning instead
+  # (repeated_yes_no_type1_note()).
+  if (identical(t1$kind, "repeated_yes_no")) return(NULL)
   sprintf(paste("With no real change, this analysis would still find a significant one in %s of series this long",
     "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points). %s"),
     percent(t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
@@ -560,6 +563,22 @@ type1_sentence <- function(result) {
     } else {
       "That is close to alpha, as it should be."
     })
+}
+
+# Repeated yes/no answers (E75): the engine simulates the test with no
+# difference at the planned size (repeated_glmm_type1()). When it rejects
+# clearly more often than alpha, which happens when one answer is rare
+# (validation-log.md, 21 November 2026), the result, the write-up and the
+# planning document say so among the analysis's limitations.
+repeated_yes_no_type1_note <- function(result) {
+  t1 <- result$type1
+  if (is.null(t1) || !identical(t1$kind, "repeated_yes_no") || t1$rate <= t1$alpha + 2 * t1$mcse) return(NULL)
+  sprintf(paste("With no real difference, this test was significant in %s of studies this size",
+    "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points): more than alpha, so part of the power comes from false positives.",
+    "The likelihood-ratio test does this when one answer is rare (here a typical person gives about %s of the rarer answer in the rarest cell).",
+    "More answers from each person in each condition bring it closer to alpha; more people help less."),
+    sprintf("%.1f%%", 100 * t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
+    formatC(t1$rarest, digits = 1, format = "f"))
 }
 
 # The number of items as the sample size (E33): the write-up counts items,
@@ -2764,8 +2783,25 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
       ""))
   }
-  sprintf("evidence threshold: BF10 of at least %s; Cauchy prior scale %s",
-    format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
+  sprintf("evidence threshold: BF10 of at least %s; %s",
+    format(tt$evidence_threshold %||% 10), bayes_t_prior_words(tt, short = TRUE))
+}
+
+# The analysis prior of a Bayes factor t-test in words: the JZS Cauchy prior
+# centred on 0, or an informed t prior with its location and degrees of
+# freedom.
+bayes_t_prior_words <- function(tt, short = FALSE) {
+  scale <- format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3))
+  location <- tt$prior_location %||% 0
+  df <- tt$prior_df %||% 1
+  if (location == 0 && df == 1) {
+    return(if (short) sprintf("Cauchy prior scale %s", scale) else sprintf("a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size", scale))
+  }
+  shape <- if (df == 1) "Cauchy" else sprintf("t (%s degrees of freedom)", format(signif(df, 3)))
+  if (short) {
+    return(sprintf("informed %s prior, location %s, scale %s", shape, format(signif(location, 3)), scale))
+  }
+  sprintf("an informed Bayes factor with a %s analysis prior of location %s and scale %s on the effect size", shape, format(signif(location, 3)), scale)
 }
 
 # The inclusion Bayes factor of an effect in a factorial or repeated-measures
@@ -2957,12 +2993,19 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 35 (both tails for a measured score's Cox test) applies to
   # that template.
   if (!identical(spec$template, "cox_predictor")) keys <- setdiff(keys, "35")
+  # Departure 36 (the one-proportion z test summed over its counts)
+  # applies when the z test is chosen.
+  if (!identical(spec$template, "one_proportion") || !isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) keys <- setdiff(keys, "36")
   # Departure 32 (the Brown-Forsythe test by default for two variances)
   # applies when it is the test planned for.
   if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")
   # Departures 23 and 24 (variation between studies, 0.05 or 0.025 to start with) apply
   # when the plan allows for it.
   if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, c("23", "24"))
+  # Departure 37 (informed priors worked out exactly) applies to a Bayes
+  # factor t-test whose prior isn't the default JZS prior.
+  if (!(is_bayes_test(spec) && spec$template %in% c("one_sample_t", "paired_t", "independent_t") &&
+        !((spec$target_test$prior_location %||% 0) == 0 && (spec$target_test$prior_df %||% 1) == 1))) keys <- setdiff(keys, "37")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -3773,6 +3816,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   # A two-sided exact binomial test: which p-value (next.md item 30, 19
   # November 2026), since equal tails and binom.test() need different n.
+  if (identical(spec$template, "one_proportion") && isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) {
+    name <- paste("a z test of one proportion (R's prop.test())",
+      if (identical(spec$target_test$method, "z_test")) "without the continuity correction" else "with the continuity correction",
+      "with power summed over every possible count")
+  }
   if (identical(spec$template, "one_proportion") && identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
     if (identical(spec$target_test$method, "exact_binomial")) name <- paste(name, "with alpha / 2 in each tail")
     if (identical(spec$target_test$method, "binom_test")) {
@@ -3944,8 +3992,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; the evidence threshold set at BF10 ≥ %s)",
-      name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
+    test <- sprintf("%s (%s; %s, %s; the evidence threshold set at BF10 ≥ %s)",
+      name, sides, bayes_t_prior_words(tt),
+      if ((tt$prior_location %||% 0) == 0 && (tt$prior_df %||% 1) == 1) "computed with bfpwr" else
+        "the chance of evidence worked out exactly from bfpwr's Bayes factor, tbf01(), and the noncentral t distribution of the t statistic",
+      format(tt$evidence_threshold %||% 10))
   }
   if (!is.null(telescopes)) test <- sprintf("%s (one-sided, α = %s)", name, writeup_alpha(spec$target_test$alpha))
   if (equivalence) test <- if (is_noninferiority(spec)) {
@@ -4612,7 +4663,8 @@ bayes_companion_templates <- c("one_sample_t", "paired_t", "independent_t", "cor
 bayes_companion_applies <- function(tree, ep_id, spec, result) {
   ep_id %in% names(tree$bayes_designs) && spec$template %in% bayes_companion_templates && !is_bayes_test(spec) &&
     result$goal_type %in% c("sample_size", "power") && is.null(spec$effect_justification$safeguard) &&
-    spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "binom_test", "z_test", "fisher_exact", "anova_f")
+    (spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "binom_test", "z_test", "fisher_exact", "anova_f") ||
+      identical(spec$template, "one_proportion") && identical(spec$target_test$method, "z_test_corrected"))
 }
 
 bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
@@ -4788,7 +4840,7 @@ companion_freq_name <- function(spec) {
   switch(spec$template,
     one_sample_t = "one-sample t-test", paired_t = "paired t-test",
     independent_t = if (identical(m, "welch_t")) "Welch's t-test" else "Student's t-test",
-    correlation = "test of Pearson's correlation", one_proportion = "exact binomial test",
+    correlation = "test of Pearson's correlation", one_proportion = if (isTRUE(m %in% c("z_test", "z_test_corrected"))) "z test of one proportion" else "exact binomial test",
     two_proportions = if (identical(m, "fisher_exact")) "Fisher's exact test" else "z test of the two proportions",
     oneway_between = "one-way ANOVA (F test)", "test")
 }
@@ -4809,7 +4861,8 @@ bayes_robustness_ui <- function(spec, rob) {
   k <- format(spec$target_test$evidence_threshold %||% 10)
   tagList(
     h5(class = "h6", "Does the prior matter?"),
-    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.")),
+    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior%s. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.",
+      if (isTRUE((spec$target_test$prior_location %||% 0) != 0 || (spec$target_test$prior_df %||% 1) != 1)) " (the other rows are the default prior, centred on 0)" else "")),
     tags$table(class = "table table-sm result-robustness",
       tags$thead(tags$tr(tags$th(scope = "col", "Analysis prior"), tags$th(scope = "col", "Scale"),
         tags$th(scope = "col", sprintf("BF10 of at least %s, if the effect is as planned", k)),
@@ -4864,6 +4917,8 @@ bayes_uncertain_words <- function(spec, sd, at_n, needed) {
 bayes_sequential_card_ui <- function(spec, result) {
   if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
       !result$goal_type %in% c("sample_size", "power")) return(NULL)
+  # bayes_sequential() takes the default prior only (a Cauchy centred on 0).
+  if (!isTRUE((spec$target_test$prior_location %||% 0) == 0 && (spec$target_test$prior_df %||% 1) == 1)) return(NULL)
   n <- bayes_companion_n(spec, result)
   per <- bayes_sequential_unit_n(spec, n)
   k <- spec$target_test$evidence_threshold %||% 10

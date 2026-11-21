@@ -1,3 +1,47 @@
+# powerkit 0.81.0
+
+* Bayes factor t-tests (one sample, paired, two groups) take an informed
+  t analysis prior: `target_test > prior_location` and `prior_df` join
+  `prior_scale`. With a prior other than the default JZS one, the chance
+  of evidence is worked out exactly from `bfpwr::tbf01()` by
+  root-finding its threshold crossings and summing noncentral t
+  probabilities over the normal design prior (new `bayes-informed-t.R`),
+  because `bfpwr::powertbf01()` is wrong for informed priors at small
+  samples (Departure 37). The check run, the exported R script and the
+  methods paragraph follow; validation in
+  `test-validation-bayes-informed.R` (chunk `bayes`).
+* `bayes_robustness()` compares an informed prior with the default
+  prior's three named widths, centred on 0; the sequential design card
+  (`bayes_sequential()`, Cauchy prior only) isn't offered for an
+  informed prior.
+
+# powerkit 0.80.30
+
+* One proportion (E25): the z test of one proportion, R's `prop.test()`
+  without (`method = "z_test"`) or with (`"z_test_corrected"`) the
+  continuity correction, beside the exact binomial tests. Power is summed
+  over every count of `prop.test()`'s decisions (`prop_test_p()`, checked
+  against `prop.test()` on every count), not pwrss's normal approximation
+  (Departure 36: 78 against 86 people for 20% against 10% at 80% power).
+  The R script reproduces each goal with base R. The continuity-correction
+  helpers for two proportions and 2 by 2 tables now name their templates,
+  so they don't apply to the one-proportion test.
+
+# powerkit 0.80.29
+
+* E75 (repeated yes/no answers): every run also simulates the
+  likelihood-ratio test with no difference at the planned sample size,
+  `repeated_glmm_type1()` (the tested coefficients set to 0, the run's
+  seed and number of studies), and records it in `result$type1` with
+  `kind = "repeated_yes_no"` and the expected number of the rarer answer
+  in the rarest cell (`repeated_glmm_rarest()`). A 19-setting grid
+  (validation-log.md, 21 November 2026) found 6.3% to 8.9% at alpha .05
+  with two or fewer of the rarer answer in the rarest cell, and 7.3% with
+  a 2% chance of yes even at 100 people a group, so no input rule marks
+  where the excess starts. The app lists the rate among the analysis's
+  limitations (result, write-up, planning document) when it is more than
+  2 Monte Carlo SEs above alpha (`repeated_yes_no_type1_note()`).
+
 # powerkit 0.80.28
 
 * The smallest detectable effect for the mixed models simr fits, by the

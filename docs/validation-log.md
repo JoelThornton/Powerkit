@@ -1899,5 +1899,58 @@ per condition; the conditional logistic tests, though calibrated, are a
 different analysis from the mixed model the card plans. A yes/no outcome
 is now tested by the likelihood ratio only, the Wald test having run
 about 6.2% above (decisions.md, 20 November 2026). Small groups with a
-rare answer run about 7% even with two answers per condition (queue item
-32).
+rare answer run about 7% even with two answers per condition (where it
+starts: next entry).
+
+## 2026-11-21 · Repeated yes/no answers: where the excess starts (local)
+
+Linux, R 4.5.3, lme4 2.0.6, engine 0.80.24. Where does the
+likelihood-ratio test of E75's group-by-condition interaction on yes/no
+answers start finding differences that aren't there? Two groups, two
+conditions, no interaction (log odds ratios 0.4 for the condition and
+0.3 for the group), the Laplace fit the card uses; 2,000 studies a
+setting (Monte Carlo SE about 0.5 percentage points at 5%). "Rarest
+cell" is the expected number of the rarer answer in the cell where it
+is rarest, for a typical person: people a group x answers per condition
+x the smaller of p and 1 - p. Script
+[2026-11-21-e75-yes-no-rare-grid.R](validation/2026-11-21-e75-yes-no-rare-grid.R),
+whose output this is (a study whose fit failed is left out here; simr
+counts it as not significant, which would lower these rates by less
+than 0.05 points):
+
+| People a group | SD | p0 | Answers per condition | Rarest cell | Rate |
+|---|---|---|---|---|---|
+| 10 | 1.0 | 0.10 | 2 | 2 | 7.2% |
+| 20 | 1.0 | 0.05 | 2 | 2 | 7.5% |
+| 20 | 1.5 | 0.05 | 2 | 2 | 6.3% |
+| 50 | 1.0 | 0.02 | 2 | 2 | 8.9% |
+| 20 | 1.0 | 0.025 | 4 | 2 | 7.7% |
+| 30 | 1.0 | 0.05 | 2 | 3 | 6.05% |
+| 10 | 1.0 | 0.20 | 2 | 4 | 5.4% |
+| 20 | 1.0 | 0.10 | 2 | 4 | 5.5% |
+| 40 | 1.0 | 0.05 | 2 | 4 | 5.95% |
+| 20 | 1.0 | 0.05 | 4 | 4 | 5.15% |
+| 100 | 1.0 | 0.02 | 2 | 4 | 7.3% |
+| 40 | 2.0 | 0.05 | 2 | 4 | 5.6% |
+| 10 | 1.0 | 0.30 | 2 | 6 | 5.5% |
+| 60 | 1.0 | 0.05 | 2 | 6 | 4.75% |
+| 30 | 1.0 | 0.10 | 2 | 6 | 5.9% |
+| 20 | 1.0 | 0.20 | 2 | 8 | 5.5% |
+| 40 | 1.0 | 0.10 | 2 | 8 | 5.55% |
+| 80 | 1.0 | 0.05 | 2 | 8 | 6.15% |
+| 20 | 1.5 | 0.10 | 4 | 8 | 5.0% |
+
+With two of the rarer answer or fewer in the rarest cell, every setting
+ran from 6.3% to 8.9%. More people don't cure it when the answer is
+rare for each person: with a 2% chance of yes and two answers per
+condition, 100 people a group still ran 7.3%. With four answers per
+condition and a commoner answer, the rate was at alpha (5.0%, 5.15%).
+Between those, two answers per condition ran slightly above alpha in
+most settings (5.4% to 6.15%) even with six to eight of the rarer
+answer in the rarest cell. So no simple rule on the inputs marks where
+the excess starts. Every yes/no run of E75 therefore also simulates the
+test with no difference at the planned sample size, under the run's
+seed and with as many studies as the power used
+(`repeated_glmm_type1()`), and the result, the write-up and the
+planning document warn with that rate when it is more than 2 Monte
+Carlo SEs above alpha (decisions.md, 21 November 2026).
