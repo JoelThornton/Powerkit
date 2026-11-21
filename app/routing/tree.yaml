@@ -347,7 +347,7 @@ nodes:
       - {label: "Independent people", next: s3, sets: {grouping: independent}, help: "Each person's data are separate from everyone else's. If your data come from one person or one unit (for example, a school's monthly averages), choose this too."}
       - {label: "People within groups", next: s4, sets: {grouping: clusters}, help: "e.g. pupils in classes or patients in clinics, including designs where whole groups were assigned to conditions."}
       - {label: "Pairs", next: d1, help: "e.g. couples, or a parent and child, whose scores are related."}
-      - {label: "Many trials or stimuli per person", next: s2_trials, help: "e.g. each person rates 40 faces or completes 200 trials."}
+      - {label: "Many trials or stimuli per person", next: s2_trials_by_outcome, help: "e.g. each person rates 40 faces or completes 200 trials."}
   # Pairs (1 November 2026): actor and partner effects (E44), conditions
   # given to whole pairs (a cluster trial with groups of two, E34), or
   # another dyadic design (E65).
@@ -362,19 +362,36 @@ nodes:
   # Counts and ordered categories over many trials (12 November 2026): a
   # generalised mixed model for the conditions, E75's design, not E41's
   # correlations.
+  # Yes/no "or one of several categories" (finder audit, 21 November
+  # 2026): the trial cards take two categories, so the number is asked
+  # before a card is offered.
+  s2_trials_by_outcome:
+    doc_id: S2a
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    default: score
+    routes: {score: s2_trials, yesno: s2_trials_cat, count: s2_trials, ordinal: s2_trials}
+  s2_trials_cat:
+    doc_id: S2c
+    text: "What is each trial's answer?"
+    options:
+      - {label: "Yes or no (two categories)", next: s2_trials, sets: {categories: two}, help: "e.g. correct or incorrect, or chose the left or the right picture."}
+      - {label: "One of three or more categories", next: E-unsure, sets: {categories: several, gap: trials_categories}, help: "e.g. on each trial, which of three pictures the person chose."}
+  # Each option records whether each person responds in every condition
+  # (`assignment`), so the input screen opens set to it.
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
     help: "Powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
     options:
-      - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, help: "e.g. emotional and neutral words, each person reading both kinds."}
-      - {label: "Two conditions, and each person responds in both", next: E75, when: {outcome: [count, ordinal]}}
-      - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: [score, yesno]}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
-      - {label: "Two conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}}
-      - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
-      - {label: "Three or more conditions, and each person responds in all of them", next: E75, when: {outcome: [count, ordinal]}}
-      - {label: "Three or more conditions, and each person is in one of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. three groups, each rating a different kind of face."}
-      - {label: "Three or more conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}}
+      - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, sets: {assignment: within}, help: "e.g. emotional and neutral words, each person reading both kinds."}
+      - {label: "Two conditions, and each person responds in both", next: E75, when: {outcome: [count, ordinal]}, sets: {assignment: within}}
+      - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: [score, yesno]}, sets: {assignment: between}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
+      - {label: "Two conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}, sets: {assignment: between}}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: [score, yesno]}, sets: {assignment: within}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E75, when: {outcome: [count, ordinal]}, sets: {assignment: within}}
+      - {label: "Three or more conditions, and each person is in one of them", next: E63, when: {outcome: [score, yesno]}, sets: {assignment: between}, help: "e.g. three groups, each rating a different kind of face."}
+      - {label: "Three or more conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}, sets: {assignment: between}}
       - {label: "A score measured on each item, and how it relates to the response", next: E67, when: {outcome: [score, yesno]}, help: "e.g. how a word's frequency relates to how fast people read it."}
       - {label: "A score measured on each item, and how it relates to the response", next: E41, when: {outcome: [count, ordinal]}}
       - {label: "Something else", next: E41}
@@ -408,13 +425,23 @@ nodes:
     text: "How are the data grouped? (answered by S2)"
     branch_on: grouping
     routes: {independent: continue, clusters: s4_clusters_outcome}
-  # E62 takes a score outcome; other outcomes go straight to E34, which
-  # also covers yes/no outcomes.
+  # A yes/no or categories outcome is asked how many categories first.
   s4_clusters_outcome:
     doc_id: S4
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: c1, yesno: E34, count: E34, ordinal: E34}
+    routes: {score: c1, yesno: c_cat, count: c1, ordinal: c1}
+  # Every outcome is asked what the hypothesis involves (finder audit, 21
+  # November 2026): a condition given to groups and a measured predictor
+  # are different models whatever the outcome. The cards take a score or a
+  # yes/no outcome; a count or ordered categories reach them with a note
+  # that says so (route-fit.R).
+  c_cat:
+    doc_id: C0
+    text: "What is each person's answer?"
+    options:
+      - {label: "Yes or no (two categories)", next: c1, sets: {categories: two}, help: "e.g. passed or failed, or attended or not."}
+      - {label: "One of three or more categories", next: E-unsure, sets: {categories: several, gap: cluster_categories}, help: "e.g. which of three services each patient chose."}
   # People within groups (31 October 2026): conditions given to groups or to
   # people in them (E34), or relationships with predictors measured on the
   # people and on the groups (E62).
@@ -604,7 +631,16 @@ nodes:
     doc_id: Q3
     text: "What are you comparing?"
     branch_on: times
-    routes: {once: q3_cat, twice: E26, many_conditions: q3_cat_many}
+    routes: {once: q3_cat, twice: q3_cat_twice, many_conditions: q3_cat_many}
+  # The same people answering twice (finder audit, 21 November 2026):
+  # McNemar's test compares two categories; three or more need the
+  # hypothesis stated first, and Powerkit has no card for them.
+  q3_cat_twice:
+    doc_id: Q3c
+    text: "How many categories can each answer fall in?"
+    options:
+      - {label: "Two: yes or no", next: E26, sets: {categories: two}, help: "e.g. whether each person smokes, before and after a programme."}
+      - {label: "Three or more", next: E-unsure, sets: {categories: several, gap: paired_categories}, help: "e.g. which of three news sources each person uses most, asked before and after an election."}
   # Three or more conditions with a yes/no or categorical outcome: one
   # yes/no answer per condition is Cochran's Q (E78); anything else is the
   # generalised mixed model (E75).
@@ -627,7 +663,7 @@ nodes:
       - {label: "One group against a known proportion", next: E25, when: {times: once}}
       - {label: "One group's categories against expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (for example, a 2 x 2 design)", next: E47, when: {times: once}}
-      - {label: "The same people in every condition", next: E26, when: {times: twice}}
+      - {label: "The same people in every condition", next: q3_cat_twice, when: {times: twice}}
       - {label: "The same people in every condition", next: q3_cat_many, when: {times: many_conditions}}
 
   # How much scores vary -----------------------------------------------------
@@ -924,6 +960,15 @@ safety_net:
     not_answered: "not answered yet"
     stopped_at: "Where nothing fitted"
     also: ["Your hypothesis, in one sentence", "The effect you expect, and where that number comes from", "How many participants you could realistically recruit", "How you plan to analyse the data, if you know"]
+
+# Parts of a study no card plans, named on the card the finder ends on
+# (finder audit, 21 November 2026): an option's `sets: {gap: <id>}` shows
+# the text, so the card says which part of the study it can't plan
+# (route_fit_messages(), R/route-fit.R).
+finder_gaps:
+  trials_categories: "You said each trial's answer is one of three or more categories. Powerkit's cards for many trials per person take a score or a yes/no answer on each trial. Three or more unordered categories are usually analysed with a multinomial mixed model, whose power is simulated in R; Powerkit doesn't plan it yet. If the categories have an order, go back to the first question and choose ordered categories: the card for repeated counts, yes/no answers and ratings plans those."
+  paired_categories: "You said the same people answer twice, choosing one of three or more categories. McNemar's test, on the card for yes/no answers measured twice, compares two categories only. With three or more, first decide what the hypothesis is about: whether the share choosing each category changes (marginal homogeneity, the Stuart-Maxwell test), or whether people move from one category to another more often than back (symmetry, Bowker's test). These are different questions with different tests, and Powerkit plans neither yet. If the categories have an order, go back to the first question and choose ordered categories."
+  cluster_categories: "You said each person's answer is one of three or more categories, with people in groups. Powerkit's cards for people in groups take a score or a yes/no outcome. Three or more categories are usually analysed with a multinomial mixed model with a random effect for each group, whose power is simulated in R; Powerkit doesn't plan it yet."
 
 # Shown on generic "not covered" cards that have `established_tools: true`.
 # Whether such cards should name the tools is open question 18.

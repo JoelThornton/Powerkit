@@ -190,7 +190,13 @@ test_that("time series reach the longitudinal card, not a count or score test", 
 
 test_that("nested data with a yes/no outcome no longer reaches the two-proportions test", {
   # On main: diff > Yes/no > Different people, two groups > E5.
-  expect_all_routes(c("Yes/no, or one of several categories", "People within groups"), "E34")
+  # The number of categories is asked first, then what the hypothesis
+  # involves (finder audit, 21 November 2026), as for a score.
+  expect_all_routes(c("Yes/no, or one of several categories", "People within groups"), "c_cat")
+  expect_all_routes(c("Yes/no, or one of several categories", "People within groups", "Yes or no (two categories)",
+    cluster_conditions, "No: one level of groups (for example, classes, or clinics)"), "E34")
+  expect_all_routes(c("Yes/no, or one of several categories", "People within groups", "Yes or no (two categories)", cluster_measured), "E62")
+  expect_all_routes(c("Yes/no, or one of several categories", "People within groups", "One of three or more categories"), "E-unsure")
 })
 
 test_that("cluster-randomised designs reach the multilevel card", {
@@ -204,7 +210,7 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
   # rel > score > measured once > score > E4.
   # A yes/no outcome per trial calculates too (31 October 2026): E33, by a
   # logistic mixed model; a count still reaches the multilevel card.
-  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
+  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Yes or no (two categories)", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else"), "E41")
   # A score measured on each item (1 November 2026): E67.
@@ -212,7 +218,7 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
   # Conditions given to different people (31 October 2026): E33 with the
   # condition between participants; a yes/no outcome per trial still E41.
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E33")
-  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E33")
+  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Yes or no (two categories)", "Two conditions, and each person is in one of them"), "E33")
   # Three or more conditions, everyone in all of them (31 October 2026): E63.
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Three or more conditions, and each person responds in all of them"), "E63")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Three or more conditions, and each person is in one of them"), "E63")
@@ -268,7 +274,9 @@ test_that("counts no longer reach the correlation through the relationship path"
   expect_identical(follow_answers(tree, c(once, "A relationship between two things you measure")), "E28")
   expect_identical(follow_answers(tree, c(once, "A difference between groups or conditions")), "E28")
   expect_identical(follow_answers(tree, c("A count", "Independent people", "Twice", "A difference between groups or conditions")), "E75")
-  expect_identical(follow_answers(tree, c("A count", "People within groups")), "E34")
+  # People in groups with a count are asked what the hypothesis involves;
+  # the grouped cards then say they take a score or yes/no (route-fit.R).
+  expect_identical(follow_answers(tree, c("A count", "People within groups")), "c1")
 })
 
 test_that("an outcome measured twice or more never falls through to the safety net unasked", {
@@ -308,7 +316,10 @@ test_that("an outcome measured twice or more never falls through to the safety n
   }
   walk(start_node(tree), list(), character())
   expect_gt(length(ends), 0)
-  allowed <- grepl("Four or more$", ends) | grepl(paste0("As ordered categories > Independent people > Once > ", rel, "$"), ends, fixed = FALSE)
+  # Three or more unordered categories, on trials, in groups or answered
+  # twice, are asked and then named on the safety net (finder_gaps).
+  allowed <- grepl("Four or more$", ends) | grepl(paste0("As ordered categories > Independent people > Once > ", rel, "$"), ends, fixed = FALSE) |
+    grepl("> (One of three or more categories|Three or more)$", ends)
   expect_identical(ends[!allowed], character())
 })
 
@@ -390,7 +401,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Chi-square test of independence" = list(c(once(yesno), diff, "Groups, with an outcome in categories (not just yes/no)"), "E6"),
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
     "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),
-    "McNemar's test" = list(c(twice(yesno), diff), "E26"),
+    "McNemar's test" = list(c(twice(yesno), diff, "Two: yes or no"), "E26"),
     "Cochran's Q" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff, "Once in each condition, yes or no"), "E78"),
     "Repeated yes/no, several answers per condition" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff,
       "Another way"), "E75"),

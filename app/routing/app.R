@@ -1290,6 +1290,7 @@ server <- function(input, output, session) {
     plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
     plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
     plan_filled = character(), # guided route: shared values filled in on the open input screen
+    finder_filled = list(), # the finder's answers set on the open input screen (route-fit.R)
     ws_values = list(),      # whole-study simulation: the values typed on its screen
     plan_opened = NULL,      # guided route: the saved plan just reopened, for its notice
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
@@ -1573,6 +1574,10 @@ server <- function(input, output, session) {
     } else if (pick == "form") {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
+      # The finder's answers (outcome, who is in which condition) set the
+      # fields they settle (route-fit.R); what follows may override them.
+      state$finder_filled <- finder_form_values(forms, state$endpoint, state$ctx)
+      state$form_values <- utils::modifyList(state$finder_filled, state$form_values)
       state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
       if (identical(state$preset_version$endpoint, state$endpoint)) {
         state$form_values <- version_form_values(state$preset_version, state$form_values)
@@ -3531,7 +3536,8 @@ server <- function(input, output, session) {
         form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
-          carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
+          carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled)
+            else finder_filled_note_ui(forms, state$endpoint, state$finder_filled, isolate(state$form_values)))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = tagList(
