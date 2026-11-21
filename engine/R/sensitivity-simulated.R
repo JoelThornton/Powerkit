@@ -277,6 +277,7 @@ simulated_search_plan <- function(spec, n, power) {
     ))
   }
   if (mixed_model_search(spec)) return(mixed_model_search_plan(spec))
+  if (repeated_glmm_search(spec)) return(repeated_glmm_search_plan(spec))
   if (mediation_search(spec)) {
     tested <- mediation_tested_paths(spec)
     k <- length(tested)
@@ -502,7 +503,7 @@ simulated_search_available <- function(spec) {
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
     identical(spec$template, "its") || moderation_ratio_search(spec) || multinomial_search(spec) ||
-    binary_interaction_search(spec) || mediation_search(spec) || mixed_model_search(spec) ||
+    binary_interaction_search(spec) || mediation_search(spec) || mixed_model_search(spec) || repeated_glmm_search(spec) ||
     (identical(spec$design, "mixture") && identical(spec$template, "lpa")) ||
     (identical(spec$design, "factor_analysis") && identical(spec$template, "efa"))
 }
@@ -592,6 +593,92 @@ mixed_model_search_plan <- function(spec) {
         effect_script = sprintf("x * %s", r_code(spread))
       )
     })
+}
+
+# The same people measured more than once with a count, a yes/no answer
+# or ordered categories (E75), and Cochran's Q (E78): the differences
+# between the conditions you entered, on the model's scale (log rates, log
+# odds, or log odds ratios of a higher category), times x, the first
+# condition kept as entered. With groups, the group-by-condition
+# interaction is scaled and the groups' and conditions' own differences
+# are kept: each interaction coefficient in treatment coding is
+# multiplied by x, so every ratio of ratios between two groups and two
+# conditions is raised to the power x and the first group's first
+# condition is kept. The answer is the rate or odds ratio between the
+# conditions furthest apart, or with groups the largest ratio of those
+# ratios between two groups and two conditions. The person SD, the
+# category shares and any overdispersion are kept.
+repeated_glmm_search <- function(spec) {
+  identical(spec$design, "mixed_model") && identical(spec$template, "repeated_glmm")
+}
+
+repeated_glmm_search_plan <- function(spec) {
+  inputs <- repeated_glmm_inputs(spec)
+  centre <- inputs$centre
+  int <- inputs$interaction
+  levels <- inputs$levels
+  if (int) {
+    cells <- repeated_glmm_cells(levels, inputs$groups)
+    design <- stats::model.matrix(~ group * cond, cells)
+    coefs <- as.numeric(solve(design, centre))
+    tested <- grepl(":", colnames(design), fixed = TRUE)
+    scaled_centre <- function(x) as.numeric(design %*% (ifelse(tested, x, 1) * coefs))
+    table <- matrix(centre, nrow = length(inputs$groups), byrow = TRUE)
+    pairs <- function(m) utils::combn(m, 2, simplify = FALSE)
+    spread <- max(vapply(pairs(nrow(table)), function(g) max(vapply(pairs(ncol(table)), function(k)
+      abs(table[g[1], k[1]] - table[g[1], k[2]] - table[g[2], k[1]] + table[g[2], k[2]]), numeric(1))), numeric(1)))
+  } else {
+    delta <- centre - centre[1]
+    scaled_centre <- function(x) centre[1] + x * delta
+    spread <- max(centre) - min(centre)
+  }
+  to_values <- function(eta) if (inputs$ordinal || inputs$count) exp(eta) else stats::plogis(eta)
+  field <- if (inputs$ordinal) "odds_ratios" else if (inputs$count) "rates" else "probabilities"
+  rows <- length(inputs$groups)
+  as_field <- function(values) {
+    if (!int) return(as.list(values))
+    lapply(seq_len(rows), function(g) as.list(values[(g - 1L) * length(levels) + seq_along(levels)]))
+  }
+  ratio <- if (inputs$count) "rate ratio" else "odds ratio"
+  kept <- paste(c(if (int) c("the groups' and conditions' own differences", "the first group's first condition") else "the first condition",
+    if (inputs$ordinal) "the category shares", if (inputs$nb) "the overdispersion", "the person SD"), collapse = ", ")
+  kept <- sub(", ([^,]*)$", " and \\1", kept)
+  measure <- if (inputs$ordinal) "log odds ratios of a higher category" else if (inputs$count) "log expected counts" else "log odds of 'yes'"
+  # Rates or odds ratios beyond about 1,000 times apart are left out: such
+  # a study needs no planning, and its counts would be slow to simulate.
+  limit <- if (spread > 0) log(1000) / spread else Inf
+  # The script's values, then (with groups, for simr) the fixed effects
+  # it derives from them once.
+  eta_code <- if (int) {
+    sprintf("as.numeric(matrix(%s, nrow = %d) %%*%% (ifelse(%s, x, 1) * %s))", r_code(as.numeric(design)), nrow(design), r_code(tested), r_code(coefs))
+  } else {
+    sprintf("%s + x * %s", r_code(centre[1]), r_code(delta))
+  }
+  values_code <- sprintf(if (inputs$ordinal || inputs$count) "exp(%s)" else "plogis(%s)", eta_code)
+  set_line <- if (int) {
+    sprintf("  %s <<- matrix(%s, nrow = %d, byrow = TRUE, dimnames = list(groups, conditions))", field, values_code, rows)
+  } else {
+    sprintf("  %s <<- %s", field, values_code)
+  }
+  simr_route <- !(inputs$nb || inputs$ordinal || inputs$cochran)
+  fixed_line <- if (int && simr_route) {
+    sprintf("  fixed_effects <<- as.numeric(solve(model.matrix(~ group * cond, cells), %s(as.vector(t(%s)))))",
+      if (inputs$count) "log" else "qlogis", field)
+  }
+  list(
+    guess = 1,
+    limit = limit,
+    set = function(s, x) { s$population[[field]] <- as_field(to_values(scaled_centre(x))); s },
+    effect = function(x) exp(x * spread),
+    effect_name = if (int) paste0("ratio_of_", gsub(" ", "_", ratio), "s") else gsub(" ", "_", ratio),
+    what = sprintf(if (int) {
+      "largest ratio of %ss between two groups and two conditions, with %s you entered kept and the group-by-condition interaction (on the %s) scaled"
+    } else {
+      "%s between the conditions furthest apart, with %s you entered kept and the differences between the conditions (on the %s) scaled"
+    }, ratio, kept, measure),
+    script_set = c(set_line, fixed_line),
+    effect_script = sprintf("exp(x * %s)", r_code(spread))
+  )
 }
 
 # Mediation and moderated mediation fitted by power4mome (E10 to E14, E16,
@@ -727,6 +814,7 @@ jonckheere_search <- function(spec) {
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
   isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || mediation_search(spec) ||
+    repeated_glmm_search(spec) ||
     (mixed_model_search(spec) && (identical(spec$template, "crossed_conditions") || identical(spec$variables$Y$type, "binary") && spec$template %in% c("crossed_two_condition", "three_level"))) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
 }
