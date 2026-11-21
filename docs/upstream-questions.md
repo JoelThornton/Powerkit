@@ -182,7 +182,7 @@ November 2026).
    3 to 9, missed at 10 to 84, met from 85, for z = 3.4 with the
    empirical Bayes prior and tau = 0.1), and their root's tolerance can
    put the size a few people above the smallest that meets the power
-   (26,086 against 26,074 for `ssdBFr()` in one case). powerkit now
+   (26,086 against 26,072 for `ssdBFr()` in one case). powerkit now
    searches whole totals with the `pors*()` chances. `porsBFs()` also
    stops with an error (in `successRegion()`) for very small
    replications, 4 to 35 people for a correlation of 0.31 with standard
