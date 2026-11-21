@@ -24,3 +24,12 @@ test_that("whole-study output distinguishes failed fits in each and joint decisi
   expect_match(words[2], "The chance that every main analysis was significant", fixed = TRUE)
   expect_no_match(words[2], "Joint all criterion", fixed = TRUE)
 })
+
+test_that("an engine error about the answers is shown without the spec heading", {
+  run <- function(spec) stop(structure(class = c("powerkit_spec_error", "powerkit_error", "error", "condition"),
+    list(message = "This design spec has 2 problems:\n* The sample size must be at least 4.\n* Alpha must be between 0 and 1.", call = NULL)))
+  out <- run_calculation(list(options = list()), run)
+  expect_identical(out$status, "error")
+  expect_no_match(out$message, "design spec", fixed = TRUE)
+  expect_match(out$message, "* The sample size must be at least 4.", fixed = TRUE)
+})
