@@ -243,6 +243,11 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   wording) and the failed-simulation warning was reworded in plain words.
   The multilevel cluster-trial sentences and the saved-result restoration notices (project opened, last result back, saved result shown as saved and not run again) were read on 21 November 2026: one overstatement was fixed, the rest read plainly and accurately.
 - [ ] Review Labs, About, glossary, evidence explanations and citations.
+  Glossary read in full on 21 November 2026: no hint is wrong. One is a wording
+  choice for the maintainer: the confidence-interval hint says "a range of
+  plausible values", the wording of its source (UCLA's t-test output guide),
+  which a stricter reading of a confidence interval would not use. Labs, About,
+  the evidence explanations and the citations are not yet read.
 - [ ] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.
 - [ ] Walk through complete tasks on desktop/mobile; remove repetition while
