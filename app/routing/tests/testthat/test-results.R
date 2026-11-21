@@ -1737,7 +1737,10 @@ test_that("the write-up has a plain-words version for an ethics application, for
   expect_match(e, sprintf("we will recruit %s", whole(calc$result$recruitment$n_recruit)), fixed = TRUE)
   expect_match(e, "This number comes from a power analysis.", fixed = TRUE)
   expect_match(e, "Cohen's d = 0.4, based on the smallest effect that would matter", fixed = TRUE)
-  expect_match(e, "is 80%, and the chance that it misses it is 20%", fixed = TRUE)
+  # The chance is the power reached at this N (pwr.t.test(n = 100, d = 0.4)
+  # gives .804), beside the 80% target.
+  expect_match(e, "the 80% power we aimed for; at this number the power is 80.4%", fixed = TRUE)
+  expect_match(e, "is 80.4%, and the chance that it misses it is 19.6%", fixed = TRUE)
   expect_match(e, "using a 5% threshold", fixed = TRUE)
   expect_no_match(e, "ethical", fixed = TRUE) # it describes the plan; no verdict
   html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
