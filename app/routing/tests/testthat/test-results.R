@@ -338,6 +338,21 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
   expect_true(any(grepl("ANOVA_exact2", departures_for(forms, "E8", light_spec("E8")))))
 })
 
+test_that("one proportion: Departure 36 shows for the z test only, and the companion is offered for both versions", {
+  e25 <- light_spec("E25")
+  expect_false(any(grepl("prop.test()", departures_for(forms, "E25", e25), fixed = TRUE)))
+  for (method in c("z_test", "z_test_corrected")) {
+    e25$target_test$method <- method
+    expect_true(any(grepl("prop.test()", departures_for(forms, "E25", e25), fixed = TRUE)), info = method)
+    expect_true(bayes_companion_applies(tree, "E25", e25, list(goal_type = "sample_size")), info = method)
+    expect_identical(companion_freq_name(e25), "z test of one proportion")
+  }
+  # The corrected z test of two proportions still has no companion.
+  e5 <- light_spec("E5")
+  e5$target_test$method <- "z_test_corrected"
+  expect_false(isTRUE(bayes_companion_applies(tree, "E5", e5, list(goal_type = "sample_size"))))
+})
+
 test_that("clustered yes/no outcomes show Known difference 16 (powertools' factor 1.2), scores and group treatment don't", {
   spec <- function(template, metric, method = "logistic_mixed") list(template = template, population = list(metric = metric), target_test = list(method = method))
   for (tpl in c("cluster_randomised", "multisite")) {

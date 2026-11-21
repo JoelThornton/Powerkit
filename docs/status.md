@@ -52,7 +52,10 @@ A review of Tools, the exports and the exact tests (19 November 2026)
 found that a one-sided exact test of one proportion or Fisher's test,
 given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
-equal tails (the default) and names the rule in the write-up. Which rule
+equal tails (the default) and names the rule in the write-up, and (21
+November 2026) the z test of one proportion, `prop.test()` with or
+without the continuity correction, its power summed over every count
+rather than pwrss's normal approximation (Departure 36). Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
 calculation audit the same day found wrong numbers on several cards,
 package faults powerkit passed through, and export and wording errors.

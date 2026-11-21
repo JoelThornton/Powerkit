@@ -404,7 +404,8 @@ design_description <- function(spec) {
       label("Y"), label("X"), levels("X")
     ),
     "basic_test/one_proportion" = sprintf(
-      "exact binomial test of one proportion: %s = %s, compared with a fixed value",
+      "%s of one proportion: %s = %s, compared with a fixed value",
+      if (isTRUE(spec$target_test$method %in% c("z_test", "z_test_corrected"))) "z test (prop.test())" else "exact binomial test",
       label("Y"), comment_text(unlist(v$Y$levels)[2])
     ),
     "basic_test/mcnemar" = sprintf(
