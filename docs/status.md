@@ -77,7 +77,7 @@ or rare-answer settings; with two or more answers the two fits agree).
 A yes/no outcome is now tested by the likelihood ratio only, the Wald
 test having run about 6.2% (`validation-log.md`, 20 November 2026).
 Small groups with a rare answer still run about 7% with two answers per
-condition (queue item 29). Validation expectations
+condition (queue item 28). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
@@ -120,7 +120,9 @@ each area, is at the end of
   show), and the review's own checks kept for
   each release: property checks over every example spec and a run of
   every card in a browser (`repository-protection.md`, "Checks before a
-  release"). A check of every review finding against what merged
+  release"), which fails a result missing an expected download or the
+  print button and checks each file's type and completeness (21 November
+  2026). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are in `next.md`; two proportions now take a published
   odds ratio or risk ratio, mediation with two groups takes X's
