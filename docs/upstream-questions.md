@@ -32,6 +32,8 @@ below retain their reproduction information and limitations.
 | bfpwr: t-test Bayes factors at small N | Known difference 6; comparison with simulated t statistics | Normal approximation used and disclosed | Exact/t-based implementation or changed design-prior handling; repeat small-N comparisons |
 | bfpwr: power with an informed prior at small N | Comparison with simulated t statistics and bfpwr's own `tbf01()` (bfpwr question 2) | Informed priors not offered | A corrected `powertbf01()`, or the maintainer's decision on an exact calculation in the engine |
 | BayesRepDesign: the meaning of `level` in `porsTOST()` and `ssdTOST()` | BayesRepDesign question 1; closed-form TOST check in `test-replication-planning.R` | Called with `level = 2 * alpha`, so TOST is at alpha | Help or code changes in a new version; rerun the closed-form check |
+| BayesRepDesign: `porsMeta()` with an estimate below zero and several standard errors | BayesRepDesign question 2; `porsMeta()`'s source, and a check in `test-replication-planning.R` that a ratio below 1 is planned like its inverse | Workaround: the planner calls `porsMeta()` one standard error at a time | A new version; recheck `porsMeta()` on a vector `sr` with `to < 0` against the same values one at a time |
+| BayesRepDesign: `ssdMeta()` and the other `ssd*()` searches stop short | BayesRepDesign question 3; whole-total enumeration in `test-replication-planning.R` | Bypassed: the planner searches every whole total with the `pors*()` chances and no longer calls `ssd*()` | A new version; compare `ssdMeta()` with the enumeration for a one-sample original with z = 3.3 |
 | pwrss: `power.z.mediation()`'s default R-squared of Y | pwrss 1.3.3: with `r.squared.outcome` left out, R-squared of Y is computed as (b^2 var(M) + c'^2 var(X)) / var(Y), leaving out 2 a b c' var(X), the part due to M and X being correlated; with a direct path the standard error of b is then a little off | powerkit passes R-squared of Y explicitly, b^2 + c'^2 + 2 a b c' for standardised paths (`backend-mediation-joint.R`; size in `test-backend-mediation-joint.R`) | Ask the authors whether the default is intended |
 | presize: `prec_prop()` Clopper-Pearson upper limit | presize 0.3.11 sets `upr[x == 1] <- 1` where the convention is `x == n`, so p = 0.01 at n = 100 gives [0.000253, 1] instead of `binom.test()`'s [0.000253, 0.0545] | Workaround: the limits are worked out with that line corrected and width plans walk to the smallest whole n (`backend-precision.R`; `test-backend-precision.R`) | presize update; compare its limits at n p = 1 with `binom.test()` |
 | pwrss: group 1 rounded up from `n.ratio` | pwrss 1.3.3: `power.z.twocors()` computes `ceiling(n2 * n.ratio)` even with `ceil.n = FALSE`, and `power.z.twoprops()` does so by default, so 27 / 21 * 21 (a hair above 27) is scored as 28 | Workaround: `ceil.n = FALSE` for the z test, and a ratio of `(n1 - 1e-9) / n2` for Fisher's z (`backend-pwr.R`, `backend-pwrss.R`; `test-backend-pwr.R`) | pwrss update; rerun 27 + 21 and 7 + 25 |
@@ -161,6 +163,33 @@ November 2026).
    `level = 2 * alpha` to both, and `test-replication-planning.R` checks the
    TOST sample size against the closed form for two one-sided tests at
    alpha. Is the help or the code the intended meaning?
+
+2. **`porsMeta()` with an estimate below zero.** In the branch for
+   `sign(dprior$to) < 0`, the upper limit is computed from `sr`, the whole
+   vector of standard errors, where the other branch uses `sr1`, the
+   element in hand. A vector `sr` then fails ("intervals must be
+   disjoint") or gives chances for the wrong standard error; one standard
+   error at a time is correct. powerkit calls `porsMeta()` one standard
+   error at a time. Should `sr` there be `sr1`?
+3. **`ssdMeta()` stops on a chance that rises steadily.** For a
+   one-sample original with estimate 0.33 and standard error 0.1 (z = 3.3),
+   `porsMeta(level = 0.025^2)` with the conditional design prior rises
+   past 0.8 at a replication of 14 and stays above it, but
+   `ssdMeta(level = 0.025^2, power = 0.8)` warns "Numerical problems, try
+   adjusting searchInt", with the default and with
+   `searchInt = c(1e-6, 10)`. The `ssd*()` searches also assume one
+   crossing, while `porsMeta()`'s chance can fall and rise again (met at
+   3 to 9, missed at 10 to 84, met from 85, for z = 3.4 with the
+   empirical Bayes prior and tau = 0.1), and their root's tolerance can
+   put the size a few people above the smallest that meets the power
+   (26,086 against 26,072 for `ssdBFr()` in one case). powerkit now
+   searches whole totals with the `pors*()` chances. `porsBFs()` also
+   stops with an error (in `successRegion()`) for very small
+   replications, 4 to 35 people for a correlation of 0.31 with standard
+   error 0.11, where the sceptical Bayes factor has no success region;
+   powerkit counts such a size as not meeting the goal. Would the package
+   accept a search over integer sample sizes, a warning when the chance
+   is not monotone, and a chance of 0 where there is no success region?
 
 ## metapower
 
