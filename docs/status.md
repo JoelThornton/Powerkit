@@ -52,7 +52,10 @@ A review of Tools, the exports and the exact tests (19 November 2026)
 found that a one-sided exact test of one proportion or Fisher's test,
 given no difference, ran in the tail pwrss chose rather than the one
 asked; that is fixed. E25 now offers R's `binom.test()` p-value beside
-equal tails (the default) and names the rule in the write-up. Which rule
+equal tails (the default) and names the rule in the write-up, and (21
+November 2026) the z test of one proportion, `prop.test()` with or
+without the continuity correction, its power summed over every count
+rather than pwrss's normal approximation (Departure 36). Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
 calculation audit the same day found wrong numbers on several cards,
 package faults powerkit passed through, and export and wording errors.
@@ -187,7 +190,7 @@ each area, is at the end of
   The three Bayes factor t-tests also take an informed prior (a t prior
   with its own location, scale and degrees of freedom); its power is
   worked out exactly around bfpwr's Bayes factor, because bfpwr's own
-  power function fails for these priors at small samples (Departure 36).
+  power function fails for these priors at small samples (Departure 37).
 
 - **Effect sizes:** the commonest cards take what researchers have: a
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the

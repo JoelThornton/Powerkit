@@ -4266,10 +4266,12 @@
               "const": "proportion_vs_constant"
             },
             "method": {
-              "description": "exact_binomial (the default): the exact binomial test with alpha / 2 in each tail when two-sided, by pwrss's exact power (power.exact.oneprop()). binom_test: the exact binomial test with R's binom.test() p-value, which when two-sided adds up every count no more likely than the one observed; power summed exactly over every count. One-sided, the two are the same test. bayes_factor: the Bayes factor test (bfpwr).",
+              "description": "exact_binomial (the default): the exact binomial test with alpha / 2 in each tail when two-sided, by pwrss's exact power (power.exact.oneprop()). binom_test: the exact binomial test with R's binom.test() p-value, which when two-sided adds up every count no more likely than the one observed; power summed exactly over every count. One-sided, the two are the same test. z_test and z_test_corrected: the z test of one proportion, R's prop.test() without or with its continuity correction; power summed exactly over every count of prop.test()'s decisions, not pwrss's normal approximation (docs/conventions.md, Departure 36). bayes_factor: the Bayes factor test (bfpwr).",
               "enum": [
                 "exact_binomial",
                 "binom_test",
+                "z_test",
+                "z_test_corrected",
                 "bayes_factor"
               ]
             }

@@ -1,7 +1,7 @@
 # Validation: Bayes factor t-tests with an informed analysis prior (a t
 # prior with a location other than 0 or degrees of freedom other than 1).
 # Method: powerkit's exact calculation around bfpwr's Bayes factor,
-# bfpwr::tbf01() (bayes-informed-t.R; docs/conventions.md, Departure 36).
+# bfpwr::tbf01() (bayes-informed-t.R; docs/conventions.md, Departure 37).
 # Build guide section 6:
 #   1. published examples (placeholders for the maintainer)
 #   2. agreement with simulated Bayes factors: data drawn under the design

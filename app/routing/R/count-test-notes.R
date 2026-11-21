@@ -1,7 +1,9 @@
 # Analysis identity stays visible beside the answer and in the methods text.
 is_corrected_count_test <- function(spec) {
-  identical(spec$design, "basic_test") && isTRUE(spec$target_test$method %in%
-    c("z_test_corrected", "pearson_chi_square_corrected"))
+  # The one-proportion z test (E25) is summed over its counts by
+  # backend-binom-test.R and needs none of these checks.
+  identical(spec$design, "basic_test") && spec$template %in% c("two_proportions", "chi_square_independence") &&
+    isTRUE(spec$target_test$method %in% c("z_test_corrected", "pearson_chi_square_corrected"))
 }
 
 count_test_sentence <- function(spec) {

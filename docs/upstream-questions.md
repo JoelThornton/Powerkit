@@ -30,7 +30,7 @@ below retain their reproduction information and limitations.
 | powertools: continuous cluster covariates, RsqB/RsqW | Recorded hand-calculated design effect in question 3 | Inputs interpreted as shares within their respective variance components | Documentation or formula changes; rerun the hand calculation and covariate cases |
 | powertools: returned df, critical value and noncentrality | Source inspection; backend does not return these fields | Reporting limitation: no invented details are displayed | Backend starts returning details; compare each with the reported power |
 | bfpwr: t-test Bayes factors at small N | Known difference 6; comparison with simulated t statistics | Normal approximation used and disclosed | Exact/t-based implementation or changed design-prior handling; repeat small-N comparisons |
-| bfpwr: power with an informed prior at small N | Comparison with simulated t statistics and bfpwr's own `tbf01()` (bfpwr question 2) | Bypassed (21 November 2026): powerkit works out the chance exactly from `tbf01()` (`bayes-informed-t.R`, Departure 36) | A corrected `powertbf01()`; compare it with the exact calculation at n = 3 to 80 before using it |
+| bfpwr: power with an informed prior at small N | Comparison with simulated t statistics and bfpwr's own `tbf01()` (bfpwr question 2) | Bypassed (21 November 2026): powerkit works out the chance exactly from `tbf01()` (`bayes-informed-t.R`, Departure 37) | A corrected `powertbf01()`; compare it with the exact calculation at n = 3 to 80 before using it |
 | BayesRepDesign: the meaning of `level` in `porsTOST()` and `ssdTOST()` | BayesRepDesign question 1; closed-form TOST check in `test-replication-planning.R` | Called with `level = 2 * alpha`, so TOST is at alpha | Help or code changes in a new version; rerun the closed-form check |
 | BayesRepDesign: `porsMeta()` with an estimate below zero and several standard errors | BayesRepDesign question 2; `porsMeta()`'s source, and a check in `test-replication-planning.R` that a ratio below 1 is planned like its inverse | Workaround: the planner calls `porsMeta()` one standard error at a time | A new version; recheck `porsMeta()` on a vector `sr` with `to < 0` against the same values one at a time |
 | BayesRepDesign: `ssdMeta()` and the other `ssd*()` searches stop short | BayesRepDesign question 3; whole-total enumeration in `test-replication-planning.R` | Bypassed: the planner searches every whole total with the `pors*()` chances and no longer calls `ssd*()` | A new version; compare `ssdMeta()` with the enumeration for a one-sample original with z = 3.3 |
@@ -149,7 +149,7 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    factor is not symmetric in t), and the critical values seem to be
    taken as if it could. Found 5 November 2026; powerkit now offers
    informed priors with its own exact calculation around `tbf01()`
-   (Departure 36, 21 November 2026).
+   (Departure 37, 21 November 2026).
 
 ## BayesRepDesign
 

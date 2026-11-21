@@ -25,7 +25,7 @@ Four parts, in this order (`decisions.md`, 5 November 2026):
 3. **Planning for both** (done): one sample size for a p-value and a Bayes
    factor reported together, with how often they would agree and the
    primary test named in the plan's wording.
-4. **A full Bayesian planner on the cards** (the robustness check and the design prior in words done; informed priors on the t-tests done 21 November 2026, worked out exactly around bfpwr's Bayes factor (Departure 36); sequential designs done): what the Labs tool does
+4. **A full Bayesian planner on the cards** (the robustness check and the design prior in words done; informed priors on the t-tests done 21 November 2026, worked out exactly around bfpwr's Bayes factor (Departure 37); sequential designs done): what the Labs tool does
    (separate design and analysis priors, sequential designs), plus a
    design prior entered as a plausible range, informed analysis priors
    and a check across prior widths.

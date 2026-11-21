@@ -5,7 +5,7 @@
   root-finding its threshold crossings and summing noncentral t
   probabilities over the normal design prior (new `bayes-informed-t.R`),
   because `bfpwr::powertbf01()` is wrong for informed priors at small
-  samples (Departure 36). The check run, the exported R script and the
+  samples (Departure 37). The check run, the exported R script and the
   methods paragraph follow; validation in
   `test-validation-bayes-informed.R` (chunk `bayes`).
 * `bayes_robustness()` compares an informed prior with the default

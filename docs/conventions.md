@@ -2253,7 +2253,32 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
 - **Shown to users:** on the E43 result for a measured score
   (`departures_for()`), and in the methods paragraph.
 
-### 36. Bayes factor t-tests with an informed prior: power worked out exactly, not by bfpwr's `powertbf01()`
+### 36. The z test of one proportion: power summed over prop.test()'s decisions
+
+- **Established convention:** pwrss's `power.z.oneprop()` (pwrss 1.3.3),
+  like G*Power's normal-approximation option and the textbook formula,
+  gives the z test's power from a normal approximation to the
+  distribution of the observed proportion.
+- **powerkit:** since 21 November 2026 the power of the z test (R's
+  `prop.test()`, without or with its continuity correction) is the
+  probability of every possible count times whether `prop.test()` rejects
+  on it, summed over all counts (`backend-binom-test.R`,
+  `prop_test_p()`), as for the exact binomial tests. The sample size is
+  the smallest that reaches the target (Known difference 2).
+- **Why:** the test decides on whole counts, so its power at a given n is
+  that sum exactly; the approximation is an approximation to it, and can
+  be off in either direction. The continuity correction often changes no
+  decision at a given n, which the approximation cannot show.
+- **Size:** for 20% against 10%, two-sided, alpha .05: power at 94 people
+  is 80.1% summed against 83.0% by pwrss without the correction, and
+  80.1% against 79.5% with it; the sample size for 80% is 78 against
+  pwrss's 86 without the correction, and 89 against 96 with it.
+- **Test:** `engine/tests/testthat/test-backend-binom-test.R`, "Departure
+  36: the z test of one proportion is summed over its counts, by this
+  much".
+- **Shown to users:** on the E25 result when the z test is chosen
+  (`departures_for()`), and in the methods paragraph.
+### 37. Bayes factor t-tests with an informed prior: power worked out exactly, not by bfpwr's `powertbf01()`
 
 - **Established convention:** bfpwr's `powertbf01()` (bfpwr 0.1.6, Pawel
   and Held, the package's citation()) gives the power of the t-test Bayes

@@ -14,5 +14,5 @@
   noncentral t distribution's chance beyond them; numerical integration
   over the normal design prior (`bayes-informed-t.R`). No simulation, so
   no random error, and a run takes a fraction of a second.
-- **Departure 36** in docs/conventions.md records the difference from
+- **Departure 37** in docs/conventions.md records the difference from
   `powertbf01()` and its size.
