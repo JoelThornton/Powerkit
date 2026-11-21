@@ -1,0 +1,12 @@
+entries:
+  - date: "2026-11-20"
+    title: The sample-size rule leaves the stopping rule to you
+    text: >
+      The full methods version's "Sample size rule" said data collection
+      stops when the analysed number is reached, which powerkit was never
+      told. Recruiting extra people for attrition is a buffer, and a fixed
+      budget and replacing people until every group is full can share the
+      same numbers while being different plans. It now says what the
+      calculation assumes (the number analysed, in one analysis) and leaves
+      a place to state the most you'll recruit, whether people who drop out
+      or are excluded are replaced, and when collection stops.
