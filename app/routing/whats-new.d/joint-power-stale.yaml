@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-20"
-    title: Joint power in a plan's downloads matches the correlation entered
-    text: >
-      A study plan's downloads kept the last joint power calculated while the
-      plan's analyses stayed the same, even after the correlation between the
-      outcomes was changed or a new calculation failed. They now carry joint
-      power only for the correlation and analyses shown, and the plan says
-      when the result on screen is out of date.
