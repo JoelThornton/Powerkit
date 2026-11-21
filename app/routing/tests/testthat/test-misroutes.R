@@ -145,8 +145,11 @@ test_that("the guided route offers only the outcome chosen in the screening", {
   expect_match(html, "value=\"yesno\"", fixed = TRUE)
   expect_no_match(html, "value=\"count\"", fixed = TRUE)
   expect_no_match(html, "value=\"score\" checked", fixed = TRUE)
+  # Three or more conditions per person: the plan asks about X's
+  # conditions within people (it used to send these to "Help me choose").
   many <- as.character(guided_variables_ui(tree, list(), list(outcome = "score", times = "many_conditions")))
-  expect_match(many, "continue:choose", fixed = TRUE)
+  expect_match(many, "value=\"within3\"", fixed = TRUE)
+  expect_no_match(many, "value=\"cond2\"", fixed = TRUE)
   expect_identical(resolve_target(tree, "continue", list(outcome = "score", times = "many_conditions"), "choose"), "q1")
 })
 
@@ -326,11 +329,13 @@ test_that("the guided route reaches the safety net unasked only for the gaps lis
   vars <- tree$guided$variables
   opts <- lapply(vars, function(v) setdiff(names(v$options), "notsure"))
   names(opts) <- vapply(vars, `[[`, "", "id")
-  grid <- expand.grid(c(opts, list(times = c("once", "twice"))), stringsAsFactors = FALSE)
+  grid <- expand.grid(c(opts, list(times = c("once", "twice", "many_conditions"))), stringsAsFactors = FALSE)
   gaps <- character()
   for (i in seq_len(nrow(grid))) {
     a <- as.list(grid[i, ])
-    if ((a$x == "within2" || a$covariate == "baseline") && a$times != "twice") next
+    # Only the options each screening answer offers (option_when).
+    offered <- vapply(vars, function(v) a[[v$id]] %in% names(guided_options(v, list(times = a$times))), logical(1))
+    if (!all(offered)) next
     for (an in applicable_analyses(tree, a)) {
       if (identical(resolve_analysis(tree, an, a)$endpoint, "E-unsure")) gaps <- c(gaps, paste(a$outcome, a$x, a$times))
     }

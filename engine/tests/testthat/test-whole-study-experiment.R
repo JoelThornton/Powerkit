@@ -95,3 +95,17 @@ test_that("an experiment's result prints with its own backend, and its script sa
   script <- export_whole_study_script(experiment_whole_study(nrep = 100L))
   expect_lt(regexpr("saveRDS(result", script, fixed = TRUE), regexpr("print(result)", script, fixed = TRUE))
 })
+
+test_that("fully within-people experiments: each test's power matches its exact power", {
+  skip_on_cran()
+  # Three or more conditions per person (a repeated-measures ANOVA), and
+  # two factors that everyone takes every level of (a two-way
+  # repeated-measures ANOVA), each read from the same simulated data sets.
+  for (case in list(list("anova_oneway_within", "main_effect_A", 40L),
+    list("anova_factorial_within", c("main_effect_A", "main_effect_B", "interaction"), 30L))) {
+    r <- run_whole_study(experiment_whole_study(case[[1]], case[[2]], goal = list(type = "power", n = case[[3]]), nrep = 2000L))
+    expect_true(all(r$check_run$ok), label = case[[1]])
+    exact <- vapply(r$implied, function(i) i$values$power_alone, numeric(1))
+    expect_true(all(abs(r$analyses$power - exact) < 4.5 * sqrt(pmax(exact * (1 - exact), 0.01) / 2000)), label = case[[1]])
+  }
+})
