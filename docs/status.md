@@ -31,7 +31,9 @@ size goes in (17 November 2026). The same rule now covers the input screens, the
 Replication plans compare BUCSS publication assumptions when the original's
 publication process is unknown. Goals and exports describe what the selected
 criterion can show, including the replication Bayes factor for designs without
-a Bayes factor t-test (Departure 30).
+a Bayes factor t-test (Departure 30). A replication claim that rests on several
+tests can be planned at the chance that makes all of them succeed together
+(the cards' rule; 21 November 2026).
 
 Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the
