@@ -1,3 +1,7 @@
+# powerkit 0.80.12
+
+* `sample_structure()` takes an optional total `n` and then returns `groups`, the number analysed in each group or cell as the engine runs them, with `group_labels` and `group_unit`, so the app's write-ups describe the split the calculation used (unequal cells of a 2 by 2 ANOVA, group ratios on one-way and mixed designs) rather than an equal split of its own.
+
 # powerkit 0.80.11
 
 * Docs: the wording review's checklist and queue item 12 record which result

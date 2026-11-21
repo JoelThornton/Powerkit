@@ -8,6 +8,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-20"
+    title: Write-ups give the groups and units the calculation used
+    text: >
+      The result, the sample-size rule and the ethics paragraph now give the
+      group and cell sizes the calculation ran: unequal cells in a 2 by 2
+      design were written as equal ones. A study of pairs now gives the number
+      of pairs and of people, and an interrupted time series the time points
+      before and after the intervention, instead of calling each one a
+      participant.
+  - date: "2026-11-20"
     title: Repeated yes/no answers use the likelihood-ratio test
     text: >
       When people give a yes/no answer several times, the card now plans the
