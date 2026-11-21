@@ -542,6 +542,7 @@ test_that("the same people in three or more conditions: the plan offers it and s
   plan <- whole_study_plan(tree, modifyList(base, list(moderator = "three")), c("compare", "moderation"), "moderation", list())
   expect_identical(plan$template, "mixed")
   expect_identical(plan$x_factor, "B")
+})
 
 test_that("the moderator's own effect is a planned analysis: Y on W in a regression study, W's main effect in an experiment", {
   w_main <- analysis_by_id(tree, "w_main")
