@@ -247,7 +247,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
   expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
-  expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
+  expect_match(html, "in group 1: 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
   expect_match(html, "download_simulated_data", fixed = TRUE)            # the simulated data set
@@ -3180,6 +3180,26 @@ test_that("the result leads with one figure, the same number as its sentence", {
   expect_null(result_figure(list(design = "x"), list(goal_type = "something_else")))
 })
 
+test_that("power just either side of a usual target isn't shown as the target", {
+  # Student's t, d = 0.5: 79.52% with 126 people and 80.15% with 128 both
+  # rounded to 80%, though only one meets a requirement of 80%.
+  expect_identical(power_figure(0.795168), "79.5%")
+  expect_identical(power_figure(0.801460), "80.1%")
+  expect_identical(power_figure(0.79996), "79.996%")
+  expect_identical(power_figure(0.8), "80%")
+  expect_identical(power_figure(0.7312), "73%")
+  expect_identical(power_figure(0.9496), "94.96%")
+  skip_without_run()
+  for (n in c(126L, 128L)) {
+    fields <- form_fields(form_groups(forms, "E2"))
+    v <- modifyList(form_examples$E2, list(method = "student_t", d = "0.5", goal = "power", n = as.character(n), power = NULL))
+    calc <- run_calculation(build_spec(forms, "E2", fields, v), seed = forms$default_seed)
+    fig <- result_figure(calc$spec, calc$result)
+    expect_identical(fig$value, if (n == 126L) "79.5%" else "80.1%")
+    expect_match(result_sentences(calc$spec, calc$result)[["headline"]], fig$value, fixed = TRUE)
+  }
+})
+
 test_that("the result's sections are linked along its top, and the write-up can be copied", {
   skip_without_run()
   calc <- run_calculation(light_spec("E2", list(type = "sample_size", power = 0.8)), seed = forms$default_seed)
@@ -3747,4 +3767,76 @@ test_that("the short methods paragraph leaves out the Welch caveats and R's buil
   expect_match(texts[["full"]], "equal population SDs", fixed = TRUE)
   expect_match(texts[["full"]], "observed SDs are equal", fixed = TRUE)
   expect_match(texts[["full"]], "R version [0-9.]+ \\(")
+  # The critical effect size: full version always; short version only for the smallest-effect goal.
+  expect_no_match(texts[["short"]], "critical effect size", fixed = TRUE)
+  expect_match(texts[["full"]], "critical effect size", fixed = TRUE)
+  # The preregistration's sample-size rule is in the full version only.
+  expect_match(texts[["full"]], "Sample size rule: the power calculation is for [0-9,]+ participants")
+  # It asserts no stopping rule the researcher didn't enter: a capped budget
+  # and replacement until each group is full can enter the same numbers.
+  expect_no_match(texts[["full"]], "data collection stops when", fixed = TRUE)
+  expect_match(texts[["full"]], "[State the most that will be recruited, whether people who drop out or are excluded will be replaced, and when data collection stops.]", fixed = TRUE)
+  expect_no_match(texts[["short"]], "Sample size rule", fixed = TRUE)
+  values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  sens <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_match(sens[["short"]], "critical effect size", fixed = TRUE)
+})
+
+test_that("the sample-size rule and the ethics count give the design the engine ran: cells, pairs and time points", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  result_at <- function(n) list(goal_type = "power", curve = data.frame(n = n, power = 0.5))
+  # Unequal cells (2, 2, 1, 1): Superpower runs 40, 40, 20 and 20.
+  unequal <- read_example("anova_2x2_between_unequal")
+  rule <- sample_rule_text(unequal, result_at(120))
+  expect_match(rule, "120 participants (40 in Community sample, Standard; 40 in Community sample, Self-compassion; 20 in Clinical sample, Standard; 20 in Clinical sample, Self-compassion)", fixed = TRUE)
+  expect_false(grepl("30 per cell", rule, fixed = TRUE))
+  equal <- read_example("anova_2x2_between")
+  expect_match(sample_rule_text(equal, result_at(120)), "120 participants (30 per cell)", fixed = TRUE)
+  # Pairs, with the people in them; time points before and after.
+  expect_match(sample_rule_text(read_example("dyadic_apim"), result_at(150)), "is for 150 pairs (300 people) in the analysis", fixed = TRUE)
+  its <- read_example("its")
+  expect_match(analysed_text(its, 24), "24 time points after the intervention (and 24 before it)", fixed = TRUE)
+  expect_false(grepl("participants", sample_rule_text(its, result_at(24)), fixed = TRUE))
+})
+
+test_that("the ethics paragraph says what success means: close fit for the test of not-close fit, recovery for E73 and E58", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  result_at <- function(n, p) list(goal_type = "power", curve = data.frame(n = n, power = p))
+  values <- list(situation = "fixed", just_type = "none", just_source = "Example.")
+  # Not-close fit: significance supports the model.
+  fit <- read_example("sem_model_fit")
+  fit$target_test$method <- "chi_square_not_close_fit"
+  fit$population$rmsea <- 0.02
+  fit$population$rmsea_null <- 0.05
+  e <- ethics_text(fit, result_at(200, 0.495), form_fields(form_groups(forms, "E37")), values)
+  expect_match(e, "If the model's RMSEA in the population is 0.02, the chance that a study of this size shows it fits closely (that its RMSEA is below 0.05", fixed = TRUE)
+  expect_no_match(e, "detects it", fixed = TRUE)
+  # The test of exact fit keeps the misfit wording.
+  exact <- read_example("sem_model_fit")
+  expect_match(ethics_text(exact, result_at(200, 0.5), form_fields(form_groups(forms, "E37")), values), "If our model is wrong by the amount we set", fixed = TRUE)
+  # No significance test: no threshold, and success named.
+  for (case in list(list(name = "efa", ep = "E73", words = "recovers every factor's loadings"),
+                    list(name = "lpa", ep = "E58", words = "finds the 3 profiles we expect"))) {
+    spec <- read_example(case$name)
+    e <- ethics_text(spec, result_at(300, 0.7), form_fields(form_groups(forms, case$ep)), values)
+    expect_match(e, case$words, fixed = TRUE, label = case$ep)
+    expect_no_match(e, "NA threshold|statistically significant", label = case$ep)
+  }
+})
+
+test_that("a mediation write-up and card say the indirect effect is a statistical path unless its causal assumptions hold", {
+  read_example <- function(name) jsonlite::read_json(system.file("specs", paste0(name, ".json"), package = "powerkit"))
+  path <- mediation_causal_sentence(read_example("mediation_simple"))
+  expect_match(path, "statistical path", fixed = TRUE)
+  expect_match(path, "which randomising X does not ensure", fixed = TRUE)
+  nie <- mediation_causal_sentence(read_example("mediation_binary_mediator"))
+  expect_match(nie, "The natural indirect effect is a causal quantity", fixed = TRUE)
+  expect_match(nie, "no common cause of the mediator and Y is itself changed by X", fixed = TRUE)
+  expect_null(mediation_causal_sentence(read_example("anova_2x2_between")))
+  # Every mediation card says so too.
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E16", "E17", "E32", "E38", "E39", "E40", "E42")) {
+    expect_true(any(grepl("common causes of M and Y you adjust for", unlist(tree$endpoints[[ep]]$card_points), fixed = TRUE)), info = ep)
+  }
 })

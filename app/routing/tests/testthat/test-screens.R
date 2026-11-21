@@ -704,6 +704,16 @@ test_that("the analysis search finds tests by their other names, and short words
   expect_length(find("esign"), 0)
   expect_gt(length(find("design")), 0)
   expect_match(known_search_js, "' ' + w)", fixed = TRUE)
+  # A test known by the name of what it tests finds its card: RMSEA and
+  # the fit tests on the SEM card, sphericity corrections on the repeated-
+  # measures ANOVAs, the likelihood-ratio and Wald tests where offered.
+  expect_true("E37" %in% find("RMSEA"))
+  expect_true("E37" %in% find("not-close fit"))
+  expect_true(all(c("E20", "E54", "E55") %in% find("Greenhouse-Geisser")))
+  expect_true(all(c("E70", "E75") %in% find("likelihood ratio")))
+  # With no match, the message offers a visible way back to the full list.
+  expect_match(html, 'id="known_clear"', fixed = TRUE)
+  expect_match(html, "clear the search and browse all analyses", fixed = TRUE)
 })
 
 test_that("a test version found by name opens its card, then its input screen with the version chosen", {

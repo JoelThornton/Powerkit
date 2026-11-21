@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 20 November 2026.*
+*Last updated: 21 November 2026.*
 
 *Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
@@ -19,19 +19,21 @@ the plan (`decisions.md`, 13 November 2026).
 Colleague testing began on 16 November 2026. What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
-smaller items), is `next.md` item 24 and comes first while testing runs;
-with it, item 26 audits every card that runs for a check independent of
+smaller items), is `next.md` item 23 and comes first while testing runs;
+with it, item 25 audits every card that runs for a check independent of
 the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
-size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026); results and exports are next.
+size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026); results and exports are next. A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; the first, write-ups describing a different design, is fixed: the methods, ethics and sample-size sentences now give the group split the engine ran (`sample_structure()`, so unequal cells are written as run) and the design's own unit (pairs, time points, items). The ethics paragraph now says what success means for designs without a significance test (factor recovery, the number of profiles) and, for the test of not-close fit, the chance of showing the model fits closely. A simulated chance of zero for evidence of no effect is reported as none of the simulated studies, with an upper bound, not as impossible. The assumptions comparison also looks inside each range, so a range that crosses no effect no longer reads as "no change". Search finds cards by the tests they offer (RMSEA, sphericity corrections, the likelihood-ratio and Wald tests), an empty search offers a way back to the full list, and the main power figure shows a decimal near 80%, 90% and 95%. The full write-up's sample-size rule states only what the calculation assumes and leaves the recruitment cap, replacement and stopping rule for the author. A plan's downloads carry joint power only for the correlation and analyses now entered. Every mediation card and write-up says the power is for a statistical path and what a causal reading assumes. The last, the Bayes factor tables, now simulates the group sizes its sampling plan fixes (decided 21 November 2026), so all nine are closed.
 Replication plans compare BUCSS publication assumptions when the original's
 publication process is unknown. Goals and exports describe what the selected
 criterion can show, including the replication Bayes factor for designs without
-a Bayes factor t-test (Departure 30).
+a Bayes factor t-test (Departure 30). A replication claim that rests on several
+tests can be planned at the chance that makes all of them succeed together
+(the cards' rule; 21 November 2026).
 
 Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the
@@ -54,8 +56,11 @@ equal tails (the default) and names the rule in the write-up. Which rule
 G*Power uses for a fixed value other than 0.5 is not checked yet. A
 calculation audit the same day found wrong numbers on several cards,
 package faults powerkit passed through, and export and wording errors.
-The wrong numbers are fixed except the replication searches (item 29,
-now ready). E36's equivalence of a correlation or two proportions is
+The wrong numbers are fixed, the replication searches last: the
+replication planner now checks each goal at whole totals and plans the
+smallest total from which every larger one meets it, saying when a
+smaller range also does, because BayesRepDesign's own searches could
+stop short or fail (`upstream-questions.md`). E36's equivalence of a correlation or two proportions is
 planned with pwrss, because TOSTER's planning functions give wrong
 answers (Departure 33), and needs at least 10 people per group, as
 TOSTER's test does; two-sided tests of Cronbach's alpha (E69) and of a
@@ -64,8 +69,15 @@ and 35; powerSurvEpi's one tail is in `upstream-questions.md` for its
 maintainer, with TOSTER's and pmsampsize's faults); E77 says when
 pmsampsize's answer leaves the mean outcome or a
 time-to-event risk less precise than the criteria ask. The audit's
-labels and wording (item 30) go with item 28; E75's one yes/no per
-condition (item 31) needs a larger null check. Validation expectations
+labels and wording are fixed too: E51 says which correlation is the value under no difference, E2's converter asks for a pooled t, E77 says its calibration slope doesn't change the sample size, E69's agreement note gives each limit's level, E74's help says measurement error biases a cross-lagged path either way, and a simulated design whose fits sometimes fail now says how many studies could be analysed. E75 keeps refusing one
+yes/no answer per condition: in simulations its tests found a difference
+too often when there was none, and fitting by adaptive quadrature
+instead of glmer()'s default fit didn't cure it (up to 10% in small
+or rare-answer settings; with two or more answers the two fits agree).
+A yes/no outcome is now tested by the likelihood ratio only, the Wald
+test having run about 6.2% (`validation-log.md`, 20 November 2026).
+Small groups with a rare answer still run about 7% with two answers per
+condition (queue item 28). Validation expectations
 written with the code (simulation, Type I error and formula checks) may
 now be corrected with an approved method change; values transcribed
 from published sources or G*Power stay the maintainer's (CLAUDE.md,
@@ -108,7 +120,9 @@ each area, is at the end of
   show), and the review's own checks kept for
   each release: property checks over every example spec and a run of
   every card in a browser (`repository-protection.md`, "Checks before a
-  release"). A check of every review finding against what merged
+  release"), which fails a result missing an expected download or the
+  print button and checks each file's type and completeness (21 November
+  2026). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are in `next.md`; two proportions now take a published
   odds ratio or risk ratio, mediation with two groups takes X's
@@ -242,7 +256,7 @@ each area, is at the end of
   Word, with a Registered Report study design table: question,
   hypothesis, sampling plan, analysis plan, what sets the sensitivity,
   interpretation of each outcome, theory at stake; also on its own from
-  the plan's Planning report button), the merged references and each analysis's own files; the zip
+  the plan's Study plan report button), the merged references and each analysis's own files; the zip
   opens again as the plan. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
@@ -388,8 +402,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens' labels over 75 characters are done). Still to come: the rest
-  of item 27 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 28 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  of item 26 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 
@@ -447,7 +461,7 @@ November 2026), which gives .051.
   above 5%); the results screen states it (`validation-log.md`,
   14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
-  (`hosting-options.md`, `next.md` item 11).
+  (`hosting-options.md`, `next.md` item 12).
 - No usability sessions with researchers yet
   ([`usability-session-pack.md`](usability-session-pack.md)); no
   ease-of-use result is claimed.

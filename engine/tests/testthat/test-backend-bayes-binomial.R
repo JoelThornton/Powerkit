@@ -131,3 +131,15 @@ test_that("Departure 15's size for a proportion: exactly p against bfpwr's defau
   sizes <- 4:400
   expect_equal(sizes[which(vapply(sizes, bfpwr_default, numeric(1)) >= 0.8)[1]], 229)
 })
+
+test_that("evidence for no effect counts a Bayes factor exactly at the threshold, as the results say (queue item 29)", {
+  # The outcomes are whole numbers, so BF01 can equal the threshold: set
+  # the threshold to the BF01 of one outcome and that outcome counts.
+  inputs <- bfbin_inputs(bin_spec())
+  n <- 40
+  x <- 20
+  k <- 1 / bf10_by_definition(x, n, inputs$p0)
+  at <- bfbin_chance(inputs, n, k, for_effect = FALSE, p = inputs$p0, p_sd = 0)
+  above <- bfbin_chance(inputs, n, k * (1 + 1e-6), for_effect = FALSE, p = inputs$p0, p_sd = 0)
+  expect_equal(at - above, stats::dbinom(x, n, inputs$p0), tolerance = 1e-6)
+})

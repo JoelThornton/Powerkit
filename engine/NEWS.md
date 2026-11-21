@@ -1,3 +1,163 @@
+# powerkit 0.80.27
+
+* Engine: E69's kappa check run simulates raters from the model kappaSize
+  plans for (a mixture for two categories, a Dirichlet-multinomial for
+  three to five), so it checks the population kappaSize assumes, not only
+  its pairwise kappa (`reliability_kappa_ratings()`;
+  upstream-questions.md, kappaSize question 1).
+* Release sweep: the every-card browser run fails a result missing an
+  expected download or the print button, and rejects a download with no
+  file name, an unexpected type, a cut-off ZIP or Word file, or a
+  Markdown, CSV or text file that isn't one (from the 19 November audit).
+
+# powerkit 0.80.26
+
+* App: below 600 px wide the replication planner's result tables wrap
+  their cells instead of becoming a nowrap, horizontally scrolling block
+  (the caption and later columns were out of sight).
+* App: the replication write-up's several-tests sentence is first person
+  and drops the on-screen advice (replication_claim_sentence()).
+
+# powerkit 0.80.25
+
+* Engine: Spower designs report the studies Spower redrew because their
+  analysis failed (an NA p-value or an error, counted in Spower's ERRORS)
+  as failed studies, so the result says how many could be analysed: the
+  random-intercept cross-lagged panel model (E74) among them. The power
+  is still over the studies analysed (`spower_counts()`).
+* Engine: E25's evidence for no effect counts a BF01 equal to the
+  threshold, as the results' "at least" says; bfpwr's `pbinbf01()` upper
+  tail is strict (differs only at an exact tie).
+* App: wording the 19 November 2026 audit found wrong: E51's correlations
+  named as the value under no difference and the value expected (the
+  order matters in the unpooled method); E2's converter asks for a
+  Student's (pooled) t; E61's moderator slope is on Fisher's z scale for
+  a correlation; E77's calibration slope doesn't change pmvalsampsize's
+  sample size (upstream-questions.md, pmvalsampsize question 2); E69's
+  agreement note tests each limit at half the level; E74's help says
+  measurement error can bias a cross-lagged path either way; precision
+  results from presize say the width holds at the values assumed, not
+  on average (queue item 29).
+
+# powerkit 0.80.24
+
+* App: the replication planner states beside an ANOVA original's total
+  sample size that its groups are treated as equal in size.
+
+# powerkit 0.80.23
+
+* App: the replication planner takes an optional number of tests that must
+  all succeed, with a dependence choice, and plans the test at
+  all_tests_target() of the chosen chance (product rule when independent,
+  union bound when unknown, as on the cards). The result and write-up state
+  the claim and the assumption that the other tests reach the same chance.
+
+# powerkit 0.80.22
+
+* Engine: `replication_planning()` searches each BayesRepDesign goal over
+  whole totals with the pors*() chance functions (every total up to 1,000,
+  a 400-point grid beyond with each change pinned by bisection) instead of
+  the ssd*() searches. The planned size is the smallest total from which
+  every larger one meets the goal; smaller totals that also meet it are
+  reported in the new `goals$also` column, and a goal met only by smaller
+  replications has reason `"within_range"`. This fixes a pooled goal
+  reported as out of reach where ssdMeta() fails (a strong original), a
+  pooled goal missed at moderate sizes, and unequal groups whose search
+  started above the smallest replication. porsMeta() is called one standard
+  error at a time for an estimate below zero (upstream-questions.md,
+  BayesRepDesign questions 2 and 3). The exported scripts search the same
+  way and give the same numbers (queue item 29).
+
+# powerkit 0.80.21
+
+* App: run_calculation() drops the engine's "This design spec has N
+  problems:" heading from error messages, and the result's folded JSON is
+  headed "The settings that were run" (queue item 12).
+
+* App: the failed-simulation warning, its per-sample-size lines and the
+  whole-study version no longer use "valid decisions", "conditional power"
+  or "successful-study probability"; the Bayes factor sequential card's
+  claim that most studies stop early is conditional on the effect being as
+  planned (queue item 12).
+
+# powerkit 0.80.20
+
+* The contingency table Bayes factor (E6) now simulates the totals its sampling plan fixes: with the rows or columns fixed, each simulated study sets them at the table's shares of n (`bftable_margin_totals()`, largest remainder) and draws each row or column from its conditional probabilities (`bftable_draw()`); it had drawn every table with only the total fixed, which understated power (36.0% instead of 43.2% with 15 a group, rates .70 and .30, BF10 of at least 10). The exported script and the validation's exact sums follow the plan too.
+
+# powerkit 0.80.19
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.18
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.17
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.16
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.15
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.14
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.13
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.80.12
+
+* `sample_structure()` takes an optional total `n` and then returns `groups`, the number analysed in each group or cell as the engine runs them, with `group_labels` and `group_unit`, so the app's write-ups describe the split the calculation used (unequal cells of a 2 by 2 ANOVA, group ratios on one-way and mixed designs) rather than an equal split of its own.
+
+# powerkit 0.80.11
+
+* Docs: the wording review's checklist and queue item 12 record which result
+  notes were checked against the code and what remains.
+
+# powerkit 0.80.10
+
+* E75: a yes/no outcome is tested by the likelihood ratio only; a spec asking for the Wald test is refused with a plain message (it ran about 6.2% at alpha .05 with no difference when people differ a lot; `validation-log.md`, 20 November 2026). Counts and ordered categories keep both tests. Adaptive quadrature was tested and not adopted (decisions.md, 20 November 2026).
+
+# powerkit 0.80.9
+
+* App: the study plan's Registered Report design table capitalises the
+  test name opening each "Analysis plan" cell, and the replication plan's
+  header says "Powerkit's replication plan" (queue item 29).
+
+* App: 18 tree.yaml names and choices over 75 characters shortened (queue
+  items 29 and 12); the study plan page's "Planning report" button is
+  "Study plan report", as in the document and the zip's README.
+
+# powerkit 0.80.8
+
+* App: the study planning document's "Effect/source reasoning" and
+  "Allocation weights/ratio" lines are now "Why this effect size" and
+  "Group size ratio", and the "N counts ..." line no longer has a stray
+  space before its full stop (queue item 29).
+
+# powerkit 0.80.7
+
+* App: the short methods paragraph keeps the critical effect size sentence
+  only for the smallest-effect goal; the results note and full version carry
+  it for the others. The full version adds a sample size rule line for
+  preregistration. Both follow the decisions recorded on queue item 29.
+
+* App: 153 input labels in forms.yaml lost a trailing bracket holding an
+  example, a range, a count or an optional-field default; the text moved
+  into the field's help (queue item 29).
+
+# powerkit 0.80.6
+
+* E75, one yes/no answer per condition: still refused, now with the reason the simulations give. In 4,000 simulated studies a cell with no difference, the logistic random-intercept model's tests rejected too often for a rare answer (the likelihood-ratio test 7.6% for the group-by-condition interaction and 8.5% for the conditions alone, at alpha .05), and the Wald test up to 6.4% when people differ a lot (`validation-log.md`, 20 November 2026; script in `docs/validation/`). The earlier message said the person SD could not be estimated, which is not so.
+* `test-validation-glmm.R` gains yes/no Type I checks by the likelihood-ratio test, for one factor and for the group-by-condition interaction, with two answers per condition; the simulations found that test within error of 5% there, and the Wald test about 6.2% when people differ a lot, which the card's help for the test now says.
+
 # powerkit 0.80.5
 
 * App: labels on study plans, the whole-study screen and the variation tool,

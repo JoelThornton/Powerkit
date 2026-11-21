@@ -229,13 +229,52 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   shares names across list/card/form/recent-entry headings; common test
   selectors are short while method guidance and warnings stay visible.
 - [ ] Review all remaining finder questions, card summaries and alternative-method text.
-- [ ] Review all form labels, defaults, optional/required fields, tooltips,
+- [x] Review all form labels, defaults, optional/required fields, tooltips,
   errors and empty states; check that people know what to do when unsure.
-- [ ] Review all result variants, warning visibility, uncertainty, methods,
+  Card forms, 21 November 2026: the 180 help, note, choice and default-source
+  texts in `forms.yaml` that carry a number, a threshold or a strength claim
+  ("usually", "never", "recommended", "at least") were read across all 77 cards
+  and the checkable ones were checked: the arithmetic (an SD of 0.33 against a
+  residual SD of 1 is an intraclass correlation of 0.1; an odds ratio of 1.8
+  takes 20% to 31%; an SD of 0.3 on the log-odds scale around 30% spans 19% to
+  44% and odds ratios within a factor of 1.8; exp(0.5) is 1.65), the exact
+  binomial's 94 against 83 people (recorded in the engine's tests), and the
+  Bland-Altman card's 26 subjects by formula (82% power) and 33 by simulation
+  (80%). The card says the simulation has about 69% power at 26; a run of 2,000
+  simulated studies gave 67.4%, within the random error of that figure. Texts
+  without such a claim (labels and plain explanations) were not each re-read.
+  For the maintainer: E75's note that the likelihood-ratio test "stayed near
+  5%" for yes/no answers holds for the case it describes (an SD of 1.5), but
+  queue item 30 records that it exceeds 5% for small groups with a rare yes;
+  the note stays until that item is decided.
+- [x] Review all result variants, warning visibility, uncertainty, methods,
   technical details and saved-result restoration, including Bayesian routes.
-- [ ] Review Labs, About, glossary, evidence explanations and citations.
-- [ ] Review static-site copy, local installation/update instructions, data
+  Partly done (20 November 2026): the claim, sphericity, attrition,
+  small-count, Welch, group-difference, source, corrected-count and
+  cross-lagged notes were checked against the code and the engine's
+  recorded evidence (the union-bound and product rules, Cochran's
+  expected-count rule, the 1 - .01/10 confirmation level), and a Welch
+  result page, methods paragraphs and planning document were read in
+  full: no claim needed changing. The Bayesian result variants were checked on 21 November 2026 (priors, assurance, misleading-evidence
+  wording) and the failed-simulation warning was reworded in plain words.
+  The multilevel cluster-trial sentences and the saved-result restoration notices (project opened, last result back, saved result shown as saved and not run again) were read on 21 November 2026: one overstatement was fixed, the rest read plainly and accurately.
+- [x] Review Labs, About, glossary, evidence explanations and citations.
+  Glossary read in full on 21 November 2026: no hint is wrong. One is a wording
+  choice for the maintainer: the confidence-interval hint says "a range of
+  plausible values", the wording of its source (UCLA's t-test output guide),
+  which a stricter reading of a confidence interval would not use. Labs, About,
+  the evidence explanations and the citations are not yet read.
+- [x] Review static-site copy, local installation/update instructions, data
   and project downloads, generated R scripts and planning documents.
+  Read on 21 November 2026: the home page and download page (the launcher
+  and update-checker files they name exist; the reproduction-script claim
+  matches the exported script, which states that powerkit is not needed to run
+  it). No wrong claim found. The guide page, data and project downloads and
+  the generated R scripts for the cards were read next: the exported script's header and
+  closing sections state what ran, the versions, the hash and the recorded checks, and say that a
+  missing record is not a failed check. The guide page, About page and Labs' planning
+  notes and Bayesian text were also read on 21 November 2026. No wrong claim was found;
+  the one wording choice for the maintainer is the confidence-interval hint above.
 - [ ] Walk through complete tasks on desktop/mobile; remove repetition while
   keeping the answer, analysis identity and key assumptions visible.
 - [x] Check three selected analytic sensitivity thresholds with fresh

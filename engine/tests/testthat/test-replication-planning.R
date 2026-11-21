@@ -155,7 +155,7 @@ test_that("the result records what calculated it", {
   plan <- two_groups()
   expect_setequal(vapply(plan$packages, `[[`, "", "name"),
     c("BayesRepDesign", "pwr", "pwrss", "bfpwr", if (requireNamespace("BUCSS", quietly = TRUE)) "BUCSS"))
-  expect_match(plan$functions_used[["significance"]], "ssdSig\\(level = 0.025\\)")
+  expect_match(plan$functions_used[["significance"]], "porsSig\\(level = 0.025\\)")
   expect_match(plan$functions_used[["negligible"]], "level = 0.1")
   expect_match(plan$functions_used[["small_telescopes"]], "pwr.t2n.test")
 })
@@ -230,7 +230,7 @@ test_that("a one-sided replication tests in the original's direction at alpha", 
     expect_equal(goal_n(one, goal), goal_n(usual, goal), info = goal)
   }
   expect_equal(goal_n(one, "agreement", "uncertain"), goal_n(usual, "agreement", "uncertain"))
-  expect_match(one$functions_used[["significance"]], "ssdSig\\(level = 0.05\\)")
+  expect_match(one$functions_used[["significance"]], "porsSig\\(level = 0.05\\)")
   expect_match(replication_planning_script(one), "level <- alpha  # one-sided", fixed = TRUE)
   expect_error(replication_planning("paired", 0.5, original_n = 30, alternative = "less"), "one.sided")
 })
@@ -490,8 +490,13 @@ test_that("the replication Bayes factors count a success in the original's direc
   either <- n_of(BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8))
   expect_equal(either, 7393, tolerance = 2)
   expect_equal(goal_n(plan, "bf_replication", "shrunk"), 26086, tolerance = 2)
-  expect_equal(goal_n(plan, "bf_replication", "shrunk"),
-    n_of(BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8, paradox = FALSE)))
+  # The planned total is the first whole total with the chance: ssdBFr()'s
+  # own search stops at 26,086 (upstream-questions.md, BayesRepDesign
+  # question 3), 14 more than needed.
+  n <- goal_n(plan, "bf_replication", "shrunk")
+  chance <- function(n) BayesRepDesign::porsBFr(level = 1 / 10, dprior = dp, sr = 2 / sqrt(n), paradox = FALSE)
+  expect_gte(chance(n), 0.8)
+  expect_lt(chance(n - 2), 0.8)
   expect_match(plan$functions_used[["bf_replication"]], "paradox = FALSE", fixed = TRUE)
   expect_match(plan$functions_used[["bf_sceptical"]], "paradox = FALSE", fixed = TRUE)
   expect_match(replication_planning_script(plan), "paradox = FALSE", fixed = TRUE)
@@ -634,4 +639,77 @@ test_that("several originals or a meta-analysis are planned from their pooled es
   expect_equal(env$n, goal_n(pooled, "significance", "uncertain"))
   expect_error(replication_planning("two_groups", 0.45, original_analysis = "pooled"), "standard error or its confidence interval")
   expect_error(replication_planning("generic", 0.45, original_n = 100, original_se = 0.1, original_analysis = "pooled"), "Another design")
+})
+
+# Queue item 29: each goal's size is searched over whole totals, so a
+# chance that is not monotone in the replication's size, or that BayesRepDesign's
+# ssd*() searches can't follow, still gives the right total.
+test_that("the search finds the smallest total from which every larger one meets the goal", {
+  # Every total checked, for a smaller largest size: the planner agrees.
+  enumerate <- function(chance, totals, power = 0.8) {
+    ok <- chance(totals) >= power
+    if (!ok[length(ok)] || all(ok)) return(NA)
+    totals[max(which(!ok)) + 1]
+  }
+  plan <- replication_planning("one_sample", 0.34, original_n = 100, tau = 0.1, max_n = 3000)
+  priors <- list(
+    as_reported = BayesRepDesign::designPrior(to = 0.34, so = 0.1, type = "conditional"),
+    uncertain = BayesRepDesign::designPrior(to = 0.34, so = 0.1, tau = 0.1, type = "predictive"),
+    shrunk = BayesRepDesign::designPrior(to = 0.34, so = 0.1, tau = 0.1, type = "EB"))
+  for (prior in names(priors)) {
+    dp <- priors[[prior]]
+    chances <- list(
+      significance = function(n) BayesRepDesign::porsSig(level = 0.025, dprior = dp, sr = 1 / sqrt(n)),
+      pooled = function(n) vapply(n, function(one) BayesRepDesign::porsMeta(level = 0.025^2, dprior = dp,
+        sr = 1 / sqrt(one)), numeric(1)),
+      bf_replication = function(n) BayesRepDesign::porsBFr(level = 1 / 10, dprior = dp, sr = 1 / sqrt(n), paradox = FALSE))
+    for (goal in names(chances)) {
+      expect_identical(as.numeric(goal_n(plan, goal, prior)), as.numeric(enumerate(chances[[goal]], 3:3000)),
+        info = paste(goal, prior))
+    }
+  }
+})
+
+test_that("a pooled goal missed at moderate sizes reports the sizes that meet it", {
+  # d = 0.34 from 100 people, shrunk: the original carries a tiny
+  # replication (3 to 9), moderate ones miss, and every total from 85 meets it.
+  plan <- replication_planning("one_sample", 0.34, original_n = 100, tau = 0.1)
+  row <- plan$goals[plan$goals$goal == "pooled" & plan$goals$prior %in% "shrunk", ]
+  expect_equal(row$n, 85)
+  expect_equal(row$also, "3-9")
+  # d = 0.35 with more heterogeneity: met only by small replications.
+  wide <- replication_planning("one_sample", 0.35, original_n = 100, tau = 0.2)
+  row <- wide$goals[wide$goals$goal == "pooled" & wide$goals$prior %in% "shrunk", ]
+  expect_true(is.na(row$n))
+  expect_equal(row$reason, "within_range")
+  expect_equal(row$also, "3-8")
+  row <- wide$goals[wide$goals$goal == "pooled" & wide$goals$prior %in% "uncertain", ]
+  expect_equal(row$n, 382)
+  expect_equal(row$also, "3-26")
+})
+
+test_that("a strong original's pooled goal is found where ssdMeta() reports numerical problems", {
+  # z = 3.3 from 100 people: the pooled chance rises steadily with the
+  # replication's size, but ssdMeta() fails, which the planner once
+  # reported as out of reach.
+  plan <- replication_planning("one_sample", 0.33, original_n = 100)
+  n <- plan$goals$n[plan$goals$goal == "pooled"]
+  expect_false(anyNA(n))
+  dp <- BayesRepDesign::designPrior(to = 0.33, so = 0.1, type = "conditional")
+  chance <- function(n) BayesRepDesign::porsMeta(level = 0.025^2, dprior = dp, sr = 1 / sqrt(n))
+  as_reported <- n[plan$goals$prior[plan$goals$goal == "pooled"] == "as_reported"]
+  expect_gte(chance(as_reported), 0.8)
+  expect_lt(chance(as_reported - 1), 0.8)
+})
+
+test_that("unequal groups are searched over whole totals from the smallest replication", {
+  # 1 : 10 groups: every total is split as the cards split it, and the
+  # planned total is the first whose two groups give the chance.
+  plan <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, allocation_ratio = 10)
+  n <- goal_n(plan, "significance", "as_reported")
+  dp <- BayesRepDesign::designPrior(to = plan$original$estimate, so = plan$original$se, type = "conditional")
+  se <- function(n) { n1 <- floor(n / 11 + 0.5); sqrt(1 / n1 + 1 / (n - n1)) }
+  totals <- 22:3000
+  ok <- BayesRepDesign::porsSig(level = 0.025, dprior = dp, sr = se(totals)) >= 0.8
+  expect_equal(n, totals[max(which(!ok)) + 1])
 })

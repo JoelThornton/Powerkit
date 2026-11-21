@@ -50,7 +50,7 @@
 # Two goals are planned for a true effect of zero instead: small
 # telescopes (Simonsohn, 2015), with the card's own calculation (pwr and
 # pwrss, small-telescopes.R) so the two give the same number, and showing
-# the effect is too small to matter (TOST), BayesRepDesign's ssdTOST()
+# the effect is too small to matter (TOST), BayesRepDesign's porsTOST()
 # with a design prior at zero.
 #
 # Success levels follow the paper's worked example ("Labels" experiment,
@@ -59,9 +59,17 @@
 # the original by a (1 - 2 alpha) confidence interval for the difference
 # (90% at alpha = .05), and Bayes factors at 1 / threshold. Too small to
 # matter is the usual TOST at alpha, two one-sided tests each at alpha,
-# which is a (1 - 2 alpha) interval inside the margins: porsTOST() and
-# ssdTOST() take the interval's level (they use qnorm(1 - level / 2)), so
-# they are given 2 alpha, as ssdEqu() is.
+# which is a (1 - 2 alpha) interval inside the margins: porsTOST() takes
+# the interval's level (it uses qnorm(1 - level / 2)), so it is given
+# 2 alpha, as porsEqu() is.
+#
+# Each goal's sample size is the smallest whole total from which every
+# larger total, up to max_n, meets it, found from the pors*() chance
+# functions at every total (exactly up to 1,000, on a fine grid pinned by
+# bisection beyond). BayesRepDesign's ssd*() searches are not used: they
+# can stop short or fail where the chance is not monotone in the
+# replication's size (upstream-questions.md, BayesRepDesign question 3).
+# Smaller totals that also meet a goal are reported in `also`.
 
 replication_designs <- list(
   two_groups = list(template = "independent_t", effect = "d", unit_sd = 2),
@@ -218,13 +226,18 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   analysis scale, z and two-sided p; with a change of reliability, also
 #'   `reported`, the estimate in the original's units, and `attenuation`); `priors` (mean and SD of each
 #'   belief); `goals`, a data frame of `goal`, `prior` (`NA` for the goals
-#'   planned for no effect), `n` (the total sample size needed, `NA` when
-#'   not reachable), `per_group` (equal groups), `n1` and `n2` (two groups:
+#'   planned for no effect), `n` (the total sample size needed: the
+#'   smallest whole total from which every larger one, up to `max_n`,
+#'   meets the goal; `NA` when there is none), `per_group` (equal groups), `n1` and `n2` (two groups:
 #'   each group's size), `ratio` (n over the original's), `limit`
 #'   (the highest chance reachable, when the goal cannot reach `power`;
 #'   for `reason` `"any_size"`, the chance with the smallest replication,
-#'   which already exceeds `power`) and `reason` (`"not_reachable"`,
-#'   `"over_max"`, `"not_found"` or `"any_size"`); `at_n` (the chance of each goal at `n`); `telescope` (d33
+#'   which already exceeds `power`; for `"within_range"`, the chance with
+#'   the largest), `reason` (`"not_reachable"`, `"over_max"`,
+#'   `"not_found"`, `"any_size"`, or `"within_range"` when only some
+#'   smaller totals meet the goal) and `also` (smaller totals that also
+#'   meet the goal, as ranges such as `"3-9"` separated by commas; `NA`
+#'   when none); `at_n` (the chance of each goal at `n`); `telescope` (d33
 #'   and its calculation, `NULL` for a generic design or a Bayesian
 #'   original); `bias_corrected` (for a t-test or correlation original
 #'   analysed with a test, [replication_bucss()]'s sample sizes for a
@@ -511,26 +524,18 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   on_scale <- if (generic) tf else function(x) if (correlation) atanh(x) else x
   margin <- if (!is.null(smallest_effect)) on_scale(smallest_effect)
 
-  # Standard error and sample size, both ways (n is the total). A generic
-  # design scales the original's standard error by sqrt(n_original / n).
-  # Unequal groups: each total split into whole groups by the cards' rule
-  # (rounded_groups()), the standard error sqrt(1/n1 + 1/n2) of those
-  # groups, and the smallest total whose groups reach a standard error.
+  # The replication's standard error at a total n (vectorised over n). A
+  # generic design scales the original's standard error by
+  # sqrt(n_original / n). Unequal groups: each total split into whole
+  # groups by the cards' rule (rounded_groups()), with the standard error
+  # sqrt(1/n1 + 1/n2) of those groups; it falls as the total grows, since
+  # one more person joins one group or the other.
   se_at <- function(n) {
     if (unequal) {
-      g <- rounded_groups(n, allocation_ratio)
-      return(sqrt(1 / g[1] + 1 / g[2]))
+      n1 <- floor(n / (1 + allocation_ratio) + 0.5)
+      return(sqrt(1 / n1 + 1 / (n - n1)))
     }
     if (generic) original$se * sqrt(original$n / n) else if (correlation) 1 / sqrt(n - 3) else rule$unit_sd / sqrt(n)
-  }
-  n_at <- function(se) {
-    if (unequal) {
-      size <- max(4, floor((1 + allocation_ratio)^2 / allocation_ratio / se^2) - 2)
-      while (se_at(size) > se * (1 + 1e-12)) size <- size + 1
-      return(size)
-    }
-    raw <- if (generic) original$n * (original$se / se)^2 else if (correlation) 1 / se^2 + 3 else rule$unit_sd^2 / se^2
-    if (identical(design, "two_groups")) 2 * ceiling(raw / 2 - 1e-9) else max(2, ceiling(raw - 1e-9))
   }
 
   priors <- lapply(replication_priors, function(type) {
@@ -540,8 +545,9 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   at_zero <- call_backend("BayesRepDesign", BayesRepDesign::designPrior(to = 0, so = original$se,
     type = "conditional"))
 
-  # Each goal: its sample size search (ssd*) and chance at a standard error
-  # (pors*), as the package's functions with the levels above.
+  # Each goal: its chance at a standard error (pors*), as the package's
+  # functions with the levels above; its sample size is searched over whole
+  # totals below.
   bf_level <- 1 / threshold
   # The replication and sceptical Bayes factors count a success only in the
   # original's direction (paradox = FALSE, not the package's default TRUE:
@@ -549,79 +555,127 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # zero is not evidence for the original's effect, however large its
   # Bayes factor (Pawel, Consonni & Held, 2026, the "replication paradox").
   rules <- list(
-    significance = list(ssd = function(dp) BayesRepDesign::ssdSig(level = sig_level, dprior = dp, power = power),
-      pors = function(dp, sr) BayesRepDesign::porsSig(level = sig_level, dprior = dp, sr = sr),
-      call = sprintf("ssdSig(level = %s)", format(sig_level))),
-    pooled = list(ssd = function(dp) BayesRepDesign::ssdMeta(level = sig_level^2, dprior = dp, power = power,
-        searchInt = c(1e-6, 10)),
-      pors = function(dp, sr) BayesRepDesign::porsMeta(level = sig_level^2, dprior = dp, sr = sr),
-      call = sprintf("ssdMeta(level = %s)", format(signif(sig_level^2, 4)))),
+    significance = list(pors = function(dp, sr) BayesRepDesign::porsSig(level = sig_level, dprior = dp, sr = sr),
+      call = sprintf("porsSig(level = %s)", format(sig_level))),
+    # porsMeta() one standard error at a time: for an estimate below zero
+    # it uses the whole vector `sr` where it means the current element, so a
+    # vector of standard errors fails or gives wrong chances (BayesRepDesign
+    # 0.42; upstream-questions.md, BayesRepDesign question 2).
+    pooled = list(pors = function(dp, sr) vapply(sr, function(one) BayesRepDesign::porsMeta(level = sig_level^2,
+        dprior = dp, sr = one), numeric(1)),
+      call = sprintf("porsMeta(level = %s)", format(signif(sig_level^2, 4)))),
     agreement = if (!is.null(margin)) list(
-      ssd = function(dp) BayesRepDesign::ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin),
       pors = function(dp, sr) BayesRepDesign::porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr),
-      call = sprintf("ssdEqu(level = %s, margin = %s)", format(2 * alpha), format(signif(margin, 4)))),
-    bf_replication = list(ssd = function(dp) BayesRepDesign::ssdBFr(level = bf_level, dprior = dp, power = power, paradox = FALSE),
-      pors = function(dp, sr) BayesRepDesign::porsBFr(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
-      call = sprintf("ssdBFr(level = 1/%s, paradox = FALSE)", format(threshold))),
-    bf_sceptical = list(ssd = function(dp) BayesRepDesign::ssdBFs(level = bf_level, dprior = dp, power = power, paradox = FALSE),
-      pors = function(dp, sr) BayesRepDesign::porsBFs(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
-      call = sprintf("ssdBFs(level = 1/%s, paradox = FALSE)", format(threshold)))
+      call = sprintf("porsEqu(level = %s, margin = %s)", format(2 * alpha), format(signif(margin, 4)))),
+    bf_replication = list(pors = function(dp, sr) BayesRepDesign::porsBFr(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
+      call = sprintf("porsBFr(level = 1/%s, paradox = FALSE)", format(threshold))),
+    # porsBFs() stops with an error where the sceptical Bayes factor has no
+    # success region (a very small replication of a weak original): that
+    # total doesn't meet the goal (upstream-questions.md, BayesRepDesign
+    # question 3), so it is asked one standard error at a time.
+    bf_sceptical = list(pors = function(dp, sr) vapply(sr, function(one) tryCatch(BayesRepDesign::porsBFs(level = bf_level,
+        dprior = dp, sr = one, paradox = FALSE), error = function(e) NA_real_), numeric(1)),
+      call = sprintf("porsBFs(level = 1/%s, paradox = FALSE)", format(threshold)))
   )
   rules <- Filter(Negate(is.null), rules)
 
-  # A search's sample size, or why there is none: the package warns when a
-  # chance can't reach `power` however large the study, and says the most.
-  search <- function(run, limit_of, small_of = function() NA_real_) {
-    warned <- NULL
-    out <- withCallingHandlers(
-      tryCatch(run(), error = function(e) NULL),
-      warning = function(w) {
-        warned <<- conditionMessage(w)
-        invokeRestart("muffleWarning")
-      }
-    )
-    sr <- if (is.list(out)) out$sr else NA_real_
-    if (is.numeric(sr) && length(sr) == 1 && is.finite(sr) && sr > 0) {
-      size <- n_at(sr)
-      if (size <= max_n) return(list(n = size, limit = NA_real_, reason = NA_character_))
-      return(list(n = NA_real_, limit = NA_real_, reason = "over_max"))
-    }
-    # Met at any size: the package's search fails as well when the goal's
-    # chance is above `power` even for the smallest replication, as the
-    # pooled goal is after a strong original. Said so, with that chance.
-    small <- tryCatch(suppressWarnings(small_of()), error = function(e) NA_real_)
-    if (is.numeric(small) && length(small) == 1 && is.finite(small) && small >= power) {
-      return(list(n = NA_real_, limit = small, reason = "any_size"))
-    }
-    # Not reachable: the chance with a very large replication.
-    list(n = NA_real_, limit = limit_of(), reason = if (is.null(warned)) "not_found" else "not_reachable")
-  }
-  huge_se <- se_at(max_n)
   # The smallest replication a goal is judged at: two people in each group
   # for two groups, otherwise three (a correlation's standard error needs n > 3).
   min_n <- if (identical(design, "two_groups")) 4 else if (correlation && !generic) 4 else 3
   if (unequal) while (any(rounded_groups(min_n, allocation_ratio) < 2)) min_n <- min_n + 1
+  # The totals a replication can have: even ones for two equal groups.
+  step <- if (identical(design, "two_groups") && !unequal) 2 else 1
+  top_n <- min_n + step * floor((max_n - min_n) / step)
+  huge_se <- se_at(top_n)
   small_se <- se_at(min_n)
+
+  # Where a goal is met, over whole totals: its chance (BayesRepDesign's
+  # pors*()) at each total's standard error, against `power`. The
+  # package's ssd*() searches assume one crossing on a continuous standard
+  # error and can stop short: the pooled goal can be met by a tiny
+  # replication (the original carries it), missed at moderate sizes and
+  # met again at large ones, and ssdMeta() reports numerical problems even
+  # when the chance rises steadily (upstream-questions.md, BayesRepDesign
+  # question 3). So every total up to 1,000 is checked,
+  # a 400-point grid beyond it, and each change on the grid is found to
+  # the person by bisection over totals (the standard error falls as the
+  # total grows, so the goal's chance moves smoothly between grid points).
+  # The planned size is the smallest total from which every total up to
+  # max_n meets the goal; smaller totals that also meet it are kept in
+  # `also`, so that a plan does not rest on a size just below a gap.
+  met_where <- function(chance) {
+    met_at <- function(ns) {
+      ch <- suppressWarnings(chance(se_at(ns)))
+      !is.na(ch) & ch >= power
+    }
+    dense <- seq(min_n, min(top_n, min_n + step * floor((1000 - min_n) / step)), by = step)
+    sparse <- if (top_n > max(dense)) {
+      grid <- exp(seq(log(max(dense)), log(top_n), length.out = 400))
+      grid <- min_n + step * round((grid - min_n) / step)
+      sort(unique(c(grid[grid > max(dense)], top_n)))
+    }
+    ns <- c(dense, sparse)
+    ok <- met_at(ns)
+    # Each change between two grid points: the first total in the new state.
+    starts <- ns[1]
+    states <- ok[1]
+    for (k in which(ok[-1] != ok[-length(ok)])) {
+      lo <- ns[k]
+      hi <- ns[k + 1]
+      while (hi - lo > step) {
+        mid <- lo + step * floor((hi - lo) / step / 2)
+        if (met_at(mid) == ok[k + 1]) hi <- mid else lo <- mid
+      }
+      starts <- c(starts, hi)
+      states <- c(states, ok[k + 1])
+    }
+    ends <- c(starts[-1] - step, top_n)
+    data.frame(from = starts[states], to = ends[states])
+  }
+  # A goal's planned size from where it is met, or why there is none.
+  # `limit` is the chance with the largest replication (the highest
+  # reachable, when the goal can't reach `power`), or, for a goal met at
+  # any size, the chance with the smallest.
+  whole_search <- function(chance) {
+    runs <- tryCatch(met_where(chance), error = function(e) NULL)
+    if (is.null(runs)) return(list(n = NA_real_, limit = NA_real_, reason = "not_found", also = NA_character_))
+    at <- function(se) tryCatch(suppressWarnings(chance(se)), error = function(e) NA_real_)
+    also_of <- function(r) if (nrow(r)) paste(sprintf("%s-%s", format(r$from, scientific = FALSE),
+      format(r$to, scientific = FALSE)), collapse = ",") else NA_character_
+    if (!nrow(runs)) {
+      # Not met by any total up to max_n: beyond it, or never.
+      beyond <- at(huge_se / 100)
+      reason <- if (is.finite(beyond) && beyond >= power) "over_max" else "not_reachable"
+      return(list(n = NA_real_, limit = if (reason == "over_max") NA_real_ else at(huge_se), reason = reason,
+        also = NA_character_))
+    }
+    last <- nrow(runs)
+    if (runs$to[last] < top_n) {
+      # Met only by replications within some range: a larger one misses it.
+      return(list(n = NA_real_, limit = at(huge_se), reason = "within_range", also = also_of(runs)))
+    }
+    if (runs$from[last] == min_n) {
+      return(list(n = NA_real_, limit = at(small_se), reason = "any_size", also = NA_character_))
+    }
+    list(n = runs$from[last], limit = NA_real_, reason = NA_character_, also = also_of(runs[-last, , drop = FALSE]))
+  }
 
   rows <- list()
   for (goal in names(rules)) {
     for (prior in names(priors)) {
       dp <- priors[[prior]]
-      found <- search(function() rules[[goal]]$ssd(dp),
-        function() tryCatch(rules[[goal]]$pors(dp, huge_se), error = function(e) NA_real_),
-        function() rules[[goal]]$pors(dp, small_se))
+      found <- whole_search(function(sr) rules[[goal]]$pors(dp, sr))
       rows[[length(rows) + 1]] <- data.frame(goal = goal, prior = prior, n = found$n,
-        limit = found$limit, reason = found$reason)
+        limit = found$limit, reason = found$reason, also = found$also)
     }
   }
 
   # Planned for no effect: showing the effect is too small to matter.
   negligible <- if (!is.null(margin)) {
     tost <- function(sr) BayesRepDesign::porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)
-    found <- search(function() BayesRepDesign::ssdTOST(level = 2 * alpha, dprior = at_zero, power = power,
-      margin = margin, searchInt = c(1e-6, 2)), function() tost(huge_se), function() tost(small_se))
+    found <- whole_search(tost)
     rows[[length(rows) + 1]] <- data.frame(goal = "negligible", prior = NA_character_, n = found$n,
-      limit = found$limit, reason = found$reason)
+      limit = found$limit, reason = found$reason, also = found$also)
     tost
   }
 
@@ -702,12 +756,12 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     for (prior in if (identical(goal, "bf_null")) NA_character_ else names(priors)) {
       found <- bf_search(bf_tests[[goal]], if (is.na(prior)) NULL else priors[[prior]])
       rows[[length(rows) + 1]] <- data.frame(goal = goal, prior = prior, n = found$n,
-        limit = found$limit, reason = found$reason)
+        limit = found$limit, reason = found$reason, also = NA_character_)
     }
   }
 
   if (telescopes) rows[[length(rows) + 1]] <- data.frame(goal = "small_telescopes", prior = NA_character_, n = telescope$n,
-    limit = NA_real_, reason = NA_character_)
+    limit = NA_real_, reason = NA_character_, also = NA_character_)
 
   goals <- do.call(rbind, rows)
   goals$per_group <- if (identical(design, "two_groups") && !unequal) goals$n / 2 else NA_real_
@@ -789,8 +843,8 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     telescope = if (telescopes) telescope[c("effect", "effect_name", "function_used", "n")],
     bias_corrected = bias_corrected,
     functions_used = c(
-      vapply(rules, function(r) paste0("BayesRepDesign::", r$call), character(1)),
-      if (!is.null(margin)) c(negligible = sprintf("BayesRepDesign::ssdTOST(level = %s, margin = %s), design prior at 0",
+      vapply(rules, function(r) paste0("BayesRepDesign::", r$call, " at each whole total"), character(1)),
+      if (!is.null(margin)) c(negligible = sprintf("BayesRepDesign::porsTOST(level = %s, margin = %s) at each whole total, design prior at 0",
         format(2 * alpha), format(signif(margin, 4)))),
       if (telescopes) c(small_telescopes = telescope$function_used),
       if (length(bf_tests)) c(
@@ -876,6 +930,7 @@ replication_generic_original <- function(effect, n, se = NULL, ci = NULL, ci_lev
 # effect, from its estimate and standard error (no small telescopes).
 replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL) {
   i <- plan$inputs
+  top <- format(i$max_n %||% 1e5, scientific = FALSE)
   post <- identical(i$original_analysis, "posterior")
   uses <- function(g) is.null(focus) || any(g %in% c(focus$goal, focus$also))
   so_line <- switch(plan$original$from,
@@ -898,7 +953,7 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     sprintf("n_original <- %s", i$original_n),
     sprintf("to <- %s", tf_call(num(i$original_effect))),
     so_line,
-    "n_from_se <- function(se) max(2, ceiling(n_original * (so / se)^2 - 1e-9))",
+    "se_of <- function(n) so * sqrt(n_original / n)  # the replication's standard error",
     if (uses(c("significance", "pooled", "agreement", "negligible"))) sprintf("alpha <- %s", num(i$alpha)),
     sprintf("power <- %s; tau <- %s", num(i$power), num(i$tau)),
     if (uses(c("significance", "pooled"))) replication_level_line(i),
@@ -909,29 +964,66 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     "  as_reported = designPrior(to = to, so = so, type = \"conditional\"),",
     "  uncertain = designPrior(to = to, so = so, tau = tau, type = \"predictive\"),",
     "  shrunk = designPrior(to = to, so = so, tau = tau, type = \"EB\")",
-    ")")
+    ")",
+    "",
+    replication_search_lines(sprintf("totals <- 3:%s  # every replication size searched", top), pooled = uses("pooled"), sceptical = uses("bf_sceptical")))
   if (!is.null(focus)) {
-    return(paste(c(head, replication_focused_lines(plan, focus, num, margin,
-      se_line = "se_of <- function(n) so * sqrt(n_original / n)  # the replication's standard error")), collapse = "\n"))
+    return(paste(c(head, replication_focused_lines(plan, focus, num, margin)), collapse = "\n"))
   }
   c(head,
     "",
-    "# The sample size for each goal and belief; NA when no replication can reach it",
-    "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
-    "sapply(priors, function(dp) c(",
-    "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
-    "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
-    if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
-    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE)),", num(i$threshold)),
-    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", num(i$threshold)),
-    "))",
-    if (!is.null(margin)) c("",
-      "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
-      "size(ssdTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"), power = power, margin = margin, searchInt = c(1e-6, 2)))")
+    replication_table_lines(num(i$threshold), margin)
   ) |> paste(collapse = "\n")
 }
 
-# The significance goal's level in a script.
+# A script's search over whole totals, as replication_planning() searches:
+# `totals` every replication size it can have, and met_from() the smallest
+# total from which every larger one meets the goal.
+replication_search_lines <- function(totals_line, pooled = TRUE, sceptical = TRUE) {
+  c(totals_line,
+    "# The smallest total from which every larger one in `totals` meets the goal: NA when the largest doesn't,",
+    "# or when every total does. Its chance is checked at every total up to 1,000 and on a 400-point grid",
+    "# beyond, and the last change from missing to meeting the goal is pinned to the exact total by",
+    "# bisection (BayesRepDesign's ssd*() searches can stop short where the chance is not monotone).",
+    "met_from <- function(chance) {",
+    "  met <- function(n) { ch <- chance(se_of(n)); !is.na(ch) & ch >= power }",
+    "  first <- totals[1]; last <- totals[length(totals)]; step <- totals[2] - totals[1]",
+    "  dense <- totals[totals <= 1000]",
+    "  grid <- exp(seq(log(max(dense)), log(last), length.out = 400))",
+    "  grid <- first + step * round((grid - first) / step)",
+    "  ns <- sort(unique(c(dense, grid[grid > max(dense)], last)))",
+    "  ok <- met(ns)",
+    "  k <- max(c(0, which(!ok)))",
+    "  if (!ok[length(ok)] || k == 0) return(NA)",
+    "  lo <- ns[k]; hi <- ns[k + 1]",
+    "  while (hi - lo > step) { mid <- lo + step * floor((hi - lo) / step / 2); if (met(mid)) hi <- mid else lo <- mid }",
+    "  hi",
+    "}",
+    if (pooled) c("# porsMeta() one standard error at a time: for an estimate below zero it mishandles several at once",
+      "pooled_chance <- function(dp, sr) vapply(sr, function(s) porsMeta(level = level^2, dprior = dp, sr = s), numeric(1))"),
+    if (sceptical) c("# porsBFs() one standard error at a time: it stops with an error where a very small replication",
+      "# leaves the sceptical Bayes factor no success region, which counts as not meeting the goal",
+      "sceptical_chance <- function(dp, sr, level) vapply(sr, function(s) tryCatch(porsBFs(level = level, dprior = dp, sr = s,",
+      "  paradox = FALSE), error = function(e) NA_real_), numeric(1))"))
+}
+
+# A script's table: each goal's sample size under each belief, and the
+# goal planned for no effect.
+replication_table_lines <- function(thr, margin) {
+  c("# The sample size (in total) for each goal and belief; NA when no replication reaches it at every larger size",
+    "sapply(priors, function(dp) c(",
+    "  significance = met_from(function(sr) porsSig(level = level, dprior = dp, sr = sr)),",
+    "  pooled = met_from(function(sr) pooled_chance(dp, sr)),",
+    if (!is.null(margin)) "  agreement = met_from(function(sr) porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)),",
+    sprintf("  bf_replication = met_from(function(sr) porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)),", thr),
+    sprintf("  bf_sceptical = met_from(function(sr) sceptical_chance(dp, sr, 1/%s))", thr),
+    "))",
+    if (!is.null(margin)) c("",
+      "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
+      "met_from(function(sr) porsTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"),",
+      "  margin = margin, sr = sr))"))
+}
+
 replication_level_line <- function(i) {
   if (identical(i$alternative, "one.sided")) {
     "level <- alpha  # one-sided, in the original's direction"
@@ -958,7 +1050,7 @@ replication_script_focus <- function(plan, goal, also, prior) {
 # The script for the chosen criteria: the main criterion's sample size
 # under the chosen belief, then each other criterion's chance at it, with
 # the same functions and levels as replication_planning().
-replication_focused_lines <- function(plan, focus, num, margin, se_line, telescope_lines = NULL,
+replication_focused_lines <- function(plan, focus, num, margin, telescope_lines = NULL,
                                       telescope_search = NULL, bf = NULL) {
   thr <- num(plan$inputs$threshold)
   goals <- c(focus$goal, focus$also)
@@ -969,21 +1061,21 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
     bf_null = "a Bayes factor t-test for no effect")
   belief <- c(as_reported = "as reported", uncertain = "with its uncertainty", shrunk = "shrunk towards zero")
   size_of <- function(goal) switch(goal,
-    significance = "n <- size(ssdSig(level = level, dprior = dp, power = power))",
-    pooled = "n <- size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10)))",
-    agreement = "n <- size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin))",
-    bf_replication = sprintf("n <- size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", thr),
-    bf_sceptical = sprintf("n <- size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", thr),
-    negligible = "n <- size(ssdTOST(level = 2 * alpha, dprior = at_zero, power = power, margin = margin, searchInt = c(1e-6, 2)))",
+    significance = "n <- met_from(function(sr) porsSig(level = level, dprior = dp, sr = sr))",
+    pooled = "n <- met_from(function(sr) pooled_chance(dp, sr))",
+    agreement = "n <- met_from(function(sr) porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr))",
+    bf_replication = sprintf("n <- met_from(function(sr) porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE))", thr),
+    bf_sceptical = sprintf("n <- met_from(function(sr) sceptical_chance(dp, sr, 1/%s))", thr),
+    negligible = "n <- met_from(function(sr) porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr))",
     small_telescopes = telescope_search,
     bf_repeat = sprintf("n <- bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr),
     bf_null = sprintf("n <- bf_size(k = %s, power = power, dpm = 0, dpsd = 0, lower.tail = FALSE)", thr))
   chance_of <- function(goal) switch(goal,
     significance = "porsSig(level = level, dprior = dp, sr = sr)",
-    pooled = "porsMeta(level = level^2, dprior = dp, sr = sr)",
+    pooled = "pooled_chance(dp, sr)",
     agreement = "porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)",
     bf_replication = sprintf("porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
-    bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
+    bf_sceptical = sprintf("sceptical_chance(dp, sr, 1/%s)", thr),
     negligible = "porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)",
     small_telescopes = "telescope_power(n)",
     bf_repeat = if (isTRUE(bf$uneven)) sprintf("bf_chance(n, k = 1/%s, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr) else
@@ -994,8 +1086,6 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
       thr, bf$per_unit, bf$scale, bf$type))
   no_effect <- c("negligible", "small_telescopes", "bf_null")
   c("",
-    se_line,
-    "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
     sprintf("dp <- priors$%s  # the belief about the true effect: %s", focus$prior, belief[[focus$prior]]),
     if ("negligible" %in% goals) "at_zero <- designPrior(to = 0, so = so, type = \"conditional\")  # no effect",
     if ("small_telescopes" %in% goals) telescope_lines,
@@ -1085,6 +1175,7 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
       "n_recruit"), collapse = "\n"))
   }
   i <- plan$inputs
+  top <- format(i$max_n %||% 1e5, scientific = FALSE)
   focus <- replication_script_focus(plan, goal, also, prior)
   num <- function(x) format(signif(x, 8))
   correlation <- identical(i$design, "correlation")
@@ -1176,19 +1267,14 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
         "# The replication's two groups: group 2's size over group 1's, each total split into whole groups as powerkit's cards split it",
         sprintf("ratio <- %s", num(ratio)),
         "groups <- function(n) { n1 <- floor(n / (1 + ratio) + 0.5); c(n1, n - n1) }",
-        "se_of <- function(n) { g <- groups(n); sqrt(1 / g[1] + 1 / g[2]) }  # the replication's standard error",
-        "n_from_se <- function(se) {  # the smallest total whose two groups reach a standard error",
-        "  n <- max(4, floor(se2n(se, unitSD = (1 + ratio) / sqrt(ratio))) - 2)",
-        "  while (se_of(n) > se * (1 + 1e-12)) n <- n + 1",
-        "  n",
-        "}",
+        "se_of <- function(n) { n1 <- floor(n / (1 + ratio) + 0.5); sqrt(1 / n1 + 1 / (n - n1)) }  # the replication's standard error",
         "n_min <- 4; while (any(groups(n_min) < 2)) n_min <- n_min + 1  # the smallest replication: two in each group")
-      else "n_from_se <- function(se) 2 * ceiling(se2n(se, unitSD = 2) / 2 - 1e-9)  # two equal groups, in total")
+      else "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups")
     else if (correlation) c(to_lines,
       so_post %||% sprintf("so <- 1 / sqrt(%s - 3)", i$original_n),
-      "n_from_se <- function(se) ceiling(1 / se^2 + 3 - 1e-9)")
+      "se_of <- function(n) 1 / sqrt(n - 3)  # the replication's standard error, Fisher's z")
     else c(to_lines, so_post %||% sprintf("so <- 1 / sqrt(%s)", i$original_n),
-      "n_from_se <- function(se) ceiling(se2n(se, unitSD = 1) - 1e-9)"),
+      "se_of <- function(n) 1 / sqrt(n)  # the replication's standard error"),
     if (!is.null(plan$original$attenuation)) c(
       "# The outcome measure's reliability differs: an observed d is the true d times the square root of",
       "# the measure's reliability (Schmidt & Hunter, 1996), so the original's d and its standard error",
@@ -1209,7 +1295,14 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     "  as_reported = designPrior(to = to, so = so, type = \"conditional\"),",
     "  uncertain = designPrior(to = to, so = so, tau = tau, type = \"predictive\"),",
     "  shrunk = designPrior(to = to, so = so, tau = tau, type = \"EB\")",
-    ")")
+    ")",
+    if (uses(c("significance", "pooled", "agreement", "negligible", "bf_replication", "bf_sceptical"))) c("",
+      replication_search_lines(
+        if (uneven) sprintf("totals <- n_min:%s  # every replication size searched", top)
+        else if (two) sprintf("totals <- seq(4, %s, by = 2)  # every replication size searched: two equal groups", top)
+        else if (correlation) sprintf("totals <- 4:%s  # every replication size searched", top)
+        else sprintf("totals <- 3:%s  # every replication size searched", top),
+        pooled = uses("pooled"), sceptical = uses("bf_sceptical"))))
   telescope_lines <- c(
     sprintf("yardstick <- sign(%s) * %s", num(i$original_effect), telescope_call),
     sprintf("telescope_power <- function(n) %s", telescope_power))
@@ -1229,30 +1322,15 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
   else if (!is.na(bf_type)) sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
     if (two) "2 * " else "", num(i$original_prior_scale), bf_type)
   if (!is.null(focus)) {
-    se_line <- if (uneven) NULL
-      else if (two) "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups"
-      else if (correlation) "se_of <- function(n) 1 / sqrt(n - 3)  # the replication's standard error, Fisher's z"
-      else "se_of <- function(n) 1 / sqrt(n)  # the replication's standard error"
     return(paste(c(head, if (length(bucss_lines)) c("local({", bucss_lines, "})"),
-      replication_focused_lines(plan, focus, num, margin, se_line = se_line,
+      replication_focused_lines(plan, focus, num, margin,
         telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
         bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
           scale = num(i$original_prior_scale), uneven = uneven))), collapse = "\n"))
   }
   c(head,
     "",
-    "# The sample size (in total) for each goal and belief; NA when no replication can reach it",
-    "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
-    "sapply(priors, function(dp) c(",
-    "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
-    "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
-    if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
-    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE)),", num(i$threshold)),
-    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", num(i$threshold)),
-    "))",
-    if (!is.null(margin)) c("",
-      "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
-      "size(ssdTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"), power = power, margin = margin))"),
+    replication_table_lines(num(i$threshold), margin),
     if (!bayes && !is.null(plan$telescope)) c("",
       "# Small telescopes: the smallest n with this power to show the effect is smaller than d33 when it is 0",
       telescope_lines, telescope_search, "n"),

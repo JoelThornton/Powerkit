@@ -236,7 +236,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
       tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
-      tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+      tags$details(class = "result-more", tags$summary("The settings that were run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
 }
 

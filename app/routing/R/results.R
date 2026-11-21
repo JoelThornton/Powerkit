@@ -92,7 +92,7 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
       invokeRestart("muffleWarning")
     }),
     error = function(e) {
-      message <- if (inherits(e, "powerkit_error")) conditionMessage(e) else "powerkit's engine stopped unexpectedly. Please report this, with the answers you copied."
+      message <- if (inherits(e, "powerkit_error")) sub("^This design spec has [^\n]*:\n", "", conditionMessage(e)) else "powerkit's engine stopped unexpectedly. Please report this, with the answers you copied."
       structure(list(message = message), class = "calc_error")
     }
   )
@@ -336,48 +336,55 @@ progress_text <- function(elapsed, usual) {
 # --- Numbers in words --------------------------------------------------------------
 
 percent <- function(p) sprintf("%.0f%%", 100 * p)
+# Power for the result's main figure: a whole percentage, with as many
+# decimals as it takes (up to three) not to show a power just below or
+# above a usual target (80%, 90%, 95%) as that target: 79.52% and 80.15%
+# both round to 80%, and one meets a requirement of 80% while the other
+# doesn't.
+power_figure <- function(p, targets = c(0.8, 0.9, 0.95)) {
+  d <- 0L
+  while (d < 3L && any(abs(p - targets) > 1e-12 & round(100 * p, d) == round(100 * targets, d))) d <- d + 1L
+  sprintf("%.*f%%", d, 100 * p)
+}
 alpha_text <- function(a) sub("^0", "", format(a, nsmall = 2))
 whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
-# Group sizes for a total n, for designs with separate groups; NULL for
-# designs where everyone is in one group (one sample, paired, correlation,
-# chi-square, goodness of fit, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
-group_sizes <- function(spec, n) {
-  switch(
-    spec$template,
-    independent_t = ,
-    tost_independent = ,
-    tost_two_proportions = ,
-    noninf_independent = ,
-    noninf_two_proportions = ,
-    invariance = ,
-    two_proportions = ,
-    two_correlations = {
-      ratio <- spec$options$allocation_ratio %||% 1
-      n1 <- floor(n / (1 + ratio) + 0.5)
-      c(n1, n - n1)
-    },
-    "2x2_between" = rep(n / 4, 4),
-    "2x2_mixed" = rep(n / 2, 2),
-    factorial_between = ,
-    factorial_ancova = {
-      cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
-      rep(n / cells, cells)
-    },
-    factorial_three = {
-      v <- spec$variables[c("A", "B", "C")]
-      between <- vapply(v, function(x) identical(x$type, "between_factor"), logical(1))
-      groups <- prod(vapply(v[between], function(x) length(x$levels), numeric(1)))
-      if (groups > 1) rep(n / groups, groups) else NULL
-    },
-    oneway_between = ,
-    mixed = ,
-    oneway_ancova = {
-      k <- length(spec$variables$A$levels)
-      rep(n / k, k)
-    },
-    NULL
-  )
+# How a total n is divided into groups or cells, from the engine's own
+# allocation (powerkit's sample_structure(), the split it runs): a list
+# with `groups` (the number in each), `group_labels` and `group_unit`
+# ("group" or "cell"), or NULL for designs where everyone is in one group.
+group_split <- function(spec, n, describe = engine_function("sample_structure")) {
+  if (is.null(describe) || length(n) != 1 || !is.finite(n)) return(NULL)
+  d <- tryCatch(describe(spec, n), error = function(e) NULL)
+  if (is.null(d$groups) || length(d$groups) < 2) return(NULL)
+  d
+}
+
+# The split in words: "30 per cell", "60 in group 1 and 30 in group 2", or
+# for more unequal groups each one named ("40 in Community sample,
+# Standard; ..."). NULL without groups.
+group_split_text <- function(spec, n) {
+  d <- group_split(spec, n)
+  if (is.null(d)) return(NULL)
+  g <- d$groups
+  unit <- if (identical(d$group_unit, "cell")) "cell" else "group"
+  if (length(unique(g)) == 1) return(sprintf("%s per %s", whole(g[1]), unit))
+  if (length(g) == 2) return(sprintf("%s in %s 1 and %s in %s 2", whole(g[1]), unit, whole(g[2]), unit))
+  labels <- d$group_labels %||% paste(unit, seq_along(g))
+  paste(sprintf("%s in %s", whole(g), labels), collapse = "; ")
+}
+
+# What n analysed counts, in words, for the sample-size rule and the
+# ethics paragraph: pairs (with the people in them), time points after an
+# intervention (with those before it), items (with the participants), or
+# participants with their groups or cells.
+analysed_text <- function(spec, n, groups = TRUE) {
+  if (is_dyadic(spec)) return(sprintf("%s pairs (%s people)", whole(n), whole(2 * n)))
+  if (identical(spec$template, "its")) {
+    return(sprintf("%s time points after the intervention (and %s before it)", whole(n), whole(spec$population$n_pre)))
+  }
+  if (identical(spec$goal$unit, "items")) return(sprintf("%s items (with %s participants)", whole(n), whole(spec$population$participants)))
+  sprintf("%s participants%s", whole(n), if (groups) group_text(spec, n) else "")
 }
 
 group_text <- function(spec, n) {
@@ -394,14 +401,8 @@ group_text <- function(spec, n) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s in %s groups of %s, and %s taking part individually)", whole(n / 2), whole(n / m / 2), whole(m), whole(n / 2)))
   }
-  sizes <- group_sizes(spec, n)
-  if (is.null(sizes)) return("")
-  unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
-  if (length(unique(sizes)) == 1) {
-    sprintf(" (%s %s)", whole(sizes[1]), unit)
-  } else {
-    sprintf(" (%s in group 1 and %s in group 2)", whole(sizes[1]), whole(sizes[2]))
-  }
+  split <- group_split_text(spec, n)
+  if (is.null(split)) "" else sprintf(" (%s)", split)
 }
 
 test_text <- function(spec) {
@@ -700,10 +701,10 @@ meta_sentences <- function(spec, result) {
     c(
       headline = if (subgroups || regression || heterogeneity) {
         sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would %s, with %s.",
-          whole(row$n), percent(row$power), effect, round(100 * row$power), finding, test)
+          whole(row$n), power_figure(row$power), effect, round(100 * row$power), finding, test)
       } else {
         sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
-          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+          whole(row$n), power_figure(row$power), effect, round(100 * row$power), test)
       },
       detail = paste(source, caution)
     )
@@ -779,7 +780,7 @@ noninf_sentences <- function(spec, result) {
     row <- result$curve[1, ]
     c(
       headline = sprintf("With %s participants in total%s, the study has %s power: if the true difference is the one you entered, about %d in 100 studies like this would %s, with %s.",
-        whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), shown, test),
+        whole(row$n), group_text(spec, row$n), power_figure(row$power), round(100 * row$power), shown, test),
       detail = paste("This power is", source, closer)
     )
   }
@@ -819,7 +820,7 @@ equivalence_sentences <- function(spec, result) {
     row <- result$curve[1, ]
     c(
       headline = sprintf("With %s participants in total%s, the study has %s power: if the true %s is the one you entered, about %d in 100 studies like this would %s, with %s.",
-        whole(row$n), group_text(spec, row$n), percent(row$power), what, round(100 * row$power), shown, test),
+        whole(row$n), group_text(spec, row$n), power_figure(row$power), what, round(100 * row$power), shown, test),
       detail = paste("This power is", source, closer)
     )
   }
@@ -1280,7 +1281,7 @@ goal_sentences <- function(spec, result) {
       c(
         headline = sprintf(
           "With %s participants in total%s, the study has %s power: if the true effect is the one you entered, about %d in 100 studies like this would get a significant result with %s.",
-          whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), test
+          whole(row$n), group_text(spec, row$n), power_figure(row$power), round(100 * row$power), test
         ),
         detail = if (simulated(result)) {
           sprintf(
@@ -1525,6 +1526,22 @@ safeguard_sentence <- function(result) {
 # Effects that vary between studies (Kenny & Judd, 2019), worked out by
 # the engine: what the variation does to power, and how often one study is
 # significant with no average effect.
+
+# What a mediation plan's indirect effect is, and what reading it as
+# causal assumes: randomising X doesn't rule out a common cause of the
+# mediator and the outcome, so the plan states the order of measurement and
+# the common causes adjusted for. The natural indirect effect (regmedint's
+# templates) is causal by definition, so its assumptions are named.
+mediation_causal_sentence <- function(spec) {
+  if (!isTRUE(spec$design %in% c("mediation", "moderated_mediation"))) return(NULL)
+  if (isTRUE(spec$template %in% c("binary_mediator", "binary_or_count_outcome"))) {
+    return(paste("The natural indirect effect is a causal quantity: the estimate is unbiased only if nothing unmeasured affects both X and Y,",
+      "X and the mediator, or the mediator and Y, and no common cause of the mediator and Y is itself changed by X.",
+      "Randomising X addresses only the first two, so the order in which the variables are measured and the common causes of the mediator and Y adjusted for are stated with the analysis."))
+  }
+  paste("The power is for the indirect effect as a statistical path. Reading it as X changing Y through the mediator also assumes the mediator is measured after X",
+    "and before Y and that nothing unmeasured affects both the mediator and Y, which randomising X does not ensure; the order of measurement and the common causes adjusted for are stated with the analysis.")
+}
 
 mediation_analysis_sentence <- function(result) {
   a <- result$mediation_analysis
@@ -2344,16 +2361,13 @@ actual_power_sentence <- function(spec, result) {
   fitted <- simulated(result)
   at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
   if (length(at_n) != 1 || is.na(at_n)) return(NULL)
-  sizes <- group_sizes(spec, n)
+  split <- group_split_text(spec, n)
   who <- if (!is.null(n_unit(spec))) {
     sprintf("With %s %s", whole(n), n_unit(spec))
-  } else if (is.null(sizes)) {
+  } else if (is.null(split)) {
     sprintf("With %s participants", whole(n))
-  } else if (length(unique(sizes)) == 1) {
-    unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
-    sprintf("With %s %s", whole(sizes[1]), unit)
   } else {
-    sprintf("With %s in group 1 and %s in group 2", whole(sizes[1]), whole(sizes[2]))
+    sprintf("With %s", split)
   }
   if (!is.null(result$n_required$verification)) {
     return(sprintf("%s, fresh simulated power is about %.1f%%; the selection-adjusted one-sided lower bound is %.1f%%.",
@@ -2836,7 +2850,10 @@ bayes_sentence <- function(spec, result) {
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the average power over your uncertainty:",
       "the chance of evidence at the threshold given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
-    if (!is.null(b$null_nrep)) sprintf(
+    if (simulated_zero(b)) sprintf(
+      "If there were no %s, none of %s simulated studies of %s gave evidence at the threshold that there is none (BF01 of at least %s), so the chance is below about %s (a one-sided 95%% upper bound), not zero; misleading evidence at the threshold for %s came %s of the time.",
+      bayes_null_what(spec), whole(b$null_nrep), whole(b$n), k, simulated_zero_bound(b$null_nrep), bayes_null_article(spec), percent(b$misleading_evidence)
+    ) else if (!is.null(b$null_nrep)) sprintf(
       "If there were no %s, a study of %s would give evidence at the threshold that there is none (BF01 of at least %s) %s of the time, and misleading evidence at the threshold for %s %s of the time (from %s simulated studies with no %s).",
       bayes_null_what(spec), whole(b$n), k, percent(b$evidence_for_null), bayes_null_article(spec), percent(b$misleading_evidence), whole(b$null_nrep), bayes_null_what(spec)
     ) else if (b$evidence_for_null > 0) sprintf(
@@ -2872,11 +2889,22 @@ bayes_design_prior_sentence <- function(spec, result) {
 bayes_null_what <- function(spec) if (is_bayes_table(spec)) "association" else "effect"
 bayes_null_article <- function(spec) paste("an", bayes_null_what(spec))
 
+# A simulated probability of 0: none of nrep studies, with the exact
+# one-sided 95% upper bound (1 - 0.05^(1/nrep)), since a simulation can't
+# show the event is impossible.
+simulated_zero_bound <- function(nrep) sprintf("%.2g%%", 100 * (1 - 0.05^(1 / nrep)))
+simulated_zero <- function(b) !is.null(b$null_nrep) && isTRUE(b$evidence_for_null == 0)
+
 bayes_null_writeup <- function(spec, result) {
   b <- result$bayes
   if (is.null(b)) return(NULL)
   k <- format(b$evidence_threshold)
   what <- bayes_null_what(spec)
+  if (simulated_zero(b)) {
+    return(sprintf(paste("If there were no %s, none of %s simulated studies of %s reached evidence at the threshold for its absence (BF01 of at least %s;",
+      "a one-sided 95%% upper bound of %s for its probability), and the probability of misleading evidence at the threshold for an %s (BF10 of at least %s) would be %s."),
+      what, whole(b$null_nrep), whole(b$n), k, simulated_zero_bound(b$null_nrep), what, k, percent(b$misleading_evidence)))
+  }
   if (b$evidence_for_null > 0) {
     sprintf(paste("If there were no %s, the probability of evidence at the threshold for its absence (BF01 of at least %s) would be %s,",
       "and of misleading evidence at the threshold for an %s (BF10 of at least %s) %s%s."),
@@ -3118,11 +3146,11 @@ simulation_outcome_text <- function(result) {
   s <- result$provenance$simulations
   if (!is.data.frame(s) || !all(c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator") %in% names(s))) return(character())
   vapply(seq_len(nrow(s)), function(i) sprintf(
-    "At N = %s: %s studies attempted, %s analysable decisions, %s failed, %s met the analysis criterion. Criterion met among valid decisions: %s; criterion met per attempted study: %s. Reported power uses %s.",
+    "At N = %s: %s studies were simulated, %s could be analysed, %s could not, and %s met the success rule. Among the studies that could be analysed that is %s; among all simulated studies it is %s. The power reported counts %s.",
     whole(s$n[i]), whole(s$attempted[i]), whole(s$valid[i]), whole(s$failed[i]), whole(s$successful[i]),
     if (is.na(s$conditional_power[i])) "not estimable" else percent(s$conditional_power[i]),
     percent(s$successful_study_probability[i]),
-    switch(s$denominator[i], valid = "valid decisions only", attempted = "all attempts, including failed decisions as unsuccessful", "all decisions (none failed)")), character(1))
+    switch(s$denominator[i], valid = "only the studies that could be analysed", attempted = "all simulated studies, with the failed ones counted as misses", "all simulated studies (none failed)")), character(1))
 }
 
 simulation_failures_ui <- function(result) {
@@ -3130,7 +3158,7 @@ simulation_failures_ui <- function(result) {
   if (!is.data.frame(s) || !"failed" %in% names(s) || !any(s$failed > 0)) return(NULL)
   div(class = "alert alert-warning", role = "status",
     tags$strong("Some simulated studies could not be analysed. "),
-    "Conditional power describes valid decisions only. Successful-study probability includes failures as unsuccessful attempts. A Monte Carlo interval does not resolve model-fitting failures.",
+    "The power reported either counts only the studies that could be analysed, or counts the failed ones as misses, which gives a lower figure: both are listed below. Simulating more studies narrows the random error but does not remove the failures.",
     tags$ul(lapply(simulation_outcome_text(result)[s$failed > 0], tags$li)))
 }
 
@@ -3150,7 +3178,7 @@ result_figure <- function(spec, result) {
     },
     power = {
       row <- result$curve[1, ]
-      if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
+      if (is.null(row$power) || is.na(row$power)) NULL else list(value = power_figure(row$power), label = "power",
         # The generic tests have no sample size: the noncentrality carries it.
         sub = if (is.null(row$n) || is.na(row$n)) "for the noncentrality you entered" else sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
     },
@@ -4075,7 +4103,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   if (identical(spec$goal$unit, "observations")) main <- observation_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
+  main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), mediation_causal_sentence(spec), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -4097,8 +4125,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # Welch caveats that don't change the answer (equal-SD planning, the
   # critical effect's equal-SD condition) stay in the full version only.
   short_main <- setdiff(main, welch_equal_sd_note(spec))
-  welch_critical <- if (!is.null(result$critical_effect)) critical_effect_welch_text(result$critical_effect) else ""
-  if (nzchar(welch_critical)) short_main <- sub(welch_critical, "", short_main, fixed = TRUE)
+  # The critical effect size sentence (Perugini et al., 2025, who name no
+  # section for it) stays in the short paragraph only when the goal is the
+  # smallest detectable effect, where it keeps "detect" from being misread;
+  # the results note and the full version carry it for the other goals.
+  if (!identical(spec$goal$type, "sensitivity")) short_main <- setdiff(short_main, critical_effect_sentence(result))
   short <- paste(c(short_main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size") && is.null(result$n_required$verification)) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
@@ -4108,7 +4139,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # paper's paragraph (decided 7 November 2026; docs/conventions.md).
   departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
-    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result)), collapse = " "),
+    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result), sample_rule_text(spec, result)), collapse = " "),
     writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
@@ -4117,10 +4148,43 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   c(short = tidy(short), full = tidy(full), ethics = tidy(ethics_text(spec, result, fields, values)))
 }
 
+# The sample-size rule a preregistration asks for (AsPredicted's question is
+# "how many observations will be collected, and the stopping rule"). Only
+# what the calculation assumes is stated: the number analysed, in one
+# analysis at that size. The recruitment buffer for attrition (the line
+# beside it) answers a different question from a stopping rule: a capped
+# budget and replacement until every group is full can enter the same
+# numbers, so the cap, replacement and when collection stops are left for
+# the author to state.
+# Full version only.
+sample_rule_text <- function(spec, result) {
+  if (identical(spec$design, "generic_test") || is_meta(spec)) return(NULL)
+  n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  if (is.null(n) || length(n) != 1 || !is.finite(n)) return(NULL)
+  sprintf(paste("Sample size rule: the power calculation is for %s in the analysis, analysed once at that sample size with no interim looks.",
+    "[State the most that will be recruited, whether people who drop out or are excluded will be replaced, and when data collection stops.]"),
+    analysed_text(spec, n))
+}
+
 # The ethics-board version (optional feature, 19 October 2026): the same
 # result in plain words for a lay ethics panel, saying why this many
 # participants. It only words the engine's result, like the write-up, and
 # passes no verdict on whether the study is ethical.
+# What counts as success for a design with no significance test, in
+# words, or NULL: every factor's loadings recovered (E73), or the BIC
+# choosing the expected number of profiles (E58).
+no_test_success <- function(spec) {
+  if (identical(spec$template, "efa")) {
+    return(sprintf("recovers every factor's loadings (Tucker's congruence of at least %s for each factor)",
+      format(spec$target_test$congruence %||% 0.95)))
+  }
+  if (identical(spec$template, "lpa")) {
+    k <- as.integer(spec$population$profiles)
+    return(sprintf("finds the %d profiles we expect (the BIC choosing %d among models with 1 to %d profiles)", k, k, k + 1L))
+  }
+  NULL
+}
+
 ethics_text <- function(spec, result, fields, values) {
   # Generic tests (E50) have no participants to describe.
   if (identical(spec$design, "generic_test")) return(NA_character_)
@@ -4157,7 +4221,9 @@ ethics_text <- function(spec, result, fields, values) {
     }
     k <- format(spec$target_test$evidence_threshold %||% 10)
     null_line <- if (!is.null(b)) {
-      if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds evidence at the threshold that there is none is %s, and the chance that it wrongly finds evidence at the threshold for an effect is %s.",
+      if (simulated_zero(b)) sprintf("If there is no effect, none of %s simulated studies found evidence at the threshold that there is none, so the chance is small (below about %s) but not zero; the chance that the study wrongly finds evidence at the threshold for an effect is %s.",
+        whole(b$null_nrep), simulated_zero_bound(b$null_nrep), percent(b$misleading_evidence))
+      else if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds evidence at the threshold that there is none is %s, and the chance that it wrongly finds evidence at the threshold for an effect is %s.",
         percent(b$evidence_for_null), percent(b$misleading_evidence))
       else sprintf("A study of this size could not find evidence at the threshold that there is no effect, however the data fall; the chance that it wrongly finds evidence at the threshold for an effect is %s.", percent(b$misleading_evidence))
     }
@@ -4170,6 +4236,17 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
+  # The test of not-close fit: a significant result shows the model fits
+  # closely (MacCallum, Browne and Sugawara, 1996), the reverse of the
+  # other fit tests.
+  if (is_sem_fit(spec) && identical(spec$target_test$method, "chi_square_not_close_fit")) chance <- function(p) sprintf(
+    "If the model's RMSEA in the population is %s, the chance that a study of this size shows it fits closely (that its RMSEA is below %s: a statistically significant test of not-close fit, using a %s threshold) is %s, and the chance that it fails to show this is %s. If the model fits less well, that chance is lower.",
+    format(spec$population$rmsea), format(spec$population$rmsea_null %||% 0.05), alpha, percent(p), percent(1 - p))
+  # Factor recovery (E73) and the number of profiles (E58) have no
+  # significance test: success is what the simulation counts.
+  if (!is.null(success <- no_test_success(spec))) chance <- function(p) sprintf(
+    "If the population is as we expect, the chance that a study of this size %s is %s, and the chance that it doesn't is %s.",
+    success, percent(p), percent(1 - p))
   # Small telescopes: the replication is planned for an effect of 0, to
   # show the effect is smaller than the original study could detect.
   if (!is.null(st <- result$small_telescopes)) {
@@ -4180,7 +4257,8 @@ ethics_text <- function(spec, result, fields, values) {
       "If there is no effect, the chance that a study of this size shows the effect is too small for the original study to have detected (a one-sided test using a %s threshold) is %s, and the chance that it fails to show this is %s.",
       alpha, percent(p), percent(1 - p))
   }
-  include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
+  include <- sprintf("We plan to include %s in the analysis%s.", analysed_text(spec, n, groups = FALSE),
+    if (grepl(" participants$", analysed_text(spec, n, groups = FALSE))) group_text(spec, n) else "")
   if (is_meta(spec)) {
     include <- sprintf("We plan to include %s studies in the meta-analysis.", whole(n))
     chance <- function(p) sprintf(
@@ -4210,6 +4288,9 @@ ethics_text <- function(spec, result, fields, values) {
         } else if (identical(s$effect_name, "rmsea")) {
           sprintf("A power analysis shows the smallest misfit a study of this size would detect %s of the time (using a %s threshold for statistical significance) is a population RMSEA of %s. Smaller misfit would more often be missed.",
             percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 3))
+        } else if (!is.null(success <- no_test_success(spec))) {
+          sprintf("A power analysis shows the smallest effect for which a study of this size %s %s of the time is %s.",
+            success, percent(spec$goal$power), size)
         } else if (identical(s$effect_name, "bound")) {
           sprintf("A power analysis shows the narrowest equivalence bounds a study of this size could show %s of the time (each one-sided test using a %s threshold) are \u00b1%s, %s. Narrower bounds would more often fail to show equivalence.",
             percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 2), s$effect_description)
@@ -4384,7 +4465,7 @@ precision_writeup <- function(form, spec, result, fields, values, departures = c
   aim <- if (!is.na(pr$target_width)) {
     sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s%s. This requires %s.",
       interval, estimate, format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
+      if (is.na(pr$assurance)) precision_width_basis(result) else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
       if (!is.na(pr$assurance) && !blank(values$assurance_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$assurance_reason))) else "",
       precision_people(spec, pr$n))
   } else {
@@ -4409,6 +4490,14 @@ precision_writeup <- function(form, spec, result, fields, values, departures = c
   c(short = short, full = full, ethics = ethics)
 }
 
+# How a width without assurance is met: MBESS plans the interval's
+# expected width ("on average"); presize and the formula routes give the
+# width at the values assumed (for example the expected proportion), not
+# an average over samples.
+precision_width_basis <- function(result) {
+  if (identical(result$provenance$backend, "MBESS")) " on average" else " at the values assumed"
+}
+
 # The precision result's big figure: the sample size for a width, or the
 # width a sample size gives, with what it assumes beside it.
 precision_hero_ui <- function(spec, result) {
@@ -4425,7 +4514,7 @@ precision_hero_ui <- function(spec, result) {
     sprintf("Expected %s = %s", pr$effect_name, format(pr$effect)),
     paste0(toupper(substr(interval, 1, 1)), substr(interval, 2, nchar(interval))),
     if (!is.na(pr$target_width)) sprintf("Width no more than %s%s", format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(", %s assurance", percent(pr$assurance))))
+      if (is.na(pr$assurance)) precision_width_basis(result) else sprintf(", %s assurance", percent(pr$assurance))))
   div(class = "result-hero",
     div(class = "result-figure",
       tags$span(class = "result-figure-value", fig$value),
@@ -4508,7 +4597,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
       tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
-      tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+      tags$details(class = "result-more", tags$summary("The settings that were run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
 }
 
@@ -4780,7 +4869,7 @@ bayes_sequential_card_ui <- function(spec, result) {
   unit <- if (identical(spec$template, "independent_t")) " in each group" else ""
   div(class = "result-card result-sequential", id = "result-sequential",
     h4(class = "h5", "Check as you go?"),
-    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. Most studies then stop well before the maximum. Decide every setting below before collecting data, and report them.", whole(per), unit)),
+    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. If the effect is as you planned, most studies then stop well before the maximum; with no effect, many run longer. Decide every setting below before collecting data, and report them.", whole(per), unit)),
     div(class = "row g-2",
       div(class = "col-sm-4", numericInput("seq_n_min", sprintf("First look, after this many%s", unit), value = min(20, max(3, floor(per / 4))), min = 3, max = per, step = 1, width = "100%")),
       div(class = "col-sm-4", numericInput("seq_step", sprintf("Then look again after every%s", if (nzchar(unit)) " (in each group)" else ""), value = 1, min = 1, max = per, step = 1, width = "100%")),

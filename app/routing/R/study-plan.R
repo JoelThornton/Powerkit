@@ -110,7 +110,28 @@ joint_power_ui <- function(entries) {
     p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated: enter their correlation, for example 0.3."),
     numericInput("plan_rho", "Correlation between the outcomes", value = NA, min = -0.99, max = 0.99, step = 0.05),
     actionButton("plan_joint", "Calculate joint power", class = "btn btn-outline-primary"),
-    uiOutput("plan_joint_result"))
+    uiOutput("plan_joint_result"),
+    uiOutput("plan_joint_stale"))
+}
+
+# The joint power last calculated for a plan (`kept`: the analyses' hashes
+# and the engine's result), if it is still the plan's: the same analyses
+# and the correlation now entered. Otherwise NULL, so the plan's downloads
+# never carry a result for another correlation or other analyses.
+joint_power_current <- function(kept, plan, rho) {
+  rho <- suppressWarnings(as.numeric(rho))
+  if (is.null(kept) || is.null(plan) || length(rho) != 1 || is.na(rho)) return(NULL)
+  if (!identical(kept$analyses, plan_analysis_hashes(plan))) return(NULL)
+  if (!isTRUE(all.equal(as.numeric(kept$calc$rho), rho))) return(NULL)
+  kept$calc
+}
+
+# Said under the result once it no longer matches what is entered.
+joint_power_stale_text <- function(kept, plan, rho) {
+  if (is.null(kept) || !is.null(joint_power_current(kept, plan, rho))) return(NULL)
+  why <- if (!identical(kept$analyses, plan_analysis_hashes(plan))) "the plan's analyses have changed since" else
+    sprintf("it was calculated for a correlation of %s", format(kept$calc$rho))
+  sprintf("The joint power above is out of date: %s. Calculate it again; until then, the plan's downloads leave it out.", why)
 }
 
 joint_power_sentence <- function(calc, entries) {
@@ -405,9 +426,9 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
         div(class = "nav-buttons",
           if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
           if (saveable) share_link_ui("study_plan"),
-          if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Planning report", "the plan's planning report"),
+          if (k && !plan_is_replication(plan)) document_menu("plan_document", "plan_download_docx", "plan_download_md", "Study plan report", "the study plan report"),
           if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
-        if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top of the page, puts the same inside a link. Planning report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan.")))
+        if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top of the page, puts the same inside a link. The study plan report is the study-wide document (every analysis, a Registered Report study design table and the references) to print or edit. The ZIP adds each analysis's own reports and R scripts. Open it in Powerkit to return to the whole plan.")))
   )
 }
 

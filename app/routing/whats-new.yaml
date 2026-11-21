@@ -7,6 +7,208 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-21"
+    title: Replication plan tables fit a phone screen
+    text: >
+      On a narrow screen the replication planner's result tables now wrap
+      their text so every column is visible, instead of scrolling sideways
+      with the heading and some columns out of sight.
+  - date: "2026-11-21"
+    title: The written plan states a several-tests claim in the first person
+    text: >
+      When a replication plan rests on several tests, the written plan now
+      says "Our claim needs all 3 tests to succeed" like the rest of the
+      paragraph, without the advice shown on screen.
+  - date: "2026-11-21"
+    title: Clearer labels and notes on several cards
+    text: >
+      Comparing two correlations from the same people now says which one is
+      the value under no difference, because the order changes the answer.
+      The two-group converter asks for a pooled t. Validating a prediction
+      model says that the calibration slope you expect doesn't change the
+      sample size. The agreement card says each limit is tested at half
+      your significance level. The cross-lagged panel card says measurement
+      error can push a cross-lagged effect either way, and simulated
+      designs whose model sometimes fails to fit now say how many simulated
+      studies could be analysed. Precision results from presize say the
+      width holds at the values you assumed, not on average.
+  - date: "2026-11-21"
+    title: Replication plans say how an ANOVA original's groups are treated
+    text: >
+      When the original study was an ANOVA, the planner now says on screen
+      that it takes the original's groups to be the same size, and that the
+      plan is approximate if they clearly were not.
+  - date: "2026-11-21"
+    title: Replication plans for a claim that rests on several tests
+    text: >
+      If your replication needs several tests to succeed together, such as a
+      crossover interaction and its two simple effects, enter the number of
+      tests in "How sure the replication should be". This test is then
+      planned at a higher chance so that all of them succeed together at the
+      chance you chose. You can say whether the tests are independent or you
+      don't know how they relate; the safe choice is not knowing. The result
+      and the written plan say what was assumed.
+  - date: "2026-11-21"
+    title: The replication planner checks every replication size it reports
+    text: >
+      The replication planner now checks each goal at whole numbers of
+      participants rather than trusting a search that could stop short. A
+      pooled-significance goal after a strong original study is no longer
+      reported as out of reach, a plan with very unequal groups no longer
+      asks for a few more people than needed, and where a small replication
+      meets a goal that moderate ones miss, the table says so instead of
+      giving the small size alone.
+  - date: "2026-11-21"
+    title: Clearer error text and a plainer details heading
+    text: >
+      If the engine rejects your answers, the message no longer opens with
+      "This design spec has a problem". The folded details on a result now
+      say "The settings that were run (JSON)".
+  - date: "2026-11-21"
+    title: Plainer wording when some simulated studies can't be analysed
+    text: >
+      When a few simulated studies fail to fit, the warning now says in plain
+      words which studies the reported power counts, and gives the lower
+      figure that counts the failed ones as misses. The "Check as you go"
+      card for a Bayes factor now says that most studies stop early only if
+      the effect is as you planned.
+  - date: "2026-11-21"
+    title: Bayes factor tables simulate the group sizes you set
+    text: >
+      On the categories card, a Bayes factor plan with the rows (or columns)
+      set in advance now simulates studies whose group sizes are fixed at
+      those numbers. It had let the group sizes vary by chance, which gave
+      too little power: with 15 people in each of two groups and rates of 70%
+      and 30%, the chance of a Bayes factor of at least 10 is 43%, where it
+      had said 36%. Plans with only the total set, or none, are unchanged.
+  - date: "2026-11-20"
+    title: Mediation cards say what a causal reading assumes
+    text: >
+      Every mediation card, and the methods paragraph for a mediation plan,
+      now says that the power is for the indirect effect as a statistical
+      path, and that reading it as X changing Y through the mediator also
+      needs the mediator measured between X and Y and no unmeasured common
+      cause of the mediator and the outcome, which randomising X doesn't
+      give. For the natural indirect effect, a causal quantity, it names the
+      assumptions the estimate needs.
+  - date: "2026-11-20"
+    title: Joint power in a plan's downloads matches the correlation entered
+    text: >
+      A study plan's downloads kept the last joint power calculated while the
+      plan's analyses stayed the same, even after the correlation between the
+      outcomes was changed or a new calculation failed. They now carry joint
+      power only for the correlation and analyses shown, and the plan says
+      when the result on screen is out of date.
+  - date: "2026-11-20"
+    title: The sample-size rule leaves the stopping rule to you
+    text: >
+      The full methods version's "Sample size rule" said data collection
+      stops when the analysed number is reached, which powerkit was never
+      told. Recruiting extra people for attrition is a buffer, and a fixed
+      budget and replacing people until every group is full can share the
+      same numbers while being different plans. It now says what the
+      calculation assumes (the number analysed, in one analysis) and leaves
+      a place to state the most you'll recruit, whether people who drop out
+      or are excluded are replaced, and when collection stops.
+  - date: "2026-11-20"
+    title: Searching by a test's own name, and power near a target
+    text: >
+      "I know my analysis" now finds the structural equation modelling card
+      by RMSEA and its fit tests, the repeated-measures ANOVAs by Greenhouse-
+      Geisser and Huynh-Feldt, and the cards that offer the likelihood-ratio
+      or Wald test by those names. When nothing matches, a link clears the
+      search and shows every analysis again. The main power figure now shows
+      a decimal when a whole percentage would hide which side of 80%, 90% or
+      95% the power falls: 79.5% and 80.1% had both shown as 80%.
+  - date: "2026-11-20"
+    title: The assumptions comparison looks inside each range
+    text: >
+      "Which assumption matters most?" compared the answers at the two ends of
+      each range only, so a range that crosses no effect (a difference from
+      -0.5 to +0.5, with the same power at both ends and 5% at zero) was drawn
+      as "no change". It now also works out seven values inside each range,
+      and zero for an effect whose range crosses it, shows an answer inside
+      that goes beyond both ends, and ranks the assumptions by the whole
+      range.
+  - date: "2026-11-20"
+    title: A chance that no simulated study reached is no longer called impossible
+    text: >
+      For Bayes factor plans whose chance of evidence for no effect is
+      simulated, a chance of zero now reads as none of the simulated studies
+      reaching the threshold, with an upper bound on the chance (for 1,000
+      studies, about 0.3%). The results screen, the methods paragraph and the
+      ethics paragraph had said a study of that size could never reach it,
+      which a simulation can't show. Exact calculations still say so when it's
+      true.
+  - date: "2026-11-20"
+    title: The ethics paragraph says what a result would show
+    text: >
+      For the test of not-close fit on the structural equation modelling card,
+      the plain-words paragraph now says the study's chance of showing that the
+      model fits closely; it had said the chance of showing the model is wrong.
+      For factor recovery and for finding the number of profiles, which have no
+      significance test, it now says what counts as success instead of naming
+      a threshold.
+  - date: "2026-11-20"
+    title: Write-ups give the groups and units the calculation used
+    text: >
+      The result, the sample-size rule and the ethics paragraph now give the
+      group and cell sizes the calculation ran: unequal cells in a 2 by 2
+      design were written as equal ones. A study of pairs now gives the number
+      of pairs and of people, and an interrupted time series the time points
+      before and after the intervention, instead of calling each one a
+      participant.
+  - date: "2026-11-20"
+    title: Repeated yes/no answers use the likelihood-ratio test
+    text: >
+      When people give a yes/no answer several times, the card now plans the
+      likelihood-ratio test only. The Wald test it also offered found a
+      difference a little too often when there was none.
+  - date: "2026-11-20"
+    title: Small wording fixes in the study plan and replication plan files
+    text: >
+      The study plan's design table now starts each analysis plan with a
+      capital letter, and the replication plan says "Powerkit" the same way
+      as the rest of the app.
+  - date: "2026-11-20"
+    title: Shorter analysis names in the design finder, and a clearer report button
+    text: >
+      Eighteen long analysis names and choices in the design finder are
+      shorter, with nothing dropped that told two analyses apart. On a
+      study plan, the report button is now called "Study plan report", the
+      name the report itself carries.
+  - date: "2026-11-20"
+    title: Clearer wording in the study planning document
+    text: >
+      The planning document now says "Why this effect size" and "Group size
+      ratio" in plain words, and no longer leaves a stray space in the line
+      saying what the sample size counts.
+  - date: "2026-11-20"
+    title: Shorter methods paragraph, and a sample size rule for preregistration
+    text: >
+      The short methods paragraph now leaves out the critical effect size
+      sentence, except when the goal is the smallest detectable effect. The
+      results screen and the full version still give it. The full version
+      also ends with a sample size rule (how many participants are analysed
+      and that the analysis is run once), the thing a preregistration asks
+      for.
+  - date: "2026-11-20"
+    title: Shorter question labels on the input screens
+    text: >
+      About 150 more labels no longer carry an example, a range or a default
+      in brackets. That detail, such as "For example, group", "Between 0 and 1"
+      or "Empty means 0", now sits in the help under the question.
+  - date: "2026-11-20"
+    title: Why one yes/no answer per condition isn't planned as a mixed model
+    text: >
+      The card for repeated counts, yes/no answers and ratings still can't
+      plan a mixed model when each person answers yes or no once in each
+      condition, and now says why: in simulations its tests found a
+      difference too often when there was none, up to 8.5% of studies at a
+      5% significance level when "yes" is rare. With several answers per
+      condition the default likelihood-ratio test stays close to 5%; the
+      help for the test now says that the Wald test can run at about 6%
+      when people differ a lot.
   - date: "2026-11-20"
     title: Shorter labels on study plans, the whole-study screen and the variation tool
     text: >
@@ -2700,19 +2902,3 @@ entries:
       words. In "Plan my whole study", the combined sample size and the
       consistency check are marked "Coming soon"; until then, use the
       largest sample size from your analyses' cards.
-  - date: "2026-10-20"
-    title: "Labs: pre-replication notes"
-    text: >-
-      A new, experimental Labs tab. Its first tool helps you think before
-      replicating a finding: three questions from a recent paper on
-      pre-replication, answered in your own words, plus the smallest effect
-      the original study could detect. Nothing is required or scored, and
-      deciding a finding isn't worth replicating counts as a good outcome.
-  - date: "2026-10-20"
-    title: "Generic t, F, chi-square and z tests"
-    text: >-
-      If you have already worked out your test's noncentrality parameter, as
-      with G*Power's generic tests, choose "Generic t, F, chi-square and z
-      tests" under "I know my analysis". You get the power for that
-      noncentrality, or the noncentrality you'd need; there is no sample
-      size, because the noncentrality already reflects it.

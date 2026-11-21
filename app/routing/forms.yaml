@@ -650,7 +650,7 @@ forms:
     groups:
       - input: "Names of the two groups and the outcome"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -756,7 +756,7 @@ forms:
     groups:
       - input: "Names of the two conditions and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, session)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, session.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "First condition", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Second condition", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -912,14 +912,14 @@ forms:
     groups:
       - input: "Names of the groups and the outcome"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
-          - {id: Y_label, label: "Yes/no outcome (for example, attended)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, attended.", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion of 'yes' in each group"
         fields:
-          - {id: p1, label: "Proportion of 'yes' in group 1 (0 to 1)", type: number, path: population.p1, effect: true, baseline: true, min: 0, max: 1}
-          - {id: p2, label: "Proportion of 'yes' in group 2 (0 to 1)", type: number, path: population.p2, effect: true, when_empty: same_as_p1, min: 0, max: 1}
+          - {id: p1, label: "Proportion of 'yes' in group 1", help: "Between 0 and 1.", type: number, path: population.p1, effect: true, baseline: true, min: 0, max: 1}
+          - {id: p2, label: "Proportion of 'yes' in group 2", help: "Between 0 and 1.", type: number, path: population.p2, effect: true, when_empty: same_as_p1, min: 0, max: 1}
       - input: "The size of group 2 relative to group 1"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -999,7 +999,7 @@ forms:
              choices: {rows_fixed: "Independent multinomial, rows fixed: the number in each category of the first variable is set in advance", columns_fixed: "Independent multinomial, columns fixed: the number in each category of the second variable is set in advance",
                        joint_multinomial: "Joint multinomial: only the total is set in advance", poisson: "Poisson: not even the total is set in advance"},
              default: rows_fixed, default_source: "JASP's Bayesian contingency tables ('Indep. multinomial, rows fixed')",
-             help: "The sampling plan you will choose when you analyse the data in JASP. Powerkit always simulates studies of the total you enter."}
+             help: "The sampling plan you will choose when you analyse the data in JASP, and how the data are collected. With the rows (or columns) fixed, powerkit simulates studies whose group sizes are set in advance: each row's (or column's) share of the table above, times the total, in whole people. Otherwise each simulated study has the total you enter, divided among the cells by chance."}
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
              default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1) and BayesFactor's contingencyTableBF()",
@@ -1174,10 +1174,10 @@ forms:
     groups:
       - input: "Names of the factors, their levels and the outcome"
         fields:
-          - {id: A_label, label: "Between factor (for example, group)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "Between factor", help: "For example, group.", type: text, path: variables.A.label, required: true}
           - {id: A_level1, label: "Between factor, level 1", type: text, path: variables.A.levels.1, required: true}
           - {id: A_level2, label: "Between factor, level 2", type: text, path: variables.A.levels.2, required: true}
-          - {id: B_label, label: "Within factor (for example, time)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "Within factor", help: "For example, time.", type: text, path: variables.B.label, required: true}
           - {id: B_level1, label: "Within factor, level 1", type: text, path: variables.B.levels.1, required: true}
           - {id: B_level2, label: "Within factor, level 2", type: text, path: variables.B.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -1285,16 +1285,16 @@ forms:
           - {id: r2_change, writeup_label: "R-squared change for the interaction", label: "R-squared the interaction adds (its R-squared change)", type: number, path: population.r2_change, effect: true,
              min_exclusive: 0, max_exclusive: 1, shown_if: {field: interaction_metric, is: r2_change},
              help: "The increase in R-squared when the product of X and W is added to a model with X and W. A published value tends to be too large."}
-          - {id: r2_main, writeup_label: "R-squared of X and W", label: "R-squared of X and W without the interaction (optional; empty = 0)", type: number, path: population.r2_main, in_effect_text: true,
+          - {id: r2_main, writeup_label: "R-squared of X and W", label: "R-squared of X and W without the interaction", type: number, path: population.r2_main, in_effect_text: true,
              optional: true, min: 0, max_exclusive: 1, shown_if: {field: interaction_metric, is: r2_change},
-             help: "Empty means X and W explain none of the outcome before the interaction is added. For the same interaction R-squared change, this can give a larger planned sample than entering a positive value. It does not protect against an overestimated interaction or other wrong assumptions."}
+             help: "Empty means X and W explain none of the outcome before the interaction is added. For the same interaction R-squared change, this can give a larger planned sample than entering a positive value. It does not protect against an overestimated interaction or other wrong assumptions. Empty means 0."}
       - input: "Optional: reliability of X, W and Y"
         fields:
-          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
+          - {id: rel_X, label: "Reliability of X", help: "Empty means perfectly reliable.", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
              shown_if: {field: interaction_metric, is_not: r2_change}}
-          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
+          - {id: rel_W, label: "Reliability of W", help: "Empty means perfectly reliable.", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
              shown_if: {field: interaction_metric, is_not: r2_change}}
-          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1,
+          - {id: rel_Y, label: "Reliability of Y", help: "Empty means perfectly reliable.", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1,
              shown_if: {field: interaction_metric, is_not: r2_change}}
 
   E15:
@@ -1333,11 +1333,11 @@ forms:
           # Not for the yes/no variable: misclassification isn't the same as
           # unreliable scores (decided 16 October 2026; judgement call B8,
           # decided 29 October 2026).
-          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
+          - {id: rel_X, label: "Reliability of X", help: "Empty means perfectly reliable.", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
              shown_if: {field: binary_role, is: W}}
-          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
+          - {id: rel_W, label: "Reliability of W", help: "Empty means perfectly reliable.", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
              shown_if: {field: binary_role, is: X}}
-          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Y, label: "Reliability of Y", help: "Empty means perfectly reliable.", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E31:
     methods_name: "a three-way regression interaction"
@@ -1367,10 +1367,10 @@ forms:
              help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
       - input: "Optional: reliability of X, W, Z and Y"
         fields:
-          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
-          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
-          - {id: rel_Z, label: "Reliability of Z (optional; empty = perfectly reliable)", type: number, path: variables.Z.reliability, optional: true, min_exclusive: 0, max: 1}
-          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_X, label: "Reliability of X", help: "Empty means perfectly reliable.", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_W, label: "Reliability of W", help: "Empty means perfectly reliable.", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Z, label: "Reliability of Z", help: "Empty means perfectly reliable.", type: number, path: variables.Z.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Y, label: "Reliability of Y", help: "Empty means perfectly reliable.", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E10:
     methods_name: "a simple mediation model"
@@ -1535,9 +1535,9 @@ forms:
     groups:
       - input: "The two conditions and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, word type)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, word type.", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
-          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, response time in ms.", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
@@ -1571,9 +1571,9 @@ forms:
           - {id: sd_participant_slope, label: "SD of the condition difference across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0,
              shown_if: {field: crossed_participants, is: within_factor},
              help: "For example, 5.3 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
-          - {id: r_participant, label: "Correlation of participants' averages and differences (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1,
+          - {id: r_participant, label: "Correlation of participants' averages and differences", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1,
              shown_if: {field: crossed_participants, is: within_factor},
-             help: "For example, -0.40 in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+             help: "For example, -0.40 in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently. Empty means 0."}
           - {id: sd_item, label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0,
              help: "For example, 43.6 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_residual, label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
@@ -1593,9 +1593,9 @@ forms:
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
              choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
              default: between, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026)"}
-          - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
+          - {id: sd_item_slope, label: "SD of the condition difference across items", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
-             help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+             help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently. Empty means 0."}
 
   # Participants and items in three or more conditions (simr), 31 October
   # 2026: the Satterthwaite F test, or one pair adjusted for all the pairs.
@@ -1610,9 +1610,9 @@ forms:
     groups:
       - input: "The conditions and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, face expression)", type: text, path: variables.X.label, required: true}
-          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true}
-          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, face expression.", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas", help: "Three or more.", type: levels, path: variables.X.levels, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, response time in ms.", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
@@ -1688,23 +1688,23 @@ forms:
              sets: {groups: [{path: variables.W.type, value: between_factor}, {path: target_test.effect, value: interaction}]},
              default: none, default_source: "one group of people, this card's first design",
              help: "Two or more groups, each measured in every condition. For example, a programme group and a control group, each measured before and after: the test is whether the programme group changes more than the control group, the interaction of group and occasion in the mixed model y ~ group * occasion + (1 | person)."}
-          - {id: W_label, label: "What the groups are (for example, programme or control)", type: text, path: variables.W.label, required: true,
+          - {id: W_label, label: "What the groups are", help: "For example, programme or control.", type: text, path: variables.W.label, required: true,
              shown_if: {field: glmm_groups, is: groups}}
           - {id: W_levels, label: "The groups", help: "Separated by commas, the comparison group first. The people are split equally between them.", type: levels, path: variables.W.levels, required: true,
              shown_if: {field: glmm_groups, is: groups}}
           - {id: X_label, label: "What the conditions or occasions are", help: "For example before and after the programme.", type: text, path: variables.X.label, required: true}
-          - {id: X_levels, label: "The conditions or occasions, separated by commas (two or more)", type: levels, path: variables.X.levels, required: true}
+          - {id: X_levels, label: "The conditions or occasions, separated by commas", help: "Two or more.", type: levels, path: variables.X.levels, required: true}
           - {id: glmm_people, label: "Each person is measured in", type: select, path: variables.X.type, required: true,
              shown_if: {field: glmm_groups, is_not: groups},
              choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"},
              default: within_factor, default_source: "the same people measured more than once, this card's usual design"}
-          - {id: Y_label, label: "Outcome (for example, cigarettes smoked per day)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, cigarettes smoked per day.", type: text, path: variables.Y.label, required: true}
           - {id: glmm_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {count: "A count (0, 1, 2, ...)", binary: "Yes or no", categorical: "Ordered categories (for example, a rating from 1 to 5)"},
              sets: {binary: [{path: population.metric, value: probability}], categorical: [{path: population.metric, value: proportion}]},
              default: count, default_source: "a count, the commoner outcome on this card",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer); with ordered categories, a cumulative link mixed model with proportional odds (the R package ordinal's clmm()). The SD below is then on the log-odds scale."}
-          - {id: Y_levels, label: "The categories, lowest first, separated by commas (three or more)", type: levels, path: variables.Y.levels, required: true,
+          - {id: Y_levels, label: "The categories, lowest first, separated by commas", help: "Three or more.", type: levels, path: variables.Y.levels, required: true,
              shown_if: {field: glmm_outcome, is: categorical}}
           - {id: glmm_measurements, writeup_label: "measurements per person in each condition", label: "How many times each person is measured in each condition (1 if once)", type: number, path: population.measurements, required: true, min: 1, integer: true,
              default: 1, default_source: "one measurement per condition, as in a before-and-after study",
@@ -1743,15 +1743,20 @@ forms:
       - input: "The test"
         fields:
           - {id: glmm_test, label: "What the test compares", type: select, path: target_test.method, required: true,
-             shown_if: [{any: [{field: glmm_outcome, is_not: binary}, {field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
+             shown_if: {field: glmm_outcome, is_not: binary},
              choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
              default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
              help: "That the conditions differ, or, with groups, that the groups change differently. lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
+          - {id: glmm_test_yes_no, label: "What the test compares (yes/no)", type: select, path: target_test.method, required: true,
+             shown_if: [{field: glmm_outcome, is: binary}, {any: [{field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
+             choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor and the only test powerkit plans for a yes/no outcome on this card",
+             help: "That the conditions differ, or, with groups, that the groups change differently. The Wald test isn't offered for yes/no answers: for people who differ a lot (an SD of 1.5), powerkit's simulations found it significant in about 6.2% of studies with no difference at a 5% significance level, while the likelihood-ratio test stayed near 5%."}
           - {id: glmm_test_once, label: "Test (a yes/no answer once in each condition)", type: select, path: target_test.method, required: true,
              shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is_not: groups}, {field: glmm_people, is: within_factor}, {field: glmm_measurements, is: "1"}],
              choices: {cochran_q: "Cochran's Q"},
              default: cochran_q, default_source: "Cochran's Q, the usual test of one yes/no answer from each person in each of three or more conditions",
-             help: "For three or more conditions; with two, Cochran's Q is McNemar's test, which has its own card. One yes/no answer per condition is too little to fit the mixed model's person SD, so each simulated study is tested with Cochran's Q, as researchers usually analyse such data. The answers are still drawn from the card's model: the SD above makes some people likelier to say yes in every condition, which is what makes the answers in different conditions go together. With people who differ, the share saying yes across everyone is a little closer to 50% than a typical person's chance; the check run shows those shares."}
+             help: "For three or more conditions; with two, Cochran's Q is McNemar's test, which has its own card. With one yes/no answer per condition the mixed model's tests find a difference too often when there is none (up to 8.5% of simulated studies at a 5% significance level), so each simulated study is tested with Cochran's Q, as researchers usually analyse such data. The answers are still drawn from the card's model: the SD above makes some people likelier to say yes in every condition, which is what makes the answers in different conditions go together. With people who differ, the share saying yes across everyone is a little closer to 50% than a typical person's chance; the check run shows those shares."}
 
   # Cochran's Q (17 November 2026): its own card for the test that the
   # repeated-measures card (E75) offers as a test version, so that a
@@ -1768,10 +1773,10 @@ forms:
     groups:
       - input: "The conditions and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, the kind of reminder)", type: text, path: variables.X.label, required: true}
-          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true,
-             help: "Every person answers once in each condition. With two conditions, use McNemar's test, which has its own card."}
-          - {id: Y_label, label: "The yes/no outcome (for example, attended)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, the kind of reminder.", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas", type: levels, path: variables.X.levels, required: true,
+             help: "Every person answers once in each condition. With two conditions, use McNemar's test, which has its own card. Three or more."}
+          - {id: Y_label, label: "The yes/no outcome", help: "For example, attended.", type: text, path: variables.Y.label, required: true}
       - input: "The chance of 'yes' in each condition, and how much people differ"
         fields:
           - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "Chance of 'yes' in each condition", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
@@ -1791,11 +1796,11 @@ forms:
     groups:
       - input: "The item score and the outcome"
         fields:
-          - {id: X_label, label: "The predictor (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "The predictor", help: "For example, word frequency.", type: text, path: variables.X.label, required: true}
           - {id: x_level, label: "The predictor is measured", type: select, path: population.x_level, required: true,
              choices: {item: "On each item: the same for every participant (for example, a word's frequency)", trial: "On each trial: it varies from trial to trial, within items too (for example, how long the stimulus is shown)"},
              default: item, default_source: "an item property, the commoner design"}
-          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, response time in ms.", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
@@ -1818,9 +1823,9 @@ forms:
              shown_if: {field: outcome_type, is: binary}}
           - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
           - {id: sd_participant_slope, writeup_label: "SD of participants' slopes", label: "SD of the effect across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
-          - {id: r_participant, label: "Correlation of participants' averages and slopes (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: r_participant, label: "Correlation of participants' averages and slopes", help: "Empty means 0.", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_item, writeup_label: "SD of items beyond the score", label: "SD of items' averages beyond what the item score explains", type: number, path: population.sd_item, effect: true, min: 0}
-          - {id: sd_item_slope, label: "SD of the effect across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
+          - {id: sd_item_slope, label: "SD of the effect across items", help: "Empty means 0.", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: x_level, is: trial}}
           - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
              shown_if: {field: outcome_type, is: continuous}}
@@ -1842,9 +1847,9 @@ forms:
     groups:
       - input: "The conditions, what is assigned to them, and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, programme.", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
-          - {id: Y_label, label: "Outcome (for example, reading score)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, reading score.", type: text, path: variables.Y.label, required: true}
           - {id: three_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a reading score)", binary: "Yes or no (for example, passed or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
@@ -1883,15 +1888,15 @@ forms:
              help: "On the log-odds scale; 0.5 is a moderate difference between schools."}
           - {id: sd_group, writeup_label: "SD of the groups (log odds)", label: "SD of the groups' averages", help: "Within larger groups, for example classes (log-odds scale).", type: number, path: population.sd_group, effect: true, min: 0,
              shown_if: {field: three_outcome, is: binary}}
-          - {id: sd_effect_site, label: "SD of the effect across larger groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_site, optional: true, empty_text: "0", min: 0,
+          - {id: sd_effect_site, label: "SD of the effect across larger groups, log-odds scale", help: "Empty means 0.", type: number, path: population.sd_effect_site, optional: true, empty_text: "0", min: 0,
              shown_if: [{field: three_assignment, is_not: site}, {field: three_outcome, is: binary}]}
-          - {id: sd_effect_group, label: "SD of the effect across groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_group, optional: true, empty_text: "0", min: 0,
+          - {id: sd_effect_group, label: "SD of the effect across groups, log-odds scale", help: "Empty means 0.", type: number, path: population.sd_effect_group, optional: true, empty_text: "0", min: 0,
              shown_if: [{field: three_assignment, is: person}, {field: three_outcome, is: binary}]}
       - input: "The sizes of the groups and sites"
         fields:
-          - {id: group_size, label: "People in each group (for example, pupils per class)", type: number, path: population.group_size, required: true, min: 2, integer: true}
-          - {id: groups_per_site, label: "Groups in each larger group (for example, classes per school)", type: number, path: population.groups_per_site, required: true, min: 2, integer: true,
-             help: "The total number of people is then a whole number of larger groups; with whole larger groups assigned, an even number of them."}
+          - {id: group_size, label: "People in each group", help: "For example, pupils per class.", type: number, path: population.group_size, required: true, min: 2, integer: true}
+          - {id: groups_per_site, label: "Groups in each larger group", type: number, path: population.groups_per_site, required: true, min: 2, integer: true,
+             help: "The total number of people is then a whole number of larger groups; with whole larger groups assigned, an even number of them. For example, classes per school."}
 
   # Dyadic data (power4mome): the actor-partner interdependence model
   # (1 November 2026).
@@ -1910,7 +1915,7 @@ forms:
                        cox_predictor: "Whether a measured score predicts how soon it happens (a Cox regression)"},
              sets: {log_rank: [{path: variables.X.type, value: binary}, {path: population.metric, value: event_proportions}, {path: target_test.effect, value: group_difference}, {path: target_test.method, value: log_rank}],
                     cox_predictor: [{path: variables.X.type, value: continuous}, {path: population.metric, value: hazard_ratio}, {path: target_test.effect, value: hazard_ratio}, {path: target_test.method, value: cox_regression}]}}
-          - {id: Y_label, label: "The event, as the time until it happens (for example, time to relapse)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "The event, as the time until it happens", help: "For example, time to relapse.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "What the groups or scores are", help: "For example condition, for groups, or baseline motivation, for a score.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Group 1 (usually the comparison group)", type: text, path: variables.X.levels.1, required: true,
              shown_if: {field: question, is: log_rank}}
@@ -1922,7 +1927,7 @@ forms:
           - {id: lr_time, writeup_label: "time", label: "Time at which the event shares are known", type: number, path: population.time, required: true, min_exclusive: 0,
              shown_if: {field: question, is: log_rank},
              help: "A time by which you know roughly how many have had the event, for example 12 for 12 months. Use the same unit (days, weeks, months) for every time on this screen."}
-          - {id: p_event1, writeup_label: "proportion with the event in group 1", label: "Proportion of group 1 who have had the event by then (0 to 1)", type: number, path: population.p_event.1, effect: true, baseline: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: p_event1, writeup_label: "proportion with the event in group 1", label: "Proportion of group 1 who have had the event by then", help: "Between 0 and 1.", type: number, path: population.p_event.1, effect: true, baseline: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: log_rank}}
           - {id: p_event2, optional_for: [sensitivity], when_empty: same_as, same_as: p_event1, writeup_label: "proportion with the event in group 2", label: "Proportion of group 2 who have had the event by then", type: number, path: population.p_event.2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: log_rank},
@@ -1981,9 +1986,9 @@ forms:
         fields:
           - {id: icc, optional_for: [sensitivity], when_empty: same_as, same_as: icc_null, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: icc}}
-          - {id: icc_null, in_effect_text: true, writeup_label: "ICC to beat", label: "The ICC you want to show it is above (for example, 0.6)", type: number, path: population.icc_null, required: true, min: 0, max_exclusive: 1,
+          - {id: icc_null, in_effect_text: true, writeup_label: "ICC to beat", label: "The ICC you want to show it is above", type: number, path: population.icc_null, required: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: icc},
-             help: "0 tests only that the ratings agree more than by chance, which is rarely the question."}
+             help: "0 tests only that the ratings agree more than by chance, which is rarely the question. For example, 0.6."}
           - {id: icc_raters, in_effect_text: true, writeup_label: "ratings of each person", label: "Ratings of each person (raters, or occasions)", type: number, path: population.raters, required: true, min: 2, integer: true,
              shown_if: {field: question, is: icc}}
           # The F test's exact power by default, Walter, Eliasziw and
@@ -2000,24 +2005,24 @@ forms:
         fields:
           - {id: reliability, optional_for: [sensitivity], when_empty: same_as, same_as: reliability_null, writeup_label: "expected alpha", label: "The alpha you expect", type: number, path: population.reliability, effect: true, min: 0.001, max: 0.999,
              shown_if: {field: question, is: cronbach_alpha}}
-          - {id: reliability_null, in_effect_text: true, writeup_label: "alpha to beat", label: "The alpha you want to show it is above (for example, 0.7)", type: number, path: population.reliability_null, required: true, min: 0, max_exclusive: 1,
+          - {id: reliability_null, in_effect_text: true, writeup_label: "alpha to beat", label: "The alpha you want to show it is above", help: "For example, 0.7.", type: number, path: population.reliability_null, required: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: cronbach_alpha}}
           - {id: items, in_effect_text: true, writeup_label: "number of items", label: "Number of items in the scale", type: number, path: population.items, required: true, min: 2, integer: true,
              shown_if: {field: question, is: cronbach_alpha}}
       - input: "Kappa: the categories, the raters, and the kappa you expect"
         shown_if: {field: question, is: kappa}
         fields:
-          - {id: Y_levels, label: "The categories raters choose from, separated by commas (2 to 5)", type: levels, path: variables.Y.levels, required: true,
+          - {id: Y_levels, label: "The categories raters choose from, separated by commas", help: "Between 2 and 5.", type: levels, path: variables.Y.levels, required: true,
              shown_if: {field: question, is: kappa}}
           - {id: proportions, in_effect_text: true, writeup_label: "share of subjects in each category", label: "Share of subjects in each category", help: "In the same order, separated by commas. They add up to 1.", type: numbers, per_levels: Y_levels, path: population.proportions, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa}}
-          - {id: kappa_raters, in_effect_text: true, writeup_label: "number of raters", label: "Number of raters who rate every subject (2 to 6)", type: number, path: population.raters, required: true, min: 2, max: 6, integer: true,
+          - {id: kappa_raters, in_effect_text: true, writeup_label: "number of raters", label: "Number of raters who rate every subject", help: "Between 2 and 6.", type: number, path: population.raters, required: true, min: 2, max: 6, integer: true,
              shown_if: {field: question, is: kappa}}
           - {id: kappa, optional_for: [sensitivity], when_empty: same_as, same_as: kappa_null, writeup_label: "expected kappa", label: "The kappa you expect", type: number, path: population.kappa, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa}}
-          - {id: kappa_null, in_effect_text: true, writeup_label: "kappa under the null hypothesis", label: "The kappa to test against (for example, 0.4)", type: number, path: population.kappa_null, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: kappa_null, in_effect_text: true, writeup_label: "kappa under the null hypothesis", label: "The kappa to test against", type: number, path: population.kappa_null, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa},
-             help: "kappaSize tests whether kappa equals this value, in either direction; it takes values above 0."}
+             help: "kappaSize tests whether kappa equals this value, in either direction; it takes values above 0. For example, 0.4."}
       - input: "Bland-Altman: the bias, the SD of the differences, and the largest acceptable difference"
         shown_if: {field: question, is: bland_altman}
         note: "Each subject is measured by both methods. The analysis is of the differences between them: their mean (the bias) and the limits of agreement, the bias plus and minus 1.96 SDs of the differences for 95% limits. Agreement is shown when both limits, at the outer ends of their confidence intervals, lie within plus and minus the largest difference that would not matter in practice."
@@ -2037,9 +2042,9 @@ forms:
              choices: {mover: "Simulate the analysis, with MOVER confidence intervals for the limits (recommended)",
                        bland_altman: "Simulate the analysis, with Bland and Altman's confidence intervals for the limits",
                        lu_formula: "Quick approximation: Lu et al.'s (2016) formula (instant, less accurate)"},
-             default: mover, default_source: "the MOVER intervals, SimplyAgree's default (agreement_limit(loa_calc = 'mover'), version 0.3.0), whose error rates are close to the level you set",
-             choice_notes: {mover: "Powerkit simulates studies like yours and analyses each with SimplyAgree's agreement_limit(), as you would analyse your data. The MOVER intervals (Zou, 2013) keep the chance of wrongly showing agreement close to the level you set. Power at a fixed sample size runs here in under a minute; a sample size comes as an R script that takes about 5 minutes.",
-                            bland_altman: "The same simulation with Bland and Altman's (1999) approximate intervals. Choose it if that is the analysis you will report. Its intervals are a little too narrow in small samples, so it shows agreement more often than it should: about twice the level you set at 30 subjects.",
+             default: mover, default_source: "the MOVER intervals, SimplyAgree's default (agreement_limit(loa_calc = 'mover'), version 0.3.0), whose error rates are close to their nominal level",
+             choice_notes: {mover: "Powerkit simulates studies like yours and analyses each with SimplyAgree's agreement_limit(), as you would analyse your data. Each limit is tested at half the significance level you set (the outer end of a two-sided interval), so with a limit at the margin the chance of wrongly showing agreement is half that level; the MOVER intervals (Zou, 2013) keep it close to that. Power at a fixed sample size runs here in under a minute; a sample size comes as an R script that takes about 5 minutes.",
+                            bland_altman: "The same simulation with Bland and Altman's (1999) approximate intervals. Choose it if that is the analysis you will report. Its intervals are a little too narrow in small samples, so it shows agreement more often than it should: at 30 subjects, about the full level you set rather than half of it.",
                             lu_formula: "The published formula for this analysis (Lu et al., 2016), SimplyAgree's blandPowerCurve(). It is instant, but it approximates the analysis it plans for: for a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, it gives 80% power at 26 subjects, where the MOVER analysis has about 69% and needs 33. Use it to explore, and the simulation for the number you report."}}
   E44:
     methods_name: "an actor-partner interdependence model"
@@ -2058,9 +2063,9 @@ forms:
              choices: {"false": "No (for example, same-sex friends or twins): one actor and one partner effect, shared", "true": "Yes (for example, a woman and a man, or a parent and child): each member has their own"},
              sets: {"false": [{path: population.distinguishable, value: false}], "true": [{path: population.distinguishable, value: true}]},
              default: "false", default_source: "indistinguishable members, the model with fewer effects to give"}
-          - {id: member_1, label: "Member 1 (for example, woman)", type: text, path: population.members.1, required: true,
+          - {id: member_1, label: "Member 1", help: "For example, woman.", type: text, path: population.members.1, required: true,
              shown_if: {field: distinguishable, is: "true"}}
-          - {id: member_2, label: "Member 2 (for example, man)", type: text, path: population.members.2, required: true,
+          - {id: member_2, label: "Member 2", help: "For example, man.", type: text, path: population.members.2, required: true,
              shown_if: {field: distinguishable, is: "true"}}
       - input: "The actor and partner effects"
         fields:
@@ -2144,7 +2149,7 @@ forms:
     groups:
       - input: "The outcome, what is measured on each occasion, and what is measured once per person"
         fields:
-          - {id: Y_label, label: "Outcome, measured on each occasion (for example, evening mood)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome, measured on each occasion", help: "For example, evening mood.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Measured on each occasion (X; for example, the day's stress)", type: text, path: variables.X.label, required: true}
           - {id: W_label, label: "Measured once per person (W, the moderator; for example, neuroticism)", type: text, path: variables.W.label, required: true}
           - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
@@ -2172,7 +2177,7 @@ forms:
           - {id: sd_group, writeup_label: "SD of people's averages", label: "SD of people's average outcome beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
              help: "In the outcome's units. With an occasion-to-occasion SD of 1, an SD of 0.7 means about a third of the variance lies between people (an intraclass correlation of 0.33), common in diary studies."}
           - {id: sd_group_slope, writeup_label: "SD of X's effect across people", label: "SD of X's within-person effect across people beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
-          - {id: r_group, label: "Correlation of people's averages and their X effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: r_group, label: "Correlation of people's averages and their X effects", help: "Empty means 0.", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_residual, writeup_label: "occasion-to-occasion SD", label: "Occasion-to-occasion SD", help: "How much a person's outcome varies around their own line.", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
              shown_if: {field: two_outcome, is: continuous}}
       - input: "The number of occasions, and the effect to test"
@@ -2197,7 +2202,7 @@ forms:
     groups:
       - input: "The outcome, and the predictors at each level"
         fields:
-          - {id: Y_label, label: "Outcome (for example, maths score)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, maths score.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Measured on each person (X; for example, homework time)", type: text, path: variables.X.label, required: true}
           - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
           - {id: in_sites, label: "Are the groups themselves part of larger groups that matter for the design?", type: select, required: true,
@@ -2223,7 +2228,7 @@ forms:
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "Each effect, how much the groups differ, and the residual SD"
         fields:
-          - {id: two_probability, writeup_label: "chance of yes for a typical group", label: "The chance of 'yes' for a typical group, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: two_probability, writeup_label: "chance of yes for a typical group", label: "The chance of 'yes' for a typical group, at the average X and W", help: "Between 0 and 1.", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: two_outcome, is: binary}}
           - {id: b_X, writeup_label: "X's effect within groups", help: "The change in the outcome (or its log odds, for yes/no) for one SD more of X than the group's average.", label: "X's effect within groups", type: number, path: population.b_X, effect: true}
           - {id: b_W, writeup_label: "W's effect between groups", help: "The change in a group's average for one SD more of W.", label: "W's effect between groups", type: number, path: population.b_W, effect: true}
@@ -2235,10 +2240,10 @@ forms:
           - {id: sd_group, writeup_label: "SD of the groups' averages", label: "SD of the groups' averages beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
              help: "In the outcome's units. With a residual SD of 1, an SD of 0.33 means about 10% of the variance lies between groups (an intraclass correlation of 0.1)."}
           - {id: sd_group_slope, writeup_label: "SD of X's effect across groups", label: "SD of X's effect across groups beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
-          - {id: r_group, label: "Correlation of the groups' averages and X's effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: r_group, label: "Correlation of the groups' averages and X's effects", help: "Empty means 0.", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_site, writeup_label: "SD of the larger groups' averages", label: "SD of the larger groups' averages beyond Z (random intercepts)", type: number, path: population.sd_site, effect: true, min: 0,
              shown_if: {field: in_sites, is: "yes"}}
-          - {id: sd_site_slope, label: "SD of X's effect across larger groups beyond Z (optional; empty = 0)", type: number, path: population.sd_site_slope, optional: true, empty_text: "0", min: 0,
+          - {id: sd_site_slope, label: "SD of X's effect across larger groups beyond Z", help: "Empty means 0.", type: number, path: population.sd_site_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: in_sites, is: "yes"}}
           - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
              shown_if: {field: two_outcome, is: continuous}}
@@ -2374,7 +2379,7 @@ forms:
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
           - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
-          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+          - {id: c_X_W, label: "Correlation of X with W", help: "Empty means 0.", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
   # Moderated mediation with a yes/no X or W (PROCESS models 7 and 14;
   # 1 November 2026): rbinary_rs(), rescaled to mean 0 and SD 1, as for
@@ -2465,7 +2470,7 @@ forms:
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: p_XW_Y, label: "Path XW -> Y (W changing the direct path)", type: number, path: "population.paths.XW->Y", effect: true,
              shown_if: {field: modmed_model, is_one_of: [process_8, process_59]}}
-          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+          - {id: c_X_W, label: "Correlation of X with W", help: "Empty means 0.", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
       - input: "The two values of W to compare"
         fields:
           - {id: w_from, label: "The lower value of W, in SDs from its mean", type: number, path: target_test.w_values.1, required: true,
@@ -2531,7 +2536,7 @@ forms:
     groups:
       - input: "Names of the groups and the outcome"
         fields:
-          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected group means"
@@ -2618,7 +2623,7 @@ forms:
     groups:
       - input: "Names of the conditions and the outcome"
         fields:
-          - {id: A_label, label: "What the conditions are (for example, task difficulty or time)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the conditions are", help: "For example, task difficulty or time.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The conditions' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected mean in each condition"
@@ -2718,9 +2723,9 @@ forms:
     groups:
       - input: "Names of the two factors, their levels and the outcome"
         fields:
-          - {id: A_label, label: "The groups of different people (for example, group)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "The groups of different people", help: "For example, group.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names, separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "What everyone is measured in (for example, time)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "What everyone is measured in", help: "For example, time.", type: text, path: variables.B.label, required: true}
           - {id: B_levels, label: "The timepoints' or conditions' names, separated by commas", type: levels, path: variables.B.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected cell means"
@@ -2824,11 +2829,11 @@ forms:
       - input: "Names of the three factors, their levels and the outcome"
         note: "List any factor with different people at each level first, then the factors everyone is measured in."
         fields:
-          - {id: A_label, label: "First factor (for example, group)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "First factor", help: "For example, group.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "Second factor (for example, time)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "Second factor", help: "For example, time.", type: text, path: variables.B.label, required: true}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
-          - {id: C_label, label: "Third factor (for example, task difficulty)", type: text, path: variables.C.label, required: true}
+          - {id: C_label, label: "Third factor", help: "For example, task difficulty.", type: text, path: variables.C.label, required: true}
           - {id: C_levels, label: "The third factor's levels, separated by commas", type: levels, path: variables.C.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "Which factors everyone is measured in"
@@ -2908,9 +2913,9 @@ forms:
     groups:
       - input: "Names of the two factors, their levels and the outcome"
         fields:
-          - {id: A_label, label: "First factor (for example, cue)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "First factor", help: "For example, cue.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "Second factor (for example, delay)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "Second factor", help: "For example, delay.", type: text, path: variables.B.label, required: true}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected cell means"
@@ -2999,9 +3004,9 @@ forms:
     groups:
       - input: "Names of the two factors, their levels and the outcome"
         fields:
-          - {id: A_label, label: "First factor (for example, feedback)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "First factor", help: "For example, feedback.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "Second factor (for example, task difficulty)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "Second factor", help: "For example, task difficulty.", type: text, path: variables.B.label, required: true}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected cell means"
@@ -3068,13 +3073,13 @@ forms:
              default: oneway_ancova, default_source: "one factor, the usual ANCOVA",
              sets: {oneway_ancova: [{path: target_test.effect, value: main_effect_A}],
                     factorial_ancova: [{path: variables.B.type, value: between_factor}]}}
-          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "The second factor (for example, delivery)", type: text, path: variables.B.label, required: true,
+          - {id: B_label, label: "The second factor", help: "For example, delivery.", type: text, path: variables.B.label, required: true,
              shown_if: {field: factors, is: factorial_ancova}}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true,
              shown_if: {field: factors, is: factorial_ancova}}
-          - {id: Y_label, label: "Outcome (for example, the after score)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, the after score.", type: text, path: variables.Y.label, required: true}
       - input: "The expected (adjusted) group means and SD"
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
@@ -3191,16 +3196,16 @@ forms:
           - {id: f2, writeup_label: "Cohen's f²", label: "Cohen's f-squared", type: number, path: effect_justification.conversion.value, conversion: true, required: true, min_exclusive: 0,
              shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: f2}],
              help: "As G*Power asks for it: R² / (1 − R²) against 0; for one predictor or a set, the R-squared it adds over 1 minus the R-squared with all the predictors. Powerkit turns it into R-squared (with the effectsize package) and shows the result. For a set, give the R-squared without the tested predictors below too (0 if there are none)."}
-          - {id: r2, writeup_label: "R²", label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
+          - {id: r2, writeup_label: "R²", label: "R-squared of the model", help: "Between 0 and 1.", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_zero}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
-          - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
+          - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors", help: "Between 0 and 1.", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_increase}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the tested predictors", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
              shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              help: "Without the predictors you are testing (0 to 1; 0 if there are no others). For one coefficient's Bayes factor, the R-squared of the outcome on the other predictors: the Bayes factor depends on both models' R-squared, not only the partial R-squared."}
-          - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor (0 to 1)", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
+          - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
-             help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²)."}
+             help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²). Between 0 and 1."}
       - input: "Number of predictors"
         fields:
           - {id: predictors, label: "Number of predictors", type: number, path: population.predictors, required: true, min: 1, integer: true,
@@ -3249,10 +3254,10 @@ forms:
     groups:
       - input: "Your outcome's name"
         fields:
-          - {id: Y_label, label: "Yes/no outcome (for example, guessed correctly)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, guessed correctly.", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion"
         fields:
-          - {id: p, when_empty: same_as, same_as: p0, writeup_label: "expected proportion of 'yes'", label: "Expected proportion of 'yes' (0 to 1)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: p, when_empty: same_as, same_as: p0, writeup_label: "expected proportion of 'yes'", label: "Expected proportion of 'yes'", help: "Between 0 and 1.", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
       - input: "The fixed value"
         fields:
           - {id: p0, label: "The fixed proportion to compare with", help: "From 0 to 1, for example 0.5 for chance with two options.", type: number, path: population.p0, required: true, min_exclusive: 0, max_exclusive: 1}
@@ -3301,14 +3306,14 @@ forms:
     groups:
       - input: "Names of the two conditions and the outcome"
         fields:
-          - {id: X_label, label: "What the conditions are (for example, session)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the conditions are", help: "For example, session.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "First condition", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Second condition", type: text, path: variables.X.levels.2, required: true}
-          - {id: Y_label, label: "Yes/no outcome (for example, passed)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, passed.", type: text, path: variables.Y.label, required: true}
       - input: "The expected discordant proportions"
         fields:
-          - {id: p_first_only, baseline: true, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
-          - {id: p_second_only, when_empty: same_as, same_as: p_first_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
+          - {id: p_first_only, baseline: true, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only", help: "Between 0 and 1.", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
+          - {id: p_second_only, when_empty: same_as, same_as: p_first_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only", help: "Between 0 and 1.", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
       - input: "McNemar's exact test or the chi-square test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
@@ -3354,7 +3359,7 @@ forms:
                     noninf_paired: [{path: variables.X.type, value: within_factor}, {path: population.metric, value: standardised}, {path: target_test.effect, value: mean_difference}, {path: target_test.method, value: non_inferiority}],
                     noninf_one_sample: [{path: population.metric, value: standardised}, {path: target_test.effect, value: mean}, {path: target_test.method, value: non_inferiority}],
                     noninf_two_proportions: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: population.metric, value: proportion}, {path: target_test.effect, value: proportion_difference}, {path: target_test.method, value: non_inferiority}]}}
-          - {id: X_label, label: "What the groups or conditions are (for example, condition)", type: text, path: variables.X.label, required: true,
+          - {id: X_label, label: "What the groups or conditions are", help: "For example, condition.", type: text, path: variables.X.label, required: true,
              shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions, noninf_independent, noninf_paired, noninf_two_proportions]}}
           - {id: X_level1, label: "First group or condition", type: text, path: variables.X.levels.1, required: true,
              shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions, noninf_independent, noninf_paired, noninf_two_proportions]}}
@@ -3374,13 +3379,13 @@ forms:
              choices: {standardised: "As Cohen's d (d_z for the same people measured twice)", raw: "In my measure's own units: the bound, the expected means and the SD"},
              default: standardised, default_source: "standardised units, which TOSTER's power_t_TOST() takes with sd = 1 (TOSTER 0.8.6); Powerkit works them out from the means and SD if you give those",
              shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}}
-          - {id: bound, label: "Equivalence bound (more than 0)", type: number, path: population.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
+          - {id: bound, label: "Equivalence bound", help: "More than 0.", type: number, path: population.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
              shown_if: [{field: goal, is_not: sensitivity}, {field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: d, label: "Expected true difference, as Cohen's d (0 = no difference)", type: number, path: population.d, effect: true, writeup_label: "expected Cohen's d",
              shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_paired}]}
           - {id: dz, label: "Expected true difference, as d_z (0 = no difference)", type: number, path: population.dz, effect: true, writeup_label: "expected d_z",
              shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}]}
-          - {id: raw_bound, label: "Equivalence bound, in your measure's units (more than 0)", type: number, path: population.raw.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
+          - {id: raw_bound, label: "Equivalence bound, in your measure's units", help: "More than 0.", type: number, path: population.raw.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
              shown_if: [{field: goal, is_not: sensitivity}, {field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: raw_mean, label: "Expected mean", type: number, path: population.raw.mean, effect: true, writeup_label: "expected mean",
              shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_one_sample}]}
@@ -3412,16 +3417,16 @@ forms:
         shown_if: {field: comparison, is_one_of: [tost_correlation, tost_two_proportions]}
         note: "The bound is the smallest difference that would matter; the expected value is what you think the truth is. The closer it is to the bound, the more people you need."
         fields:
-          - {id: cor_bound, label: "Equivalence bound, as a correlation (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±r)",
-             shown_if: [{field: comparison, is: tost_correlation}, {field: goal, is_not: sensitivity}], help: "For example 0.2: a correlation between -0.2 and 0.2 counts as too small to matter."}
+          - {id: cor_bound, label: "Equivalence bound, as a correlation", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±r)",
+             shown_if: [{field: comparison, is: tost_correlation}, {field: goal, is_not: sensitivity}], help: "For example 0.2: a correlation between -0.2 and 0.2 counts as too small to matter. Between 0 and 1."}
           - {id: cor_r, label: "Expected true correlation (0 = none)", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1, writeup_label: "expected correlation",
              shown_if: {field: comparison, is: tost_correlation}}
-          - {id: prop_bound, label: "Equivalence bound, as a difference in proportions (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: [{field: comparison, is: tost_two_proportions}, {field: goal, is_not: sensitivity}], help: "For example 0.1: a difference of less than 10 percentage points either way counts as too small to matter."}
-          - {id: p1, label: "Expected proportion, first group (0 to 1)", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "first group's proportion",
+          - {id: prop_bound, label: "Equivalence bound, as a difference in proportions", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±)",
+             shown_if: [{field: comparison, is: tost_two_proportions}, {field: goal, is_not: sensitivity}], help: "For example 0.1: a difference of less than 10 percentage points either way counts as too small to matter. Between 0 and 1."}
+          - {id: p1, label: "Expected proportion, first group", help: "Between 0 and 1.", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "first group's proportion",
              shown_if: {field: comparison, is: tost_two_proportions}}
-          - {id: p2, label: "Expected proportion, second group (0 to 1)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "second group's proportion",
-             shown_if: {field: comparison, is: tost_two_proportions}, help: "Equal groups: TOSTER plans for the same number of people in each."}
+          - {id: p2, label: "Expected proportion, second group", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "second group's proportion",
+             shown_if: {field: comparison, is: tost_two_proportions}, help: "Equal groups: TOSTER plans for the same number of people in each. Between 0 and 1."}
       - input: "For non-inferiority: the margin, which direction is better, and the difference you expect"
         shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions]}
         note: "The margin is the largest difference in the wrong direction that would still be acceptable: the new condition counts as no worse if it is worse by less than this. Group 2 (the second condition) is the new one."
@@ -3436,8 +3441,8 @@ forms:
              help: "Group 2 minus group 1 (or the mean minus the reference value), over the SD. It must be better than minus the margin."}
           - {id: ni_dz, label: "Expected true difference, as d_z (0 = no difference)", type: number, path: population.dz, effect: true, writeup_label: "expected d_z",
              shown_if: {field: comparison, is: noninf_paired}}
-          - {id: ni_prop_margin, label: "Non-inferiority margin, as a difference in proportions (between 0 and 1)", type: number, path: population.margin, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "non-inferiority margin",
-             shown_if: {field: comparison, is: noninf_two_proportions}, help: "For example 0.1: a proportion up to 10 percentage points worse counts as no worse."}
+          - {id: ni_prop_margin, label: "Non-inferiority margin, as a difference in proportions", type: number, path: population.margin, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "non-inferiority margin",
+             shown_if: {field: comparison, is: noninf_two_proportions}, help: "For example 0.1: a proportion up to 10 percentage points worse counts as no worse. Between 0 and 1."}
           - {id: ni_p1, label: "Expected proportion, group 1 (the comparison)", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "group 1's proportion",
              shown_if: {field: comparison, is: noninf_two_proportions}}
           - {id: ni_p2, label: "Expected proportion, group 2 (the new condition)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "group 2's proportion",
@@ -3460,7 +3465,7 @@ forms:
     groups:
       - input: "The categories of the variable"
         fields:
-          - {id: Y_label, label: "Variable (for example, preferred study method)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Variable", help: "For example, preferred study method.", type: text, path: variables.Y.label, required: true}
           - {id: Y_levels, label: "Its categories, separated by commas", type: levels, path: variables.Y.levels, required: true}
       - input: "The expected proportion in each category, and the fixed proportions they are compared with, or Cohen's w"
         fields:
@@ -3486,10 +3491,10 @@ forms:
     groups:
       - input: "Names of the groups, the outcome and its categories in order"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
-          - {id: Y_label, label: "Outcome (for example, symptom severity)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, symptom severity.", type: text, path: variables.Y.label, required: true}
           - {id: Y_levels, label: "Its categories in order, lowest first, separated by commas", type: levels, path: variables.Y.levels, required: true}
       - input: "The share of group 1 in each category, and the odds ratio"
         fields:
@@ -3512,11 +3517,11 @@ forms:
     groups:
       - input: "Names of the two factors, their levels and the yes/no outcome"
         fields:
-          - {id: A_label, label: "First factor (for example, message frame)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "First factor", help: "For example, message frame.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "Second factor (for example, messenger)", type: text, path: variables.B.label, required: true}
+          - {id: B_label, label: "Second factor", help: "For example, messenger.", type: text, path: variables.B.label, required: true}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
-          - {id: Y_label, label: "Yes/no outcome (for example, booked a flu jab)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, booked a flu jab.", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion of 'yes' in each combination"
         fields:
           - {id: probabilities, writeup_label: "proportions of 'yes' in each cell", label: "Proportion of 'yes' in each cell", text_layout: "one line per level of the first factor, with one number per level of the second, separated by commas", help: "From 0 to 1: one line per level of the first factor, with one number per level of the second, separated by commas.", type: table, path: population.probabilities, effect: true,
@@ -3539,7 +3544,7 @@ forms:
     groups:
       - input: "Names of the two groups and the two variables"
         fields:
-          - {id: G_label, label: "What the groups are (for example, sample)", type: text, path: variables.G.label, required: true}
+          - {id: G_label, label: "What the groups are", help: "For example, sample.", type: text, path: variables.G.label, required: true}
           - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
           - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
           - {id: X_label, label: "First variable", type: text, path: variables.X.label, required: true}
@@ -3592,7 +3597,7 @@ forms:
     groups:
       - input: "Names of the two groups and the outcome"
         fields:
-          - {id: G_label, label: "What the groups are (for example, training)", type: text, path: variables.G.label, required: true}
+          - {id: G_label, label: "What the groups are", help: "For example, training.", type: text, path: variables.G.label, required: true}
           - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
           - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -3627,7 +3632,7 @@ forms:
     groups:
       - input: "Names of the two measurements and the outcome"
         fields:
-          - {id: X_label, label: "What the measurements are (for example, session)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the measurements are", help: "For example, session.", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -3669,9 +3674,9 @@ forms:
              choices: {one: "By one factor (for example, three conditions)", two: "By two factors crossed, different people in every combination (for example, condition by delivery)"},
              default: one, default_source: "one factor, the usual MANOVA",
              sets: {one: [{path: target_test.effect, value: main_effect_A}], two: [{path: variables.B.type, value: between_factor}]}}
-          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
-          - {id: B_label, label: "The second factor (for example, delivery)", type: text, path: variables.B.label, required: true,
+          - {id: B_label, label: "The second factor", help: "For example, delivery.", type: text, path: variables.B.label, required: true,
              shown_if: {field: manova_factors, is: two}}
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true,
              shown_if: {field: manova_factors, is: two}}
@@ -3788,12 +3793,12 @@ forms:
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
           - {id: meta_slope, writeup_label: "change in the effect per SD of the moderator", label: "Change in the effect per SD of the moderator", type: number, path: population.slope, effect: true,
              shown_if: {field: meta_question, is: meta_regression},
-             help: "On the effect's scale. For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
+             help: "On the effect's scale: Fisher's z for a correlation (0.15 in z is about 0.15 in r for small correlations), d or the log ratio otherwise. For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
-          - {id: i2, label: "Heterogeneity, as I-squared (0 to just under 1)", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
+          - {id: i2, label: "Heterogeneity, as I-squared", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
              shown_if: {field: meta_question, is_not: dependent_effects},
-             help: "The share of the variation between the studies' effects that isn't chance. Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."}
+             help: "The share of the variation between the studies' effects that isn't chance. Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity. From 0 to below 1."}
           - {id: effects_per_study, label: "Effect sizes each study gives (the same in every study)", type: number, path: population.effects_per_study, required: true, min: 2, integer: true, in_effect_text: true, writeup_label: "effect sizes per study",
              shown_if: {field: meta_question, is: dependent_effects}}
           - {id: meta_tau, writeup_label: "SD between studies (tau)", label: "Heterogeneity between studies (tau)", type: number, path: population.tau, effect: true, min: 0,
@@ -3839,7 +3844,7 @@ forms:
     groups:
       - input: "Your outcome, your predictor and what kind of predictor it is"
         fields:
-          - {id: Y_label, label: "Yes/no outcome (for example, sought help)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, sought help.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of predictor", type: select, path: variables.X.type, required: true,
              choices: {continuous: "A score (for example, a questionnaire total)", binary: "A yes/no group (for example, treatment or control)"}}
@@ -3851,9 +3856,9 @@ forms:
         fields:
           - {id: odds_ratio, when_empty: one, writeup_label: "odds ratio", label: "Odds ratio", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
              help: "For a score: how many times the odds of 'yes' change for each standard deviation higher on the predictor. For a group: the odds of 'yes' in the second group divided by the odds in the first. 1 means no effect."}
-          - {id: base_prob, baseline: true, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
-             help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group."}
-          - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: base_prob, baseline: true, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group. Between 0 and 1."}
+          - {id: x_prob, label: "Proportion of people in the second group", help: "Between 0 and 1.", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "How much the other predictors overlap with this one"
@@ -3879,7 +3884,7 @@ forms:
     groups:
       - input: "Your outcome and its categories, your predictor and what kind of predictor it is"
         fields:
-          - {id: Y_label, label: "Outcome (for example, where help was first sought)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, where help was first sought.", type: text, path: variables.Y.label, required: true}
           - {id: Y_levels, label: "The outcome's categories", type: levels, path: variables.Y.levels, required: true,
              help: "Separated by commas: three or more. The first is the one the others are compared with. Put first the category that makes the natural comparison, such as the most common choice or the usual one: the odds ratios and the test of one category compare each other category with it."}
           - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
@@ -3902,7 +3907,7 @@ forms:
           - {id: odds_ratios, writeup_label: "odds ratios against the first category", label: "Odds ratio for each category", type: numbers, path: population.odds_ratios, effect: true, min_exclusive: 0,
              shown_if: {field: effect_as, is: odds_ratios},
              help: "One for each category except the first, in the same order, separated by commas. For each category, how many times the odds of being in it rather than the first category change per SD of the score, or in the second group against the first (SPSS calls them Exp(B); some papers call them relative risk ratios). 1 means no effect."}
-          - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: x_prob, label: "Proportion of people in the second group", help: "Between 0 and 1.", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "Which test"
@@ -3935,10 +3940,10 @@ forms:
     groups:
       - input: "Your groups and the test"
         fields:
-          - {id: G_label, label: "What the groups are (for example, language version)", type: text, path: variables.G.label, required: true}
+          - {id: G_label, label: "What the groups are", help: "For example, language version.", type: text, path: variables.G.label, required: true}
           - {id: G_level1, label: "Reference group (the one the item parameters come from)", type: text, path: variables.G.levels.1, required: true}
           - {id: G_level2, label: "Focal group", type: text, path: variables.G.levels.2, required: true}
-          - {id: Y_label, label: "The test or questionnaire (for example, reading test)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "The test or questionnaire", help: "For example, reading test.", type: text, path: variables.Y.label, required: true}
       - input: "Each item's discrimination and difficulty"
         fields:
           - {id: irt_a, writeup_label: "item discriminations", label: "Each item's discrimination (a)", type: numbers, path: population.a, effect: true, min_exclusive: 0,
@@ -3979,10 +3984,10 @@ forms:
     groups:
       - input: "Your groups, the outcome and the occasions"
         fields:
-          - {id: G_label, label: "What the groups are (for example, condition)", type: text, path: variables.G.label, required: true}
+          - {id: G_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.G.label, required: true}
           - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
           - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
-          - {id: Y_label, label: "Outcome (for example, stress score)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, stress score.", type: text, path: variables.Y.label, required: true}
           - {id: times, in_effect_text: true, writeup_label: "occasions", label: "The occasions' times", type: numbers, path: population.times, required: true,
              help: "Separated by commas: three or more, for example 0, 1, 2, 3 for monthly measurements. In the units the rates of change are per: with monthly measurements in months, the rate of change is per month."}
       - input: "The difference in rates of change"
@@ -4025,7 +4030,7 @@ forms:
     groups:
       - input: "The questionnaire and its factors"
         fields:
-          - {id: Y_label, label: "The questionnaire or set of items (for example, a wellbeing scale)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "The questionnaire or set of items", help: "For example, a wellbeing scale.", type: text, path: variables.Y.label, required: true}
           - {id: factors, label: "Number of factors you expect", type: number, path: population.factors, required: true, min: 1, max: 6, integer: true}
           - {id: items_per_factor, label: "Number of items for each factor", type: number, path: population.items_per_factor, required: true, min: 3, max: 20, integer: true,
              help: "More items per factor make each factor better defined (overdetermined) and easier to recover."}
@@ -4056,7 +4061,7 @@ forms:
     groups:
       - input: "The outcome, and the series before the breakpoint"
         fields:
-          - {id: Y_label, label: "Outcome (for example, monthly admissions)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, monthly admissions.", type: text, path: variables.Y.label, required: true}
           - {id: n_pre, label: "Number of time points before the intervention", type: number, path: population.n_pre, required: true, min: 3, max: 500, integer: true,
              help: "Equally spaced measurements, for example 24 months. A change is judged against the trend before the intervention, so these points limit how precisely it can be measured, however long the series runs after it."}
           - {id: baseline, label: "The outcome's average at the start of the series", type: number, path: population.baseline, required: true,
@@ -4075,8 +4080,8 @@ forms:
         fields:
           - {id: sigma, label: "SD of the points around the line, in the outcome's units", type: number, path: population.sigma, required: true, min_exclusive: 0,
              help: "From the series before the intervention: the SD of its points around their trend."}
-          - {id: rho, label: "Autocorrelation from one time point to the next (0 to below 1)", type: number, path: population.rho, required: true, min: 0, max_exclusive: 1,
-             help: "How much a point above the line tends to be followed by another above it (AR(1)). From the series before the intervention. Positive autocorrelation lowers power, and in short series it also makes the test find changes that aren't there more often."}
+          - {id: rho, label: "Autocorrelation from one time point to the next", type: number, path: population.rho, required: true, min: 0, max_exclusive: 1,
+             help: "How much a point above the line tends to be followed by another above it (AR(1)). From the series before the intervention. Positive autocorrelation lowers power, and in short series it also makes the test find changes that aren't there more often. From 0 to below 1."}
       - input: "The analysis"
         fields:
           - {id: its_method, label: "How the series is fitted", type: select, path: target_test.method, required: true,
@@ -4096,8 +4101,8 @@ forms:
     groups:
       - input: "The two scores and the waves"
         fields:
-          - {id: X_label, label: "X, the first score (for example, stress)", type: text, path: variables.X.label, required: true}
-          - {id: Y_label, label: "Y, the second score (for example, sleep problems)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "X, the first score", help: "For example, stress.", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Y, the second score", help: "For example, sleep problems.", type: text, path: variables.Y.label, required: true}
           - {id: waves, label: "Number of waves (measurement occasions)", type: number, path: population.waves, required: true, min: 3, max: 15, integer: true,
              help: "The model needs at least three. More waves give each lagged effect more information."}
       - input: "The effect you want to test"
@@ -4118,8 +4123,8 @@ forms:
           - {id: autoregressive_y, writeup_label: "autoregressive effect of Y", label: "Y's effect on Y at the next wave", type: number, path: population.autoregressive_y, required: true, min_exclusive: -1, max_exclusive: 1}
       - input: "How people differ, and how X and Y go together"
         fields:
-          - {id: icc, label: "Share of each score's variance that is stable between people (0.05 to 0.95)", type: number, path: population.icc, required: true, min: 0.05, max: 0.95,
-             help: "The random intercept's share: 0.5 means half of the differences in a score are people's stable levels and half are ups and downs around them. From earlier waves of data: the intraclass correlation of the repeated scores."}
+          - {id: icc, label: "Share of each score's variance that is stable between people", type: number, path: population.icc, required: true, min: 0.05, max: 0.95,
+             help: "The random intercept's share: 0.5 means half of the differences in a score are people's stable levels and half are ups and downs around them. From earlier waves of data: the intraclass correlation of the repeated scores. Between 0.05 and 0.95."}
           - {id: ri_correlation, label: "Correlation between people's stable levels of X and Y", type: number, path: population.ri_correlation, required: true, min_exclusive: -1, max_exclusive: 1}
           - {id: within_correlation, label: "Correlation between X and Y at the same wave, within people", type: number, path: population.within_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
              help: "How a person's ups and downs in X and Y go together at the same wave. powRICLPM keeps it the same at every wave."}
@@ -4127,10 +4132,10 @@ forms:
              choices: {known: "Enter the measures' reliability (recommended)", perfect: "Assume no measurement error (power will be optimistic)"},
              sets: {perfect: [{path: population.reliability, value: 1}]},
              default_source: "Not filled in for you, because almost no measure is perfectly reliable (for reference: powRICLPM assumes no measurement error, powRICLPM(reliability = 1))",
-             help: "Real scores contain measurement error, which lowers power and makes the lagged effects look smaller. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
+             help: "Real scores contain measurement error, which lowers power and biases the lagged effects: the stability paths look smaller, and a cross-lagged path can be pushed either way. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
           - {id: reliability, label: "Each score's reliability", type: number, path: population.reliability, required: true, min: 0.5, max: 1,
              shown_if: {field: reliability_known, is: known},
-             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
+             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls, and the lagged effects are biased (the stability paths downwards, a cross-lagged path in either direction)."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.
@@ -4148,7 +4153,7 @@ forms:
     groups:
       - input: "The scores the profiles are formed from"
         fields:
-          - {id: Y_label, label: "What the indicators measure (for example, motivation subscales)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "What the indicators measure", help: "For example, motivation subscales.", type: text, path: variables.Y.label, required: true}
           - {id: indicators, label: "Number of indicators (scores)", type: number, path: population.indicators, required: true, min: 2, max: 30, integer: true}
       - input: "The profiles you expect"
         fields:
@@ -4178,10 +4183,10 @@ forms:
         fields:
           - {id: G_type, label: "Who does each condition?", type: select, path: variables.G.type, required: true,
              choices: {within_factor: "The same people do both conditions", binary: "Two groups of different people, one condition each"}}
-          - {id: G_label, label: "What the conditions are (for example, encoding task)", type: text, path: variables.G.label, required: true}
+          - {id: G_label, label: "What the conditions are", help: "For example, encoding task.", type: text, path: variables.G.label, required: true}
           - {id: G_level1, label: "Condition 1", type: text, path: variables.G.levels.1, required: true}
           - {id: G_level2, label: "Condition 2", type: text, path: variables.G.levels.2, required: true}
-          - {id: Y_label, label: "The task (for example, recognition memory)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "The task", help: "For example, recognition memory.", type: text, path: variables.Y.label, required: true}
       - input: "Sensitivity (d') in each condition"
         fields:
           - {id: d1, writeup_label: "average d' in condition 1", label: "Average d' in condition 1", type: number, path: population.dprime.1, effect: true, baseline: true, min: -5, max: 6,
@@ -4190,8 +4195,8 @@ forms:
              help: "The test is of condition 2 minus condition 1."}
       - input: "Trials and how people vary"
         fields:
-          - {id: trials_signal, label: "Signal trials per person in each condition (for example, old items)", type: number, path: population.trials_signal, required: true, min: 1, max: 5000, integer: true}
-          - {id: trials_noise, label: "Noise trials per person in each condition (for example, new items)", type: number, path: population.trials_noise, required: true, min: 1, max: 5000, integer: true}
+          - {id: trials_signal, label: "Signal trials per person in each condition", help: "For example, old items.", type: number, path: population.trials_signal, required: true, min: 1, max: 5000, integer: true}
+          - {id: trials_noise, label: "Noise trials per person in each condition", help: "For example, new items.", type: number, path: population.trials_noise, required: true, min: 1, max: 5000, integer: true}
           - {id: sd_dprime, writeup_label: "SD of people's d'", label: "SD of people's true d' around the average", type: number, path: population.sd_dprime, effect: true, min: 0, max: 5,
              help: "How much people differ in sensitivity, apart from the noise of a limited number of trials. Earlier studies' SD of d' includes that noise, so it is a little larger than this."}
           - {id: r_dprime, writeup_label: "correlation of a person's d' in the two conditions", label: "Correlation between a person's true d' in the two conditions", type: number, path: population.r_dprime, effect: true, min: -1, max: 1,
@@ -4216,9 +4221,9 @@ forms:
     groups:
       - input: "Your outcome, the score X and the groups"
         fields:
-          - {id: Y_label, label: "Outcome (for example, sleep quality)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, sleep quality.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "The score whose relationship may differ (X)", type: text, path: variables.X.label, required: true}
-          - {id: A_label, label: "What the groups are (for example, age group)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, age group.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
       - input: "The correlation between X and the outcome in each group"
         fields:
@@ -4271,7 +4276,7 @@ forms:
           - {id: Y_levels, label: "The outcome's categories", type: levels, path: variables.Y.levels, required: true,
              shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
              help: "Separated by commas: three or more. The first is the one the others are compared with. Put first the category that makes the natural comparison, such as the most common or the usual choice: each odds ratio compares another category with it."}
-          - {id: Y_label, label: "Outcome (for example, sought counselling, or drinking days in a month)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Outcome", help: "For example, sought counselling, or drinking days in a month.", type: text, path: variables.Y.label, required: true}
           - {id: count_model, label: "How spread out the counts are", type: select, path: target_test.method, required: true,
              choices: {wald_z: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
@@ -4352,9 +4357,9 @@ forms:
              help: "The likelihood-ratio test asks whether W changes X's effect on the outcome at all. If your hypothesis is about one category in particular, the test of that category is the one to power."}
           - {id: cat_category, label: "The category compared with the first", type: text, path: target_test.category, required: true,
              shown_if: [{field: Y_kind, is: categories}, {field: cat_test, is: wald_z}, {field: analysis, is_not: mediation}]}
-          - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: x_prob, label: "Proportion of people in X's second group", help: "Between 0 and 1.", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: [{field: X_type, is: binary}, {field: analysis, is_not: mediation}]}
-          - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: w_prob, label: "Proportion of people in W's second group", help: "Between 0 and 1.", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: r_xw, label: "Correlation between X and W (two scores only)", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
              default: 0, default_source: "uncorrelated, powerkit's default (population > r_xw)",
@@ -4378,7 +4383,7 @@ forms:
     groups:
       - input: "Your outcome, your predictor and what kind of predictor it is"
         fields:
-          - {id: Y_label, label: "Count outcome (for example, clinic visits in a year)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Count outcome", help: "For example, clinic visits in a year.", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of predictor", type: select, path: variables.X.type, required: true,
              choices: {continuous: "A score (for example, a questionnaire total)", binary: "A yes/no group (for example, treatment or control)"}}
@@ -4395,7 +4400,7 @@ forms:
           - {id: mean_exposure, label: "Average time each person is followed, in those units", type: number, path: population.mean_exposure, required: true, min_exclusive: 0,
              default: 1, default_source: "one unit, so the starting rate is the expected count per person: powerkit's and pwrss's default (power.z.poisson(mean.exposure = 1))",
              help: "For example, with a rate per month and a year of follow-up, 12."}
-          - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: x_prob, label: "Proportion of people in the second group", help: "Between 0 and 1.", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "Poisson, negative binomial or zero-inflated regression"
@@ -4409,9 +4414,9 @@ forms:
           - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
              shown_if: {field: count_model, is_one_of: [negative_binomial, zero_inflated_negative_binomial]},
              help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() and pscl's zeroinfl() output it is 1 / theta."}
-          - {id: zero_prob, baseline: true, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point (0 to 1)", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: zero_prob, baseline: true, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
-             help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept."}
+             help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept. Between 0 and 1."}
           - {id: zero_odds_ratio, writeup_label: "odds ratio for being an extra zero", label: "Odds ratio for being an extra zero", type: number, path: population.zero_odds_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "the predictor doesn't change the share of extra zeros, powerkit's default (population > zero_odds_ratio)",
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
@@ -4469,10 +4474,10 @@ forms:
                                  {path: target_test.method, value: logistic_mixed, shown_if: {field: assignment, is_not: group_treatment}},
                                  {path: target_test.effect, value: proportion_difference, shown_if: {field: assignment, is: group_treatment}},
                                  {path: target_test.method, value: z_test, shown_if: {field: assignment, is: group_treatment}}]}}
-          - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
-          - {id: X_level1, label: "Condition 1 (for example, usual lessons)", type: text, path: variables.X.levels.1, required: true}
-          - {id: X_level2, label: "Condition 2 (for example, the new programme)", type: text, path: variables.X.levels.2, required: true,
-             help: "When only one condition is delivered in groups, make it condition 2."}
+          - {id: X_label, label: "What the conditions are", help: "For example, programme.", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "Condition 1", help: "For example, usual lessons.", type: text, path: variables.X.levels.1, required: true}
+          - {id: X_level2, label: "Condition 2", type: text, path: variables.X.levels.2, required: true,
+             help: "When only one condition is delivered in groups, make it condition 2. For example, the new programme."}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The effect: Cohen's d (the difference between conditions, over the outcome's total SD)"
         shown_if: {field: outcome_type, is: standardised}
@@ -4505,16 +4510,16 @@ forms:
       - input: "Yes/no outcome: the proportion of 'yes' in each condition"
         shown_if: {field: outcome_type, is: proportion}
         fields:
-          - {id: p1, writeup_label: "proportion in condition 1", label: "Proportion of 'yes' in condition 1 (0 to 1)", type: number, path: population.p1, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: p1, writeup_label: "proportion in condition 1", label: "Proportion of 'yes' in condition 1", help: "Between 0 and 1.", type: number, path: population.p1, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: outcome_type, is: proportion}}
-          - {id: p2, writeup_label: "proportion in condition 2", label: "Proportion of 'yes' in condition 2 (0 to 1)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: p2, writeup_label: "proportion in condition 2", label: "Proportion of 'yes' in condition 2", help: "Between 0 and 1.", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: outcome_type, is: proportion}}
       - input: "Yes/no outcome: how much the groups differ"
         shown_if: {field: outcome_type, is: proportion}
         fields:
-          - {id: sigma_u_groups, writeup_label: "SD of the groups' log odds", label: "How much the groups' proportions differ: the SD of their log odds (above 0)", type: number, path: population.sigma_u, effect: true, min_exclusive: 0,
+          - {id: sigma_u_groups, writeup_label: "SD of the groups' log odds", label: "How much the groups' proportions differ: the SD of their log odds", type: number, path: population.sigma_u, effect: true, min_exclusive: 0,
              shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is: cluster_randomised}],
-             help: "The groups' own rates of 'yes' vary around the average. On the log-odds scale, an SD of 0.3 means that, with 30% 'yes' on average, about 95% of groups would lie between roughly 19% and 44%. The R script prints powertools' table of these ranges for your proportions (crt.varexplore()), to check your value is plausible."}
+             help: "The groups' own rates of 'yes' vary around the average. On the log-odds scale, an SD of 0.3 means that, with 30% 'yes' on average, about 95% of groups would lie between roughly 19% and 44%. The R script prints powertools' table of these ranges for your proportions (crt.varexplore()), to check your value is plausible. Above 0."}
           - {id: sigma_u_effect, writeup_label: "SD of the effect across groups (log odds ratio)", label: "Variation in the effect between groups", type: number, path: population.sigma_u, effect: true, min_exclusive: 0,
              shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is: multisite}],
              help: "The SD of the log odds ratio (above 0). Larger values mean the effect is bigger in some groups than others, which costs power. An SD of 0.3 means about 95% of groups' odds ratios would lie within a factor of about 1.8 either side of the average. The R script prints powertools' table of these ranges (ms.varexplore()). powertools needs a value above 0; if you expect the same effect everywhere, use a small one such as 0.1."}
@@ -4619,9 +4624,9 @@ forms:
              default: 1, default_source: "one factor, as in semPower.powerMI()'s examples (semPower 2.2.0)",
              shown_if: {field: question, is: invariance},
              help: "Each factor has its own items, the same number for each. Invariance is tested for all the factors together."}
-          - {id: mi_factor_correlation, writeup_label: "correlation between the factors", label: "Correlation between the factors (two or more factors only)", type: number, path: population.factor_correlation, optional: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: mi_factor_correlation, writeup_label: "correlation between the factors", label: "Correlation between the factors", type: number, path: population.factor_correlation, optional: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: question, is: invariance},
-             help: "Leave it empty with one factor. With several, the correlation between any two of them, for example 0.3."}
+             help: "Leave it empty with one factor. With several, the correlation between any two of them, for example 0.3. Two or more factors only."}
           - {id: level, label: "What you want to test", type: select, path: population.level, required: true,
              shown_if: {field: question, is: invariance},
              choices: {metric: "Metric invariance: do the items load equally everywhere?",
@@ -4692,7 +4697,7 @@ forms:
     groups:
       - input: "Names of the groups and the outcome"
         fields:
-          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected group means"
@@ -4739,13 +4744,13 @@ forms:
           - {id: Y2_label, label: "Y2", type: text, path: variables.Y2.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The two correlations you are comparing"
         fields:
-          - {id: r_X_Y, baseline: true, writeup_label: "first correlation (X with Y)", label: "First: X with Y", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X_Y, baseline: true, writeup_label: "correlation under no difference (X with Y)", label: "X with Y, the value under no difference", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: overlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+          - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "expected correlation (X with Z)", label: "X with Z, the value you expect", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "second correlation (X with Z)", label: "Second: X with Z", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X1_Y1, baseline: true, writeup_label: "first correlation (X1 with Y1)", label: "First: X1 with Y1", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "second correlation (X2 with Y2)", label: "Second: X2 with Y2", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X1_Y1, baseline: true, writeup_label: "correlation under no difference (X1 with Y1)", label: "X1 with Y1, the value under no difference", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+          - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "expected correlation (X2 with Y2)", label: "X2 with Y2, the value you expect", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The correlations between the other pairs of variables"
         fields:
@@ -4824,10 +4829,10 @@ forms:
                     regression_coefficient: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: t}]}}
       - input: "Names"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
+          - {id: X_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
-          - {id: T_label, label: "What the two measurements are (for example, time)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: T_label, label: "What the two measurements are", help: "For example, time.", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: paired}}
           - {id: C_label, label: "First variable", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: correlation}}
@@ -4843,8 +4848,8 @@ forms:
              shown_if: {field: estimate, is: one_group}}
           - {id: r, writeup_label: "expected correlation", label: "The correlation you expect", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: estimate, is: correlation}, help: "Intervals are narrower for larger correlations, so a smaller guess is the cautious one."}
-          - {id: p, writeup_label: "expected proportion", label: "The proportion you expect (for example 0.3 for 30%)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none."}
+          - {id: p, writeup_label: "expected proportion", label: "The proportion you expect", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none. For example 0.3 for 30%."}
           - {id: mean_difference, writeup_label: "expected mean difference", label: "Expected difference between the means", help: "Group 2 minus group 1, in the outcome's units.", type: number, path: population.difference, effect: true,
              shown_if: {field: estimate, is: mean_difference}}
           - {id: mean_sd, writeup_label: "SD within each group", label: "The outcome's SD within each group (the same in both)", type: number, path: population.sd, effect: true, min_exclusive: 0,
@@ -4859,7 +4864,7 @@ forms:
              shown_if: {field: estimate, is: icc}}
           - {id: reg_b, writeup_label: "expected standardised coefficient", label: "The standardised coefficient you expect for X", type: number, path: population.b, effect: true,
              shown_if: {field: estimate, is: regression_coefficient}}
-          - {id: reg_r2, writeup_label: "R-squared of the full model", label: "R-squared of the full model, all predictors (0 to 1)", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: reg_r2, writeup_label: "R-squared of the full model", label: "R-squared of the full model, all predictors", help: "Between 0 and 1.", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: estimate, is: regression_coefficient}}
           - {id: reg_r2_predictor, writeup_label: "R-squared of X on the other predictors", label: "R-squared of X on the other predictors (0 if none, or uncorrelated)", type: number, path: population.r2_predictor, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: estimate, is: regression_coefficient}}
@@ -4904,7 +4909,7 @@ forms:
              default: binary, default_source: "powerkit's first choice; pick the kind of outcome your model predicts",
              shown_if: {field: purpose, is: development},
              sets: {continuous: [{path: population.metric, value: r2}]}}
-          - {id: Y_label, label: "The outcome (for example, relapse within a year)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "The outcome", help: "For example, relapse within a year.", type: text, path: variables.Y.label, required: true}
           - {id: parameters, writeup_label: "candidate predictor parameters", label: "Number of candidate predictor parameters", type: number, path: population.parameters, required: true, min: 1, integer: true,
              shown_if: {field: purpose, is: development},
              help: "Every parameter the model could estimate, counted before any selection: a predictor with k categories counts k - 1, and a curve (a spline or a squared term) counts each of its terms. Count all the candidates, not only the ones you expect to keep."}
@@ -4921,20 +4926,20 @@ forms:
              shown_if: [{field: purpose, is: development}, {field: outcome, is: time_to_event}],
              choices: {cox_snell_r2: "A Cox-Snell R-squared reported for a similar model", nagelkerke_r2: "A Nagelkerke R-squared reported for a similar model"},
              default: cox_snell_r2, default_source: "the measure pmsampsize works with for a time-to-event outcome"}
-          - {id: c_statistic, writeup_label: "anticipated C-statistic", label: "The C-statistic you expect (0.5 to 1)", type: number, path: population.c_statistic, effect: true, min_exclusive: 0.5, max_exclusive: 1,
+          - {id: c_statistic, writeup_label: "anticipated C-statistic", label: "The C-statistic you expect", type: number, path: population.c_statistic, effect: true, min_exclusive: 0.5, max_exclusive: 1,
              shown_if: [{any: [[{field: purpose, is: development}, {field: outcome, is: binary}, {field: bin_metric, is: c_statistic}], [{field: purpose, is: validation}]]}],
-             help: "For a new model, ideally one corrected for optimism, from a previous model of the same outcome in a similar population; for an existing model, the C-statistic you expect it to reach in the new population. A lower value is the cautious choice: it gives a larger sample size."}
-          - {id: cox_snell_r2, writeup_label: "anticipated Cox-Snell R-squared", label: "The Cox-Snell R-squared you expect (0 to 1)", type: number, path: population.cox_snell_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "For a new model, ideally one corrected for optimism, from a previous model of the same outcome in a similar population; for an existing model, the C-statistic you expect it to reach in the new population. A lower value is the cautious choice: it gives a larger sample size. Between 0.5 and 1."}
+          - {id: cox_snell_r2, writeup_label: "anticipated Cox-Snell R-squared", label: "The Cox-Snell R-squared you expect", type: number, path: population.cox_snell_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: purpose, is: development}, {any: [[{field: outcome, is: binary}, {field: bin_metric, is: cox_snell_r2}], [{field: outcome, is: time_to_event}, {field: surv_metric, is: cox_snell_r2}]]}],
-             help: "Ideally the adjusted (optimism-corrected) value from a previous model. A smaller value is the cautious choice."}
-          - {id: nagelkerke_r2, writeup_label: "anticipated Nagelkerke R-squared", label: "The Nagelkerke R-squared you expect (0 to 1)", type: number, path: population.nagelkerke_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "Ideally the adjusted (optimism-corrected) value from a previous model. A smaller value is the cautious choice. Between 0 and 1."}
+          - {id: nagelkerke_r2, writeup_label: "anticipated Nagelkerke R-squared", label: "The Nagelkerke R-squared you expect", help: "Between 0 and 1.", type: number, path: population.nagelkerke_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: purpose, is: development}, {any: [[{field: outcome, is: binary}, {field: bin_metric, is: nagelkerke_r2}], [{field: outcome, is: time_to_event}, {field: surv_metric, is: nagelkerke_r2}]]}]}
-          - {id: r2, writeup_label: "anticipated R-squared", label: "The R-squared you expect (0 to 1)", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: r2, writeup_label: "anticipated R-squared", label: "The R-squared you expect", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: purpose, is: development}, {field: outcome, is: continuous}],
-             help: "The adjusted R-squared of a previous model of the same outcome, or the R-squared it reached when tested in new data. A smaller value is the cautious choice."}
+             help: "The adjusted R-squared of a previous model of the same outcome, or the R-squared it reached when tested in new data. A smaller value is the cautious choice. Between 0 and 1."}
       - input: "The outcome in the population"
         fields:
-          - {id: prevalence, writeup_label: "proportion with the outcome", label: "The proportion you expect to have the outcome (for example 0.2 for 20%)", type: number, path: population.prevalence, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: prevalence, writeup_label: "proportion with the outcome", label: "The proportion you expect to have the outcome", help: "For example 0.2 for 20%.", type: number, path: population.prevalence, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{any: [[{field: purpose, is: development}, {field: outcome, is: binary}], [{field: purpose, is: validation}]]}]}
           - {id: mean, writeup_label: "mean outcome", label: "The outcome's mean in the population", type: number, path: population.mean, required: true,
              shown_if: [{field: purpose, is: development}, {field: outcome, is: continuous}]}
@@ -4967,7 +4972,7 @@ forms:
              shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: beta}]}
           - {id: oe, writeup_label: "anticipated O/E ratio", label: "Expected observed/expected ratio", help: "Optional: 1 if left empty, meaning the model is well calibrated in the large.", type: number, path: population.oe, optional: true, min_exclusive: 0,
              shown_if: {field: purpose, is: validation}}
-          - {id: calibration_slope, writeup_label: "anticipated calibration slope", label: "The calibration slope you expect (optional; 1 if left empty)", type: number, path: population.calibration_slope, optional: true, min_exclusive: 0,
+          - {id: calibration_slope, writeup_label: "anticipated calibration slope", label: "The calibration slope you expect", help: "1 if left empty. pmvalsampsize reports it with the result, but works out the slope's precision for a well-calibrated model, so this value doesn't change the sample size.", type: number, path: population.calibration_slope, optional: true, min_exclusive: 0,
              shown_if: {field: purpose, is: validation}}
           - {id: threshold, writeup_label: "risk threshold", label: "Risk threshold for decisions", type: number, path: population.threshold, optional: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: purpose, is: validation},
@@ -4993,7 +4998,7 @@ forms:
     groups:
       - input: "Names of the groups, in order, and the outcome"
         fields:
-          - {id: A_label, label: "What the groups are (for example, dose)", type: text, path: variables.A.label, required: true}
+          - {id: A_label, label: "What the groups are", help: "For example, dose.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (three or more), in their order, separated by commas", type: levels, path: variables.A.levels, required: true,
              help: "The order matters: the test looks for scores that rise (or fall) from the first group to the last. A one-sided test predicting a positive effect says they rise."}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
@@ -5027,10 +5032,10 @@ forms:
     groups:
       - input: "Names of the groups, in order, and the outcome"
         fields:
-          - {id: X_label, label: "What the groups are (for example, dose)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "What the groups are", help: "For example, dose.", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The groups' names (three or more), in their order, separated by commas", type: levels, path: variables.X.levels, required: true,
              help: "The order matters: the test looks for a proportion that rises (or falls) from the first group to the last. A one-sided test predicting a positive effect says it rises with the scores."}
-          - {id: Y_label, label: "Yes/no outcome (for example, recovered)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_label, label: "Yes/no outcome", help: "For example, recovered.", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion of 'yes' in each group"
         fields:
           - {id: proportions, in_effect_text: true, writeup_label: "proportions", label: "Proportion of 'yes' in each group", help: "From 0 to 1, one for each group, in the same order, separated by commas.", type: numbers, per_levels: X_levels, path: population.proportions, effect: true}

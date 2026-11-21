@@ -542,11 +542,36 @@ check_repeated_glmm <- function(spec) {
       "the random intercept can't be estimated. Set 'population > measurements' to the number of times each person is measured ",
       "(2 or more), or, for one measurement per person, use Poisson or negative binomial regression (or logistic regression for yes/no)."))
   }
+  # One yes/no answer per condition: the logistic random-intercept model
+  # is identified, but in 4,000 simulated studies a cell its tests gave
+  # too many false positives at alpha .05 for a rare answer (10% yes): the
+  # likelihood-ratio test 7.6% for the group-by-condition interaction and
+  # 8.5% for the conditions alone, and the Wald test up to 6.4% when people
+  # differ a lot (validation-log.md, 20 November 2026). So it is refused.
   if (!identical(spec$variables$X$type, "between_factor") && !count && measurements < 2) {
+    problems <- c(problems, if (interaction) {
+      paste0(
+        "With one yes/no answer from each person in each condition, powerkit can't plan a test of whether the groups change ",
+        "differently: in simulations the mixed model's tests of that difference found one too often when there was none ",
+        "(up to 7.6% of studies at a 5% significance level), and McNemar's test and Cochran's Q compare conditions within one group only. ",
+        "Set 'population > measurements' to 2 or more if each person answers several times in each condition.")
+    } else {
+      paste0(
+        "A yes/no outcome answered once in each condition is McNemar's test (two conditions) or Cochran's Q (three or more: ",
+        "set 'target_test > method' to \"cochran_q\"), not a mixed model: with one answer per condition the mixed model's tests ",
+        "found a difference too often when there was none (up to 8.5% of simulated studies at a 5% significance level). ",
+        "Set 'population > measurements' to 2 or more if each person answers several times in each condition.")
+    })
+  }
+  # A yes/no outcome is tested by the likelihood ratio only: with two or
+  # more answers per condition, its default, it stayed near alpha, while
+  # the Wald test ran about 6.2% when people differ a lot
+  # (validation-log.md, 20 November 2026, "Repeated yes/no answers").
+  if (identical(spec$variables$Y$type, "binary") && identical(spec$target_test$method, "wald")) {
     problems <- c(problems, paste0(
-      "A yes/no outcome measured once in each condition is McNemar's test (two conditions) or Cochran's Q (three or more: ",
-      "set 'target_test > method' to \"cochran_q\"), not a mixed model, whose person SD can't be estimated from one yes/no ",
-      "answer per condition. Set 'population > measurements' to 2 or more if each person answers several times in each condition."))
+      "For a yes/no outcome powerkit plans the likelihood-ratio test: in simulations the Wald test found a difference ",
+      "too often when there was none (about 6.2% of studies at a 5% significance level when people differ a lot), ",
+      "while the likelihood-ratio test stayed near 5%. Set 'target_test > method' to \"likelihood_ratio\"."))
   }
   problems
 }

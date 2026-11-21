@@ -4735,3 +4735,74 @@ checks written with the code were wrong under the old rule and are
 corrected: E69's null-value test expected the one-tail 0.025 (simulated
 scales reject 5.2%), and the minimum-effect simulation still simulated
 the test planned before 12 November 2026.
+
+## 2026-11-20 · The critical effect size and the sample size rule in the methods text
+
+Perugini et al. (2025) recommend reporting the critical effect size in
+empirical articles, most strongly when the sample size was not planned
+a priori, and name no section for it. A planned-sample methods paragraph is
+the case where they say the interpretation is already straightforward. So the
+sentence stays on the results screen and in the full methods version, and
+appears in the short paragraph only when the goal is the smallest detectable
+effect, where it keeps "detect" from being read as the smallest significant
+observed effect. The full version also gains a sample size rule line (the
+number analysed, one analysis at that size, no interim looks), the item a
+preregistration asks for. The prototype statement in exported text stays
+(decided 7 November 2026).
+
+## 2026-11-20 · Repeated yes/no answers: the likelihood-ratio test only; quadrature not adopted
+
+E75 now tests a yes/no outcome by the likelihood ratio only: with two or
+more answers per condition, the designs it plans, the Wald test ran
+about 6.2% at alpha .05 when people differ a lot while the
+likelihood-ratio test, already the default and simr's for a factor,
+stayed near 5% (`validation-log.md`, 20 November 2026). This is not a
+departure. Fitting each study by adaptive Gauss-Hermite quadrature
+(`nAGQ = 10`) instead of glmer()'s Laplace approximation was tested as a
+way to allow one answer per condition with groups, and not adopted:
+with one answer it kept the likelihood-ratio test too liberal in five of
+eight settings (6.6% to 10% through the engine; the Laplace fit reached 15.6% in one), and
+with two or three answers the two fits gave the same rates, so it would
+cost about 40% more time for no gain where E75 runs. One yes/no answer
+per condition stays refused (one group: McNemar's test or Cochran's Q).
+Small groups with a rare answer still run about 7% with two answers per
+condition; queue item 32 decides how to tell researchers.
+
+## 2026-11-21 · Bayes factor tables: simulate the totals the sampling plan fixes
+
+E6's contingency table Bayes factor scored each simulated table with the
+sampling plan chosen (JASP's default, "Indep. multinomial, rows fixed")
+but drew every table with only the total fixed (2 November 2026), so the
+group sizes varied by chance while the analysis assumed they were set in
+advance. That understated power: with 15 a group, rates .70 and .30,
+prior concentration 1 and a threshold of 10, 36.0% instead of the 43.2%
+for the plan the researcher described. When the plan fixes the rows (or
+the columns), each simulated study now has those totals, at the table's
+row (or column) shares of n in whole people (largest remainder), and each
+row (or column) is drawn from its conditional probabilities; the joint
+multinomial and Poisson plans keep the fixed total. The option's label
+says the totals are set in advance, the gap is larger than the
+simulation's error, and no other tool plans this power, so this follows
+what the plan describes and is not a departure. Relabelling the option,
+or offering only plans that match a fixed total, were the alternatives
+considered: the first would knowingly report too little power for the
+usual experiment, and the second would drop JASP's default analysis.
+
+## 2026-11-21 · Replication planner: the size from which every larger replication meets the goal
+
+The replication planner's BayesRepDesign goals are searched over whole
+totals from the package's pors*() chance functions, not its ssd*()
+searches, which assume the chance crosses the target once on a continuous
+standard error. The pooled (meta-analytic) goal can be met by a tiny
+replication, because the original's result carries the pooled estimate,
+missed at moderate sizes, and met again at large ones; ssdMeta() also
+reports numerical problems where the chance rises steadily
+(upstream-questions.md, BayesRepDesign question 3). The planned size is
+the smallest total from which every larger total, up to the largest
+searched, meets the goal: a plan then does not rest on a size just below a
+gap, and adding participants never loses the goal. Smaller totals that
+also meet it are reported beside that size, and a goal met only by small
+replications is reported as such and does not set the sample size. Every
+total up to 1,000 is checked; beyond it a 400-point grid, with each change
+pinned to the exact total by bisection, since the standard error falls
+smoothly as the total grows. The exported R scripts use the same search.
