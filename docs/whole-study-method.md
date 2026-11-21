@@ -160,6 +160,15 @@ power, under the same claims ("each", "all", "any" with Bonferroni) as the
 path-model studies. The guided plan's "effect of X" is the ANOVA's main
 effect of X there, and the moderation the X x W interaction.
 
+The same people in three or more conditions (21 November 2026): the
+guided plan now asks about these studies instead of sending them to the
+design finder. X in three or more conditions is a repeated-measures
+ANOVA (`oneway_within`); crossed with groups of W, a mixed ANOVA
+(`mixed`); crossed with a W whose conditions everyone also takes, a
+two-way repeated-measures ANOVA (`factorial_within`, one correlation
+between any two of a person's scores). Each F test's power agrees with
+Superpower's exact power for it (`test-whole-study-experiment.R`).
+
 ## What it is checked against
 
 `engine/tests/testthat/test-whole-study.R` (every CI run):

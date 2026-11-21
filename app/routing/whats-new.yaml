@@ -8,6 +8,19 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-21"
+    title: "Study plans and planning documents state the same decision as the write-up"
+    text: >-
+      A study plan's design table and target, and an analysis's planning document,
+      now name the test you chose and what counts as success, as the methods
+      paragraph does. A non-inferiority test is no longer described as a two-sided
+      equivalence test, validating a prediction model is no longer called developing
+      one, the one-proportion z test is named as chosen, the test of not-close fit
+      says a significant result shows close fit, and factor recovery, profile
+      selection and precision plans no longer mention a significance test.
+  - date: "2026-11-21"
+    title: "Plan a whole study with three or more conditions per person"
+    text: "Plan a whole study now covers studies where everyone takes part in three or more conditions: one factor (a repeated-measures ANOVA), crossed with groups (a mixed ANOVA), or two factors that everyone takes every combination of. Before, these studies were sent to Help me choose and planned one analysis at a time."
+  - date: "2026-11-21"
     title: "Plainer wording on the results screen"
     text: >-
       The results screen's explanations are shorter and plainer: the sliders, the

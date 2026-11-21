@@ -2436,18 +2436,21 @@ endpoints:
 # ---------------------------------------------------------------------------
 guided:
   intro: "Describe your study's variables once. Then tick the analyses you plan and mark which ones the study must be powered for."
-  scope_note: "This route covers different people, each measured once, or measured twice (before and after, or in two conditions). The screening questions have already checked this."
+  scope_note: "This route covers different people, each measured once, or measured twice (before and after, or in two conditions), and the same people in three or more conditions. The screening questions have already checked this."
   # Screening answers the guided rules can use (they are added to the
   # variable answers as `times`).
-  context: {times: [once, twice]}
+  context: {times: [once, twice, many_conditions]}
   single_analysis_note: "\u201cPlan a whole study\u201d simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
-  many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x
       label: "Main predictor (X)"
-      options: {cond2: "A condition with two groups (or two existing groups)", within2: "The same people in two conditions, or before and after", cond3: "A condition with three or more groups", score: "A measured score", notsure: "None of these fit / I'm not sure"}
-      # Options shown only for some screening answers.
-      option_when: {within2: {times: twice}}
+      options: {cond2: "A condition with two groups (or two existing groups)", within2: "The same people in two conditions, or before and after", within3: "The same people in three or more conditions", cond3: "A condition with three or more groups", score: "A measured score", notsure: "None of these fit / I'm not sure"}
+      # Options shown only for some screening answers. In three or more
+      # conditions per person, X has two conditions only when a moderator
+      # is crossed with it within people too (a 2 x 2 or larger design
+      # everyone takes every cell of).
+      option_when: {within2: {times: [twice, many_conditions]}, within3: {times: many_conditions},
+        cond2: {times: [once, twice]}, cond3: {times: [once, twice]}, score: {times: [once, twice]}}
     - id: outcome
       label: "Outcome (Y)"
       screen_key: outcome
@@ -2459,7 +2462,8 @@ guided:
       options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score", notsure: "None of these fit / I'm not sure"}
     - id: moderator
       label: "Moderator (W)"
-      options: {none: "None", score: "A measured score", two: "Two groups or conditions", three: "Three or more groups", notsure: "None of these fit / I'm not sure"}
+      options: {none: "None", score: "A measured score", two: "Two groups or conditions", three: "Three or more groups", within: "Conditions everyone also takes part in, crossed with X", notsure: "None of these fit / I'm not sure"}
+      option_when: {within: {times: many_conditions}}
     - id: covariate
       label: "Covariates"
       options: {none: "None", baseline: "A baseline (before) measure of the outcome", other: "Other covariates", notsure: "None of these fit / I'm not sure"}
@@ -2469,6 +2473,14 @@ guided:
     - id: compare
       label: "The effect of X on the outcome"
       rules:
+        # The same people in three or more conditions: a repeated-measures
+        # ANOVA, or a two-way one when a moderator is crossed with X
+        # within people too.
+        - {when: {x: [within2, within3], moderator: within, outcome: score}, endpoint: E20}
+        - {when: {x: within3, outcome: score, moderator: [two, three]}, endpoint: E55}
+        - {when: {x: within3, outcome: score}, endpoint: E54}
+        - {when: {x: within3, outcome: [yesno, categories]}, endpoint: E26}
+        - {when: {x: [within2, within3], times: many_conditions, outcome: [count, ordinal]}, endpoint: E75}
         - {when: {x: within2, outcome: score}, endpoint: E3}
         - {when: {x: within2, outcome: [yesno, categories]}, endpoint: E26}
         # Groups measured twice with a yes/no outcome: a logistic mixed
@@ -2508,14 +2520,21 @@ guided:
         - {when: {x: score}, endpoint: E4}
     - id: moderation
       label: "Whether the effect of X depends on the moderator (X x W)"
-      requires: {moderator: [score, two, three]}
+      requires: {moderator: [score, two, three, within]}
       rules:
+        # The same people in three or more conditions: the interaction in
+        # a two-way repeated-measures ANOVA (W within people too) or a
+        # mixed ANOVA (W between people).
+        - {when: {x: [within2, within3], moderator: within, outcome: score}, endpoint: E20}
+        - {when: {x: within3, moderator: [two, three], outcome: score}, endpoint: E55}
+        - {when: {moderator: within}, endpoint: E41}
+        - {when: {x: within3}, endpoint: E41}
         # Measured twice with a score outcome: the X x W product in a
         # regression on the second measurement adjusting for the first,
         # the usual adjusted analysis of a moderated treatment effect.
         - {when: {times: twice, outcome: score, x: [score, cond2, cond3]}, endpoint: E24}
         - {when: {times: twice}, endpoint: E41}
-        - {when: {x: within2}, endpoint: E41}
+        - {when: {x: [within2, within3]}, endpoint: E41}
         - {when: {outcome: yesno, x: cond2, moderator: two}, endpoint: E47}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {moderator: three}, endpoint: E30}
@@ -2556,7 +2575,7 @@ guided:
               - {label: "Side by side: X affects each one separately", endpoint: E41}
               - {label: "In a chain: X affects the first, which affects the next", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
-        - {when: {x: within2}, endpoint: E41}
+        - {when: {x: [within2, within3]}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
         - {when: {x: cond3}, endpoint: E42}
@@ -2580,6 +2599,7 @@ guided:
       outcome_is_mediator: true
       rules:
         - {when: {x: within2}, endpoint: E3}
+        - {when: {x: within3}, endpoint: E54}
         - {when: {x: cond2}, endpoint: E2}
         - {when: {x: cond3}, endpoint: E18}
         - {when: {x: score}, endpoint: E4}
@@ -2598,7 +2618,7 @@ guided:
               - {label: "The link from the mediator to the outcome", endpoint: E41}
               - {label: "Both links, or X to the mediator and the direct link", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
-        - {when: {x: within2}, endpoint: E41}
+        - {when: {x: [within2, within3]}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
         - when: {x: cond3}
