@@ -387,3 +387,22 @@ independent_group_treatment_power <- function(d, icc, m, groups, individuals, al
     stats::t.test(means, alone)$p.value < alpha
   }, nrep, seed)
 }
+
+# Group treatment trial with a yes/no outcome: n people take part
+# individually ("yes" with probability p1) and J groups of m receive the
+# other condition, each group's probability drawn from a beta
+# distribution with mean p2 and intraclass correlation icc (the
+# beta-binomial's ICC, 1 / (a + b + 1)). Each trial is analysed by the z
+# test of the difference between the groups' mean proportion and the
+# individuals', each variance estimated from its own units.
+independent_group_treatment_binary_power <- function(p1, p2, icc, m, groups, individuals,
+                                                     alpha = 0.05, nrep, seed) {
+  size <- (1 - icc) / icc
+  independent_power(function() {
+    alone <- stats::rbinom(individuals, 1, p1)
+    grouped <- stats::rbinom(groups, m, stats::rbeta(groups, p2 * size, (1 - p2) * size)) / m
+    z <- (mean(grouped) - mean(alone)) /
+      sqrt(stats::var(grouped) / groups + mean(alone) * (1 - mean(alone)) / individuals)
+    abs(z) > stats::qnorm(1 - alpha / 2)
+  }, nrep, seed)
+}

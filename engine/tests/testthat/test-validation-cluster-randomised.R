@@ -175,3 +175,23 @@ test_that("group treatment trial: agrees with trials simulated separately and an
     nrep = validation_nrep(), seed = 1307)
   expect_power_near(engine_power(few), reference_few, reference_nrep = validation_nrep())
 })
+
+test_that("group treatment trial, yes/no outcome: agrees with trials simulated separately (simulation)", {
+  skip_unless_full_validation()
+  v <- validation_variable
+  spec <- validation_spec(
+    design = "cluster_trial",
+    template = "group_treatment",
+    variables = list(
+      X = v("binary", "Condition", levels = list("Individual", "Group")),
+      Y = v("binary", "Outcome")
+    ),
+    population = list(metric = "proportion", p1 = 0.3, p2 = 0.45, icc = 0.05, cluster_size = 10),
+    target_test = list(effect = "proportion_difference", method = "z_test", alpha = 0.05, alternative = "two_sided"),
+    seed = 308,
+    n = 400
+  )
+  reference <- independent_group_treatment_binary_power(0.3, 0.45, 0.05, m = 10, groups = 20,
+    individuals = 200, nrep = validation_nrep(), seed = 1308)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+})
