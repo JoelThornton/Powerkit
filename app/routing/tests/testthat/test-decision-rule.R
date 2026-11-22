@@ -123,3 +123,13 @@ test_that("an omnibus F test is not called two-sided, and a reliability test nam
   icc <- build_spec(forms, "E69", form_fields(form_groups(forms, "E69")), form_examples$E69)
   expect_match(decision_rule(icc)$interpretation, "Significant: evidence that the ICC is above", fixed = TRUE)
 })
+
+test_that("the full paragraph asks where the reproducing code is shared, and what a fixed sample's data are for", {
+  # Lakens (2022, refs.bib Lakens2022_justification), Tables 3 and 4.
+  planned <- decision_outputs("E2")
+  expect_match(planned$full, "[Say where the R script or saved plan that reproduces this calculation is shared", fixed = TRUE)
+  expect_no_match(planned$full, "what the data will be used for", fixed = TRUE)
+  expect_no_match(planned$short, "[Say where", fixed = TRUE)
+  fixed <- decision_outputs("E2", list(goal = "power", n = "120", situation = "fixed"))
+  expect_match(fixed$full, "[Say what the data will be used for at this sample size", fixed = TRUE)
+})
