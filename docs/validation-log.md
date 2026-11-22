@@ -378,13 +378,14 @@ until transcribed). The simulations are in
 | Cluster-randomised trial (a score) | powertools | **trials simulated in base R, analysed by the group means' t test, and with groups of different sizes by a mixed model (lmerTest) (22 November 2026)**; pwrss's t test with the design effect | `cluster` |
 | Multisite trial (a score) | powertools | **trials simulated in base R with the effect varying between groups, analysed by the t test of the groups' differences (22 November 2026)** | `multisite` |
 | Group treatment trial (a score) | powerkit (Departure 38) | **trials simulated in base R, analysed by Welch's test of the individuals against the groups' means; found powertools' df too few and led to Departure 38 (22 November 2026)** | `cluster` |
+| Cluster-randomised and multisite trials, yes/no outcome | powertools | the trial simulated and fitted by lme4's `glmer()` (the card's simulation route) agrees with the formula written out without powertools' factor 1.2, which measures Known difference 16 | `cluster` (`test-backend-cluster-glmer.R`) |
+| Group treatment trial, yes/no outcome | powertools | **trials simulated in base R (beta-binomial groups), analysed by the z test of the groups' mean proportion against the individuals' (22 November 2026)** | `cluster` |
 | SEM model fit (exact, close and not-close fit) | semPower | **MacCallum, Browne and Sugawara's (1996) noncentral chi-square written out separately (22 November 2026)** | `sem_fit` |
 | SEM factor correlations and invariance | semPower | studies simulated and fitted by lavaan directly | `sem_latent` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: the yes/no outcomes of the clustered designs
-(powertools' `.bin()` formulas), then the other built-in tests and
-corrections listed in `conventions.md`.
+checks aside), next in this audit: the other built-in tests and corrections listed
+in `conventions.md`.
 
 ## Before this log
 
