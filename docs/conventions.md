@@ -1027,6 +1027,71 @@ An odds ratio from a logistic model with covariates is conditional and
 usually further from 1 than the groups' marginal odds ratio, which the
 input screen's help says.
 
+## Choices each card makes for the researcher
+
+Part (2) of the audit in `next.md` item 24 (22 November 2026): for every
+card that runs, the method choices built into it that the researcher
+doesn't make, next to those the form offers. A choice built in is fine
+when it is what the analysis is, or what researchers almost always run;
+where researchers commonly run something else, the form should offer it,
+and where the researcher's own study decides, it should ask. The
+assessment column says which, and points to the queue item where a
+change is planned. Departures and known differences (below) give the
+sizes; this table only lists. Sidedness, alpha and the goal (power,
+sample size or smallest effect) are offered on every card and are not
+repeated.
+
+| Card | Built in, not offered | Main choices offered on the form | Assessment |
+| --- | --- | --- | --- |
+| E1, E3 one-sample and paired t | Normal scores unless a shape is chosen | Student's t, Wilcoxon, Yuen (paired), Bayes factor, minimum-effect test; standardised or raw units; score shape; effects that vary between studies | Fine |
+| E2 two groups | — | Welch's (default, Departure 21), Student's, Mann-Whitney, Brunner-Munzel, Yuen, Bayes factor, minimum-effect; group sizes; score shape | Fine |
+| E4 correlation | Bivariate normal scores unless a shape is chosen | Pearson (exact distribution of r), Spearman, Kendall, Bayes factor; shape | Fine |
+| E76 repeated-measures correlation | One slope shared by everyone (rmcorr's model) | — | Fine: the card says a slope that varies needs a multilevel model |
+| E5 two proportions | Pooled-variance z test (G\*Power's) | z, z with continuity correction, Fisher's exact, Bayes factor; group sizes | Fine |
+| E6 chi-square of independence | — | Pearson with or without Yates' correction (2 x 2), Bayes factor with its sampling plan; proportions or w; group sizes | Fine |
+| E7, E21 two between factors | Equal cells; one SD (E21) | F, aligned rank transform, Bayes factor; score shape | Fine: unequal 2 x 2 cells are E22 |
+| E22 unequal 2 x 2 | Type III sums of squares | As E7 | Fine (Type III is what SPSS and `car::Anova(type = 3)` report) |
+| E8, E55, E20 designs with a within factor | — | Greenhouse-Geisser (default, Departure 26), Huynh-Feldt or none; F, aligned rank transform, Bayes factor; SDs and correlations per cell | Fine |
+| E18 one-way between | Equal groups | Welch's F (default, Departure 22), F, Kruskal-Wallis, pairwise tests (t, Mann-Whitney, Dunn) with Holm, Bonferroni or none, Bayes factor; SD per group | Fine: planning usually assumes equal groups |
+| E54 one-way within | — | Correction; F, Friedman, pairwise t, Wilcoxon or Conover with an adjustment; Bayes factor | Fine |
+| E56 three factors | Equal cells, one SD | F or Bayes factor | Fine |
+| E19 planned contrast | Pooled SD, equal groups, **two-sided only** (pwrss's `power.t.contrasts()` has no one-sided option), one contrast | Weights; raw or standardised | **To change:** a planned contrast is usually directional, and its one-sided power is the same noncentral t with the critical value at alpha; offer it |
+| E23 ANCOVA | Shieh's method | Covariates measured (random) or set (fixed); F or Bayes factor | Fine (asked since 17 November 2026) |
+| E24 multiple regression | Fixed-predictor F for R-squared tests | F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine |
+| E25 one proportion | — | Exact binomial, `binom.test()`, z with or without correction, Bayes factor | Fine |
+| E26 McNemar | — | Exact, chi-square with or without correction | Fine |
+| E36 equivalence (TOST) | Student's t for two groups (TOSTER's `power_t_TOST()`), symmetric bounds | Comparison, units, which direction is better | **Note:** TOSTER's `t_TOST()` runs Welch's tests by default; with equal SDs the two give nearly the same power, so this is a note on the card, not a change |
+| E48 goodness of fit | — | Proportions or w | Fine |
+| E29 ordinal, two groups | Whitehead's formula, proportional odds | Group sizes | Fine (checked against `MASS::polr()` simulations) |
+| E47 logistic factorial | **The Wald test only** | Effect tested | **To change:** R's `car::Anova()` and `anova(test = "LRT")` report the likelihood-ratio test for a `glm()`, so researchers commonly run it; offer it, as E32 and E70 do |
+| E49 two independent correlations | Fisher's z | Group sizes | Fine |
+| E51 two dependent correlations | Steiger's z, `pooled = FALSE` (Departure 12) | Overlapping or not | Fine |
+| E52, E53, E57 variance tests | Normal scores for the chi-square and F tests | E53: F, Levene's, Brown-Forsythe (default, Departure 32), shape | Fine |
+| E59 MANOVA | Equal groups, Pillai's trace | Pillai's trace (Hotelling's T² with two groups) or PERMANOVA; shape | Fine |
+| E60 one-sample Hotelling's T² | — | — | Fine |
+| E9, E15, E31 regression interactions | OLS t test of the product term | Reliabilities; R-squared change or correlations (E9) | Fine (Known differences 1 and 17) |
+| E10, E11, E12, E16 mediation | Residuals of parallel mediators free (Departure 7) | Maximum likelihood with a Monte Carlo interval (default; Departure 6, Known difference 14), maximum likelihood or ordinary regression (PROCESS-style) with a percentile bootstrap, and a quick joint-significance estimate | Fine |
+| E42, E39 mediation, X in groups or a yes/no or ordered mediator | Monte Carlo interval (E42); delta-method natural indirect effect (E39) | X, M and Y types (E39) | Fine |
+| E13, E14, E17, E38, E40 moderated mediation | Monte Carlo interval; W standardised; the interactions as products of standardised variables (stated on the form since 22 November 2026) | Model, X and W types | Fine |
+| E33, E63, E67, E68, E41, E62 mixed models | Every participant responds to every item (E33, E63, E67); groups of equal size (E62); Satterthwaite's df by default (Departure 16) | Satterthwaite or Kenward-Roger; Wald or likelihood-ratio for yes/no; pairwise follow-ups with an adjustment (E63) | Fine |
+| E75 repeated counts, yes/no, categories | — | Likelihood-ratio or Wald (counts); likelihood-ratio only for yes/no (the Wald test ran above alpha) | Fine |
+| E78 Cochran's Q | — | — | Fine |
+| E43 survival | — | Log-rank or Cox; group sizes | Fine |
+| E69 reliability and agreement | — | ICC test or Walter's method, alpha, kappa, Bland-Altman (MOVER by default, Departure 27, the original or Lu's formula); one- or two-sided | Fine |
+| E44 dyadic (APIM) | lavaan's Wald z | Which effects, distinguishable or not | Fine |
+| E61 meta-analysis | POMADE's defaults (CHE model, RVE) for several effects per study | Random or fixed; Hartung-Knapp (default, Departure 18) or z | Fine |
+| E27, E28 logistic and Poisson regression, one predictor | Demidenko's Wald z (G\*Power's procedure) | Score or yes/no X; count model (E28) | Fine |
+| E70 multinomial | — | Likelihood-ratio or Wald | Fine |
+| E32, E30 interactions with other outcomes or groups | — | Model, test, X and W types (E32) | Fine |
+| E71 differential item functioning | — | Which parameters are freed; LR, Wald, score or gradient test | Fine |
+| E35 growth curves | The z test of Diggle and colleagues' formula | Group sizes, dropout | Fine (checked against mixed models fitted to simulated studies) |
+| E73, E58, E74, E45, E72 latent and time-series models | psych's `fa()` minres and oblimin (E73); mclust's equal-variance model and the BIC (E58); powRICLPM's model (E74) | GLS by REML or ML (E45); constraints (E74); within or between (E72) | Fine: each is the named package's standard fit |
+| E34 clustered designs | Equal groups per condition (cluster-randomised), half of each group in each condition (multisite), equal numbers in each condition (group treatment) | Assignment, outcome, group sizes' SD, a baseline score, the formula or a glmer simulation for yes/no | Fine (Departures 14 and 38, Known difference 16) |
+| E37 SEM | Each item on one factor for a CFA's df | Exact, close or not-close fit; invariance level and over what | Fine |
+| E64, E66 trend tests | — | Shape (E64), group sizes | Fine |
+| E46 confidence intervals | — | The interval's method for r, a proportion and an odds ratio | Fine |
+| E50 generic, E77 prediction models | — | Test family (E50); purpose, outcome and metric (E77) | Fine |
+
 ## Departures
 
 Each departure must also be shown on the results screen, stated in the
