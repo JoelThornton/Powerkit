@@ -21,8 +21,12 @@
 # the value at which BF10 equals it. Power is the probability of that F:
 # the noncentral F with p and n - p - 1 df and noncentrality f^2 n, Cohen's
 # f^2 = R2 / (1 - R2), as for the F test (pwrss's power.f.regression(),
-# G*Power's "linear multiple regression: R2 deviation from zero"). No
-# random numbers are drawn.
+# G*Power's "linear multiple regression: R2 deviation from zero"), with
+# predictors set by the design (target_test > predictor_model "fixed").
+# With measured predictors, the default (Departure 39,
+# regression-measured.R), the noncentrality varies from sample to sample,
+# and the chance is that noncentral F's tail averaged over it (Shieh,
+# 2007). No random numbers are drawn.
 
 bfreg_test <- function(spec) {
   bayes_factor_test(spec) && identical(spec$design, "multiple_regression") && identical(spec$template, "r2_zero")
@@ -36,7 +40,8 @@ bfreg_inputs <- function(spec) {
     r2 = pop$r2, p = as.integer(pop$predictors),
     f2 = pop$r2 / (1 - pop$r2),
     threshold = bayes_threshold(spec),
-    prior_scale = spec$target_test$prior_scale %||% bfreg_defaults$prior_scale
+    prior_scale = spec$target_test$prior_scale %||% bfreg_defaults$prior_scale,
+    measured = regression_measured(spec)
   )
 }
 
@@ -75,8 +80,16 @@ bfreg_df <- function(inputs, n) c(inputs$p, n - inputs$p - 1)
 bfreg_power <- function(inputs, n, f2 = inputs$f2) {
   f_star <- bfreg_f_at(log(inputs$threshold), n, inputs)
   if (is.na(f_star)) return(1)
+  if (isTRUE(inputs$measured)) return(regression_measured_tail(f_star, f2, n, inputs$p, inputs$p))
   df <- bfreg_df(inputs, n)
   stats::pf(f_star, df[1], df[2], ncp = f2 * n, lower.tail = FALSE)
+}
+
+bfreg_function <- function(inputs) {
+  if (isTRUE(inputs$measured)) {
+    return("BayesFactor::linearReg.R2stat, with the F statistic's distribution averaged over measured predictors (Shieh 2007)")
+  }
+  "BayesFactor::linearReg.R2stat"
 }
 
 bfreg_backend <- function(spec, seed = NULL) {
@@ -87,7 +100,7 @@ bfreg_backend <- function(spec, seed = NULL) {
     packages = "BayesFactor",
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = "BayesFactor::linearReg.R2stat"),
+    functions = c(exact = bfreg_function(inputs)),
     n_step = 1L,
     exact_min_n = max(inputs$p + 3L, minimum_n(spec)),
     exact_power = power_at,
@@ -168,7 +181,7 @@ check_bayes_regression <- function(spec) {
 bfreg_script <- function(spec, result) {
   inputs <- bfreg_inputs(spec)
   c(
-    script_header(spec, result, "BayesFactor", "BayesFactor::linearReg.R2stat"),
+    script_header(spec, result, "BayesFactor", bfreg_function(inputs)),
     "library(BayesFactor)",
     "",
     "# Inputs ----",
@@ -176,6 +189,7 @@ bfreg_script <- function(spec, result) {
     sprintf("p <- %s # the number of predictors", r_code(inputs$p)),
     sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (the package default, 0.354)", r_code(inputs$prior_scale)),
+    sprintf("measured <- %s # predictors measured on each person (TRUE) or set by the design (FALSE)", r_code(isTRUE(inputs$measured))),
     bayes_goal_inputs(spec),
     "",
     "f2 <- r2 / (1 - r2) # Cohen's f-squared",
@@ -187,13 +201,19 @@ bfreg_script <- function(spec, result) {
     "}",
     "# BF10 rises with F: the F at which it reaches the threshold, and the",
     "# chance of an F at least that large (the noncentral F, as for the F test).",
+    "# With predictors set by the design its noncentrality is f2 * n; with",
+    "# measured, normal predictors it is f2 times a chi-square on n - 1 df,",
+    "# and the chance is averaged over that chi-square (Shieh, 2007).",
     "power_at <- function(n_total) {",
     "  g <- function(F) log_bf10(F, n_total) - log(threshold)",
     "  if (g(0) >= 0) return(1)",
     "  upper <- 10",
     "  while (g(upper) < 0) upper <- upper * 2",
     "  f_star <- uniroot(g, c(0, upper), tol = 1e-10)$root",
-    "  pf(f_star, p, n_total - p - 1, ncp = f2 * n_total, lower.tail = FALSE)",
+    "  if (!measured) return(pf(f_star, p, n_total - p - 1, ncp = f2 * n_total, lower.tail = FALSE))",
+    "  m <- n_total - 1",
+    "  tail <- function(w) dchisq(w, m) * pf(f_star, p, n_total - p - 1, ncp = f2 * w, lower.tail = FALSE)",
+    "  integrate(tail, qchisq(1e-12, m), qchisq(1e-12, m, lower.tail = FALSE), rel.tol = 1e-10, subdivisions = 1000L)$value",
     "}",
     "",
     pwr_goal_section(spec, result),
@@ -204,8 +224,8 @@ bfreg_script <- function(spec, result) {
 bfreg_design_description <- function(spec, label) {
   inputs <- bfreg_inputs(spec)
   sprintf(
-    "Bayes factor for R-squared in a linear regression of %s on %d predictors: %s, BayesFactor's linear-regression Bayes factor (JZS) with a Cauchy prior of r scale %s on the standardised coefficients; the evidence threshold is BF10 of at least %s",
-    label("Y"), inputs$p, bfreg_hypotheses_words(inputs),
+    "Bayes factor for R-squared in a linear regression of %s on %d predictors %s: %s, BayesFactor's linear-regression Bayes factor (JZS) with a Cauchy prior of r scale %s on the standardised coefficients; the evidence threshold is BF10 of at least %s",
+    label("Y"), inputs$p, regression_predictors_words(inputs$measured), bfreg_hypotheses_words(inputs),
     format_number(inputs$prior_scale), format_number(inputs$threshold)
   )
 }

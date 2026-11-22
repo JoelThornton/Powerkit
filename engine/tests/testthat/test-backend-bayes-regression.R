@@ -2,10 +2,11 @@
 # linearReg.R2stat(), JASP's r scale of 0.354), by exact calculation from
 # the noncentral F.
 
-reg_bf_spec <- function(n = NULL, r2 = 0.1, predictors = 3L, threshold = NULL, scale = NULL, power = 0.8) {
+reg_bf_spec <- function(n = NULL, r2 = 0.1, predictors = 3L, threshold = NULL, scale = NULL, power = 0.8, predictor_model = NULL) {
   spec <- example_spec("regression_r2_zero")
   spec$population <- list(metric = "r_squared", r2 = r2, predictors = predictors)
-  spec$target_test <- list(effect = "r_squared", method = "bayes_factor", evidence_threshold = threshold, prior_scale = scale)
+  spec$target_test <- list(effect = "r_squared", method = "bayes_factor", evidence_threshold = threshold, prior_scale = scale,
+    predictor_model = predictor_model)
   spec$target_test <- Filter(Negate(is.null), spec$target_test)
   spec$goal <- if (is.null(n)) list(type = "sample_size", power = power) else list(type = "power", n = n)
   spec$options <- NULL
@@ -26,7 +27,9 @@ test_that("linearReg.R2stat() gives regressionBF()'s Bayes factor, with JASP's r
 })
 
 test_that("power is the chance of an F beyond the one where BF10 reaches the threshold", {
-  spec <- reg_bf_spec(150)
+  # Predictors set by the design: the noncentral F with f^2 n (measured
+  # predictors: test-backend-regression-measured.R).
+  spec <- reg_bf_spec(150, predictor_model = "fixed")
   inputs <- bfreg_inputs(spec)
   f_star <- bfreg_f_at(log(10), 150, inputs)
   expect_equal(exp(bfreg_log_bf10(f_star, 150, inputs)), 10, tolerance = 1e-6)
@@ -37,7 +40,7 @@ test_that("power is the chance of an F beyond the one where BF10 reaches the thr
   expect_equal(result$bayes$misleading_evidence, stats::pf(f_star, 3, 146, lower.tail = FALSE))
   expect_gt(result$bayes$evidence_for_null, 0)
   # A higher threshold needs more evidence.
-  expect_lt(run_spec(reg_bf_spec(150, threshold = 30))$curve$power, result$curve$power)
+  expect_lt(run_spec(reg_bf_spec(150, threshold = 30, predictor_model = "fixed"))$curve$power, result$curve$power)
 })
 
 test_that("the sample size is the smallest reaching the target", {

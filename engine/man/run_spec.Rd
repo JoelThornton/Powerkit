@@ -184,7 +184,8 @@ take \code{target_test > predictor_model}: \code{"random"}, the default, for
 predictors measured on each person (assumed multivariate normal; the
 fixed-predictor power averaged over them, Shieh, 2007), or \code{"fixed"} for
 predictors set by the design, as G}Power and pwrss's
-\code{power.f.regression()} take them (noncentrality f^2 N).
+\code{power.f.regression()} take them (noncentrality f^2 N). Their Bayes
+factors (method \code{"bayes_factor"}) take the same setting.
 The mixed models with a score (templates \code{crossed_two_condition},
 \code{crossed_conditions}, \code{two_level}, \code{three_level}, \code{item_predictor}) take
 \code{target_test > df_method}: \code{"satterthwaite"} (the default, lmerTest) or

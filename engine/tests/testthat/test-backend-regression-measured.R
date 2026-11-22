@@ -94,3 +94,113 @@ test_that("predictor_model belongs to the F test only", {
   spec$population$variance_ratio <- 2
   expect_spec_problem(spec, "applies to the F test")
 })
+
+# The card's Bayes factors (backend-bayesfactor-regression.R,
+# backend-bayesfactor-r2change.R).
+
+bf_spec <- function(name, n, predictor_model = NULL, nrep = 2000) {
+  spec <- example_spec(name)
+  spec$target_test$method <- "bayes_factor"
+  spec$target_test$alpha <- NULL
+  spec$target_test$evidence_threshold <- 10
+  spec$target_test$predictor_model <- predictor_model
+  if (identical(name, "regression_coefficient")) {
+    spec$population$variance_ratio <- NULL
+    spec$population$r2_reduced <- 0.1
+  }
+  if (identical(name, "regression_r2_zero")) {
+    spec$population <- list(metric = "r_squared", r2 = 0.1, predictors = 3L)
+    spec$target_test$effect <- "r_squared"
+  }
+  spec$goal <- list(type = "power", n = n)
+  spec$options <- list(nrep = nrep, seed = 5)
+  spec
+}
+
+test_that("Bayes factor for R-squared, measured predictors: the F's tail beyond the threshold's F, averaged over the predictors (Departure 39)", {
+  measured <- run_spec(bf_spec("regression_r2_zero", 150))
+  fixed <- run_spec(bf_spec("regression_r2_zero", 150, "fixed"))
+  inputs <- bfreg_inputs(bf_spec("regression_r2_zero", 150))
+  expect_true(inputs$measured)
+  f_star <- bfreg_f_at(log(10), 150, inputs)
+  expect_equal(measured$curve$power, regression_measured_tail(f_star, inputs$f2, 150, 3, 3))
+  # By sampling the chi-square the noncentrality is f^2 times.
+  set.seed(8)
+  w <- stats::rchisq(2e5, 149)
+  expect_equal(measured$curve$power, mean(stats::pf(f_star, 3, 146, ncp = inputs$f2 * w, lower.tail = FALSE)), tolerance = 2e-3)
+  # R-squared .10 with three predictors at N = 150: 64.7% against 65.8%,
+  # 193 people for a 0.8 chance against 189.
+  expect_equal(measured$curve$power, 0.6474, tolerance = 1e-3)
+  expect_equal(fixed$curve$power, 0.6578, tolerance = 1e-3)
+  n_for <- function(spec) {
+    spec$goal <- list(type = "sample_size", power = 0.8)
+    run_spec(spec)$n_required$n
+  }
+  expect_equal(n_for(bf_spec("regression_r2_zero", 150)), 193)
+  expect_equal(n_for(bf_spec("regression_r2_zero", 150, "fixed")), 189)
+  # No effect does not depend on the predictors.
+  expect_equal(measured$bayes$misleading_evidence, fixed$bayes$misleading_evidence)
+  expect_match(measured$provenance$backend_function, "measured predictors", fixed = TRUE)
+  expect_match(export_citations(measured), "Random Regression Models", fixed = TRUE)
+  expect_no_match(export_citations(fixed), "Random Regression Models", fixed = TRUE)
+})
+
+test_that("Bayes factor for R-squared, measured predictors: the exported script reproduces the power", {
+  skip_unless_scripts_can_run()
+  spec <- bf_spec("regression_r2_zero", 150)
+  run <- expect_script_reproduces_power(spec, run_for_export(spec))
+  expect_match(paste(run$script, collapse = "\n"), "dchisq", fixed = TRUE)
+})
+
+test_that("measured predictors: each study's two R-squared values are distributed as lm() gives them on new normal predictors", {
+  n <- 40
+  p <- 5
+  q <- 2
+  set.seed(21)
+  by_lm <- t(replicate(4000, {
+    xr <- matrix(stats::rnorm(n * (p - q)), n)
+    xt <- matrix(stats::rnorm(n * q), n)
+    y <- xr %*% rep(sqrt(0.2 / (p - q)), p - q) + xt %*% rep(sqrt(0.1 / q), q) + stats::rnorm(n, sd = sqrt(0.7))
+    c(summary(stats::lm(y ~ xr + xt))$r.squared, summary(stats::lm(y ~ xr))$r.squared)
+  }))
+  drawn <- with_seed(22, regression_measured_draw(n, 4e4, p, q, 0.3, 0.2))
+  drawn <- cbind(drawn$full, drawn$reduced)
+  se <- apply(by_lm, 2, stats::sd) / sqrt(4000)
+  expect_true(all(abs(colMeans(by_lm) - colMeans(drawn)) < 4 * se))
+  for (j in 1:2) {
+    expect_true(all(abs(stats::quantile(by_lm[, j], c(0.1, 0.5, 0.9)) - stats::quantile(drawn[, j], c(0.1, 0.5, 0.9))) < 0.015))
+  }
+  increase <- function(m) m[, 1] - m[, 2]
+  expect_lt(abs(mean(increase(by_lm)) - mean(increase(drawn))), 4 * stats::sd(increase(by_lm)) / sqrt(4000))
+  expect_lt(abs(stats::cor(by_lm)[1, 2] - stats::cor(drawn)[1, 2]), 0.03)
+  # The tested set's noncentrality alone gives the F test's measured power.
+  r2 <- with_seed(23, regression_measured_draw(150, 2e5, 5, 2, 0.15, 0.1))
+  f <- ((r2$full - r2$reduced) / 2) / ((1 - r2$full) / 144)
+  expect_equal(mean(f > stats::qf(0.95, 2, 144)), regression_measured_power(0.05 / 0.85, 150, 5, 2, 0.05), tolerance = 5e-3)
+})
+
+test_that("Bayes factor for an R-squared increase or one coefficient: measured predictors give less power than set ones", {
+  for (name in c("regression_r2_increase", "regression_coefficient")) {
+    measured <- run_spec(bf_spec(name, 150, nrep = 20000))
+    fixed <- run_spec(bf_spec(name, 150, "fixed", nrep = 20000))
+    expect_true(all(measured$check_run$ok))
+    expect_match(measured$provenance$backend_function, "predictors measured on each person", fixed = TRUE)
+    expect_lt(measured$curve$power, fixed$curve$power)
+    expect_match(export_citations(measured), "Random Regression Models", fixed = TRUE)
+  }
+})
+
+test_that("Bayes factor for an R-squared increase, set predictors: the R script replays the same simulated studies", {
+  skip_if_not_installed("BayesFactor")
+  old <- options(powerkit.cores = 1)
+  on.exit(options(old))
+  spec <- bf_spec("regression_r2_increase", 150, "fixed", nrep = 200)
+  result <- run_spec(spec)
+  env <- new.env(parent = globalenv())
+  suppressMessages(capture.output(eval(parse(text = export_script(spec, result)), env)))
+  expect_equal(env$reproduced$power, result$curve$power)
+})
+
+test_that("predictor_model is taken by the Bayes factors", {
+  expect_no_error(validate_spec(bf_spec("regression_coefficient", 150, "fixed")))
+})
