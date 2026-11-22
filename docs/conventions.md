@@ -787,7 +787,7 @@ the yes/no mediator card.
 | G\*Power | No Bayes factor tests | — | — |
 | JASP (Bayesian linear regression; analysis only, no planning) | BAS's `bas.lm()`: the Bayes factor of each model against the null model; with every predictor, the model with all of them against the intercept-only model | — | Prior "JZS" with "r scale" 0.354 by default (jaspRegression, `inst/qml/RegressionLinearBayesian.qml`); model prior uniform over model size |
 | BayesFactor | `regressionBF()` and `lmBF()` on the data (Liang, Paulo, Molina, Clyde and Berger, 2008; Rouder and Morey, "Bayesian testing in regression", the references in `regressionBF()`'s help); `linearReg.R2stat()` from R-squared, the same Bayes factor | — | `rscaleCont` "medium", sqrt(2)/4 (0.354), by default [BayesFactor help] |
-| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n, as for the F test), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
+| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n with predictors set by the design, as for the F test; averaged over measured predictors by default, Departure 39), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
 
 **The R-squared increase and one coefficient** (from 17 November 2026).
 powerkit plans the Bayes factor of the model with all the predictors
@@ -796,8 +796,9 @@ comparison BayesFactor's `regressionBF(whichModels = "top")` reports,
 and the ratio of two `lmBF()` Bayes factors, each `linearReg.R2stat()`
 from its model's R-squared. A study is simulated from the three
 independent sums of squares (the reduced model's, the increase's and the
-residual's, noncentral chi-squares with fixed predictors, as for the F
-test), with the same r scale 0.354. The inputs are both models'
+residual's, noncentral chi-squares; with measured predictors, the
+default, their noncentralities are drawn first, Departure 39), with the
+same r scale 0.354. The inputs are both models'
 R-squared, or a coefficient's partial R-squared and the R-squared of the
 other predictors, which the Bayes factor needs and the F test does not.
 JASP reports a coefficient's evidence as an inclusion Bayes factor
@@ -1057,7 +1058,7 @@ repeated.
 | E56 three factors | Equal cells, one SD | F or Bayes factor | Fine |
 | E19 planned contrast | Pooled SD, equal groups, one contrast, no alpha adjustment | Weights; raw or standardised; one- or two-sided | Fine. A one-sided test was added on 22 November 2026, and the alpha fixed: pwrss's `power.t.contrasts()` gave the power at 0.05 whatever alpha was set |
 | E23 ANCOVA | Shieh's method | Covariates measured (random) or set (fixed); F or Bayes factor | Fine (asked since 17 November 2026) |
-| E24 multiple regression | Normal predictors when measured (Departure 39); the Bayes factors take them as fixed | Predictors measured or set by the design (F test); F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine (asked since 22 November 2026; the Bayes factors' predictors next) |
+| E24 multiple regression | Normal predictors when measured (Departure 39) | Predictors measured or set by the design (F test and Bayes factors); F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine (asked since 22 November 2026) |
 | E25 one proportion | — | Exact binomial, `binom.test()`, z with or without correction, Bayes factor | Fine |
 | E26 McNemar | — | Exact, chi-square with or without correction | Fine |
 | E36 equivalence (TOST) | Student's t for two groups (TOSTER's `power_t_TOST()`), symmetric bounds | Comparison, units, which direction is better | **Note:** TOSTER's `t_TOST()` runs Welch's tests by default; with equal SDs the two give nearly the same power, so this is a note on the card, not a change |
@@ -2415,7 +2416,7 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   methods paragraph, and in the exported R script, which computes the
   power in base R.
 
-### 39. Multiple regression's F tests: predictors measured on each person by default, not fixed (G\*Power, pwrss)
+### 39. Multiple regression's F tests and Bayes factors: predictors measured on each person by default, not fixed (G\*Power, pwrss)
 
 **The maintainer's decision, 22 November 2026** (`docs/decisions.md`).
 
@@ -2449,12 +2450,24 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   against 122; f² .15 with three: 80 against 77; f² .02 with one
   predictor: 398 against 395. The gap is a few people, largest in small
   samples with many control predictors, and shrinks as N grows.
-- **Not yet:** the Bayes factor versions on the same card (R-squared
-  against 0, exact from the noncentral F; the increase and one
-  coefficient, simulated with fixed orthonormal predictors) still take
-  the predictors as fixed (`docs/next.md`).
+- **The card's Bayes factors** take the same setting (22 November 2026).
+  For R-squared against 0 the Bayes factor rises with F, so its power is
+  the same integral with the F at which BF10 reaches the threshold in
+  place of the critical value (exact). For an R-squared increase or one
+  coefficient each simulated study draws its sums of squares' two
+  noncentralities first, as the predictors vary (`regression_measured_draw()`:
+  the reduced model's is R-squared reduced times a chi-square on N − 1,
+  plus the tested predictors' share of the kept predictors' space; the
+  increase's is the F test's measured one), then the three sums of
+  squares as before. Studies simulated by `lm()` and `lmBF()` on new
+  normal predictors each time agree (`test-validation-bayes-regression.R`,
+  `test-validation-bayes-r2change.R`). Size: R-squared .10 with three
+  predictors, threshold 10: 64.7% against 65.8% at N = 150, 193 against
+  189 people for a 0.8 chance; two predictors added to three (R-squared
+  .10 to .15): about 42% against 44% at 150 (20,000 studies).
 - **Test:** `test-backend-regression-measured.R`, "measured predictors
-  give less power than G\*Power's fixed model (Departure 39)".
+  give less power than G\*Power's fixed model (Departure 39)", and the
+  Bayes factors' tests in the same file.
 - **Shown to users:** on the result screen for these tests unless the
   predictors are set by the design (`app/routing/forms.yaml`,
   `departures`, key "39"), in the methods paragraph, and in the exported

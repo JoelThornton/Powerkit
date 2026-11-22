@@ -77,7 +77,8 @@
 #' predictors measured on each person (assumed multivariate normal; the
 #' fixed-predictor power averaged over them, Shieh, 2007), or `"fixed"` for
 #' predictors set by the design, as G*Power and pwrss's
-#' `power.f.regression()` take them (noncentrality f^2 N).
+#' `power.f.regression()` take them (noncentrality f^2 N). Their Bayes
+#' factors (method `"bayes_factor"`) take the same setting.
 #' The mixed models with a score (templates `crossed_two_condition`,
 #' `crossed_conditions`, `two_level`, `three_level`, `item_predictor`) take
 #' `target_test > df_method`: `"satterthwaite"` (the default, lmerTest) or

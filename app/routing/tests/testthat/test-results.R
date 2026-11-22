@@ -3667,6 +3667,7 @@ test_that("Cochran's Q has its own card (E78): one yes/no answer per condition, 
 test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {
   fields <- form_fields(form_groups(forms, "E24"))
   values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
+    predictor_model = "random",
     r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
   applies <- Filter(function(f) field_applies(f, values), fields)
   expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
@@ -3674,6 +3675,11 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   spec <- build_spec(forms, "E24", fields, values)
   expect_identical(spec$target_test$method, "bayes_factor")
   expect_null(spec$target_test$alpha)
+  # Measured predictors (Departure 39) apply to the Bayes factor too.
+  expect_true("predictor_model" %in% vapply(applies, function(f) f$id, ""))
+  expect_identical(names(departures_for(forms, "E24", spec)), "39")
+  set <- build_spec(forms, "E24", fields, modifyList(values, list(predictor_model = "fixed")))
+  expect_length(departures_for(forms, "E24", set), 0)
   skip_without_run()
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")

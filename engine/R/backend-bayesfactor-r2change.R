@@ -25,7 +25,11 @@
 # noncentralities n R2 reduced / (1 - R2 full) and n (R2 full - R2
 # reduced) / (1 - R2 full) (the F test's, Cohen's f-squared times n).
 # R-squared full is the first two over the total, and R-squared reduced
-# the first over it. Each study's two log Bayes factors come from
+# the first over it. With measured predictors, the default since 22
+# November 2026 (Departure 39), the two noncentralities vary from study
+# to study as the predictors do, and each study draws them first
+# (regression_measured_draw(), regression-measured.R); predictors set by
+# the design (target_test > predictor_model "fixed") keep the fixed draw. Each study's two log Bayes factors come from
 # linearReg.R2stat(), interpolated (cubic spline) from its values at 64
 # R-squared values spanning the batch's simulated studies (even steps in
 # their log odds), which agrees with calling it for every study to 1e-3
@@ -49,7 +53,8 @@ bfr2c_inputs <- function(spec) {
     p = as.integer(pop$predictors_total),
     q = if (coefficient) 1L else as.integer(pop$predictors_tested),
     threshold = bayes_threshold(spec),
-    prior_scale = spec$target_test$prior_scale %||% bfreg_defaults$prior_scale
+    prior_scale = spec$target_test$prior_scale %||% bfreg_defaults$prior_scale,
+    measured = regression_measured(spec)
   )
 }
 
@@ -70,8 +75,12 @@ bfr2c_log_bf <- function(r2, n, k, prior_scale) {
   stats::splinefun(stats::qlogis(grid), exact(grid), method = "fmm")(stats::qlogis(r2))
 }
 
-# The two R-squared values of nrep studies of size n (fixed predictors).
+# The two R-squared values of nrep studies of size n: with measured
+# predictors, or with fixed ones.
 bfr2c_draw <- function(inputs, n, nrep, r2_full = inputs$r2_full) {
+  if (isTRUE(inputs$measured)) {
+    return(regression_measured_draw(n, nrep, inputs$p, inputs$q, r2_full, inputs$r2_reduced))
+  }
   error <- 1 - r2_full
   reduced_df <- inputs$p - inputs$q
   a <- if (reduced_df > 0) stats::rchisq(nrep, reduced_df, ncp = n * inputs$r2_reduced / error) else rep(0, nrep)
@@ -98,6 +107,13 @@ bfr2c_count <- function(inputs, n, nrep, seed, r2_full = inputs$r2_full, outcome
   if (identical(outcome, "effect")) sum(log_bf >= log(inputs$threshold)) else sum(log_bf <= -log(inputs$threshold))
 }
 
+bfr2c_function <- function(inputs) {
+  paste0(
+    "BayesFactor::linearReg.R2stat() for the full and the reduced model, on each simulated study's two R-squared values",
+    if (isTRUE(inputs$measured)) ", with predictors measured on each person (drawn afresh in each study, Shieh 2007)" else ""
+  )
+}
+
 bfr2c_backend <- function(spec, seed = NULL) {
   inputs <- bfr2c_inputs(spec)
   list(
@@ -105,7 +121,7 @@ bfr2c_backend <- function(spec, seed = NULL) {
     packages = "BayesFactor",
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = "BayesFactor::linearReg.R2stat() for the full and the reduced model, on each simulated study's two R-squared values"),
+    functions = c(simulation = bfr2c_function(inputs)),
     n_step = 1L,
     exact_min_n = max(inputs$p + 3L, minimum_n(spec)),
     simulate = function(n, nrep, seed, cores) {
@@ -202,9 +218,9 @@ check_bayes_r2change <- function(spec) {
 bfr2c_design_description <- function(spec, label) {
   inputs <- bfr2c_inputs(spec)
   sprintf(
-    "Bayes factor for %s in a linear regression of %s: %s, the ratio of BayesFactor's linear-regression Bayes factors (JZS) with a Cauchy prior of r scale %s on the standardised coefficients, as regressionBF(whichModels = \"top\") reports it; R-squared %s with all the predictors and %s without the tested %s; the evidence threshold is BF10 of at least %s",
+    "Bayes factor for %s in a linear regression of %s, predictors %s: %s, the ratio of BayesFactor's linear-regression Bayes factors (JZS) with a Cauchy prior of r scale %s on the standardised coefficients, as regressionBF(whichModels = \"top\") reports it; R-squared %s with all the predictors and %s without the tested %s; the evidence threshold is BF10 of at least %s",
     if (inputs$coefficient) sprintf("the coefficient of %s", label("X")) else "an R-squared increase",
-    label("Y"), bfr2c_hypotheses_words(inputs), format_number(inputs$prior_scale),
+    label("Y"), regression_predictors_words(inputs$measured), bfr2c_hypotheses_words(inputs), format_number(inputs$prior_scale),
     format_number(inputs$r2_full), format_number(inputs$r2_reduced), if (inputs$q == 1) "predictor" else "predictors",
     format_number(inputs$threshold)
   )
@@ -215,7 +231,7 @@ bfr2c_script <- function(spec, result) {
   inputs <- bfr2c_inputs(spec)
   prov <- result$provenance
   c(
-    script_header(spec, result, "BayesFactor", "BayesFactor::linearReg.R2stat"),
+    script_header(spec, result, "BayesFactor", bfr2c_function(inputs)),
     "library(BayesFactor)",
     "",
     "# Inputs ----",
@@ -234,17 +250,7 @@ bfr2c_script <- function(spec, result) {
     "# Interpolated from 64 exact values, as powerkit does, to save time.",
     paste("log_bf <-", paste(deparse(bfr2c_log_bf, width.cutoff = 100L), collapse = "\n")),
     "",
-    "# One batch of studies of size n with fixed predictors: the three",
-    "# independent sums of squares (reduced model, the tested predictors'",
-    "# increase, residual), then each study's two R-squared values and the",
-    "# Bayes factor of the full model over the reduced one.",
-    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
-    "  set.seed(batch_seed)",
-    "  error <- 1 - r2_full",
-    "  a <- if (p > q) rchisq(batch_replications, p - q, ncp = batch_n * r2_reduced / error) else rep(0, batch_replications)",
-    "  b <- rchisq(batch_replications, q, ncp = batch_n * (r2_full - r2_reduced) / error)",
-    "  e <- rchisq(batch_replications, batch_n - p - 1)",
-    "  total <- a + b + e",
+    bfr2c_script_draw(inputs),
     "  bf <- log_bf((a + b) / total, batch_n, p, rscale) - log_bf(a / total, batch_n, p - q, rscale)",
     "  c(sum(bf >= log(threshold)), batch_replications)",
     "}",
@@ -252,5 +258,46 @@ bfr2c_script <- function(spec, result) {
     batch_section(result, "the simulation"),
     simulation_goal_section(spec, result, 1L),
     comparison_section()
+  )
+}
+
+# The script's batch of simulated studies: fixed or measured predictors,
+# drawn as the engine draws them.
+bfr2c_script_draw <- function(inputs) {
+  if (!isTRUE(inputs$measured)) {
+    return(c(
+      "# One batch of studies of size n with fixed predictors: the three",
+      "# independent sums of squares (reduced model, the tested predictors'",
+      "# increase, residual), then each study's two R-squared values and the",
+      "# Bayes factor of the full model over the reduced one.",
+      "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+      "  set.seed(batch_seed)",
+      "  error <- 1 - r2_full",
+      "  a <- if (p > q) rchisq(batch_replications, p - q, ncp = batch_n * r2_reduced / error) else rep(0, batch_replications)",
+      "  b <- rchisq(batch_replications, q, ncp = batch_n * (r2_full - r2_reduced) / error)",
+      "  e <- rchisq(batch_replications, batch_n - p - 1)",
+      "  total <- a + b + e"
+    ))
+  }
+  c(
+    "# One batch of studies of size n with predictors measured on each person",
+    "# (multivariate normal, drawn afresh in each study). Given the predictors,",
+    "# the three sums of squares (reduced model, the tested predictors'",
+    "# increase, residual) are independent noncentral chi-squares; their",
+    "# noncentralities are drawn first, as the predictors vary. Then each",
+    "# study's two R-squared values and the Bayes factor of the full model",
+    "# over the reduced one.",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  set.seed(batch_seed)",
+    "  s2 <- 1 - r2_full",
+    "  tau2 <- r2_full - r2_reduced",
+    "  a <- if (p > q) {",
+    "    u <- r2_reduced * rchisq(batch_replications, batch_n - 1)",
+    "    ncp_a <- if (tau2 > 0) tau2 * rchisq(batch_replications, p - q, ncp = u / tau2) else u",
+    "    rchisq(batch_replications, p - q, ncp = ncp_a / s2)",
+    "  } else rep(0, batch_replications)",
+    "  b <- rchisq(batch_replications, q, ncp = tau2 * rchisq(batch_replications, batch_n - 1 - (p - q)) / s2)",
+    "  e <- rchisq(batch_replications, batch_n - p - 1)",
+    "  total <- a + b + e"
   )
 }
