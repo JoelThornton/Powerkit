@@ -107,3 +107,35 @@ test_that("with sparse cells the likelihood-ratio test keeps power the Wald test
   }
   expect_gt(at("likelihood_ratio") - at("wald_chi_square"), 0.08)
 })
+
+# Firth's penalised likelihood-ratio test ------------------------------------------
+
+test_that("each simulated Firth test equals logistf's logistftest() on the same data", {
+  skip_if_not_installed("logistf")
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    spec <- validate_quietly(factorial_logit_spec(effect))
+    design <- logistic_factorial_design(spec)
+    X <- design$X(120)
+    fit <- with_seed(7, Spower::p_glm(y ~ A * B, X = X, betas = design$betas, test = NULL,
+      family = stats::binomial(), return_analysis = TRUE))
+    firth <- logistf::logistf(y ~ A * B, data = fit$data, pl = FALSE)
+    columns <- which(names(stats::coef(firth)) %in% design$tested)
+    expected <- logistf::logistftest(firth, test = columns)$prob[[1]]
+    p <- with_seed(7, p_logistic_factorial_firth(y ~ A * B, X = X, betas = design$betas, tested = design$tested))
+    expect_equal(p, expected, tolerance = 1e-8, label = effect)
+    expect_length(columns, length(design$tested))
+  }
+})
+
+test_that("Firth's test runs, passes its check run, and its script reproduces it", {
+  skip_on_cran()
+  skip_if_not_installed("logistf")
+  spec <- factorial_logit_spec("interaction")
+  spec$target_test$method <- "firth_likelihood_ratio"
+  spec <- validate_quietly(spec)
+  result <- suppressWarnings(run_spec(spec))
+  expect_match(result$provenance$backend_function, "p_logistic_factorial_firth", fixed = TRUE)
+  expect_true(all(result$check_run$ok))
+  out <- run_exported_script(spec, result)
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
+})

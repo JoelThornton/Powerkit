@@ -25,6 +25,7 @@ if (FALSE) {
   library(JustifyAlpha)
   library(kappaSize)
   library(lavaan)
+  library(logistf)
   library(longpower)
   library(lmhelprs)
   library(MASS)

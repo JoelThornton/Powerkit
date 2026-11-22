@@ -2327,7 +2327,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "formula = y ~ A * B, # both factors and their interaction",
       "X = X, # the design (above)",
       "betas = betas, # coefficients that give each cell's proportion (above)",
-      if (logistic_factorial_lr(spec)) {
+      if (logistic_factorial_lr(spec) || logistic_factorial_firth(spec)) {
         sprintf("tested = tested, # %s", logistic_factorial_effect_words(spec))
       } else sprintf("test = test, # %s", logistic_factorial_effect_words(spec)),
       "family = binomial() # logistic regression"
@@ -2911,7 +2911,17 @@ spower_derived_lines <- function(spec) {
       "# (all terms, solved on the log-odds scale).",
       "model <- model.matrix(~ A * B, cells)",
       "betas <- drop(solve(model, qlogis(probabilities[cbind(as.integer(cells$A), as.integer(cells$B))])))",
-      if (logistic_factorial_lr(spec)) c(
+      if (logistic_factorial_firth(spec)) c(
+        sprintf("# Firth's penalised likelihood-ratio test of %s: logistf's", logistic_factorial_effect_words(spec)),
+        "# logistf() fits each study with Firth's penalty, and logistftest() tests",
+        "# these coefficients together against the model with them set to 0.",
+        sprintf("tested <- %s", r_code(logistic_factorial_design(spec)$tested)),
+        "p_logistic_factorial_firth <- function(formula, X, betas, tested, family = binomial()) {",
+        "  fit <- p_glm(formula = formula, X = X, betas = betas, test = NULL, family = family, return_analysis = TRUE)",
+        "  firth <- logistf::logistf(formula, data = fit$data, pl = FALSE)",
+        "  logistf::logistftest(firth, test = which(names(coef(firth)) %in% tested))$prob[[1]]",
+        "}"
+      ) else if (logistic_factorial_lr(spec)) c(
         sprintf("# The likelihood-ratio test of %s: the model against the same", logistic_factorial_effect_words(spec)),
         "# model without these coefficients' columns (type III, as",
         "# car::Anova(type = 3, test.statistic = \"LR\") reports it).",

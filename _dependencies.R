@@ -53,6 +53,7 @@ library(powerSurvEpi) # a Cox model's measured predictor (powerEpiCont.default()
 library(PUMP)      # joint power for several outcomes in the study plan
 library(PMCMRplus) # the Jonckheere-Terpstra test (jonckheereTest())
 library(POMADE) # E61 with several effects per study (power_MADE())
+library(logistf)   # Firth's penalised likelihood-ratio test on the factorial logistic regression
 library(presize)   # precision planning for a correlation and a proportion
 library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
