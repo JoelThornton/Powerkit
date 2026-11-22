@@ -686,17 +686,24 @@ field_problems_js <- "
 # sets the two choices (what to find out, and the source); it fills in no
 # number.
 effect_unsure_ui <- function(form) {
+  # One line, question and action together (22 November 2026): an info
+  # button beside a separate "I don't know" button read as two choices.
+  # The sentence that only explains follows the explanations switch.
+  line <- function(question, explain, label, no_effect) {
+    p(class = "effect-unsure", tags$strong(question), " ",
+      tags$span(class = "plain-only", explain, " "),
+      tags$button(type = "button", class = "btn btn-link effect-unsure-go",
+        onclick = sprintf("pkEffectUnsure(%s)", if (no_effect) "true" else "false"), label))
+  }
   if (isTRUE(form$sensitivity_without_effect)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know what effect to expect? "), "That's common. Tell Powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+    return(line("Don't know what effect to expect?",
+      "That's common. Give the number of people you can get, and Powerkit shows the smallest effect your study could detect; you then judge whether that is small enough.",
+      "Find the smallest effect my study could detect", TRUE))
   }
   if (isTRUE(form$sensitivity)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and Powerkit can scale it up or down to the smallest size your sample could detect."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
+    return(line("Don't know how big the effect is?",
+      "If you know its pattern, enter that, and Powerkit scales it to the smallest size your sample could detect.",
+      "Find the smallest effect my study could detect", FALSE))
   }
   NULL
 }

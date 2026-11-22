@@ -8,3 +8,10 @@ entries:
       button as the box's other explanations, instead of having a second
       button of its own, and a box's button only appears when there is
       something in view for it to open.
+  - date: "2026-11-22"
+    title: "One line for an unknown effect size"
+    text: >-
+      Above the effect size, "Unknown effect size" and "I don't know my
+      effect size" were two separate links side by side. They are now one
+      line: the question, then a link that finds the smallest effect your
+      study could detect.

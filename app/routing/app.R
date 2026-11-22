@@ -1028,10 +1028,8 @@ app_css <- "
   .card-more > summary:hover, .rep-more > summary:hover, .mismatch summary:hover, .bayes-mode-what > summary:hover { text-decoration: underline; }
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
-  /* The I don't know my effect size link starts at the column's edge when it is
-     on a line of its own, and keeps a space when it follows the text. */
-  .effect-unsure .btn { margin: 0 !important; }
-  .effect-unsure > div:first-child::after { content: ' '; }
+  /* The unknown-effect line's action is a link in the sentence. */
+  .effect-unsure .effect-unsure-go { padding: 0; border: 0; vertical-align: baseline; font-weight: 600; }
   /* The action bar is a whole rounded bar, pinned a little above the
      window's edge: with only its top corners rounded it looked cut off
      when it came to rest at the foot of the page. */

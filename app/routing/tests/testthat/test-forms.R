@@ -720,7 +720,9 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   # Below the "Don't know" prompt the list doesn't ask the same question again.
   expect_match(e2, "Four ways to a number you can defend", fixed = TRUE)
   expect_no_match(e2, "Not sure what number to put here?", fixed = TRUE)
-  expect_match(e2, "I don&#39;t know my effect size|I don't know my effect size")
+  expect_match(e2, "Find the smallest effect my study could detect", fixed = TRUE)
+  # One line, not an info button beside a second "don't know" button.
+  expect_no_match(e2, "Unknown effect size", fixed = TRUE)
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
   expect_match(e2, "divide it by how much people usually vary", fixed = TRUE)
   # The smallest detectable effect is offered once, in view, not again in the list.
