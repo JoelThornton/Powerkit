@@ -698,23 +698,28 @@ field_problems_js <- "
 # sets the two choices (what to find out, and the source); it fills in no
 # number.
 effect_unsure_ui <- function(form) {
-  # One line, question and action together (22 November 2026): an info
+  # One sentence whose own words are the link (22 November 2026): an info
   # button beside a separate "I don't know" button read as two choices.
-  # The sentence that only explains follows the explanations switch.
-  line <- function(question, explain, label, no_effect) {
+  # With explanations off, the sentence shortens to the question and the
+  # link.
+  # A link, not a button, so the phrase wraps with the sentence around it.
+  go <- function(label, no_effect) tags$a(href = "#", role = "button", class = "effect-unsure-go",
+    onclick = sprintf("pkEffectUnsure(%s); return false;", if (no_effect) "true" else "false"), label, .noWS = c("before", "after"))
+  line <- function(question, before, link, after, short, no_effect) {
     p(class = "effect-unsure", tags$strong(question), " ",
-      tags$span(class = "plain-only", explain, " "),
-      tags$button(type = "button", class = "btn btn-link effect-unsure-go",
-        onclick = sprintf("pkEffectUnsure(%s)", if (no_effect) "true" else "false"), label))
+      tags$span(class = "plain-only", before, go(link, no_effect), after),
+      tags$span(class = "terms-only", go(short, no_effect)))
   }
   if (isTRUE(form$sensitivity_without_effect)) {
     return(line("Don't know what effect to expect?",
-      "That's common. Give the number of people you can get, and Powerkit shows the smallest effect your study could detect; you then judge whether that is small enough.",
+      "That's common. Give the number of people you can get, and Powerkit finds ",
+      "the smallest effect your study could detect", "; you then judge whether that is small enough.",
       "Find the smallest effect my study could detect", TRUE))
   }
   if (isTRUE(form$sensitivity)) {
     return(line("Don't know how big the effect is?",
-      "If you know its pattern, enter that, and Powerkit scales it to the smallest size your sample could detect.",
+      "If you know its pattern, enter that, and Powerkit scales it to ",
+      "the smallest size your sample could detect", ".",
       "Find the smallest effect my study could detect", FALSE))
   }
   NULL
