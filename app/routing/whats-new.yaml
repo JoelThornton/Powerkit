@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "Factorial logistic regression: Firth's test, and you choose the test"
+    text: "The card for two crossed factors with a yes/no outcome now offers Firth's test, which suits studies with few 'yes' or few 'no' answers in some groups. Nothing is chosen for you: pick the test you will report, Firth's, the likelihood-ratio or the Wald test, and the power is for that test."
+  - date: "2026-11-22"
     title: "The smallest detectable effect is a link in the sentence"
     text: >-
       Above the effect size, the words "the smallest effect your study
