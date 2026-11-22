@@ -366,7 +366,7 @@ test_that("clustered yes/no outcomes show Known difference 16 (powertools' facto
 })
 
 test_that("the three-way interaction shows Known difference 17 (fixed-model formula above simulation)", {
-  expect_match(known_differences_for(forms, "E31", list(template = "three_way")), "about 940 were needed", fixed = TRUE)
+  expect_match(known_differences_for(forms, "E31", list(template = "three_way")), "about 900 were needed", fixed = TRUE)
   expect_true(nzchar(forms$known_differences_methods[["17"]]))
 })
 
