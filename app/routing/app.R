@@ -223,13 +223,13 @@ app_css <- "
      beside the label, heading or badge it explains. A group's sits beside
      its heading (the legend floats so the button can follow it). */
   fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
-  fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  fieldset.form-group-box > legend.h6 ~ * { clear: left; }
   /* A field shown only for some choices sits in Shiny's conditional
      wrapper, which has no box of its own (display: contents), so clearing
      the wrapper does nothing and the field rose beside the floated
      heading (17 November 2026). Its contents clear instead. */
   fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *,
-  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: both; }
+  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: left; }
   fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
   .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
   .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }
@@ -331,7 +331,7 @@ app_css <- "
   /* One info button in each box's corner with explanations off (19 November 2026). */
   .box-has-info { position: relative; }
   .box-info { display: none; }
-  .terms-mode .box-info { display: inline-flex; position: absolute; top: 0.55rem; right: 0.6rem; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
+  .terms-mode .box-info { display: inline-flex; float: right; position: relative; z-index: 1; margin: -0.3rem -0.4rem -0.5rem 0.75rem; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
   .terms-mode .box-info > span { border: 1px solid currentColor; border-radius: 50%; width: 1.2rem; height: 1.2rem; line-height: 1.1rem; text-align: center; font-weight: bold; }
   .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
   .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
@@ -341,7 +341,6 @@ app_css <- "
      for them, and a box without a visible heading starts with its
      question level with the corner button (22 November 2026). */
   .terms-mode .box-has-info .form-field label.control-label { min-height: 0; padding-right: 0; }
-  .terms-mode .box-has-info > legend.visually-hidden ~ .form-field:first-of-type label.control-label { padding-right: 3rem; }
   .terms-mode .box-has-info > .group-more:not([open]) { margin: 0; }
   /* Opened explanations in a form box read as one set: the same size and
      colour, no trailing gap (22 November 2026). */
@@ -359,8 +358,7 @@ app_css <- "
   .input-guide dt { font-weight: 600; }
   .input-guide dd { margin: 0; }
   @media (max-width: 575.98px) { .input-guide dl { display: block; } .input-guide dd { margin-bottom: 0.35rem; } }
-  .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
-  .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
+  .terms-mode .box-has-info > legend, .terms-mode .form-group-box.box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3.25rem); }
   /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
   .plan-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); align-items: start; gap: 0.75rem; margin: 1.25rem 0 0.75rem; }
   .plan-note + .plan-note { margin-top: 0.75rem; }
@@ -920,7 +918,7 @@ app_css <- "
      line of its own); what follows the button clears the heading. */
   .form-group-box > legend, .form-group-box legend.h6 { float: left; width: auto; max-width: calc(100% - 2.5rem); padding: 0; margin: 0 0.35rem 0.6rem 0;
                                                      font-size: 1rem; font-weight: 650; color: var(--pk-navy); line-height: 1.35; }
-  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: both; }
+  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: left; }
   .form-section-effect > .form-group-box { border-width: 2px; }
   .form-section-effect > .form-group-box > legend { color: var(--pk-blue); }
   .form-field label, .form-field .control-label { font-weight: 550; color: #1d2733; margin-bottom: 0.3rem; }
@@ -1030,10 +1028,8 @@ app_css <- "
   .card-more > summary:hover, .rep-more > summary:hover, .mismatch summary:hover, .bayes-mode-what > summary:hover { text-decoration: underline; }
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
-  /* The I don't know my effect size link starts at the column's edge when it is
-     on a line of its own, and keeps a space when it follows the text. */
-  .effect-unsure .btn { margin: 0 !important; }
-  .effect-unsure > div:first-child::after { content: ' '; }
+  /* The unknown-effect line's action is a link in the sentence. */
+  .effect-unsure .effect-unsure-go { padding: 0; border: 0; vertical-align: baseline; font-weight: 600; }
   /* The action bar is a whole rounded bar, pinned a little above the
      window's edge: with only its top corners rounded it looked cut off
      when it came to rest at the foot of the page. */

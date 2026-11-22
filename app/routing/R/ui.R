@@ -271,9 +271,16 @@ terms_js <- "
     // 2026), in place of a More context link under each note: with
     // explanations off it opens or closes every explanation in the box.
     var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
+    // Only the notes the reader can see now count: one inside a hidden
+    // choice or a closed fold would make the button open nothing visible.
+    var shown = function(d) {
+      if (!d.getClientRects().length) return false;
+      var fold = d.parentElement && d.parentElement.closest('details:not(.explanation-help)');
+      return !fold || fold.open;
+    };
     var boxNotes = function(box) {
       return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more, details.explanation-help.field-more, details.explanation-help.group-more'))
-        .filter(function(d) { return d.closest(boxSel) === box; });
+        .filter(function(d) { return d.closest(boxSel) === box && shown(d); });
     };
     document.querySelectorAll(boxSel).forEach(function(box) {
       var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
@@ -292,7 +299,9 @@ terms_js <- "
           ns.forEach(function(n) { n.open = open; });
           window.pkSyncExplanations(false);
         });
-        box.appendChild(btn); box.classList.add('box-has-info');
+        // First in the box and floated right, so the question beside it
+        // wraps around the button instead of running under it.
+        box.insertBefore(btn, box.firstChild); box.classList.add('box-has-info');
       }
       btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && isNote(n); }) ? 'true' : 'false');
     });
@@ -317,6 +326,12 @@ terms_js <- "
       if (!relevant || pending) return;
       pending = true; requestAnimationFrame(function() { pending = false; window.pkSyncExplanations(false); });
     }).observe(document.body, {childList: true, subtree: true});
+    // A choice that shows or hides a field, or a fold opened, changes which
+    // notes a box's button can open.
+    var resync = function() { setTimeout(function() { window.pkSyncExplanations(false); }, 0); };
+    document.addEventListener('change', resync);
+    document.addEventListener('toggle', function(e) { if (!e.target.classList.contains('explanation-help')) resync(); }, true);
+    if (window.jQuery) window.jQuery(document).on('shown hidden', '.shiny-panel-conditional', resync);
   });
   document.addEventListener('toggle', function(event) {
     if (event.target.matches('details.explanation-help')) window.pkSyncExplanations(false);

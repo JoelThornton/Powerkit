@@ -174,7 +174,7 @@ field_ui <- function(f, value, described_by = character()) {
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
     conditionalPanel(sprintf("input.%s == '%s'", id, k),
-      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]])))
+      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]]), class = "field-more choice-more"))
   }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
@@ -298,6 +298,14 @@ legend_repeats_question <- function(legend, g) {
   !length(head) || mean(head %in% words(label)) >= 0.6
 }
 
+effect_box_legend <- function(legend, g) {
+  labels <- vapply(g$fields, function(f) f$label %||% "", character(1))
+  if (is.null(legend) || !any(grepl("^How you\u2019?'?ll give", labels))) return(legend)
+  if (grepl(":", legend, fixed = TRUE)) return(sub(":.*$", "", legend))
+  if (grepl(", or ", legend, fixed = TRUE)) return("The effect")
+  legend
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -305,6 +313,10 @@ group_ui_build <- function(tree, g, values, index) {
   # heading that reads as a list, not a question, so the box led by the
   # test-version choice is headed plainly. Its terms stay explained.
   if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) legend <- "Which test you'll run"
+  # A box whose first question is how you'll give the effect lists the
+  # same forms that choice offers, so its heading names only what it is
+  # ("The effect", or the part before a colon) (22 November 2026).
+  legend <- effect_box_legend(legend, g)
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
   # Short name fields sit two to a row on wider screens; a legend that
@@ -686,17 +698,24 @@ field_problems_js <- "
 # sets the two choices (what to find out, and the source); it fills in no
 # number.
 effect_unsure_ui <- function(form) {
+  # One line, question and action together (22 November 2026): an info
+  # button beside a separate "I don't know" button read as two choices.
+  # The sentence that only explains follows the explanations switch.
+  line <- function(question, explain, label, no_effect) {
+    p(class = "effect-unsure", tags$strong(question), " ",
+      tags$span(class = "plain-only", explain, " "),
+      tags$button(type = "button", class = "btn btn-link effect-unsure-go",
+        onclick = sprintf("pkEffectUnsure(%s)", if (no_effect) "true" else "false"), label))
+  }
   if (isTRUE(form$sensitivity_without_effect)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know what effect to expect? "), "That's common. Tell Powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+    return(line("Don't know what effect to expect?",
+      "That's common. Give the number of people you can get, and Powerkit shows the smallest effect your study could detect; you then judge whether that is small enough.",
+      "Find the smallest effect my study could detect", TRUE))
   }
   if (isTRUE(form$sensitivity)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and Powerkit can scale it up or down to the smallest size your sample could detect."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
+    return(line("Don't know how big the effect is?",
+      "If you know its pattern, enter that, and Powerkit scales it to the smallest size your sample could detect.",
+      "Find the smallest effect my study could detect", FALSE))
   }
   NULL
 }
