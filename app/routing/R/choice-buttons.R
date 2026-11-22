@@ -6,13 +6,16 @@
 # value Shiny reads (hidden, but labelled), and the buttons are built in
 # the browser from its options, so a choice hidden by `choices_shown_if`
 # disappears from the buttons too. `button_labels` gives each choice a
-# short title; the option's full wording is the line under it.
+# short title; the option's full wording is the line under it, unless
+# `button_notes` gives a line that adds to the title rather than restating
+# it ("Sample size" over "The sample size I need", 22 November 2026).
 
 choice_buttons_ui <- function(f) {
   id <- field_input_id(f)
   div(class = "pk-choice-buttons", id = paste0(id, "_buttons"), `data-target` = id,
     `data-label` = paste0(id, "-label"),
-    `data-titles` = as.character(jsonlite::toJSON(f$button_labels %||% list(), auto_unbox = TRUE)))
+    `data-titles` = as.character(jsonlite::toJSON(f$button_labels %||% list(), auto_unbox = TRUE)),
+    `data-notes` = as.character(jsonlite::toJSON(f$button_notes %||% list(), auto_unbox = TRUE)))
 }
 
 choice_buttons_css <- "
@@ -37,6 +40,7 @@ choice_buttons_js <- "
     var group = sel.closest('.form-group'); if (group) group.classList.add('pk-has-buttons');
     sel.setAttribute('tabindex', '-1');
     var titles = {}; try { titles = JSON.parse(box.getAttribute('data-titles') || '{}'); } catch (e) {}
+    var notes = {}; try { notes = JSON.parse(box.getAttribute('data-notes') || '{}'); } catch (e) {}
     var opts = Array.prototype.filter.call(sel.options, function(o) { return o.value && !o.hidden && !o.disabled; });
     var key = opts.map(function(o) { return o.value; }).join('|') + '#' + sel.value;
     if (box.pkKey === key) return;
@@ -63,6 +67,7 @@ choice_buttons_js <- "
       b.setAttribute('data-value', value);
       if (kind === 'advanced') b.setAttribute('aria-pressed', String(selected));
       else { b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(selected)); }
+      if (title && Object.prototype.hasOwnProperty.call(notes, value)) description = notes[value];
       if (title) { var t = document.createElement('span'); t.className = 'pk-cb-title'; t.textContent = title; b.appendChild(t); }
       if (description) {
         var s = document.createElement('span'); s.className = title ? 'pk-cb-text' : 'pk-cb-title'; s.textContent = description; b.appendChild(s);

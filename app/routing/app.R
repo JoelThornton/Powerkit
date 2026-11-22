@@ -342,6 +342,9 @@ app_css <- "
   .terms-mode .form-group-box .explanation-help[open] > .explanation-content { font-size: 0.9rem; color: #3d4652; }
   .terms-mode .form-group-box .explanation-content .field-help, .terms-mode .form-group-box .explanation-content .input-guide { font-size: inherit; color: inherit; }
   .terms-mode .form-group-box .explanation-content > :last-child, .terms-mode .form-group-box .explanation-content p:last-child { margin-bottom: 0; }
+  /* The test box's heading asks the question, so the Test version label
+     under it is for screen readers only (22 November 2026). */
+  .form-group-test > .form-field:first-of-type > .form-group > label.control-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   /* A field guide's labels sit beside their text, not above it (22 November 2026). */
   .input-guide dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.9rem; margin: 0.25rem 0 0; }
   .input-guide dt { font-weight: 600; }
