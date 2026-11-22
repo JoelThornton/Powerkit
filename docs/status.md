@@ -28,7 +28,10 @@ card, the SEM model-fit tests and the clustered designs now have one (a group tr
 of freedom, Departure 38); the record and the
 cards still to do are in `validation-log.md`, "Independent checks by
 card"), and the method choices each card makes for the
-researcher (so far E18, E23, E26, E33 and the other mixed models, E53
+researcher (every card's are listed in `conventions.md`, "Choices each
+card makes for the researcher"; the planned contrast's one-sided test
+and the factorial logistic regression's likelihood-ratio test are next;
+so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
