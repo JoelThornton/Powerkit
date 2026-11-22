@@ -24,8 +24,8 @@ with it, item 24 audits every card that runs for a check independent of
 the package it wraps (moderation in regression, the ordinal card, the
 repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
 logistic factorial, the three-way interaction, every moderated mediation
-card, the SEM model-fit tests and the clustered designs now have one (a group treatment trial now uses Satterthwaite's degrees
-of freedom, Departure 38); the record and the
+card, the SEM model-fit tests, the clustered designs and the formula cards (one proportion, McNemar's exact test, goodness of fit, multiple regression, two correlations and ANCOVA) now have one (a group treatment trial now uses Satterthwaite's degrees
+of freedom, Departure 38; with measured predictors the regression F tests give about 1 to 2 points more power than simulated studies, which is put to the maintainer); the record and the
 cards still to do are in `validation-log.md`, "Independent checks by
 card"), and the method choices each card makes for the
 researcher (every card's are listed in `conventions.md`, "Choices each

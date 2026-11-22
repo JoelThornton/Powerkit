@@ -175,6 +175,7 @@ validation_chunks <- function() {
     contrast = "test-validation-anova-contrast.R",
     ancova = "test-validation-anova-ancova.R",
     two_correlations = "test-validation-two-correlations.R",
+    formula = "test-validation-formula-tests.R",
     generic = "test-validation-generic-tests.R",
     equivalence = c("test-validation-equivalence-tests.R", "test-validation-minimum-effect.R"),
     trend = "test-validation-trend.R",
@@ -198,7 +199,7 @@ validation_minutes <- function() {
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     process_bootstrap = 60, mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
-    contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1, prediction = 0.3,
+    contrast = 0.3, ancova = 2, two_correlations = 1, formula = 1, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1, prediction = 0.3,
     whole_study = 175, cluster = 4, multisite = 0.5, sem_fit = 0.3,
     sem_latent = 0.3, glmm = 11, mixed_model = 420)
 }
