@@ -325,9 +325,10 @@ test_that("an outcome measured twice or more never falls through to the safety n
   walk(start_node(tree), list(), character())
   expect_gt(length(ends), 0)
   # Three or more unordered categories, on trials, in groups or answered
-  # twice, are asked and then named on the safety net (finder_gaps).
+  # twice, and several outcomes related to predictors together, are asked
+  # and then named on the safety net (finder_gaps).
   allowed <- grepl("Four or more$", ends) | grepl(paste0("As ordered categories > Independent people > Once > ", rel, "$"), ends, fixed = FALSE) |
-    grepl("> (One of three or more categories|Three or more)$", ends)
+    grepl("> (One of three or more categories|Three or more|Several outcome scores, related to the predictors together)$", ends)
   expect_identical(ends[!allowed], character())
 })
 

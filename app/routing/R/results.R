@@ -3590,8 +3590,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "Powerkit built the call from your answers and checked the effect size it passes. " else
-        "Powerkit built the call from your answers and checked that it reproduces the population you entered. ",
+      if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "Powerkit checked the effect size it passes to the package. " else
+        "Powerkit checked that the call reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep, result),
     if (length(departures_in_view)) tagList(
@@ -4633,7 +4633,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
-        "Powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
+        "Powerkit checked the values it passes to the package. Cite the package: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
         h4(class = "h6", "Where Powerkit differs from other tools' defaults"),

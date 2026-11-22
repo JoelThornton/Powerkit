@@ -4667,7 +4667,7 @@ forms:
              shown_if: {field: question, is: invariance}}
           - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: invariance},
-             help: "A typical value for your items, for example 0.7. Every item has this loading in every group and on every occasion, apart from the items that differ in the last one."}
+             help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people. Every item has this loading in every group and on every occasion, apart from the items that differ in the last one."}
           - {id: noninvariant, writeup_label: "items that differ", label: "Number of items that differ in the last group", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
              shown_if: {field: question, is: invariance},
              help: "How many of the first factor's items differ in the last group (or on the last occasion). At least one item must be the same everywhere. The other groups or occasions, and the other factors, are invariant."}
@@ -4692,7 +4692,7 @@ forms:
           - {id: fc_items2, writeup_label: "items on factor 2", label: "Items measuring factor 2", type: number, path: population.indicators.2, required: true, min: 2, integer: true,
              shown_if: {field: question, is: factor_correlation}}
           - {id: fc_loading1, writeup_label: "loading on factor 1", label: "Standardised loading of factor 1's items", type: number, path: population.loadings.1, required: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: {field: question, is: factor_correlation}, help: "A typical value, for example 0.6."}
+             shown_if: {field: question, is: factor_correlation}, help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people."}
           - {id: fc_loading2, writeup_label: "loading on factor 2", label: "Standardised loading of factor 2's items", type: number, path: population.loadings.2, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: factor_correlation}}
           - {id: fc_r, writeup_label: "correlation", label: "Correlation between the factors", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
@@ -4713,7 +4713,7 @@ forms:
           - {id: lr_indicators, writeup_label: "items per factor", label: "Items measuring each factor", type: number, path: population.indicators, required: true, min: 2, integer: true,
              shown_if: {field: question, is: latent_regression}, help: "The same for the outcome and every predictor."}
           - {id: lr_loading, writeup_label: "loading", label: "Standardised loading of every item", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: {field: question, is: latent_regression}, help: "A typical value, for example 0.6."}
+             shown_if: {field: question, is: latent_regression}, help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people."}
 
   # Planned contrast (pwrss's t test of one weighted combination of the
   # group means, k.covariates = 0): equal groups, two-sided only, because
