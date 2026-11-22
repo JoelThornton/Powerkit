@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-22"
+    title: "Factorial logistic regression: the likelihood-ratio test"
+    text: "The card for two crossed factors with a yes/no outcome now uses the likelihood-ratio test unless you choose the Wald test. It is the test R's usual commands for this model report. With few people per cell, or proportions near 0 or 1, it keeps power the Wald test loses, so the sample sizes it gives there can be smaller than before."

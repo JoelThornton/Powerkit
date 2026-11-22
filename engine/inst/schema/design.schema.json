@@ -9120,7 +9120,11 @@
                   ]
                 },
                 "method": {
-                  "const": "wald_chi_square"
+                  "description": "'wald_chi_square': the Wald test of the effect's coefficients (car::lht(), Spower's p_glm()); 'likelihood_ratio': the model against the same model without them (type III, as car::Anova(type = 3, test.statistic = \"LR\")).",
+                  "enum": [
+                    "wald_chi_square",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }

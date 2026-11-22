@@ -64,3 +64,46 @@ test_that("the exported script reproduces the result", {
   out <- run_exported_script(spec, result)
   expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
 })
+
+# The likelihood-ratio test -------------------------------------------------------
+
+test_that("each simulated likelihood-ratio test equals car::Anova()'s type III test", {
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    spec <- validate_quietly(factorial_logit_spec(effect))
+    design <- logistic_factorial_design(spec)
+    X <- design$X(120)
+    fit <- with_seed(7, Spower::p_glm(y ~ A * B, X = X, betas = design$betas, test = NULL,
+      family = stats::binomial(), return_analysis = TRUE))
+    term <- switch(effect, main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+    expected <- car::Anova(fit, type = 3, test.statistic = "LR")[term, "Pr(>Chisq)"]
+    p <- with_seed(7, p_logistic_factorial_lr(y ~ A * B, X = X, betas = design$betas, tested = design$tested))
+    expect_equal(p, expected, tolerance = 1e-8, label = effect)
+  }
+})
+
+test_that("the likelihood-ratio test runs, passes its check run, and its script reproduces it", {
+  skip_on_cran()
+  spec <- factorial_logit_spec("interaction")
+  spec$target_test$method <- "likelihood_ratio"
+  spec <- validate_quietly(spec)
+  result <- suppressWarnings(run_spec(spec))
+  expect_match(result$provenance$backend_function, "p_logistic_factorial_lr", fixed = TRUE)
+  expect_true(all(result$check_run$ok))
+  out <- run_exported_script(spec, result)
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
+})
+
+test_that("with sparse cells the likelihood-ratio test keeps power the Wald test loses", {
+  # Proportions near 0 with 20 people per cell: the Wald test's standard
+  # errors grow with a large estimate, so it
+  # rejects far less often than the likelihood-ratio test on the same data.
+  at <- function(method) {
+    spec <- factorial_logit_spec("interaction", goal = list(type = "power", n = 80),
+      probabilities = list(list(0.05, 0.1), list(0.1, 0.7)))
+    spec$variables$B$levels <- list("b1", "b2")
+    spec$target_test$method <- method
+    spec$options$nrep <- 1000
+    suppressWarnings(run_spec(validate_quietly(spec)))$curve$power
+  }
+  expect_gt(at("likelihood_ratio") - at("wald_chi_square"), 0.08)
+})

@@ -277,7 +277,7 @@ form_examples$E29 <- c(list(X_label = "Condition", X_level1 = "Usual care", X_le
 # E47: a yes/no outcome with two crossed factors.
 form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", B_label = "Messenger", B_levels = "Doctor, Friend, Celebrity",
                             Y_label = "Booked a flu jab", probabilities = "0.3, 0.4, 0.25\n0.4, 0.45, 0.3",
-                            effect = "main_effect_A"), closing_ok)
+                            effect = "main_effect_A", factorial_test = "likelihood_ratio"), closing_ok)
 
 # E46: precision planning, a proportion (presize; MBESS cases are in
 # test-results.R).

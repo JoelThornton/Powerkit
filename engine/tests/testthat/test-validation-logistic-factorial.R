@@ -1,7 +1,8 @@
 # Validation: a yes/no outcome with two crossed factors (logistic
 # regression with both factors and their interaction, effect coding; the
-# Wald test of one effect's coefficients). Backend: Spower's p_glm(),
-# simulated. Build guide section 6:
+# Wald test of one effect's coefficients, or the likelihood-ratio test).
+# Backend: Spower's p_glm(), simulated; the likelihood-ratio test by
+# powerkit's p_logistic_factorial_lr() on p_glm()'s fit. Build guide section 6:
 #   1. analytic agreement: none (no closed form for these Wald tests)
 #   2. published examples: placeholders below, for the maintainer
 #   3. direct-call agreement with Spower
@@ -12,7 +13,8 @@
 # values were written with the code (CLAUDE.md, Non-negotiables).
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
-logit_factorial_validation_spec <- function(probabilities, effect, seed, n = NULL, target_power = NULL, alpha = 0.05) {
+logit_factorial_validation_spec <- function(probabilities, effect, seed, n = NULL, target_power = NULL, alpha = 0.05,
+                                            method = "wald_chi_square") {
   v <- validation_variable
   a <- length(probabilities)
   b <- length(probabilities[[1]])
@@ -25,7 +27,7 @@ logit_factorial_validation_spec <- function(probabilities, effect, seed, n = NUL
       Y = v("binary", "Outcome", levels = list("No", "Yes"))
     ),
     population = list(metric = "proportion", probabilities = probabilities),
-    target_test = list(effect = effect, method = "wald_chi_square", alpha = alpha),
+    target_test = list(effect = effect, method = method, alpha = alpha),
     seed = seed,
     n = n,
     target_power = target_power
@@ -96,4 +98,24 @@ test_that("logistic factorial: each effect agrees with glm() on studies simulate
       nrep = validation_nrep(), seed = 1200 + i)
     expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
   }
+})
+
+test_that("logistic factorial, likelihood-ratio test: each effect agrees with car::Anova() on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  effects <- c(main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+  for (i in seq_along(effects)) {
+    spec <- logit_factorial_validation_spec(cells_2x3, names(effects)[i], seed = 1300 + i, n = 600, method = "likelihood_ratio")
+    reference <- independent_logistic_factorial_power(cells_2x3, effects[[i]], n = 600,
+      nrep = validation_nrep(), seed = 1400 + i, test = "likelihood_ratio")
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+})
+
+test_that("logistic factorial, likelihood-ratio test: Type I error is near alpha when the interaction is 0 on the log-odds scale", {
+  skip_unless_full_validation()
+  row1 <- c(0.3, 0.4, 0.25)
+  row2 <- plogis(qlogis(row1) + 0.4)
+  spec <- logit_factorial_validation_spec(list(as.list(row1), as.list(row2)), "interaction", seed = 1501, n = 600,
+    method = "likelihood_ratio")
+  expect_type1_near(engine_power(spec), alpha = 0.05)
 })
