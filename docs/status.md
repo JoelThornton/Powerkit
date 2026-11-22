@@ -23,7 +23,8 @@ smaller items), is `next.md` item 22 and comes first while testing runs;
 with it, item 24 audits every card that runs for a check independent of
 the package it wraps (moderation in regression, the ordinal card, the
 repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
-logistic factorial and the three-way interaction now have one; the record and the
+logistic factorial, the three-way interaction, PROCESS model 7 and
+the SEM model-fit tests now have one; the record and the
 cards still to do are in `validation-log.md`, "Independent checks by
 card"), and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
