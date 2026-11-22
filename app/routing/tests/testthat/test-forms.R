@@ -1232,3 +1232,34 @@ test_that("the SEM card's item count stays where semPower counts degrees of free
   expect_identical(items$max, 100L)
   expect_match(form_problems(fields_for("E37"), modifyList(form_examples$E37, list(indicators = "120"))), "at most 100", fixed = TRUE)
 })
+
+test_that("every info button has something to show, and the optional sections share one card", {
+  for (ep in c("E1", "E2", "E18")) {
+    html <- as.character(form_ui(tree, forms, ep, form_groups(forms, ep)))
+    # An info button whose panel would open empty is not drawn.
+    expect_no_match(html, '<div id="[^"]*_info_body" class="explanation-content">\\s*</div>', perl = TRUE, label = ep)
+    # The assumptions, Settings and guess rows sit in one card, Settings
+    # with its summary still showing.
+    extras <- regexpr('<div class="form-extras">', html, fixed = TRUE)
+    expect_gt(extras, 0, label = ep)
+    expect_gt(regexpr('<details class="form-settings">', html, fixed = TRUE), extras, label = ep)
+    expect_gt(regexpr('<details class="form-guess">', html, fixed = TRUE), extras, label = ep)
+  }
+  html <- as.character(form_ui(tree, forms, "E1", form_groups(forms, "E1")))
+  expect_no_match(html, 'id="f_effect_units_info"', fixed = TRUE)
+})
+
+test_that("a field's guide doesn't repeat the field's own help as its meaning", {
+  d <- Filter(function(f) identical(f$id, "d"), fields_for("E2"))[[1]]
+  guide <- as.character(input_guide_ui(d))
+  expect_no_match(guide, "<dt>Meaning</dt>", fixed = TRUE)
+  expect_match(guide, "<dt>Example</dt>", fixed = TRUE)
+})
+
+test_that("with explanations off, a form box's one info button opens its fields' explanations", {
+  # The corner button covers field and box explanations, and the per-field
+  # buttons inside such a box are hidden.
+  expect_match(terms_js, "details.explanation-help.field-more, details.explanation-help.group-more", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, ".terms-mode .box-has-info .explanation-help.field-more > summary", fixed = TRUE)
+})

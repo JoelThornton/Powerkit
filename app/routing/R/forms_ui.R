@@ -103,7 +103,11 @@ field_ui <- function(f, value, described_by = character()) {
   # both explanation modes; with explanations off the line folds too.
   lead <- if (is.null(f$prompt)) help_lead(f$help)
   rest <- if (!is.null(lead)) help_rest(f$help) else f$help
-  more <- if (!is.null(f$help) || !is.null(f$default_source) || !is.null(input_guide(f))) explanation_ui(
+  # A select's starting value shows as selected, so its source adds no
+  # line; a field with nothing else to say gets no info button (an empty
+  # one opened onto a blank box, 22 November 2026).
+  source_line <- !is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")
+  more <- if (!is.null(f$help) || source_line || !is.null(input_guide(f))) explanation_ui(
       paste0(id, "_info"), f$label, class = "field-more",
       if (!is.null(lead)) div(class = "field-help field-lead-copy", lead),
       if (!is.null(f$help)) div(id = help_id, class = "field-help", rest %||% ""),
@@ -111,7 +115,7 @@ field_ui <- function(f, value, described_by = character()) {
     # Shown only where a number is filled in to start with: a line about an
     # empty box or a pre-selected choice describes the app, not the study
     # (11 November 2026).
-    if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) div(id = source_id, class = "default-source", title = f$default_source,
+    if (source_line) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
@@ -547,12 +551,15 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_help_ui(form, groups),
       effect_boxes_ui(groups),
       part("effect")),
-    if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
+    # The optional sections share one card, a row each (22 November 2026);
+    # the Settings row keeps its summary of the choices that change the result.
+    if (any(section %in% c("scenarios", "guess")) || length(settings)) div(class = "form-extras",
+    if (any(section == "scenarios")) tags$details(class = "form-scenarios", tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
         settings_summary_ui(settings, values), " \u00b7 ", tags$span(class = "form-settings-change", "Change")),
       part("settings"), part("accuracy")),
-    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess"))
+    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess")))
   )
 }
 

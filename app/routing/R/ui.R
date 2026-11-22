@@ -238,7 +238,7 @@ site_address <- "https://joelthornton.github.io/Powerkit"
 # The stored value keeps its earlier meaning: '1' means explanations off.
 terms_toggle_ui <- function() {
   tags$label(class = "terms-toggle form-switch", `for` = "explanations_on",
-    title = "Turn off to fold the help text under each question behind an info button",
+    title = "Turn off to fold the help text behind an info button on each box",
     tags$input(type = "checkbox", role = "switch", id = "explanations_on", class = "form-check-input",
       checked = NA, onchange = "pkSetTermsMode(!this.checked)"),
     "Show explanations")
@@ -272,12 +272,15 @@ terms_js <- "
     // explanations off it opens or closes every explanation in the box.
     var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
     var boxNotes = function(box) {
-      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more'))
+      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more, details.explanation-help.field-more, details.explanation-help.group-more'))
         .filter(function(d) { return d.closest(boxSel) === box; });
     };
     document.querySelectorAll(boxSel).forEach(function(box) {
       var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
-      var hasNote = notes.some(function(n) { return n.classList.contains('rep-note'); });
+      // An input form's box takes the button when any field in it has an
+      // explanation; each still opens under its own field (22 November 2026).
+      var isNote = function(n) { return n.classList.contains('rep-note') || n.classList.contains('field-more') || n.classList.contains('group-more'); };
+      var hasNote = notes.some(isNote);
       if (!hasNote) { if (btn) btn.remove(); box.classList.remove('box-has-info'); return; }
       if (!btn) {
         btn = document.createElement('button');
@@ -285,13 +288,13 @@ terms_js <- "
         btn.setAttribute('aria-label', 'Explanations for this part'); btn.title = 'Show or hide the explanations here';
         btn.innerHTML = '<span aria-hidden=\"true\">i</span>';
         btn.addEventListener('click', function() {
-          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && n.classList.contains('rep-note'); });
+          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && isNote(n); });
           ns.forEach(function(n) { n.open = open; });
           window.pkSyncExplanations(false);
         });
         box.appendChild(btn); box.classList.add('box-has-info');
       }
-      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && n.classList.contains('rep-note'); }) ? 'true' : 'false');
+      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && isNote(n); }) ? 'true' : 'false');
     });
   };
   window.pkSetTermsMode = function(on) {
