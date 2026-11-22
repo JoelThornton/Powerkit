@@ -35,7 +35,7 @@ test_that("each formula test runs on pwrss, exactly, and passes its check run", 
   cases <- c(
     fisher_exact = "pwrss::power.exact.fisher",
     chi_square_gof = "pwrss::power.chisq.gof",
-    anova_oneway_contrast = "pwrss::power.t.contrasts",
+    anova_oneway_contrast = "pwrss::power.t.test",
     two_correlations = "pwrss::power.z.twocors",
     overlapping_correlations = "pwrss::power.z.twocors.steiger",
     nonoverlapping_correlations = "pwrss::power.z.twocors.steiger",
@@ -455,6 +455,52 @@ test_that("a contrast equals pwrss::power.t.contrasts(), and Superpower's emmean
   expect_equal(power, linear / 100, tolerance = 1e-6)
 })
 
+test_that("a contrast uses the alpha asked for, which power.t.contrasts() ignores", {
+  # pwrss 1.3.3's power.t.contrasts() calls power.t.test() without its
+  # alpha when there are no covariates, so it gives the power at 0.05
+  # whatever alpha it is passed. powerkit's result follows the alpha, and
+  # matches the noncentral t computed from stats::pt().
+  at <- function(alpha, alternative = "two_sided") {
+    spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+    spec$target_test$alpha <- alpha
+    spec$target_test$alternative <- alternative
+    run_spec(spec)$curve$power
+  }
+  ncp <- (-3 * 1.5 - 2 + 3 + 3 * 4) / (2 * sqrt(20 / 5))
+  noncentral_t <- function(alpha, sides) {
+    critical <- stats::qt(1 - alpha / sides, 16)
+    stats::pt(critical, 16, ncp, lower.tail = FALSE) + if (sides == 2) stats::pt(-critical, 16, ncp) else 0
+  }
+  expect_equal(at(0.05), noncentral_t(0.05, 2), tolerance = 1e-10)
+  expect_equal(at(0.01), noncentral_t(0.01, 2), tolerance = 1e-10)
+  expect_equal(at(0.05, "greater"), noncentral_t(0.05, 1), tolerance = 1e-10)
+  expect_equal(at(0.01, "greater"), noncentral_t(0.01, 1), tolerance = 1e-10)
+  # The size of pwrss's error at alpha 0.01: it reports the power at 0.05.
+  ignored <- pwrss::power.t.contrasts(
+    mu.vector = c(1.5, 2, 3, 4), sd.vector = rep(2, 4), n.vector = rep(5, 4),
+    contrast.matrix = matrix(c(-3, -1, 1, 3), nrow = 1),
+    r.squared = 0, k.covariates = 0, alpha = 0.01, adjust.alpha = "none",
+    ceil.n = FALSE, verbose = 0
+  )$power
+  expect_equal(as.numeric(ignored), at(0.05))
+  expect_lt(at(0.01), as.numeric(ignored) - 0.2)
+})
+
+test_that("a one-sided contrast runs in the direction of the contrast", {
+  spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+  spec$target_test$alternative <- "greater"
+  one_sided <- run_spec(spec)$curve$power
+  spec$target_test$alternative <- "two_sided"
+  expect_gt(one_sided, run_spec(spec)$curve$power)
+  # Reversing the weights reverses the direction, with the same power.
+  spec$target_test$alternative <- "less"
+  spec$target_test$weights <- list(3, 1, -1, -3)
+  expect_equal(run_spec(spec)$curve$power, one_sided)
+  # A contrast of zero gives a one-sided test's alpha.
+  spec$population$means <- list(2, 2, 2, 2)
+  expect_equal(run_spec(spec)$curve$power, 0.05, tolerance = 1e-10)
+})
+
 test_that("a contrast's weights can be on any scale", {
   at <- function(weights) {
     spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
@@ -501,10 +547,10 @@ test_that("contrast specs that can't be right are refused", {
   spec <- base()
   spec$options$method <- "simulation"
   expect_spec_problem(spec, "'simulation' isn't available for this test yet")
-  # Two-sided only: pwrss's contrast function has no one-sided option.
+  # A one-sided test pointing away from the contrast is refused.
   spec <- base()
-  spec$target_test$alternative <- "greater"
-  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  spec$target_test$alternative <- "less"
+  expect_spec_problem(spec, "goes the other way")
   # The weights belong to a contrast, not to the omnibus test.
   spec <- formula_spec("anova_oneway_between", list(type = "power", n = 30))
   spec$target_test$weights <- list(-1, 0, 1)

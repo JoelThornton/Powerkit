@@ -177,7 +177,8 @@ pwrss_script_inputs <- function(spec) {
       sprintf("sd <- %s # SD of the outcome within each group", r_code(pop$sd)),
       sprintf("weights <- %s # the comparison being tested, one weight per group",
         r_code(as.numeric(unlist(spec$target_test$weights)))),
-      sprintf("groups <- %s", r_code(length(unlist(v$A$levels))))
+      sprintf("groups <- %s", r_code(length(unlist(v$A$levels)))),
+      alt_line
     ),
     oneway_ancova = c(
       sprintf("means <- %s # expected adjusted mean of each group: %s",
@@ -399,12 +400,15 @@ pwrss_script_call_lines <- function(spec, inputs) {
     chi_square_gof = list(head = "power.chisq.gof( # chi-square goodness-of-fit test", args = c(
       "w = effect$w", "df = effect$df", "n = n_total", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
     )),
-    oneway_contrast = list(head = "power.t.contrasts( # t test of a planned comparison", args = c(
-      "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
-      "n.vector = rep(n_total / groups, groups) # equal groups",
-      "contrast.matrix = matrix(weights, nrow = 1)",
-      "r.squared = 0", "k.covariates = 0 # no covariates (pwrss defaults this to 1)",
-      "alpha = alpha", "adjust.alpha = \"none\"", "ceil.n = FALSE", "verbose = 0"
+    oneway_contrast = list(pre = c(
+      "  # The noncentrality and df pwrss's power.t.contrasts() computes with no",
+      "  # covariates: the contrast, sum(weights * means), over its standard",
+      "  # error, on n - groups df.",
+      "  # Called directly because power.t.contrasts() (pwrss 1.3.3) uses alpha",
+      "  # 0.05 whatever alpha it is given, and is two-sided only."
+    ), head = "power.t.test( # t test of a planned comparison", args = c(
+      "ncp = sum(weights * means) / (sd * sqrt(sum(weights^2 / rep(n_total / groups, groups)))) # equal groups",
+      "df = n_total - groups", "alpha = alpha", "alternative = alternative", "plot = FALSE", "verbose = 0"
     )),
     oneway_ancova = if (ancova_fixed(spec)) ancova_fixed_call(spec) else list(head = "power.f.ancova.shieh( # one-way ANCOVA, Shieh's method", args = c(
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",

@@ -4716,14 +4716,15 @@ forms:
           - {id: lr_loading, writeup_label: "loading", label: "Standardised loading of every item", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: latent_regression}, help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people."}
 
-  # Planned contrast (pwrss's t test of one weighted combination of the
-  # group means, k.covariates = 0): equal groups, two-sided only, because
-  # power.t.contrasts() has no one-sided option (docs/conventions.md).
+  # Planned contrast (the t test of one weighted combination of the group
+  # means, power.t.contrasts()'s noncentral t with k.covariates = 0, run
+  # through pwrss's power.t.test() so the alpha and a one-sided test are
+  # honoured: docs/conventions.md). Equal groups.
   E19:
     methods_name: "a planned contrast (a t test of a weighted combination of the group means)"
     tool: pwrss
     sensitivity: true
-    directional: false
+    directional: true
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_contrast,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},
            target_test: {effect: contrast, method: contrast_t}}

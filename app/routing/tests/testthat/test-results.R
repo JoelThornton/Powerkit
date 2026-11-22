@@ -1387,7 +1387,7 @@ test_that("a planned contrast runs on pwrss, and refuses weights that don't add 
   spec <- build_spec(forms, "E19", fields, form_examples$E19)
   expect_equal(unlist(spec$target_test$weights), c(-3, -1, 1, 3))
   calc <- run_calculation(spec, run, seed = 1L)
-  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.test")
   expect_gt(calc$result$n_required$n, 0)
   html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
   expect_match(html, "Checks for this analysis in general", fixed = TRUE)
