@@ -1,9 +1,9 @@
 entries:
   - date: "2026-11-22"
-    title: "Two more prompts in the full methods paragraph"
+    title: "Fill-in prompts in the full methods paragraph"
     text: >-
-      The full methods paragraph now asks you to say where the R script or saved plan
-      that reproduces the calculation is shared. When your sample size is set by your
-      resources, it also asks what the data will be used for at that size, such as a
-      decision made whatever the result or a later meta-analysis. Both follow Lakens's
-      (2022) guide to justifying a sample size.
+      The full methods paragraph now leaves short fill-in prompts for what only you can
+      say: why you chose the significance level and the target power (when you haven't
+      given a reason), where the R script or saved plan is shared, and, when your sample
+      size is set by your resources, what the data will be used for at that size. They
+      follow Lakens's (2022) guide to justifying a sample size.

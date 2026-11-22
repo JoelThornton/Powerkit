@@ -133,3 +133,17 @@ test_that("the full paragraph asks where the reproducing code is shared, and wha
   fixed <- decision_outputs("E2", list(goal = "power", n = "120", situation = "fixed"))
   expect_match(fixed$full, "[Say what the data will be used for at this sample size", fixed = TRUE)
 })
+
+test_that("the full paragraph asks why the significance level and target power were chosen when no reason is given", {
+  # Lakens (2022), Table 4; decided 22 November 2026.
+  bare <- decision_outputs("E2", list(alpha_reason = "", power_reason = ""))
+  expect_match(bare$full, "[Say why this significance level was chosen.]", fixed = TRUE)
+  expect_match(bare$full, "[Say why this target power was chosen.]", fixed = TRUE)
+  expect_no_match(bare$short, "[Say why", fixed = TRUE)
+  given <- decision_outputs("E2", list(alpha_reason = "the claim is new", power_reason = "a miss would waste a year"))
+  expect_match(given$full, "The significance level of .05 was chosen because the claim is new.", fixed = TRUE)
+  expect_no_match(given$full, "[Say why this", fixed = TRUE)
+  # No target power for the power goal, so no prompt for it.
+  power <- decision_outputs("E2", list(goal = "power", n = "120", power_reason = ""))
+  expect_no_match(power$full, "[Say why this target power", fixed = TRUE)
+})

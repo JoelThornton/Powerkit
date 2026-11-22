@@ -3707,6 +3707,19 @@ writeup_choices <- function(fields, values) {
   )
 }
 
+# Lakens (2022, Table 4) asks for the significance level and the target
+# power to be justified. With no reason entered, the full version leaves
+# a prompt for each (22 November 2026, replacing the 8 November rule that
+# it state the value alone); the short version still states the value.
+reason_prompts <- function(fields, values) {
+  missing_reason <- function(id) {
+    f <- Filter(function(f) identical(f$id, id), fields)
+    length(f) == 1 && field_applies(f[[1]], values) && blank(values[[id]])
+  }
+  c(if (missing_reason("alpha_reason") && !blank(values$alpha)) "[Say why this significance level was chosen.]",
+    if (missing_reason("power_reason") && !blank(values$power)) "[Say why this target power was chosen.]")
+}
+
 writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
 
 writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
@@ -4124,7 +4137,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   resources_prompt <- if (identical(values$situation, "fixed") && spec$goal$type %in% c("power", "sensitivity"))
     "[Say what the data will be used for at this sample size: for example a decision that will be made whatever the result, or pooling in a later meta-analysis.]"
   full <- paste(c(
-    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result), sample_rule_text(spec, result), resources_prompt), collapse = " "),
+    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result), sample_rule_text(spec, result),
+      reason_prompts(fields, values), resources_prompt), collapse = " "),
     paste(writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
       "[Say where the R script or saved plan that reproduces this calculation is shared, for example with the preregistration.]"),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
