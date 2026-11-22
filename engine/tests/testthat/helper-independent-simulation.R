@@ -115,3 +115,71 @@ expect_power_within_approximation <- function(estimate, reference, reference_nre
   )
   invisible(estimate)
 }
+
+# Equivalence by two one-sided t-tests (TOST) at alpha each: "two" groups
+# of n / 2 (Student's t, the second group's mean delta SDs above the
+# first), or "one" sample of n (a one-sample or paired test of the mean or
+# mean difference delta). Equivalence is shown when both tests reject.
+independent_tost_power <- function(type, delta, bound, n, alpha = 0.05, nrep, seed) {
+  independent_power(function() {
+    if (type == "two") {
+      first <- stats::rnorm(n / 2)
+      second <- stats::rnorm(n / 2, delta)
+      args <- list(second, first, var.equal = TRUE)
+    } else {
+      args <- list(stats::rnorm(n, delta))
+    }
+    lower <- do.call(stats::t.test, c(args, list(mu = -bound, alternative = "greater")))$p.value
+    upper <- do.call(stats::t.test, c(args, list(mu = bound, alternative = "less")))$p.value
+    max(lower, upper) < alpha
+  }, nrep, seed)
+}
+
+# Score shapes as the input screen names them, each with mean 0 and SD 1.
+independent_score_shape <- function(shape) {
+  switch(shape,
+    normal = function(n) stats::rnorm(n),
+    skewed = function(n) (stats::rchisq(n, df = 10) - 10) / sqrt(20),
+    heavy_tailed = function(n) stats::rt(n, df = 3) / sqrt(3)
+  )
+}
+
+# Rank tests by stats::wilcox.test(): two groups (n1 control, n2 treated,
+# the treated scores shifted up by d SDs) or one set of differences (n,
+# shifted by d), each of the chosen shape; `alternative` as wilcox.test()
+# reads it, the treated group or the difference first.
+independent_wilcox_power <- function(d, shape, n1, n2 = NULL, alternative = "two.sided",
+                                     alpha = 0.05, nrep, seed) {
+  draw <- independent_score_shape(shape)
+  independent_power(function() {
+    p <- if (is.null(n2)) {
+      stats::wilcox.test(draw(n1) + d, alternative = alternative)$p.value
+    } else {
+      stats::wilcox.test(draw(n2) + d, draw(n1), alternative = alternative)$p.value
+    }
+    p < alpha
+  }, nrep, seed)
+}
+
+# A yes/no outcome in a between-participants factorial: `probabilities`
+# lists each level of A's chance of "yes" at each level of B; n / cells
+# people per cell. Each study fits glm(y ~ A * B, binomial) with sum-to-zero
+# contrasts and tests `term` ("A", "B" or "A:B") by the Wald chi-square of
+# its coefficients.
+independent_logistic_factorial_power <- function(probabilities, term, n, alpha = 0.05, nrep, seed) {
+  p <- matrix(unlist(probabilities), nrow = length(probabilities), byrow = TRUE)
+  d <- expand.grid(A = factor(seq_len(nrow(p))), B = factor(seq_len(ncol(p))))
+  per_cell <- n / nrow(d)
+  stopifnot(per_cell == round(per_cell))
+  d <- d[rep(seq_len(nrow(d)), each = per_cell), ]
+  chance <- p[cbind(as.integer(d$A), as.integer(d$B))]
+  independent_power(function() {
+    d$y <- stats::rbinom(nrow(d), 1, chance)
+    fit <- stats::glm(y ~ A * B, family = stats::binomial(), data = d,
+      contrasts = list(A = stats::contr.sum, B = stats::contr.sum))
+    columns <- which(attr(stats::model.matrix(fit), "assign") == match(term, attr(stats::terms(fit), "term.labels")))
+    b <- stats::coef(fit)[columns]
+    v <- stats::vcov(fit)[columns, columns, drop = FALSE]
+    stats::pchisq(drop(t(b) %*% solve(v, b)), length(columns), lower.tail = FALSE) < alpha
+  }, nrep, seed)
+}

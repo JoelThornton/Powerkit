@@ -367,11 +367,14 @@ until transcribed). The simulations are in
 | Mixed ANOVA beyond 2 x 2 | Superpower | **base-R studies by `aov()`, each effect (21 November 2026)**; Type I error | `anova` |
 | 2 x 2 between, unequal cells, unequal mixed groups | Superpower | Sommet et al.'s published values; pwrss's Shieh formula; `pwr.t2n.test()` | `anova`, `anova_mixed_unequal` |
 | Repeated measures without sphericity | Superpower | an independent reference with Greenhouse-Geisser | `anova` |
+| Equivalence tests (two groups, pairs, one sample) | TOSTER | **two one-sided `t.test()`s on base-R studies (21 November 2026)**; Type I error at the bound | `equivalence` |
+| Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
+| Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: equivalence tests (TOSTER), the
-logistic factorial (Spower), the rank tests (Spower), the three-way
-interaction (InteractionPoweR), moderated mediation (power4mome; PROCESS
+checks aside), next in this audit: the three-way interaction
+(InteractionPoweR; its inputs include correlations of the outcome with
+each two-way product, which a separate simulation must reproduce), moderated mediation (power4mome; PROCESS
 models 7 and 14 wait on transcribed published values) and the SEM cards
 (semPower and lavaan).
 
