@@ -8,6 +8,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "Fill-in prompts in the full methods paragraph"
+    text: >-
+      The full methods paragraph now leaves short fill-in prompts for what only you can
+      say: why you chose the significance level and the target power (when you haven't
+      given a reason), where the R script or saved plan is shared, and, when your sample
+      size is set by your resources, what the data will be used for at that size. They
+      follow Lakens's (2022) guide to justifying a sample size.
+  - date: "2026-11-22"
     title: "Simulation accuracy moves into Settings"
     text: >-
       The input screens are shorter: how precise a simulation should be is now chosen
