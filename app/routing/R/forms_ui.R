@@ -174,7 +174,7 @@ field_ui <- function(f, value, described_by = character()) {
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
     conditionalPanel(sprintf("input.%s == '%s'", id, k),
-      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]])))
+      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]]), class = "field-more choice-more"))
   }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).

@@ -1289,3 +1289,17 @@ test_that("wording that only restates a heading or a title is not shown", {
   expect_match(n$meaning, "after exclusions and dropout", fixed = TRUE)
   expect_no_match(n$example, "pairs", fixed = TRUE)
 })
+
+test_that("a box's info button sits in the box's flow and covers its choice notes", {
+  # The button is placed first in the box and floated, so the question
+  # beside it wraps instead of running under it, and it counts only the
+  # notes the reader can see.
+  expect_match(terms_js, "box.insertBefore(btn, box.firstChild)", fixed = TRUE)
+  expect_match(terms_js, "d.closest(boxSel) === box && shown(d)", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, ".terms-mode .box-info { display: inline-flex; float: right;", fixed = TRUE)
+  expect_no_match(css, ".terms-mode .box-info { display: inline-flex; position: absolute;", fixed = TRUE)
+  # A choice's note is one of its box's explanations, not a second button.
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, 'class="explanation-help field-more choice-more"', fixed = TRUE)
+})
