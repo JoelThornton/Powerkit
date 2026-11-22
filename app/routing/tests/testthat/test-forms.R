@@ -632,6 +632,22 @@ test_that("the settings line shows each setting's value, and opens when one has 
   expect_match(changed, 'data-setting-for="f_seed">42<', fixed = TRUE)
 })
 
+test_that("the simulation accuracy sits in Settings and is named on its line when it applies", {
+  for (ep in c("E18", "E2")) {
+    html <- as.character(form_ui(tree, forms, ep, form_groups(forms, ep)))
+    start <- regexpr('<details class="form-settings">', html, fixed = TRUE)
+    settings <- substr(html, start, regexpr("Guess the answer first", html, fixed = TRUE))
+    expect_match(settings, 'id="f_simulation_accuracy"', fixed = TRUE, label = ep)
+    expect_match(settings, 'data-setting-for="f_simulation_accuracy">Standard<', fixed = TRUE, label = ep)
+    # Outside Settings there is no simulation section.
+    expect_equal(lengths(regmatches(html, gregexpr('id="f_simulation_accuracy"', html, fixed = TRUE))), 1, label = ep)
+  }
+  # On a card whose test is worked out by formula unless simulation is
+  # chosen, the line names it only once simulation is chosen.
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, '<span data-display-if="[^"]*welch_method[^"]*"[^>]*>\\s*\u00b7\\s*<span class="setting-item">\\s*Simulation: ', perl = TRUE)
+})
+
 test_that("power and N appear only for the goals that need them; optional fields say so", {
   f <- Filter(function(f) f$id == "n", form_fields(form_groups(forms, "E2")))[[1]]
   html <- as.character(field_ui(f, NULL))
