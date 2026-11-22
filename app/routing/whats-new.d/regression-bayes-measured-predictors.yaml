@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-22"
-    title: "Multiple regression's Bayes factors allow for measured predictors"
-    text: "The Bayes factor versions of the multiple regression card now ask the same question as its F tests: are your predictors measured on each person, or set by the design? Measured predictors differ from one sample to the next, so Powerkit allows for that: for R-squared .10 with three predictors and a threshold of 10, 193 people rather than 189."
