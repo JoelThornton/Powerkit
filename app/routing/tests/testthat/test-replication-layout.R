@@ -40,8 +40,11 @@ test_that("number boxes are sized for a number; those that can't be negative bri
 test_that("the bar says what is still needed, in the input screens' words", {
   empty <- as.character(replication_still_needed(list(rep_design = "two_groups")))
   expect_match(empty, "class=\"form-needed rep-still-needed\"", fixed = TRUE)
-  expect_match(empty, "Still needed: the effect the original study reported, the original study's two group sizes and 2 more", fixed = TRUE)
-  one <- list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "20", rep_n2 = "20", rep_alpha = "0.05")
+  expect_match(empty, "Still needed: the effect the original study reported, the original study's two group sizes and 4 more", fixed = TRUE)
+  # The direction and the variation between studies are asked for too (22
+  # November 2026).
+  one <- list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "20", rep_n2 = "20", rep_alpha = "0.05",
+    rep_sided = "two.sided", rep_tau = "0.05")
   expect_match(as.character(replication_still_needed(one)), "Still needed: the chance of success to aim for</span>", fixed = TRUE)
   done <- as.character(replication_still_needed(modifyList(one, list(rep_power = "0.8"))))
   expect_match(done, "form-needed form-needed-done", fixed = TRUE)
