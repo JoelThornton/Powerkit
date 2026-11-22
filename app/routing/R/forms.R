@@ -1552,6 +1552,37 @@ plain_engine_message <- function(message, fields, local = isTRUE(getOption("powe
     engine_path <- gsub(".", " > ", f$path, fixed = TRUE)
     message <- gsub(sprintf("'%s'", engine_path), quote_label(f), message, fixed = TRUE)
   }
+  # A list entered in several fields (paths ending .1, .2, ...) is named by
+  # its parent ('target_test > w_values'): that becomes the fields' labels.
+  parents <- vapply(fields, function(f) if (grepl("\\.[0-9]+$", f$path %||% "")) sub("\\.[0-9]+$", "", f$path) else "", "")
+  for (parent in setdiff(unique(parents), "")) {
+    labels <- vapply(fields[parents == parent], quote_label, "")
+    shown <- if (length(labels) == 1) labels else paste(paste(labels[-length(labels)], collapse = ", "), "and", labels[length(labels)])
+    message <- gsub(sprintf("'%s'", gsub(".", " > ", parent, fixed = TRUE)), shown, message, fixed = TRUE)
+  }
+  # A message often names a second field by its last part alone ("... and
+  # 'icc_group' add up to ..."): that too becomes the label, where only one
+  # field on the screen ends that way.
+  ends <- vapply(fields, function(f) if (is.null(f$path)) "" else sub("^.*\\.", "", f$path), "")
+  for (i in seq_along(fields)) {
+    if (!nzchar(ends[i]) || sum(ends == ends[i]) > 1) next
+    message <- gsub(sprintf("'%s'", ends[i]), quote_label(fields[[i]]), message, fixed = TRUE)
+  }
+  # A choice is named by its value ("is 'less'", "use 'two_sided'", "the
+  # joint test (\"rate_and_zero\")"): the value becomes what the screen
+  # shows, for a field the message names, or for a value written like a
+  # code (with an underscore) that only one field on the screen offers.
+  values <- unlist(lapply(fields, function(f) names(f$choices)))
+  for (f in fields) {
+    if (is.null(f$choices)) next
+    named <- grepl(quote_label(f), message, fixed = TRUE)
+    for (v in names(f$choices)) {
+      if (!named && !(grepl("_", v, fixed = TRUE) && sum(values == v) == 1)) next
+      shown <- sprintf("\u201c%s\u201d", f$button_labels[[v]] %||% f$choices[[v]])
+      message <- gsub(sprintf("'%s'", v), shown, message, fixed = TRUE)
+      message <- gsub(sprintf("\"%s\"", v), shown, message, fixed = TRUE)
+    }
+  }
   # A sentence that still names a setting this screen doesn't show can't be
   # acted on here, so it is left out.
   sentences <- strsplit(message, "(?<=[.!?])\\s+", perl = TRUE)[[1]]

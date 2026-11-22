@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-21"
+    title: "Clearer messages, and a sample-size search that settles"
+    text: >-
+      Messages about your answers now name each field and choice as the screen shows
+      them, instead of Powerkit's internal names (for example "Either direction"
+      rather than two_sided). A simulated sample-size search with few replications,
+      such as Bland-Altman limits of agreement at 200, could stop without an answer;
+      it now simulates a few more sample sizes and gives one, and a search that still finds no answer says the highest power it reached and where. The structural equation
+      model card takes up to 100 items for a factor analysis's fit; for a larger model,
+      enter its degrees of freedom.

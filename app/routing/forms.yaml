@@ -4613,9 +4613,9 @@ forms:
              shown_if: {field: question, is: model_fit},
              choices: {cfa: "A confirmatory factor analysis (CFA): items, each measuring one factor",
                        df: "Another model: I know its degrees of freedom"}}
-          - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, integer: true,
+          - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, max: 100, integer: true,
              shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
-             help: "For example, 12 questionnaire items."}
+             help: "For example, 12 questionnaire items. Up to 100 here, since counting a larger model's degrees of freedom takes semPower minutes; for more, choose \u201cAnother model\u201d and enter the degrees of freedom lavaan reports."}
           - {id: factors, writeup_label: "factors", label: "Number of factors", type: number, path: population.factors, required: true, min: 1, integer: true,
              shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
              help: "The factors are allowed to correlate, and each item measures one factor. Powerkit counts the model's degrees of freedom from these."}

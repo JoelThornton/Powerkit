@@ -1183,3 +1183,36 @@ test_that("a field shown only for some choices clears its box's floated heading"
   css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(css, "fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *", fixed = TRUE)
 })
+
+test_that("engine messages name fields and choices as the screen shows them", {
+  # A choice named by its value, for a field the message names.
+  e2 <- fields_for("E2")
+  msg <- plain_engine_message("'target_test > alternative' is 'less', but the effect you specified goes the other way; use 'two_sided', or check the population values.", e2)
+  expect_match(msg, "is “Negative only”", fixed = TRUE)
+  expect_match(msg, "use “Either direction”", fixed = TRUE)
+  expect_no_match(msg, "'", fixed = TRUE)
+  # A second field named by the last part of its path.
+  e26 <- fields_for("E26")
+  msg <- plain_engine_message("'population > p_first_only' and 'p_second_only' add up to 1.2, but together they can't be more than 1.", e26)
+  expect_no_match(msg, "p_second_only", fixed = TRUE)
+  expect_match(msg, "second condition only", fixed = TRUE)
+  # A pair of values entered in two fields, named by their parent.
+  e38 <- fields_for("E38")
+  msg <- plain_engine_message("'target_test > w_values' must be two different values of W.", e38)
+  expect_match(msg, "“The lower value of W, in SDs from its mean” and “The higher value of W, in SDs from its mean”", fixed = TRUE)
+  # A code-like value in double quotes, unique on the screen, is named too.
+  msg <- plain_engine_message("The joint test of both parts (\"rate_and_zero\") has no direction: make it two-sided, or test one part.", fields_for("E28"))
+  expect_no_match(msg, "rate_and_zero", fixed = TRUE)
+  expect_match(msg, "Both parts", fixed = TRUE)
+  # The moderation cards' impossible correlations name the fields.
+  e9 <- fields_for("E9")
+  msg <- plain_engine_message(paste("Make one or more of the correlations with Y ('population > r_X_Y', 'r_W_Y' and 'r_XW_Y') smaller,",
+    "or change the correlation of X with W ('r_X_W')."), e9)
+  expect_no_match(msg, "r_X_Y|r_W_Y|r_XW_Y|r_X_W")
+})
+
+test_that("the SEM card's item count stays where semPower counts degrees of freedom quickly", {
+  items <- Filter(function(f) identical(f$id, "indicators"), fields_for("E37"))[[1]]
+  expect_identical(items$max, 100L)
+  expect_match(form_problems(fields_for("E37"), modifyList(form_examples$E37, list(indicators = "120"))), "at most 100", fixed = TRUE)
+})

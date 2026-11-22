@@ -84,14 +84,24 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
     if (nrow(near()) < 5) {
       simulate_at(to_step(estimate$n * (1 + 0.05 * (-3:3))))
     }
+    local <- n_from_curve(near(), power, step, level)
+    # With few replications the local fit's interval can run off the top
+    # of the local grid even when the fit to every point placed it (a
+    # Bland-Altman study at 200 replications did): add points above the
+    # estimate, within the 20% window, and fit again.
+    for (attempt in 1:2) {
+      if (!is.na(local$upper) || is.na(local$n)) break
+      simulate_at(to_step(estimate$n * c(1.05, 1.1, 1.15, 1.2)))
+      local <- n_from_curve(near(), power, step, level)
+    }
     fitted_n <- near()$n
-    estimate <- n_from_curve(near(), power, step, level)
+    estimate <- local
   }
   if (is.na(estimate$upper)) {
     if (power > 0.99) {
       abort_run(sprintf("A target power of %s is too close to 100%% for a simulation to pin down the sample size. Choose a target of 0.99 or lower.", format(power)))
     }
-    abort_run("The sample size search could not pin down the required n: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed.")
+    abort_run(unsettled_search_message(points$n, points$rejections / points$nrep, power, "sample size"))
   }
 
   points <- points[order(points$n), ]
@@ -104,6 +114,31 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
       points$attempted, points$valid
     )
   )
+}
+
+# Why a simulated search found no answer, from what it simulated: power
+# below the target everywhere (it may level off below it), or power that
+# crosses the target too unevenly to place the answer. `x` holds the
+# sample sizes simulated, or NULL when the values (an effect's scale)
+# mean nothing to the person.
+unsettled_search_message <- function(x, p, power, what) {
+  pct <- function(v) sprintf("%.1f%%", 100 * v)
+  steady <- "More replications ('options > nrep') or another seed would steady it."
+  if (is.null(x)) {
+    return(sprintf("The search for the smallest %s you could detect didn't settle on an answer: across the %ss it simulated, power ran from %s to %s against a target of %s. %s",
+      what, what, pct(min(p)), pct(max(p)), pct(power), steady))
+  }
+  n <- function(v) format(v, big.mark = ",", scientific = FALSE)
+  if (all(p < power)) {
+    return(sprintf(paste(
+      "The target power of %s wasn't reached at any %s simulated (%s to %s): the highest was %s, at %s.",
+      "Power may level off below the target here; check the power at a given %s to see where it does."),
+      pct(power), what, n(min(x)), n(max(x)), pct(max(p)), n(x[which.max(p)]), what))
+  }
+  sprintf(paste(
+    "The simulated power crosses the target of %s between %s and %s, but too unevenly to place the %s:",
+    "it ran from %s to %s. %s"),
+    pct(power), n(min(x)), n(max(x)), what, pct(min(p)), pct(max(p)), steady)
 }
 
 # One row per simulated n: its seed, rejections and analysable
