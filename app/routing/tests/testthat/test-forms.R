@@ -721,6 +721,7 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   expect_match(e2, "Four ways to a number you can defend", fixed = TRUE)
   expect_no_match(e2, "Not sure what number to put here?", fixed = TRUE)
   expect_match(e2, "Find the smallest effect my study could detect", fixed = TRUE)
+  expect_match(e2, "the smallest effect your study could detect</a>", fixed = TRUE)
   # One line, not an info button beside a second "don't know" button.
   expect_no_match(e2, "Unknown effect size", fixed = TRUE)
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)

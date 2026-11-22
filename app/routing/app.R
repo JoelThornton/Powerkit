@@ -561,6 +561,7 @@ app_css <- "
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
   /* Text that only explains, left out with explanations off, as field help is (19 November 2026). */
   .terms-mode .plain-only { display: none; }
+  html:not(.terms-mode) .terms-only { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
@@ -934,8 +935,7 @@ app_css <- "
   .field-help, .default-source { color: #5a6573; }
   .form-terms > summary, .effect-help > summary { list-style: none; }
   .form-terms > summary::-webkit-details-marker, .effect-help > summary::-webkit-details-marker { display: none; }
-  .form-terms > summary::before, .effect-help > summary::before { content: '?'; display: inline-flex; align-items: center; justify-content: center;
-    width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 1.5px solid currentColor; font-size: 0.75rem; font-weight: 700; margin-right: 0.45rem; }
+  /* These folds use the app's one chevron (22 November 2026); the circled '?' turned with it. */
   .effect-unsure, .effect-help { background: #eef3fa; border: 0; box-shadow: none; border-radius: var(--pk-radius); padding: 0.75rem 1.1rem; margin-bottom: 0.75rem; }
   .effect-help > summary { min-height: 32px; }
   .effect-unsure .btn { border-radius: 8px; }
@@ -1029,7 +1029,8 @@ app_css <- "
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
   /* The unknown-effect line's action is a link in the sentence. */
-  .effect-unsure .effect-unsure-go { padding: 0; border: 0; vertical-align: baseline; font-weight: 600; }
+  .effect-unsure .effect-unsure-go { color: var(--pk-blue); font-weight: 600; text-decoration: underline; }
+  .effect-unsure .terms-only .effect-unsure-go { margin-left: 0.25rem; }
   /* The action bar is a whole rounded bar, pinned a little above the
      window's edge: with only its top corners rounded it looked cut off
      when it came to rest at the foot of the page. */
