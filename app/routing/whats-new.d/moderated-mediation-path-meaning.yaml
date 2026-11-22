@@ -1,4 +1,0 @@
-entries:
-  - date: 2026-11-22
-    title: "Moderated mediation: what the interaction path means"
-    text: "The interaction path XW -> M on the moderated mediation forms now says exactly which number it is: the coefficient of the product of the standardised X and W, as the regression of M reports it. When X and W are correlated this is a little smaller than the product's own standardised coefficient, so a value taken from a paper that standardised the product too should be lowered slightly. A separate simulation now checks these cards' power."
