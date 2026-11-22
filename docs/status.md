@@ -524,7 +524,11 @@ The app is online at
 most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
 second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
-installs from ([`hosting-options.md`](hosting-options.md)). "Copy page
+installs from ([`hosting-options.md`](hosting-options.md)). It runs on
+Connect Cloud's Basic plan (100 credits a month, enforced: the account
+is paused at the limit until the reset on the 18th;
+[`hosting-options.md`](hosting-options.md), "The plan's limit"). A
+publish by hand costs credits and is the maintainer's to run. "Copy page
 link" gives the open tab, the Labs tool or the open card (`?card=E8`,
 which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main
