@@ -2430,14 +2430,17 @@
                   ],
                   "properties": {
                     "method": {
-                      "const": "jonckheere_terpstra"
+                      "enum": [
+                        "jonckheere_terpstra",
+                        "contrast_t"
+                      ]
                     }
                   }
                 },
                 "then": {
                   "properties": {
                     "alternative": {
-                      "description": "Jonckheere-Terpstra test only: 'greater', the scores rise across the groups in the order of their levels; 'less', they fall (PMCMRplus::jonckheereTest(alternative)).",
+                      "description": "Jonckheere-Terpstra test and a planned contrast only. Jonckheere-Terpstra: 'greater', the scores rise across the groups in the order of their levels; 'less', they fall (PMCMRplus::jonckheereTest(alternative)). Contrast: 'greater', the weighted sum of the means is above 0; 'less', below 0.",
                       "enum": [
                         "two_sided",
                         "greater",

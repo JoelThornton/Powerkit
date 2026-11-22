@@ -1,6 +1,6 @@
 # Validation: a planned comparison (contrast) between the levels of one
-# between-participants factor. Backend: pwrss's power.t.contrasts() by
-# formula. Build guide section 6:
+# between-participants factor. Backend: pwrss's power.t.test() on the
+# noncentral t of power.t.contrasts() (backend-pwrss.R). Build guide section 6:
 #   1. analytic agreement: the unit tests (test-backend-formula-tests.R)
 #      check powerkit against pwrss called directly, and against the same
 #      contrast computed through Superpower's emmeans support

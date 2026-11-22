@@ -50,7 +50,8 @@
 #   contrast           factorial_anova/oneway_contrast: a planned
 #                      comparison between the levels of one factor, the t
 #                      test of a weighted combination of the group means,
-#                      pwrss::power.t.contrasts()
+#                      pwrss::power.t.test() on power.t.contrasts()'s
+#                      noncentrality and df (see the oneway_contrast entry)
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -470,20 +471,23 @@ pwrss_inputs <- function(spec) {
       )
     },
     oneway_contrast = {
+      # pwrss 1.3.3's power.t.contrasts() computes, with no covariates, the
+      # noncentral t of psi / SE(psi) on n - k df, but calls power.t.test()
+      # without its alpha (so always at 0.05) and two-sided only
+      # (docs/upstream-questions.md). powerkit makes the same call to
+      # pwrss's power.t.test() with the alpha and sidedness asked for: the
+      # contrast psi = sum(w * mu), its standard error
+      # SD * sqrt(sum(w^2 / n_i)), and df = n - k, as in pwrss's own code.
       k <- length(spec$variables$A$levels)
       weights <- as.numeric(unlist(spec$target_test$weights))
+      means <- as.numeric(unlist(pop$means))
+      psi <- sum(weights * means)
       list(
-        fun = "power.t.contrasts",
-        weights = weights,
+        fun = "power.t.test",
+        weights = weights, means = means, psi = psi,
         args = function(n) list(
-          mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k),
-          n.vector = rep(n / k, k),
-          contrast.matrix = matrix(weights, nrow = 1, dimnames = list("contrast", NULL)),
-          # No covariates, and nothing else explaining the outcome: pwrss
-          # defaults k.covariates to 1, which would spend a denominator
-          # degree of freedom this design doesn't have.
-          r.squared = 0, k.covariates = 0,
-          alpha = alpha, adjust.alpha = "none", ceil.n = FALSE, verbose = 0
+          ncp = psi / (pop$sd * sqrt(sum(weights^2 / rep(n / k, k)))), df = n - k,
+          alpha = alpha, alternative = alternative, plot = FALSE, verbose = 0
         )
       )
     },
@@ -690,11 +694,16 @@ pwrss_check_run <- function(spec, inputs) {
         row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
       }
     ),
-    oneway_contrast = rbind(
-      row("means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
-      row("contrast weights passed to pwrss (contrast.matrix)", inputs$weights, as.numeric(args$contrast.matrix)),
-      row("covariates pwrss used (k.covariates)", 0, args$k.covariates)
-    ),
+    oneway_contrast = {
+      k <- length(inputs$weights)
+      rbind(
+        row("value of the contrast, sum of weight x mean", sum(as.numeric(unlist(spec$target_test$weights)) * as.numeric(unlist(pop$means))), inputs$psi),
+        row("noncentrality passed to pwrss at 1,000 people: contrast / (SD x sqrt(sum(weight^2 / group size)))",
+            inputs$psi / (pop$sd * sqrt(sum(inputs$weights^2) / (1000 / k))), args$ncp),
+        row("degrees of freedom passed to pwrss at 1,000 people (n - groups)", 1000 - k, args$df),
+        row("alpha passed to pwrss", spec$target_test$alpha, args$alpha)
+      )
+    },
     interaction_r2_change = {
       r <- args$r.squared.change
       r2_main <- pop$r2_main %||% 0

@@ -29,8 +29,10 @@ of freedom, Departure 38); the record and the
 cards still to do are in `validation-log.md`, "Independent checks by
 card"), and the method choices each card makes for the
 researcher (every card's are listed in `conventions.md`, "Choices each
-card makes for the researcher"; the planned contrast's one-sided test
-and the factorial logistic regression's likelihood-ratio test are next;
+card makes for the researcher"; the planned contrast offers a one-sided
+test and uses the alpha set, which pwrss's contrast function ignored
+(22 November 2026); the factorial logistic regression's likelihood-ratio
+test is next;
 so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,

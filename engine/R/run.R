@@ -114,10 +114,12 @@
 #' `power.z.poisson()` (Demidenko's method with variance correction).
 #' Planned comparisons (design `factorial_anova`, template
 #' `oneway_contrast`, engine only): the t test of a weighted combination of
-#' one factor's group means, by pwrss's `power.t.contrasts()`. The weights
+#' one factor's group means: `power.t.contrasts()`'s noncentral t, through
+#' pwrss's `power.t.test()` so the alpha and a one-sided test apply. The weights
 #' go in `target_test > weights`, one per level, adding up to 0; a trend
-#' test is the contrast with the matching weights. Two-sided only, equal
-#' groups, one contrast at a time.
+#' test is the contrast with the matching weights. One- or two-sided (a
+#' one-sided test in the direction of the contrast), equal groups, one
+#' contrast at a time.
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

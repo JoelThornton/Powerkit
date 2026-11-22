@@ -66,7 +66,7 @@ form_examples <- list(
                Y_label = "Persistence (minutes)", metric = "standardised", means = "0, 0, 0\n0.1, 0.3, 0.5", sd = "1",
                effect = "interaction", test_version = "anova_f", method = "exact"), closing_ok),
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
-               metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
+               metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3", alternative = "two_sided"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f", covariate_model = "random"), closing_ok),
   E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", r2_full = "0.15", r2_reduced = "0.1",
