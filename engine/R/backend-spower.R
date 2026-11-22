@@ -37,8 +37,9 @@ spower_backend <- function(spec, seed = NULL) {
     packages = c(
       "Spower", "SimDesign",
       if (identical(spec$template, "one_variance")) "EnvStats",
-      # p_glm() tests the coefficients with car::lht().
-      if (identical(spec$template, "factorial")) "car",
+      # p_glm() tests the coefficients with car::lht(); Firth's test fits
+      # logistf's logistf() and tests with its logistftest().
+      if (identical(spec$template, "factorial")) c("car", if (logistic_factorial_firth(spec)) "logistf"),
       # p_jonckheere() calls PMCMRplus's jonckheereTest().
       # p_rank_pairs() calls PMCMRplus for Dunn's and Conover's tests.
       if (jonckheere_test(spec) || isTRUE(spec$target_test$method %in% c("dunn", "conover"))) "PMCMRplus",
@@ -440,10 +441,24 @@ spower_inputs <- function(spec) {
     },
     factorial = {
       design <- logistic_factorial_design(spec)
+      # The Wald test: Spower's p_glm(), car::lht() of the effect's
+      # coefficients. The likelihood-ratio test: powerkit's
+      # p_logistic_factorial_lr(), the same data and model, against the
+      # model without the effect's coefficients.
+      # Firth's test: p_logistic_factorial_firth(), the same data fitted by
+      # logistf's penalised likelihood and tested by its penalised
+      # likelihood-ratio test.
+      lr <- logistic_factorial_lr(spec)
+      firth <- logistic_factorial_firth(spec)
       list(
-        experiment = "p_glm", generator = "gen_glm",
+        experiment = if (firth) "p_logistic_factorial_firth" else if (lr) "p_logistic_factorial_lr" else "p_glm",
+        own = lr || firth, generator = "gen_glm",
         args = function(n) {
-          list(formula = y ~ A * B, X = design$X(n), betas = design$betas, test = design$test, family = stats::binomial())
+          c(
+            list(formula = y ~ A * B, X = design$X(n), betas = design$betas),
+            if (lr || firth) list(tested = design$tested) else list(test = design$test),
+            list(family = stats::binomial())
+          )
         }
       )
     }
@@ -457,7 +472,11 @@ spower_inputs <- function(spec) {
   test$description <- if (rank_test(spec)) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
-    "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+    if (logistic_factorial_firth(spec)) {
+      "Spower::Spower(p_logistic_factorial_firth()) (Spower's gen_glm(), then logistf's logistf(), Firth's penalised likelihood, and logistftest(), the penalised likelihood-ratio test of the effect's coefficients)"
+    } else if (logistic_factorial_lr(spec)) {
+      "Spower::Spower(p_logistic_factorial_lr()) (Spower's gen_glm() and stats::glm(family = binomial()), the likelihood-ratio test of the effect's coefficients, type III as car::Anova(type = 3, test.statistic = \"LR\"))"
+    } else "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
   } else if (identical(template, "riclpm")) {
     sprintf("Spower::Spower(p_riclpm()) (powRICLPM simulates each study and fits the random-intercept cross-lagged panel model with lavaan; the Wald z test of the lagged effect%s)",
       if (alternative == "two_sided") "" else sprintf(", one-sided (%s)", alternative))
@@ -2334,11 +2353,47 @@ logistic_factorial_probabilities <- function(spec) {
   matrix(as.numeric(unlist(rows)), nrow = length(rows), byrow = TRUE)
 }
 
+# The likelihood-ratio test of a factorial logistic effect (target_test >
+# method "likelihood_ratio"); otherwise the Wald test.
+logistic_factorial_lr <- function(spec) identical(spec$target_test$method, "likelihood_ratio")
+
+# Firth's penalised likelihood-ratio test (target_test > method
+# "firth_likelihood_ratio").
+logistic_factorial_firth <- function(spec) identical(spec$target_test$method, "firth_likelihood_ratio")
+
+# Firth's test of a factorial logistic effect: one study drawn by Spower's
+# p_glm() (gen_glm()), fitted by logistf's logistf() with Firth's
+# penalised likelihood (the same model and sum-to-zero contrasts), and the
+# effect's coefficients tested together by logistftest(), the penalised
+# likelihood-ratio test against the model refitted with them set to 0.
+# The penalty keeps the estimates finite when a cell has no 'yes' or no
+# 'no', where glm()'s tests break down.
+p_logistic_factorial_firth <- function(formula, X, betas, tested, family = stats::binomial()) {
+  fit <- Spower::p_glm(formula = formula, X = X, betas = betas, test = NULL, family = family, return_analysis = TRUE)
+  firth <- logistf::logistf(formula, data = fit$data, pl = FALSE)
+  logistf::logistftest(firth, test = which(names(stats::coef(firth)) %in% tested))$prob[[1]]
+}
+
+# The likelihood-ratio test of a factorial logistic effect: one study drawn
+# and fitted by Spower's p_glm() (gen_glm(), then stats::glm()), and the
+# same model refitted without the effect's columns of its sum-to-zero
+# design matrix. The deviance difference is referred to chi-square with
+# one df per column dropped: the type III test car::Anova(type = 3,
+# test.statistic = "LR") reports, of the same hypothesis as the Wald test.
+p_logistic_factorial_lr <- function(formula, X, betas, tested, family = stats::binomial()) {
+  fit <- Spower::p_glm(formula = formula, X = X, betas = betas, test = NULL, family = family, return_analysis = TRUE)
+  design <- stats::model.matrix(fit)
+  keep <- !colnames(design) %in% tested
+  reduced <- stats::glm.fit(design[, keep, drop = FALSE], stats::model.response(stats::model.frame(fit)), family = family)
+  stats::pchisq(reduced$deviance - fit$deviance, df = sum(!keep), lower.tail = FALSE)
+}
+
 # Check run: one large data set drawn and fitted by p_glm(); each cell's
 # proportion of 'yes' must match the spec within 5 standard errors.
 logistic_factorial_check_run <- function(spec, args, seed) {
+  args <- args[setdiff(names(args), c("tested", "test"))]
   fit <- call_backend("Spower", with_seed(seed, quietly(do.call(
-    Spower::p_glm, c(args, list(return_analysis = TRUE))
+    Spower::p_glm, c(args, list(test = NULL, return_analysis = TRUE))
   ))))
   data <- fit$model
   p <- logistic_factorial_probabilities(spec)

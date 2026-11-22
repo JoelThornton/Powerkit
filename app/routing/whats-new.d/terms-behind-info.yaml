@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-22"
+    title: "Less text in the effect box"
+    text: >-
+      The note that the effect can stay empty now appears only when you
+      have chosen to find the smallest detectable effect, the one goal it
+      applies to. A box's "What these terms mean" now opens like its other
+      explanations: a small link with explanations on, and behind the
+      box's info button with them off.

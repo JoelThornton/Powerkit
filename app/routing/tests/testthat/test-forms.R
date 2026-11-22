@@ -700,9 +700,9 @@ test_that("long labels are short, with the detail as help linked to the field", 
 test_that("definitions and routine direction help use disclosures; scientific warnings stay in view", {
   groups <- form_groups(forms, "E2")
   html <- as.character(form_ui(tree, forms, "E2", groups))
-  expect_match(html, "<summary>What these terms mean: ", fixed = TRUE)
+  expect_match(html, 'data-label="What these terms mean: ', fixed = TRUE)
   # Each group's definitions name their terms, so no two summaries match.
-  summaries <- regmatches(html, gregexpr("<summary>What these terms mean[^<]*</summary>", html))[[1]]
+  summaries <- regmatches(html, gregexpr('data-label="What these terms mean[^"]*"', html))[[1]]
   expect_false(anyDuplicated(summaries) > 0)
   expect_identical(terms_summary(c("a", "b", "c", "d")), "What these terms mean: a, b, c and more")
   expect_match(html, 'aria-label="Info: Your hypothesis"', fixed = TRUE)
@@ -721,6 +721,7 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   expect_match(e2, "Four ways to a number you can defend", fixed = TRUE)
   expect_no_match(e2, "Not sure what number to put here?", fixed = TRUE)
   expect_match(e2, "Find the smallest effect my study could detect", fixed = TRUE)
+  expect_match(e2, "the smallest effect your study could detect</a>", fixed = TRUE)
   # One line, not an info button beside a second "don't know" button.
   expect_no_match(e2, "Unknown effect size", fixed = TRUE)
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
@@ -1304,4 +1305,11 @@ test_that("a box's info button sits in the box's flow and covers its choice note
   # A choice's note is one of its box's explanations, not a second button.
   html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
   expect_match(html, 'class="explanation-help field-more choice-more"', fixed = TRUE)
+})
+
+test_that("the smallest-effect note shows only for that goal, and a box's terms are one of its explanations", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, "data-display-if=\"input.f_goal == &#39;sensitivity&#39; || input.f_goal == &#39;sensitivity_curve&#39;\"", fixed = TRUE)
+  expect_match(html, 'class="explanation-help field-more terms-more"', fixed = TRUE)
+  expect_no_match(html, '<details class="form-terms">', fixed = TRUE)
 })

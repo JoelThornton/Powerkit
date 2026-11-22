@@ -166,7 +166,7 @@ independent_wilcox_power <- function(d, shape, n1, n2 = NULL, alternative = "two
 # people per cell. Each study fits glm(y ~ A * B, binomial) with sum-to-zero
 # contrasts and tests `term` ("A", "B" or "A:B") by the Wald chi-square of
 # its coefficients.
-independent_logistic_factorial_power <- function(probabilities, term, n, alpha = 0.05, nrep, seed) {
+independent_logistic_factorial_power <- function(probabilities, term, n, alpha = 0.05, nrep, seed, test = "wald") {
   p <- matrix(unlist(probabilities), nrow = length(probabilities), byrow = TRUE)
   d <- expand.grid(A = factor(seq_len(nrow(p))), B = factor(seq_len(ncol(p))))
   per_cell <- n / nrow(d)
@@ -177,6 +177,11 @@ independent_logistic_factorial_power <- function(probabilities, term, n, alpha =
     d$y <- stats::rbinom(nrow(d), 1, chance)
     fit <- stats::glm(y ~ A * B, family = stats::binomial(), data = d,
       contrasts = list(A = stats::contr.sum, B = stats::contr.sum))
+    if (identical(test, "likelihood_ratio")) {
+      # car's type III likelihood-ratio test, which refits the model
+      # without the term's columns.
+      return(car::Anova(fit, type = 3, test.statistic = "LR")[term, "Pr(>Chisq)"] < alpha)
+    }
     columns <- which(attr(stats::model.matrix(fit), "assign") == match(term, attr(stats::terms(fit), "term.labels")))
     b <- stats::coef(fit)[columns]
     v <- stats::vcov(fit)[columns, columns, drop = FALSE]

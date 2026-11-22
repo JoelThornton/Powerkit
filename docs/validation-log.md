@@ -369,7 +369,7 @@ until transcribed). The simulations are in
 | Repeated measures without sphericity | Superpower | an independent reference with Greenhouse-Geisser | `anova` |
 | Equivalence tests (two groups, pairs, one sample) | TOSTER | **two one-sided `t.test()`s on base-R studies (21 November 2026)**; Type I error at the bound | `equivalence` |
 | Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
-| Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
+| Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026), and by car's type III likelihood-ratio test (22 November 2026)**; Type I error of both | `logistic_factorial` |
 | Three-way interaction | InteractionPoweR | **a population built separately gives its R-squared with and without XWZ, and simulated studies by `lm()` measure Known difference 17 (22 November 2026)**; Type I error | `three_way` |
 | Moderated mediation, PROCESS model 7 | power4mome | **base-R studies with the product of X and W, fitted by `lm()` with a Monte Carlo interval for the index (22 November 2026)**; Type I error | `process_7` |
 | Moderated mediation, PROCESS model 14 | power4mome | **base-R studies with the product of M and W, X and W correlated, fitted by `lm()` with a Monte Carlo interval (22 November 2026)**; Type I error | `process_14` |
