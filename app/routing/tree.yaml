@@ -2232,13 +2232,13 @@ endpoints:
     technical_name: "Factorial logistic regression"
     plain_name: "Two or more factors crossed, with a yes/no outcome"
     template: "logistic_regression / factorial"
-    backend: "Spower: p_glm(family = binomial()), the Wald test of the effect's coefficients or the likelihood-ratio test of the model without them (simulation)"
+    backend: "Spower: p_glm(family = binomial()), the Wald test of the effect's coefficients, the likelihood-ratio test of the model without them, or logistf's Firth's penalised likelihood-ratio test (simulation)"
     method: Simulation
     status: runs_validation_in_progress
     validation: {file: test-validation-logistic-factorial.R, note: "Recovers every cell's proportion in its check run, matches Spower called directly, and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
     card_points:
       - "Two factors crossed, with different people in every combination, and a yes/no outcome: for example, whether people book a flu jab after a gain or loss message from a doctor, a friend or a celebrity."
-      - "You give the expected proportion of 'yes' in each combination, and choose the effect: either factor, or their interaction, and the test: Wald's or the likelihood-ratio test."
+      - "You give the expected proportion of 'yes' in each combination, and choose the effect: either factor, or their interaction, and the test you will run: Firth's, the likelihood-ratio or the Wald test."
       - "The effects are tested as a logistic regression tests them, on the log-odds scale: an interaction there can differ from one on the proportions themselves."
       - "Simulated, so the answer carries a little random error. Two factors, both between participants, with groups of equal size."
     inputs: ["Names of the two factors, their levels and the yes/no outcome", "The expected proportion of 'yes' in each combination", "Which effect"]

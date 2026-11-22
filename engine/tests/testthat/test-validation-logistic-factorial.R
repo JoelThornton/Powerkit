@@ -119,3 +119,17 @@ test_that("logistic factorial, likelihood-ratio test: Type I error is near alpha
     method = "likelihood_ratio")
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+test_that("logistic factorial, few events: Firth's test keeps the Type I error near alpha", {
+  skip_unless_full_validation()
+  skip_if_not_installed("logistf")
+  # A 5% base rate, each factor raising the log odds by 1, no interaction,
+  # 100 people per cell: about 5 to 28 'yes' answers in each. (With 20 or
+  # 40 per cell Firth's test ran a little below alpha, 2.9% and 4.0%, and
+  # the likelihood-ratio test above it, 6.5% and 7.3%: docs/conventions.md.)
+  cells <- matrix(plogis(qlogis(0.05) + outer(c(0, 1), c(0, 1), "+")), 2)
+  probabilities <- lapply(1:2, function(i) as.list(cells[i, ]))
+  spec <- logit_factorial_validation_spec(probabilities, "interaction", seed = 1601, n = 400,
+    method = "firth_likelihood_ratio")
+  expect_type1_near(engine_power(spec), alpha = 0.05)
+})

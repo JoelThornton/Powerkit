@@ -70,6 +70,7 @@ Suggests:
     JustifyAlpha,
     kappaSize,
     lavaan,
+    logistf,
     longpower,
     lmhelprs (>= 0.4.2),
     MASS,

@@ -188,6 +188,20 @@
       ],
       "Hash": "8fd7050538eb2c75cb35bafe972efac2"
     },
+    "logistf": {
+      "Package": "logistf",
+      "Version": "1.26.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Matrix",
+        "R",
+        "formula.tools",
+        "mgcv",
+        "mice"
+      ],
+      "Hash": "7486923705f975746154d53f1bb29210"
+    },
     "longpower": {
       "Package": "longpower",
       "Version": "1.0.27",
@@ -1616,6 +1630,19 @@
       ],
       "Hash": "740f25310a3b5f726e68434c76da5b69"
     },
+    "formula.tools": {
+      "Package": "formula.tools",
+      "Version": "1.7.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "methods",
+        "operator.tools",
+        "utils"
+      ],
+      "Hash": "935ab0bce1a92340866983f3a97e09de"
+    },
     "fracdiff": {
       "Package": "fracdiff",
       "Version": "1.5-4",
@@ -2526,6 +2553,16 @@
         "askpass"
       ],
       "Hash": "6994d1c3ea954f29de6aeca5da95c99d"
+    },
+    "operator.tools": {
+      "Package": "operator.tools",
+      "Version": "1.6.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "ac3e54ae1353603d5990bb3ee896e88b"
     },
     "ordinal": {
       "Package": "ordinal",
