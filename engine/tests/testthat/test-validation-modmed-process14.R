@@ -126,3 +126,20 @@ test_that("PROCESS model 14: Type I error is near alpha when the MW->Y path is 0
   )
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+# Independent simulation ------------------------------------------------------------
+# The check above calls power4mome. This one draws the studies in base R
+# from the standardised paths as the input screen describes them, with X
+# and W correlated, fits both regressions with lm() and forms the Monte
+# Carlo interval of the index separately.
+
+test_that("PROCESS model 14: agrees with lm() and a Monte Carlo interval on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  spec <- moderated_mediation_spec(
+    "process_14", process_14_paths(0.3, 0.3, 0.1, 0.15, 0.05),
+    n = 300, seed = 501, r_x_w = 0.4
+  )
+  reference <- independent_modmed14_power(0.3, 0.3, 0.1, 0.15, 0.05, n = 300, r_x_w = 0.4,
+    draws = validation_ci_draws(), nrep = validation_nrep(), seed = 1501)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+})
