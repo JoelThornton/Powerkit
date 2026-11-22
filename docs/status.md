@@ -176,8 +176,9 @@ each area, is at the end of
   "Evidence for this analysis method", since its records match the method
   and options, not the sample size, effect or alpha entered.
   The finder's answers set the input screen they settle (outcome type,
-  who is in which condition; `finder_form_values()` in `route-fit.R`),
-  and a yes/no-or-categories answer on trials, in groups or measured
+  who is in which condition; `finder_form_values()` in `route-fit.R`);
+  the note listing them is redrawn as fields change, so a field changed
+  after the finder set it is named with both values. A yes/no-or-categories answer on trials, in groups or measured
   twice is asked how many categories it has before a card is offered;
   three or more reach the safety net with a note on what Powerkit can't
   plan (21 November 2026, from the finder audit of that day). Many

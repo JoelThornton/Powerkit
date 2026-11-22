@@ -123,9 +123,26 @@ test_that("the input screen opened from the finder says which answers it set", {
   note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary", crossed_participants = "between_factor")))
   expect_match(note, "Set from your answers", fixed = TRUE)
   expect_match(note, "On each trial, the outcome is", fixed = TRUE)
-  # A value changed since (a test version, say) isn't claimed.
-  note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary"), list(outcome_type = "continuous")))
-  expect_identical(note, character(0))
+  # A value changed since isn't claimed as the finder's: the note says
+  # what the answers gave and what the screen says now.
+  note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary", crossed_participants = "between_factor"),
+    list(outcome_type = "continuous", crossed_participants = "between_factor")))
+  expect_match(note, "Changed since the design finder set it", fixed = TRUE)
+  expect_match(note, "alert-warning", fixed = TRUE)
+  expect_match(note, "Set from your answers", fixed = TRUE)
+  field <- Filter(function(f) identical(f$id, "outcome_type"), form_fields(form_groups(forms, "E33")))[[1]]
+  squashed <- gsub("\\s+", " ", note)
+  expect_match(squashed, paste0("<strong>", field$choices$continuous, "</strong> (your answers gave <strong>", field$choices$binary, "</strong>)"), fixed = TRUE)
+  # A field the screen hasn't drawn yet still counts as the finder's.
+  note <- as.character(finder_filled_note_ui(forms, "E33", list(outcome_type = "binary"), list()))
+  expect_no_match(note, "Changed since", fixed = TRUE)
+  expect_identical(finder_filled_note_ui(forms, "E33", list()), NULL)
+})
+
+test_that("the input screen redraws the finder's note as a field it set changes", {
+  app_text <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app_text, "output$finder_filled_note <- renderUI(", fixed = TRUE)
+  expect_match(app_text, "current_form_values()))", fixed = TRUE)
 })
 
 test_that("a yes/no outcome on trials, in groups or answered twice is asked how many categories", {
@@ -166,6 +183,11 @@ test_that("the app opens the input screen set to the finder's answers", {
     session$setInputs(pick = "form")
     expect_identical(state$form_values$outcome_type, "binary")
     expect_identical(state$form_values$crossed_participants, "between_factor")
+    # The note names what was set, then what changed once a field changes.
+    expect_match(as.character(output$finder_filled_note$html), "Set from your answers", fixed = TRUE)
+    expect_no_match(as.character(output$finder_filled_note$html), "Changed since", fixed = TRUE)
+    session$setInputs(f_outcome_type = "continuous")
+    expect_match(as.character(output$finder_filled_note$html), "Changed since the design finder set it", fixed = TRUE)
   })
 })
 
