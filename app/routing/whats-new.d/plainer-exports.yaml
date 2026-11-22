@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-22"
+    title: "Plainer wording in the downloads and the simulation settings"
+    text: >-
+      The planning document, the study plan report, the R script and the simulated
+      data set say what they are, and what they can't show, in plainer words. The list
+      of checks behind an analysis no longer repeats the same bookkeeping note on every
+      line, and the full methods paragraph names the package that was checked against
+      your population. On the input screen, the simulation accuracy section is shorter:
+      the detail about its margins is in the setting's help.

@@ -238,14 +238,12 @@ script_header <- function(spec, result, package, call_description) {
 }
 
 # The evidence record, at the end of the script so that the code comes
-# first: "no linked record" reads as a failed check when it opens the file.
+# first: "no record yet" reads as a failed check when it opens the file.
 evidence_section <- function(evidence) {
   c(
     "",
     "# Checks recorded for this analysis ------------------------------------------",
     "# From powerkit's evidence register, for this version of the analysis.",
-    "# \"No linked record\" means no check of that kind is linked to this exact",
-    "# version yet; it does not mean a check failed.",
     paste0("# ", comment_text(evidence_record_text(evidence)))
   )
 }

@@ -59,13 +59,13 @@ planning_document <- function(tree, forms, calc) {
   text <- planning_writeup(forms, id, spec, result, fields, values)
   alternatives <- named_alternative_lines(values, fields)
   c("# Study planning decision document", "",
-    sprintf("Planning draft for review, made with %s. This file does not register a preregistration or guarantee the assumptions are correct.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
+    sprintf("Planning draft for review, made with %s. This file is not a preregistration, and it can't show that the assumptions are right.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
     "## Scientific question", if (blank(values$research_question)) "Not recorded." else values$research_question, "",
     "## Analysis and decision", tree$endpoints[[id]]$plain_name %||% tree$endpoints[[id]]$doc_name,
     decision_rule_text(spec, result, forms$forms[[id]]),
     paste("Why this effect size:", values$just_source %||% "Not recorded."),
     if (!blank(values$alternative_reason)) paste("One-sided decision reasoning:", values$alternative_reason), "",
-    "## Assumptions and sources", "Entered values below are planning assumptions unless their source establishes otherwise. Defaults are not study-specific evidence.",
+    "## Assumptions and sources", "The values below are planning assumptions unless a source you name establishes them. A value left at its default is not evidence about your study.",
     vapply(active, assumption, ""), assumption_record_lines(values, fields), "",
     "## Sample units and recruitment", paste0("N counts ", units$unit, ". ", units$note),
     paste("Group size ratio:", paste(unlist(spec$options$allocation_ratio %||% spec$options$cell_ratio %||% spec$options$group_ratio %||% "as specified by the design"), collapse = ", ")),
@@ -74,7 +74,7 @@ planning_document <- function(tree, forms, calc) {
     "## Result and methods", unname(text["full"]), "",
     "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
     "## Reproducibility record", provenance_lines(result), "",
-    "Keep the matching analysis file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+    "Keep the matching analysis file: it holds the full design specification, how any raw values were converted, and the result in a form software can read. Review these assumptions and the selected decision rule before using the plan.")
 }
 
 # The card's write-up (short and full methods paragraphs) from the
@@ -101,7 +101,7 @@ planning_methods_text <- function(tree, forms, calc) {
 
 planning_recruitment_lines <- function(result, units) {
   r <- result$recruitment
-  if (!is.list(r)) return("No attrition inflation was requested. This does not establish that no observations will be lost.")
+  if (!is.list(r)) return("No allowance for people or observations lost from the analysis was added. Say in your plan whether you expect any losses.")
   c(sprintf("Analysed: %s %s. Recruitment target: %s %s.", r$n_analysed, units$unit, r$n_recruit, units$unit),
     if (length(r$groups_analysed) > 1) paste("Analysed counts in allocation order:", paste(r$groups_analysed, collapse = ", ")),
     if (length(r$groups_recruit) > 1) paste("Recruitment counts in allocation order:", paste(r$groups_recruit, collapse = ", ")),

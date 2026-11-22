@@ -1038,7 +1038,7 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
     else sprintf("power4mome %s, with lavaan %s and manymome %s", pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])
   others <- names(pv$packages)[names(pv$packages) != "powerkit"]
   unname(c("# Whole-study simulation report", "",
-    sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
+    sprintf("Planning draft for review, made with %s. It is not a preregistration, and it can't show that the assumptions are right.",
       powerkit_cited(pv$packages[["powerkit"]])), "",
     "**Validation in progress.** The whole-study simulation is new in Powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",
     sprintf("These numbers come from a quick look of %s simulated studies, so each power is within about ±%s percentage points. For numbers to report, and for the sample size you need, run the full simulation with the R script for it on the result page.",

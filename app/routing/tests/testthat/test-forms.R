@@ -1061,7 +1061,7 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # Simulation guidance uses the same named info disclosure as other notes.
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
   expect_match(acc, 'aria-label="Info: Simulation accuracy"', fixed = TRUE)
-  expect_match(acc, "More simulations do not guarantee", fixed = TRUE)
+  expect_match(acc, "More simulations don't guarantee", fixed = TRUE)
 })
 
 test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {

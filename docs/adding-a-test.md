@@ -297,6 +297,24 @@ new files of its own, which never conflict:
   title and text). The app shows them on the Updates tab as soon as they
   are on main.
 
+An Updates entry is written for a researcher who uses powerkit, not for
+someone who reads its code:
+
+- The title says what changed, as a researcher would put it ("Welch's
+  test is the default for two groups"), in 70 characters or fewer.
+- The text says what they will see or can now do, and names the analysis
+  as its card does. If a result changes, it says which results and by
+  about how much; if a saved plan or a download is affected, it says what
+  to do.
+- It says what a thing is, not what it isn't, in plain sentences, at
+  most 100 words; longer detail belongs in the developer note.
+- No internal names: no card codes, file or function names, code
+  formatting, or words such as engine, backend, spec, endpoint or
+  template. No selling words ("powerful", "even better").
+
+`test-whats-new.R` checks the length and the internal names in entries
+still waiting in `whats-new.d/`; the plain sentences are on the author.
+
 Name the files after the change (`welch-default.md`), not the branch, so
 two pull requests never pick the same name. A pull request that changes
 nothing users or developers would notice writes neither.

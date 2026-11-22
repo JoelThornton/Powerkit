@@ -3118,7 +3118,7 @@ provenance_lines <- function(result) {
     sprintf("Spec hash: %s", p$spec_hash),
     sprintf("R: %s", p$r_version),
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
-    sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
+    sprintf("Check run (does the package reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
     sprintf("Run time: %.1f seconds", p$run_time_seconds),
     simulation_outcome_text(result)
   )
@@ -3735,8 +3735,8 @@ writeup_software <- function(result, full = FALSE, bayes = FALSE) {
   s <- sprintf("%s calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
     if (bayes) "The probabilities of evidence at the threshold were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), r_version)
   if (full) {
-    s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
-      p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
+    s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that %s reproduces the population entered: %s.",
+      p$seed, p$spec_hash, p$backend, if (all(result$check_run$ok)) "passed" else "failed"))
   }
   s
 }

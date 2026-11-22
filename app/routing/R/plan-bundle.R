@@ -103,7 +103,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     "The plan has one analysis: its requirement is the plan's."
   refs <- plan_merge_citations(plan_citation_texts(entries, engine))
   c(sprintf("# %s", plan$name), "",
-    sprintf("Study plan report for review, made with Powerkit %s. It restates the analyses in this study plan as each card calculated them; it does not register a preregistration or guarantee the assumptions are correct.", version), "",
+    sprintf("Study plan report for review, made with Powerkit %s. It restates the analyses in this study plan as each card calculated them; it is not a preregistration, and it can't show that the assumptions are right.", version), "",
     if (nzchar(plan$description %||% "")) c("## About this study", plan$description, ""),
     "## Analyses", plan_role_counts_text(entries), "",
     "| Analysis | Role | N needed | Unit | Target | Backend |", "|---|---|---|---|---|---|",
