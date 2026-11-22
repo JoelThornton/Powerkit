@@ -1498,14 +1498,12 @@ forms:
       - input: "What X, the mediator and the outcome are"
         fields:
           - {id: binm_x, label: "X is", type: select, path: variables.X.type, required: true,
-             choices: {binary: "Two conditions or groups (for example, a reminder or none)", continuous: "A score"},
-             default: binary, default_source: "two conditions, the usual design for mediation of an intervention"}
+             choices: {binary: "Two conditions or groups (for example, a reminder or none)", continuous: "A score"}}
           - {id: X_levels, label: "The two conditions or groups", help: "Separated by commas, the comparison group first. The people are split equally between them.", type: levels, path: variables.X.levels, required: true,
              shown_if: {field: binm_x, is: binary}}
           - {id: binm_m, label: "The mediator is", type: select, path: template, required: true,
              choices: {binary_mediator: "Yes or no (for example, booked an appointment or not)", ordinal_mediator: "Ordered categories (for example, a rating from 'unlikely' to 'certain')"},
              sets: {ordinal_mediator: [{path: variables.M.type, value: categorical}, {path: population.metric, value: latent_response}]},
-             default: binary_mediator, default_source: "a yes/no mediator, the card's first version",
              choice_notes: {ordinal_mediator: "The categories are treated as cut from an underlying score, the usual structural equation model for an ordered variable (lavaan, as in Mplus). Powerkit tests the indirect effect through that score."}}
           - {id: M_levels, label: "The mediator's two answers", type: levels, path: variables.M.levels, required: true,
              shown_if: {field: binm_m, is_not: ordinal_mediator},
@@ -1514,8 +1512,7 @@ forms:
              shown_if: {field: binm_m, is: ordinal_mediator},
              help: "Lowest first, separated by commas (three or more). For example: Unlikely, Unsure, Likely, Certain."}
           - {id: binm_y, label: "The outcome is", type: select, path: variables.Y.type, required: true,
-             choices: {continuous: "A score", binary: "Yes or no"},
-             default: continuous, default_source: "a score, the usual outcome"}
+             choices: {continuous: "A score", binary: "Yes or no"}}
       - input: "How X changes the mediator, and how the mediator changes the outcome"
         fields:
           - {id: binm_m_baseline, writeup_label: "the chance of the mediator in the comparison group", label: "Chance of 'yes' on the mediator at baseline", help: "In the first group (or at X's average, for a score), from 0 to 1.", type: number, path: population.m_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
@@ -1563,11 +1560,9 @@ forms:
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every SD below is on the log-odds scale."}
           - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
-             choices: {within_factor: "Both conditions", between_factor: "One condition (half the participants in each)"},
-             default: within_factor, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026; one condition each since 31 October 2026)"}
+             choices: {within_factor: "Both conditions", between_factor: "One condition (half the participants in each)"}}
       - input: "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'"
         fields:
           - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true, optional_for: [sensitivity], when_empty: zero,
@@ -1611,8 +1606,7 @@ forms:
           - {id: participants, label: "Number of participants (analysed)", type: number, path: population.participants, required: true, min: 4, integer: true,
              shown_if: {field: plan_unit, is: items}}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
-             choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
-             default: between, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026)"}
+             choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"}}
           - {id: sd_item_slope, label: "SD of the condition difference across items", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently. Empty means 0."}
@@ -1637,11 +1631,9 @@ forms:
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every SD below is on the log-odds scale."}
           - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
-             choices: {within_factor: "Every condition", between_factor: "One condition (the participants split equally)"},
-             default: within_factor, default_source: "every participant in every condition, the commoner design"}
+             choices: {within_factor: "Every condition", between_factor: "One condition (the participants split equally)"}}
       - input: "Each condition's mean, in the outcome's units, or its chance of 'yes'"
         fields:
           - {id: means, writeup_label: "means", label: "The mean in each condition, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.means, effect: true,
@@ -1661,8 +1653,7 @@ forms:
         fields:
           - {id: items, in_effect_text: true, writeup_label: "number of items", label: "Number of items", type: number, path: population.items, required: true, min: 6, integer: true}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
-             choices: {between: "In one condition each (split equally between the conditions)", within: "In every condition"},
-             default: between, default_source: "as for two conditions (decided 30 October 2026, docs/decisions.md)"}
+             choices: {between: "In one condition each (split equally between the conditions)", within: "In every condition"}}
           - {id: sd_item_condition, label: "Item-by-condition SD", help: "How much an item's mean in a condition departs from its average plus the condition's effect. Optional: empty means 0.", type: number, path: population.sd_item_condition, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within}}
       - input: "The test: any difference between the conditions, or one pair"
@@ -1707,7 +1698,6 @@ forms:
           - {id: glmm_groups, label: "Do you compare groups of people?", type: select, required: true,
              choices: {none: "No: one group of people", groups: "Yes: does the change over the conditions differ between the groups? (a group-by-time interaction)"},
              sets: {groups: [{path: variables.W.type, value: between_factor}, {path: target_test.effect, value: interaction}]},
-             default: none, default_source: "one group of people, this card's first design",
              help: "Two or more groups, each measured in every condition. For example, a programme group and a control group, each measured before and after: the test is whether the programme group changes more than the control group, the interaction of group and occasion in the mixed model y ~ group * occasion + (1 | person)."}
           - {id: W_label, label: "What the groups are", help: "For example, programme or control.", type: text, path: variables.W.label, required: true,
              shown_if: {field: glmm_groups, is: groups}}
@@ -1717,13 +1707,11 @@ forms:
           - {id: X_levels, label: "The conditions or occasions, separated by commas", help: "Two or more.", type: levels, path: variables.X.levels, required: true}
           - {id: glmm_people, label: "Each person is measured in", type: select, path: variables.X.type, required: true,
              shown_if: {field: glmm_groups, is_not: groups},
-             choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"},
-             default: within_factor, default_source: "the same people measured more than once, this card's usual design"}
+             choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"}}
           - {id: Y_label, label: "Outcome", help: "For example, cigarettes smoked per day.", type: text, path: variables.Y.label, required: true}
           - {id: glmm_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {count: "A count (0, 1, 2, ...)", binary: "Yes or no", categorical: "Ordered categories (for example, a rating from 1 to 5)"},
              sets: {binary: [{path: population.metric, value: probability}], categorical: [{path: population.metric, value: proportion}]},
-             default: count, default_source: "a count, the commoner outcome on this card",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer); with ordered categories, a cumulative link mixed model with proportional odds (the R package ordinal's clmm()). The SD below is then on the log-odds scale."}
           - {id: Y_levels, label: "The categories, lowest first, separated by commas", help: "Three or more.", type: levels, path: variables.Y.levels, required: true,
              shown_if: {field: glmm_outcome, is: categorical}}
@@ -1820,13 +1808,11 @@ forms:
         fields:
           - {id: X_label, label: "The predictor", help: "For example, word frequency.", type: text, path: variables.X.label, required: true}
           - {id: x_level, label: "The predictor is measured", type: select, path: population.x_level, required: true,
-             choices: {item: "On each item: the same for every participant (for example, a word's frequency)", trial: "On each trial: it varies from trial to trial, within items too (for example, how long the stimulus is shown)"},
-             default: item, default_source: "an item property, the commoner design"}
+             choices: {item: "On each item: the same for every participant (for example, a word's frequency)", trial: "On each trial: it varies from trial to trial, within items too (for example, how long the stimulus is shown)"}}
           - {id: Y_label, label: "Outcome", help: "For example, response time in ms.", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and the effect and every SD below are on the log-odds scale."}
           - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: outcome_type, is: binary},
@@ -1875,7 +1861,6 @@ forms:
           - {id: three_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a reading score)", binary: "Yes or no (for example, passed or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer): you give each condition's chance of 'yes', and how much schools and classes differ as SDs on the log-odds scale."}
           - {id: three_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: three_outcome, is: binary},
@@ -1887,8 +1872,7 @@ forms:
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
           - {id: three_assignment, label: "What is assigned to the conditions", type: select, path: population.assignment, required: true,
-             choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"},
-             default: site, default_source: "whole sites, the commonest three-level trial"}
+             choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"}}
       - input: "The effect, and how alike people in the same group and site are"
         fields:
           - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true, optional_for: [sensitivity], when_empty: zero,
@@ -2082,8 +2066,7 @@ forms:
           - {id: Y_label, label: "The outcome measured on each member", help: "Y, for example relationship satisfaction.", type: text, path: variables.Y.label, required: true}
           - {id: distinguishable, label: "Can the two members be told apart in a way that matters?", type: select, required: true,
              choices: {"false": "No (for example, same-sex friends or twins): one actor and one partner effect, shared", "true": "Yes (for example, a woman and a man, or a parent and child): each member has their own"},
-             sets: {"false": [{path: population.distinguishable, value: false}], "true": [{path: population.distinguishable, value: true}]},
-             default: "false", default_source: "indistinguishable members, the model with fewer effects to give"}
+             sets: {"false": [{path: population.distinguishable, value: false}], "true": [{path: population.distinguishable, value: true}]}}
           - {id: member_1, label: "Member 1", help: "For example, woman.", type: text, path: population.members.1, required: true,
              shown_if: {field: distinguishable, is: "true"}}
           - {id: member_2, label: "Member 2", help: "For example, man.", type: text, path: population.members.2, required: true,
@@ -2104,13 +2087,11 @@ forms:
              shown_if: {field: distinguishable, is: "true"}}
           - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
              shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "none"}],
-             choices: {partner: "The partner effect", actor: "The actor effect", actor_and_partner: "Both: the actor and the partner effect significant in the same study (joint power)"},
-             default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
+             choices: {partner: "The partner effect", actor: "The actor effect", actor_and_partner: "Both: the actor and the partner effect significant in the same study (joint power)"}}
           - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
              shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "none"}],
              choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect",
-                       both_partners: "Both partner effects significant in the same study (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four effects (joint power)"},
-             default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
+                       both_partners: "Both partner effects significant in the same study (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four effects (joint power)"}}
       - input: "Whether the actor effect depends on something about the pair"
         fields:
           - {id: apim_moderator, label: "Does the actor effect depend on a pair-level score?", help: "A moderator that describes the pair, such as relationship length.", type: select, required: true,
@@ -2138,14 +2119,12 @@ forms:
           - {id: apim_effect_w, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
              shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "yes"}],
              choices: {moderation: "The moderation of the actor effect", actor_and_moderation: "Both: the actor effect and its moderation significant in the same study (joint power)",
-                       partner: "The partner effect", actor: "The actor effect", actor_and_partner: "The actor and the partner effect (joint power)"},
-             default: moderation, default_source: "the moderation, the reason for adding W"}
+                       partner: "The partner effect", actor: "The actor effect", actor_and_partner: "The actor and the partner effect (joint power)"}}
           - {id: apim_effect_dw, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
              shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "yes"}],
              choices: {both_moderations: "Both moderations significant in the same study (joint power)", moderation_1: "The moderation of member 1's actor effect", moderation_2: "The moderation of member 2's actor effect",
                        actors_and_moderations: "Both actor effects and both moderations (joint power)", partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2",
-                       actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect", both_partners: "Both partner effects (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four actor and partner effects (joint power)"},
-             default: both_moderations, default_source: "both members' moderations, the reason for adding W"}
+                       actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect", both_partners: "Both partner effects (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four actor and partner effects (joint power)"}}
       - input: "How alike the members are"
         fields:
           - {id: r_x, writeup_label: "correlation of the members' X", label: "Correlation of the two members' X", type: number, path: population.r_x, effect: true, min: -1, max: 1}
@@ -2179,7 +2158,6 @@ forms:
           - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a mood rating)", binary: "Yes or no (for example, drank alcohol that day)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
           - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: two_outcome, is: binary},
@@ -2211,8 +2189,7 @@ forms:
              choices: {cross_level_interaction: "The moderation: does X's within-person effect depend on W?", within_effect: "X's effect within people", between_effect: "W's effect between people",
                        within_and_interaction: "Both X's effect and the moderation significant in the same study (joint power)",
                        all_effects: "All three effects significant in the same study (joint power)"},
-             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
-             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power."}
 
   E62:
     methods_name: "a two-level mixed model with a person-level and a group-level predictor"
@@ -2233,14 +2210,12 @@ forms:
           - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
           - {id: in_sites, label: "Are the groups themselves part of larger groups that matter for the design?", type: select, required: true,
              choices: {"no": "No: one level of groups (for example, classes)", "yes": "Yes: groups within larger groups (for example, classes within schools)"},
-             sets: {"yes": [{path: variables.Z.type, value: continuous}]},
-             default: "no", default_source: "one level of groups, the commoner design"}
+             sets: {"yes": [{path: variables.Z.type, value: continuous}]}}
           - {id: Z_label, label: "Measured on each larger group (Z; for example, school funding)", type: text, path: variables.Z.label, required: true,
              shown_if: {field: in_sites, is: "yes"}}
           - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a maths score)", binary: "Yes or no (for example, passed or not)"},
              sets: {binary: [{path: population.metric, value: probability}]},
-             default: continuous, default_source: "a score, the commoner outcome",
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
           - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: two_outcome, is: binary},
@@ -2283,16 +2258,14 @@ forms:
              choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups",
                        within_and_interaction: "Both X's effect and the cross-level interaction significant in the same study (joint power)",
                        all_effects: "All three effects significant in the same study (joint power)"},
-             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
-             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power."}
           - {id: three_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              shown_if: {field: in_sites, is: "yes"},
              choices: {cross_level_interaction: "X's interaction with W: does X's effect depend on the group?", site_interaction: "X's interaction with Z: does X's effect depend on the larger group?",
                        within_effect: "X's effect within groups", between_effect: "W's effect between groups", site_effect: "Z's effect between larger groups",
                        both_interactions: "Both of X's interactions, with W and with Z, significant in the same study (joint power)",
                        within_and_interaction: "X's effect and its interaction with W, both significant in the same study (joint power)",
-                       all_effects: "All five effects significant in the same study (joint power)"},
-             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+                       all_effects: "All five effects significant in the same study (joint power)"}}
 
   E11:
     methods_name: "a parallel mediation model"
@@ -2317,7 +2290,6 @@ forms:
           # stay standardised (per SD of X).
           - {id: x_type, label: "X is", type: select, required: true,
              choices: {score: "A score", binary: "Two groups or conditions"},
-             default: score, default_source: "the design as most often planned; choose two groups for an experiment",
              sets: {score: [{path: variables.X.type, value: continuous}], binary: [{path: variables.X.type, value: binary}]}}
           - {id: X_levels, label: "X's two groups or conditions", help: "Separated by a comma, the comparison group first.", type: levels, path: variables.X.levels, required: true,
              shown_if: {field: x_type, is: binary}}
@@ -2351,7 +2323,6 @@ forms:
           # stay standardised (per SD of X).
           - {id: x_type, label: "X is", type: select, required: true,
              choices: {score: "A score", binary: "Two groups or conditions"},
-             default: score, default_source: "the design as most often planned; choose two groups for an experiment",
              sets: {score: [{path: variables.X.type, value: continuous}], binary: [{path: variables.X.type, value: binary}]}}
           - {id: X_levels, label: "X's two groups or conditions", help: "Separated by a comma, the comparison group first.", type: levels, path: variables.X.levels, required: true,
              shown_if: {field: x_type, is: binary}}
@@ -2425,16 +2396,14 @@ forms:
       - input: "Which link W changes, and which variables are yes/no"
         fields:
           - {id: modmed_stage, label: "W changes", type: select, path: template, required: true,
-             choices: {process_7: "The link X -> M (PROCESS model 7)", process_14: "The link M -> Y (PROCESS model 14)"},
-             default: process_7, default_source: "the first link, the commoner of the two"}
+             choices: {process_7: "The link X -> M (PROCESS model 7)", process_14: "The link M -> Y (PROCESS model 14)"}}
           - {id: x_type, label: "X is", type: select, path: variables.X.type, required: true,
              choices: {binary: "Two groups or conditions (for example, a randomised condition)", continuous: "A score"},
              default: binary, default_source: "two groups, the reason for this card"}
           - {id: x_prob, label: "Share of people in X's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.x_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: x_type, is: binary}}
           - {id: w_type, label: "W is", type: select, path: variables.W.type, required: true,
-             choices: {continuous: "A score", binary: "Two groups (for example, gender, or a second condition)"},
-             default: continuous, default_source: "a score, the commoner moderator"}
+             choices: {continuous: "A score", binary: "Two groups (for example, gender, or a second condition)"}}
           - {id: w_prob, label: "Share of people in W's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.w_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: w_type, is: binary}}
       - input: "Standardised paths (per SD of a yes/no variable, as power4mome rescales it)"
@@ -2481,7 +2450,6 @@ forms:
         fields:
           - {id: modmed_model, label: "W changes", type: select, path: template, required: true,
              choices: {process_8: "X -> M and the direct path X -> Y (PROCESS model 8)", process_58: "X -> M and M -> Y (PROCESS model 58)", process_59: "X -> M, M -> Y and the direct path (PROCESS model 59)"},
-             default: process_58, default_source: "W on both links of the indirect effect, the commonest of the three",
              help: "None of these has a single index of moderated mediation, so Powerkit tests the difference between the indirect effects at two values of W."}
       - input: "Standardised paths, including the interactions"
         fields:
@@ -2520,18 +2488,15 @@ forms:
     groups:
       - input: "Which link W changes, and which variables are yes/no"
         fields:
-          - {id: stage, label: "Which link depends on W", type: select, path: template, required: true, default: process_7,
-             default_source: "the first-stage model (PROCESS model 7), as on the single-mediator cards' first choice",
+          - {id: stage, label: "Which link depends on W", type: select, path: template, required: true,
              choices: {process_7: "The link from X to each mediator (PROCESS model 7)",
                        process_14: "The link from each mediator to the outcome (PROCESS model 14)"}}
           - {id: x_type, label: "X is", type: select, path: variables.X.type, required: true,
-             choices: {continuous: "A score", binary: "Two groups or conditions (for example, a randomised condition)"},
-             default: continuous, default_source: "a score, as on this card before yes/no variables were added"}
+             choices: {continuous: "A score", binary: "Two groups or conditions (for example, a randomised condition)"}}
           - {id: x_prob, label: "Share of people in X's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.x_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: x_type, is: binary}}
           - {id: w_type, label: "W is", type: select, path: variables.W.type, required: true,
-             choices: {continuous: "A score", binary: "Two groups (for example, gender, or a second condition)"},
-             default: continuous, default_source: "a score, the commoner moderator"}
+             choices: {continuous: "A score", binary: "Two groups (for example, gender, or a second condition)"}}
           - {id: w_prob, label: "Share of people in W's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.w_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: w_type, is: binary}}
       - input: "Standardised paths for each mediator, including the interactions with W"
@@ -3095,7 +3060,6 @@ forms:
           - {id: factors, label: "How the groups are formed", type: select, path: template, required: true,
              choices: {oneway_ancova: "By one factor (for example, three conditions)",
                        factorial_ancova: "By two factors crossed, different people in every combination (for example, condition by delivery)"},
-             default: oneway_ancova, default_source: "one factor, the usual ANCOVA",
              sets: {oneway_ancova: [{path: target_test.effect, value: main_effect_A}],
                     factorial_ancova: [{path: variables.B.type, value: between_factor}]}}
           - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
@@ -3701,7 +3665,6 @@ forms:
         fields:
           - {id: manova_factors, label: "How the groups are formed", type: select, required: true,
              choices: {one: "By one factor (for example, three conditions)", two: "By two factors crossed, different people in every combination (for example, condition by delivery)"},
-             default: one, default_source: "one factor, the usual MANOVA",
              sets: {one: [{path: target_test.effect, value: main_effect_A}], two: [{path: variables.B.type, value: between_factor}]}}
           - {id: A_label, label: "What the groups are", help: "For example, condition.", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
@@ -3711,7 +3674,6 @@ forms:
              shown_if: {field: manova_factors, is: two}}
           - {id: manova_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does the first factor's effect depend on the second?", main_effect_A: "The first factor", main_effect_B: "The second factor"},
-             default: interaction, default_source: "the interaction, usually the question a two-factor design is built for",
              shown_if: {field: manova_factors, is: two}}
           - {id: Y_labels, label: "The outcomes (two to nine), separated by commas", type: levels, required: true,
              help: "The scores compared together, for example anxiety, depression, stress."}
@@ -3808,8 +3770,7 @@ forms:
              sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}],
                     dependent_effects: [{path: target_test.method, value: rve_t}],
                     meta_regression: [{path: target_test.effect, value: moderator_slope}],
-                    heterogeneity: [{path: target_test.effect, value: heterogeneity}, {path: target_test.method, value: q_test}]},
-             default: mean_effect, default_source: "the average effect, a meta-analysis's main question"}
+                    heterogeneity: [{path: target_test.effect, value: heterogeneity}, {path: target_test.method, value: q_test}]}}
           - {id: meta_metric, label: "The effect size the studies give", type: select, path: population.metric, required: true,
              choices: {d: "Cohen's d: two groups compared in each study", r: "A correlation r"}, default: d,
              default_source: "Cohen's d, the first effect size metapower's mpower() takes (metapower 0.2.2)"}
@@ -3843,7 +3804,8 @@ forms:
           - {id: meta_model, label: "Model", type: select, path: target_test.model, required: true,
              choices: {random: "Random effects: the studies' true effects differ", fixed: "Fixed effect: every study estimates the same effect"},
              shown_if: {field: meta_question, is_one_of: [mean_effect, subgroups]},
-             default: random, default_source: "powerkit's choice: the random-effects model, which allows for the studies' true effects differing (metapower reports both)"}
+             default: random, default_source: "powerkit's choice: the random-effects model, which allows for the studies' true effects differing (metapower reports both)",
+             choice_notes: {fixed: "A fixed-effect model answers a narrower question: the average effect in these particular studies, not in studies like them. It suits a set of near-identical studies, such as a lab's own replications; when the studies differ, it overstates how sure the average is."}}
           - {id: meta_test, label: "Test of the average effect", type: select, path: target_test.test, required: true,
              choices: {hartung_knapp: "Hartung-Knapp (recommended; simulated)", z: "z test (metapower's formula)"}, default: hartung_knapp,
              default_source: "powerkit's choice (Departure 18): the Hartung-Knapp test keeps false positives closer to alpha, especially with few studies (IntHout, Ioannidis & Borm, 2014)",
@@ -4066,12 +4028,13 @@ forms:
           - {id: loading, optional_for: [sensitivity], when_empty: omit, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
-             default: 0, default_source: "uncorrelated factors, powerkit's default"}
+             usual: 0, usual_label: "Use 0, if you have no evidence",
+             help: "Correlated factors are harder to tell apart, so a correlation above 0 needs more people. Use one from earlier studies of these measures if you can; 0 is usually the most hopeful case."}
       - input: "What counts as recovering the factors"
         fields:
           - {id: congruence, label: "Tucker's congruence each factor's loadings must reach with the true ones", type: number, path: target_test.congruence, required: true, min: 0.8, max: 0.999,
-             default: 0.95, default_source: "0.95, the level at which Lorenzo-Seva and ten Berge (2006) treat two factors as virtually equal",
-             help: "1 is a perfect match. Lower values, such as 0.90, accept a rougher recovery."}
+             shortcuts: [0.95, 0.90, 0.85], shortcut_labels: ["Use 0.95, the usual level", "0.90", "0.85"],
+             help: "1 is a perfect match. Lorenzo-Seva and ten Berge (2006) treat two factors as virtually equal from 0.95; lower values, such as 0.90, accept a rougher recovery and need fewer people. Like target power, it is your choice: pick the level your claim about the factors needs."}
 
   # Interrupted time series (Spower around PITS's simulated series and
   # nlme's gls(), REML by default; the maintainer's decision of 6 November
@@ -4288,8 +4251,7 @@ forms:
              sets: {mediation: [{path: design, value: mediation}, {path: template, value: binary_or_count_outcome},
                                 {path: target_test.effect, value: indirect_effect}, {path: target_test.method, value: delta_method},
                                 {path: target_test.path, value: "X->M->Y"}, {path: variables.W, value: null},
-                                {path: variables.M.type, value: continuous}]},
-             default: moderation, default_source: "moderation, this card's first design"}
+                                {path: variables.M.type, value: continuous}]}}
           - {id: Y_kind, label: "The outcome is", type: select, required: true,
              choices: {binary: "Yes or no (for example, sought counselling)", count: "A count (0, 1, 2, ..., for example drinking days in a month)",
                        categories: "One of three or more unordered categories (for example, where help was first sought)"},
@@ -4298,7 +4260,6 @@ forms:
                             {path: variables.Y.type, value: count}, {path: variables.Y.levels, value: null}],
                     categories: [{path: template, value: multinomial_interaction}, {path: variables.Y.type, value: categorical},
                                  {path: variables.Y.levels, value: null}]},
-             default: binary, default_source: "a yes/no outcome, this card's first design",
              help: "With unordered categories, Powerkit fits a multinomial logistic regression (nnet's multinom()): each category is compared with the first, and the test is whether the X x W terms improve the model. Mediation of such an outcome isn't calculated yet."}
           - {id: Y_levels, label: "The outcome's categories", type: levels, path: variables.Y.levels, required: true,
              shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
@@ -4494,7 +4455,6 @@ forms:
           - {id: outcome_type, label: "What kind of outcome", type: select, path: population.metric, required: true,
              choices: {standardised: "A score (for example, a questionnaire total)",
                        proportion: "Yes/no (for example, passed or failed)"},
-             default: standardised, default_source: "a score outcome, the design Powerkit covered first",
              sets: {proportion: [{path: variables.Y.type, value: binary},
                                  {path: target_test.effect, value: odds_ratio, shown_if: {field: assignment, is_not: group_treatment}},
                                  {path: target_test.method, value: logistic_mixed, shown_if: {field: assignment, is_not: group_treatment}},
@@ -4525,8 +4485,7 @@ forms:
         fields:
           - {id: adjust_baseline, label: "Will the analysis adjust for a baseline score?", type: select, required: true,
              shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}],
-             choices: {"no": "No", "yes": "Yes (for example, the same measure taken before the study)"},
-             default: "no", default_source: "no covariates, powertools' default (ncov = 0, Rsq = 0)"}
+             choices: {"no": "No", "yes": "Yes (for example, the same measure taken before the study)"}}
           - {id: baseline_within, writeup_label: "share of the variance within groups explained by the baseline score", label: "Baseline R-squared within groups", type: number, path: population.baseline_r2_within, required: true, min: 0, max_exclusive: 1,
              shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}, {field: adjust_baseline, is: "yes"}],
              help: "How much of the differences between people in the same group the baseline explains (0 to below 1). If you know the correlation between the baseline and the outcome, square it: a correlation of 0.6 gives 0.36. Take it from earlier studies with the same measure; a guess that is too high overstates power."}
@@ -4637,17 +4596,13 @@ forms:
         fields:
           - {id: over, label: "Across what", type: select, path: population.over, required: true,
              shown_if: {field: question, is: invariance},
-             choices: {groups: "Groups of different people", occasions: "The same people on several occasions (longitudinal)"},
-             default: groups, default_source: "groups, as in semPower.powerMI() (semPower.powerLI() for occasions, semPower 2.2.0)"}
+             choices: {groups: "Groups of different people", occasions: "The same people on several occasions (longitudinal)"}}
           - {id: mi_groups, writeup_label: "groups", label: "Number of groups", type: number, path: population.n_groups, required: true, min: 2, max: 10, integer: true,
-             default: 2, default_source: "two groups, as in semPower.powerMI()'s examples (semPower 2.2.0)",
              shown_if: [{field: question, is: invariance}, {field: over, is_not: occasions}],
              help: "With three or more groups, they are taken to be the same size."}
           - {id: mi_occasions, writeup_label: "occasions", label: "Number of occasions", type: number, path: population.n_occasions, required: true, min: 2, max: 10, integer: true,
-             default: 2, default_source: "two occasions, as in semPower.powerLI()'s examples (semPower 2.2.0)",
              shown_if: [{field: question, is: invariance}, {field: over, is: occasions}]}
           - {id: mi_factors, writeup_label: "factors", label: "Number of factors the questionnaire measures", type: number, path: population.factors, required: true, min: 1, max: 5, integer: true,
-             default: 1, default_source: "one factor, as in semPower.powerMI()'s examples (semPower 2.2.0)",
              shown_if: {field: question, is: invariance},
              help: "Each factor has its own items, the same number for each. Invariance is tested for all the factors together."}
           - {id: mi_factor_correlation, writeup_label: "correlation between the factors", label: "Correlation between the factors", type: number, path: population.factor_correlation, optional: true, min_exclusive: -1, max_exclusive: 1,
@@ -4702,7 +4657,8 @@ forms:
              default: 1, default_source: "the first predictor, as in semPower.powerRegression() (nullWhich = 1, semPower 2.2.0)",
              shown_if: {field: question, is: latent_regression}}
           - {id: predictor_correlation, writeup_label: "correlation between the predictors", label: "Correlation between the predictors", type: number, path: population.predictor_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
-             default: 0, default_source: "uncorrelated predictors, as in semPower.powerRegression() (corXX = NULL, semPower 2.2.0)",
+             usual: 0, usual_label: "Use 0, if you have no evidence",
+             help: "Correlated predictors share what they explain, so each slope is harder to detect and a correlation above 0 needs more people. Use one from earlier studies if you can; 0 is usually the most hopeful case. semPower.powerRegression() takes the predictors as uncorrelated unless told otherwise (corXX = NULL, semPower 2.2.0).",
              shown_if: {field: question, is: latent_regression}}
           - {id: lr_indicators, writeup_label: "items per factor", label: "Items measuring each factor", type: number, path: population.indicators, required: true, min: 2, integer: true,
              shown_if: {field: question, is: latent_regression}, help: "The same for the outcome and every predictor."}
@@ -4811,7 +4767,6 @@ forms:
         fields:
           - {id: generic_test, label: "Which test statistic", type: select, path: template, required: true,
              choices: {t: "t", f: "F", chi_square: "Chi-square", z: "z (standard deviation 1)"},
-             default: t, default_source: "powerkit's first choice; pick the statistic your analysis reports",
              sets: {t: [{path: target_test.method, value: t_test}], f: [{path: target_test.method, value: f_test}],
                     chi_square: [{path: target_test.method, value: chi_square_test}], z: [{path: target_test.method, value: z_test}]}}
       - input: "The noncentrality parameter and the degrees of freedom"
@@ -4844,7 +4799,6 @@ forms:
                        one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)",
                        mean_difference: "A difference between two groups' means, in the outcome's own units", odds_ratio: "An odds ratio between two groups (a yes/no outcome)",
                        icc: "An intraclass correlation (agreement between raters, or test-retest)", regression_coefficient: "One predictor's standardised coefficient in a multiple regression"},
-             default: two_groups, default_source: "powerkit's first choice; pick the estimate your study reports",
              sets: {two_groups: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     paired: [{path: variables.X.type, value: within_factor}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     one_group: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
@@ -4926,14 +4880,12 @@ forms:
           - {id: purpose, label: "Are you developing a new model, or validating an existing one?", type: select, path: template, required: true,
              choices: {development: "Developing a new model: estimating its predictor effects from this study's data",
                        validation: "Validating an existing model: testing how well a published or already developed model predicts in new people"},
-             default: development, default_source: "powerkit's first choice; pick what your study will do",
              sets: {validation: [{path: variables.Y.type, value: binary}]},
              help: "Validating an existing model (external validation) is planned for a yes/no outcome, with pmvalsampsize; developing a new one, for any of the three kinds of outcome, with pmsampsize."}
           - {id: outcome, label: "What kind of outcome does the model predict?", type: select, path: variables.Y.type, required: true,
              choices: {binary: "Yes or no (for example, whether someone relapses within a year): a logistic model",
                        continuous: "A score (for example, a depression score): a linear model",
                        time_to_event: "The time until an event (for example, time to relapse, with some people not followed up to it): a Cox model"},
-             default: binary, default_source: "powerkit's first choice; pick the kind of outcome your model predicts",
              shown_if: {field: purpose, is: development},
              sets: {continuous: [{path: population.metric, value: r2}]}}
           - {id: Y_label, label: "The outcome", help: "For example, relapse within a year.", type: text, path: variables.Y.label, required: true}

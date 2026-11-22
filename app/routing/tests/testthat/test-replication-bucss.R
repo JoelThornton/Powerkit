@@ -210,8 +210,11 @@ test_that("an omnibus ANOVA from partial eta-squared compares publication assump
   expect_match(report, "the same F test with 80% power needs", fixed = TRUE)
 })
 
-test_that("the assurance choices run from 50% upward with BUCSS's 80% selected", {
+test_that("the assurance choices run from 50% upward, none chosen for the researcher", {
+  # Assurance works like target power, so it starts unchosen (22 November
+  # 2026); plans saved before then keep BUCSS's 80%.
   expect_identical(unname(replication_assurances_ui), c("0.5", "0.8", "0.9", "0.95"))
-  expect_identical(replication_field_defaults$rep_assurance, "0.8")
-  expect_match(as.character(replication_planner_sections()), "value=\"0.8\" checked=\"checked\"", fixed = TRUE)
+  expect_identical(replication_field_defaults$rep_assurance, "")
+  expect_identical(replication_field_defaults_v2$rep_assurance, "0.8")
+  expect_no_match(as.character(replication_planner_sections()), "name=\"rep_assurance\" value=\"[0-9.]+\" checked", perl = TRUE)
 })

@@ -74,10 +74,11 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
 
 test_that("other settings start at the wrapped tool's default or, for alpha, its usual value one click away, and say whose it is", {
   alpha <- function(ep) Filter(function(f) f$id == "alpha", fields_for(ep))[[1]]
-  # Precision planning (E46) has a confidence level, not alpha: its
-  # default is the packages' own.
+  # Precision planning (E46) has a confidence level, not alpha: empty like
+  # alpha (22 November 2026), with the packages' own 0.95 one click away.
   level <- Filter(function(f) f$id == "conf_level", fields_for("E46"))[[1]]
-  expect_equal(level[["default"]], 0.95)
+  expect_null(level[["default"]])
+  expect_equal(level$usual, 0.95)
   expect_match(level$default_source, "MBESS", fixed = TRUE)
   expect_match(level$default_source, "presize", fixed = TRUE)
   # Latent profiles (E58) have no significance test, so no alpha.

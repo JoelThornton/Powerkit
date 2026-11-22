@@ -11,7 +11,9 @@ test_that("replication help is labelled or attached to its input", {
   expect_match(field, 'id="x_id_help">This explains the field.', fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))
   expect_length(regmatches(html, gregexpr("How to interpret the between-study SD", html, fixed = TRUE))[[1]], 1)
-  expect_match(html, 'name="rep_threshold" value="10" checked="checked"', fixed = TRUE)
+  # The Bayes factor threshold is the researcher's to choose, as on the cards.
+  expect_match(html, 'name="rep_threshold" value="10"', fixed = TRUE)
+  expect_no_match(html, 'name="rep_threshold" value="[0-9]+" checked', perl = TRUE)
 })
 
 both <- list(rep_design = "two_groups", rep_analysis = "both", rep_effect = "0.5", rep_n1 = "40", rep_n2 = "40",

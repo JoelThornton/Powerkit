@@ -1208,12 +1208,24 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     lapply(g$variables, function(v) {
       opts <- guided_options(v, ctx)
       selected <- answers[[v$id]]
-      if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
+      # Not answered for the researcher (22 November 2026), unless the
+      # screening already left one answer (besides "not sure").
+      if (is.null(selected) || !selected %in% names(opts)) {
+        real <- setdiff(names(opts), "notsure")
+        selected <- if (length(real) == 1) real else character(0)
+      }
       # Boxed like the input screen's groups of fields.
       div(class = "form-group-box guided-variable",
         radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%"))
     }),
-    action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))
+    {
+      all_answered <- paste(sprintf("input['g_%s']", vapply(g$variables, function(v) v$id, character(1))), collapse = " && ")
+      tagList(
+        conditionalPanel(sprintf("!(%s)", all_answered),
+          p(class = "status status-soon", role = "note", "Answer each question above to choose the analyses.")),
+        conditionalPanel(all_answered,
+          action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))))
+    }
   )
 }
 

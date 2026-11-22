@@ -5,7 +5,7 @@ skip_if_not_installed("BayesRepDesign")
 
 filled <- list(rep_design = "two_groups", rep_effect = "0.7", rep_n1 = "20", rep_n2 = "20", rep_original_alpha = "0.05",
   rep_smallest = "0.2", rep_tau = "0.05", rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10", rep_n_at = "200",
-  rep_study = "Smith (2020)", rep_goal = "significance", rep_prior = "uncertain")
+  rep_study = "Smith (2020)", rep_goal = "significance", rep_prior = "uncertain", rep_sided = "two.sided")
 plan_of <- function(values = filled) do.call(engine_function("replication_planning"), replication_args(values))
 
 test_that("the fields become the engine's arguments, blanks left out", {
@@ -75,7 +75,10 @@ test_that("the planner's file keeps its own fields and nothing else", {
   path <- tempfile(fileext = ".json")
   jsonlite::write_json(replication_file(c(filled, list(other = "x")), "0.0.0"), path, auto_unbox = TRUE)
   back <- plan_from_replication_text(paste(readLines(path), collapse = "\n"))$replication$fields
-  expect_setequal(names(back), union(names(replication_clean_fields(filled)), "rep_published"))
+  # An old planner file means the starting values it was saved with
+  # where a field is missing (they were chosen for the researcher before
+  # 22 November 2026).
+  expect_setequal(names(back), union(names(replication_clean_fields(filled)), c("rep_published", names(replication_field_defaults_v2))))
   expect_false("other" %in% names(back))
   expect_identical(back$rep_effect, "0.7")
   expect_identical(back$rep_published, "significant")
@@ -168,8 +171,9 @@ test_that("the server plans from the fields, and says what is missing first", {
     # The replication's own significance level and chance start empty
     # (P-04): choosing them is asked for before anything is calculated.
     session$setInputs(rep_n1 = "20", rep_n2 = "20", rep_smallest = "0.2", rep_run = 2)
-    expect_match(as.character(output$rep_result$html), "Choose the significance level and the chance of success to aim for under Goals first", fixed = TRUE)
-    session$setInputs(rep_alpha = "0.05", rep_power = "0.8", rep_run = 4)
+    # So do the direction and the between-study variation (22 November 2026).
+    expect_match(as.character(output$rep_result$html), "Choose the significance level and whether the test is two-sided or one-sided and the chance of success to aim for and how much the effect may vary between studies under Goals first", fixed = TRUE)
+    session$setInputs(rep_alpha = "0.05", rep_power = "0.8", rep_sided = "two.sided", rep_tau = "0.05", rep_run = 4)
     expect_match(as.character(output$rep_result$html), "rep-table", fixed = TRUE)
     session$setInputs(rep_effect = "0", rep_run = 3)
     expect_match(as.character(output$rep_result$html), "not 0", fixed = TRUE)
@@ -194,7 +198,7 @@ test_that("the simple answer comes first, from the table's own first row (C-14)"
 generic_filled <- list(rep_design = "generic", rep_effect_name = "odds ratio", rep_scale = "log", rep_effect = "2.1",
   rep_se_from = "ci", rep_ci_lower = "1.2", rep_ci_upper = "3.7", rep_ci_level = "95", rep_n = "150",
   rep_smallest = "1.2", rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10", rep_tau = "0",
-  rep_goal = "significance", rep_prior = "shrunk")
+  rep_goal = "significance", rep_prior = "shrunk", rep_sided = "two.sided")
 
 test_that("another design's fields become the engine's generic arguments", {
   args <- replication_args(generic_filled)
@@ -352,7 +356,7 @@ test_that("a posterior original is planned, refused for an informative prior", {
     expect_match(as.character(output$rep_result$html), "vague or a default one", fixed = TRUE)
     session$setInputs(rep_original_prior = "vague", rep_run = 2)
     expect_match(as.character(output$rep_result$html), "rep-table", fixed = TRUE)
-    session$setInputs(rep_design = "correlation", rep_analysis = "bayes_factor", rep_bf = "5", rep_n = "80", rep_run = 3)
+    session$setInputs(rep_design = "correlation", rep_analysis = "bayes_factor", rep_bf = "5", rep_n = "80", rep_tau_r = "0", rep_run = 3)
     expect_match(as.character(output$rep_result$html), "only for a t-test", fixed = TRUE)
   })
   ui <- as.character(replication_planner_sections())
@@ -370,8 +374,9 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   expect_match(html, "there is no correct one", fixed = TRUE)
   expect_no_match(html, "Strong evidence", fixed = TRUE)
   expect_false(any(grepl("Strong evidence", replication_goal_labels, fixed = TRUE)))
-  # Variation starts at Small, with the cards' help.
-  expect_match(html, '<option value="0.05" selected>Example: 0.05</option>', fixed = TRUE)
+  # Variation is the researcher's to choose (22 November 2026), with the cards' help.
+  expect_match(html, '<option value="" selected>Choose one</option>', fixed = TRUE)
+  expect_match(html, '<option value="0.05">Example: 0.05</option>', fixed = TRUE)
   expect_match(html, "How to interpret the between-study SD", fixed = TRUE)
   expect_match(html, "a quarter of Cohen's 0.2, 0.5 and 0.8", fixed = TRUE)
   expect_match(html, "illustrations, not estimates for your field", fixed = TRUE)
@@ -417,7 +422,7 @@ test_that("variation between studies is on each design's own scale", {
   expect_equal(replication_args(generic)$tau, 0)
   expect_equal(replication_args(c(generic, rep_tau_value = "0.03"))$tau, 0.03)
   html <- as.character(replication_workspace_ui(tree))
-  expect_match(html, '<option value="0.025" selected>Example: 0.025</option>', fixed = TRUE)
+  expect_match(html, '<option value="0.025">Example: 0.025</option>', fixed = TRUE)
   expect_match(html, "(SD on its scale)", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0, "generic", "log")), "no meaning on this effect's scale", fixed = TRUE)
   expect_match(as.character(replication_tau_note(0.03, "generic", "log")), "0.03 on the log scale", fixed = TRUE)
@@ -567,7 +572,8 @@ test_that("the purpose picks the main criterion, and the others are reported at 
   expect_identical(replication_resolve_goals(bayes, no_t)$goal, "negligible")
   expect_identical(replication_resolve_goals(c(bayes, rep_design = "anova"), goals)$goal, "negligible")
   # Its equivalence test needs the researcher's bound, asked for before the run.
-  needs <- list(rep_design = "correlation", rep_analysis = "posterior", rep_purpose = "absent", rep_power = "0.8", rep_alpha = "0.05")
+  needs <- list(rep_design = "correlation", rep_analysis = "posterior", rep_purpose = "absent", rep_power = "0.8", rep_alpha = "0.05",
+    rep_tau_r = "0", rep_sided = "two.sided")
   expect_identical(replication_settings_missing(needs), "the smallest effect that would matter")
   expect_length(replication_settings_missing(c(needs, rep_smallest = "0.1")), 0)
   expect_length(replication_settings_missing(modifyList(needs, list(rep_analysis = "test"))), 0)
@@ -647,7 +653,10 @@ test_that("a one-sided replication is planned, written up and restored as one", 
   expect_match(report, "replication significance level 0.05 (one-sided, in the original's direction)", fixed = TRUE)
   expect_match(paste(replication_report(base, two_plan), collapse = "\n"),
     "(a two-sided test at 0.05, counted as a success only in the original's direction)", fixed = TRUE)
-  expect_identical(replication_field_defaults$rep_sided, "two.sided")
+  # The direction is the researcher's to choose; plans saved before it was
+  # (22 November 2026) keep the two-sided test they were made with.
+  expect_identical(replication_field_defaults$rep_sided, "")
+  expect_identical(replication_field_defaults_v2$rep_sided, "two.sided")
   expect_true("rep_sided" %in% replication_field_ids)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\", \"rep_anova_kind\", \"rep_f_from\", \"rep_assurance\")) updateRadioButtons", fixed = TRUE)
@@ -699,12 +708,12 @@ test_that("the replication Bayes factors' direction is shown and written up when
 })
 
 test_that("replication criteria control their own settings", {
-  legacy <- list(rep_design = "two_groups", rep_power = "0.8")
+  legacy <- list(rep_design = "two_groups", rep_power = "0.8", rep_sided = "two.sided", rep_tau = "0")
   expect_true(replication_criteria_settings(legacy)$alpha)
   expect_identical(replication_settings_missing(legacy), "the significance level")
 
   original <- list(rep_design = "two_groups", rep_analysis = "bayes_factor", rep_goal = "auto",
-    rep_also = "absence", rep_power = "0.8")
+    rep_also = "absence", rep_power = "0.8", rep_tau = "0", rep_threshold = "10")
   expect_true(replication_criteria_settings(original)$bf)
   expect_false(replication_criteria_settings(original)$alpha)
   expect_length(replication_settings_missing(original), 0)
@@ -712,7 +721,7 @@ test_that("replication criteria control their own settings", {
   frequentist <- modifyList(original, list(rep_goal = "significance"))
   expect_false(replication_criteria_settings(frequentist)$bf)
   expect_true(replication_criteria_settings(frequentist)$alpha)
-  expect_identical(replication_settings_missing(frequentist), "the significance level")
+  expect_identical(replication_settings_missing(frequentist), c("the significance level", "whether the test is two-sided or one-sided"))
 
   bayesian <- modifyList(original, list(rep_analysis = "test", rep_goal = "bf_repeat"))
   expect_true(replication_criteria_settings(bayesian)$bf)

@@ -288,8 +288,36 @@ whole_study_prefill <- function(shared, plan = NULL, plan_values = list()) {
     d <- plan_values[[a$id]]$d
     if (length(d) == 1 && nzchar(d)) out[[paste0("d_", outcome)]] <- d
   }
+  alpha <- whole_study_plan_alpha(plan_values)
+  if (!is.null(alpha)) out$alpha <- alpha
   out
 }
+
+# The significance level the plan's analyses were given, when they agree
+# (22 November 2026: not filled in with 0.05 for the researcher).
+whole_study_plan_alpha <- function(plan_values = list()) {
+  alphas <- unique(unlist(lapply(plan_values, function(v) {
+    a <- v$alpha
+    if (length(a) == 1 && nzchar(a)) as.character(a)
+  })))
+  if (length(alphas) == 1) alphas else NULL
+}
+
+# The whole-study significance level: empty unless the plan gave one, with
+# one-click usual levels, as on the input screens.
+whole_study_alpha_field <- function(value = "") {
+  div(class = "form-field",
+    textInput("ws_alpha", "Significance level", value = value, width = "100%"),
+    div(class = "usual-values", lapply(seq_along(whole_study_alpha_shortcuts), function(i) {
+      tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
+        id = sprintf("ws_alpha_usual%s", if (i > 1) paste0("_", i) else ""), `data-target` = "ws_alpha",
+        `data-value` = whole_study_alpha_shortcuts[[i]],
+        onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
+        names(whole_study_alpha_shortcuts)[[i]])
+    })))
+}
+
+whole_study_alpha_shortcuts <- c("Use 0.05, the usual level" = "0.05", "0.01" = "0.01", "0.005" = "0.005")
 
 # The largest N calculated so far for a main analysis on the plan.
 whole_study_start_n <- function(results, primary) {
@@ -372,7 +400,7 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     if (!is.null(n)) p(class = "text-muted small", "Filled in with the largest sample size calculated on your plan for a main analysis."),
-    textInput("ws_alpha", "Significance level", value = values$alpha %||% "0.05", width = "100%"),
+    whole_study_alpha_field(values$alpha %||% prefill$alpha %||% ""),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about \u00b1%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
       whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
@@ -518,9 +546,11 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
         sprintf("The power at N = %s, from %s simulated studies (within about \u00b1%s percentage points; %s on one core)",
           whole(n), whole(ws$full_nrep), whole_study_precision(ws$full_nrep), whole_study_duration(one_run))),
       choiceValues = list("sample_size", "power"), selected = "sample_size", width = "100%"),
-    selectInput("ws_target", "Target power",
-      choices = stats::setNames(as.character(ws$target_powers), paste0(100 * unlist(ws$target_powers), "%")),
-      selected = "0.8", width = "100%"),
+    # Chosen by the researcher, as on the input screens (22 November 2026).
+    conditionalPanel("input.ws_script_goal == 'sample_size'",
+      selectInput("ws_target", "Target power",
+        choices = c("Choose one" = "", stats::setNames(as.character(ws$target_powers), paste0(100 * unlist(ws$target_powers), "%"))),
+        selected = "", width = "100%")),
     p("What you need:"),
     tags$ul(
       tags$li(sprintf("R%s, from cran.r-project.org.", if (is.null(r_needs)) "" else sprintf(" %s or later", r_needs))),
@@ -528,7 +558,10 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
         tags$code("install.packages(\"remotes\")"), " then ",
         tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)"), "."),
       tags$li("Then run the script. More cores finish sooner (its first lines say how) without changing the result. It saves the result and the citations.")),
-    download_button("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary"))
+    conditionalPanel("input.ws_script_goal == 'sample_size' && !input.ws_target",
+      p(class = "status status-soon", role = "note", "Choose a target power to download the script.")),
+    conditionalPanel("input.ws_script_goal != 'sample_size' || input.ws_target",
+      download_button("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary")))
 }
 
 # The spec the script runs: the quick look's spec with the full number of
@@ -814,7 +847,7 @@ whole_study_means_grid_ui <- function(plan, labels, values) {
       lapply(seq_along(cols), function(j) cell(i, j)))))))
 }
 
-whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = list(), problem = NULL) {
+whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = list(), problem = NULL, alpha = NULL) {
   rule_words <- c(each = "each main result is a separate claim", all = "the claim needs every main result to be significant",
     any = "any one significant main result supports the claim")
   value_of <- function(key, default = "") values[[key]] %||% default
@@ -852,7 +885,7 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     p(class = "text-muted small", if (plan$x_within && (!plan$has_w || isTRUE(plan$w_within))) "Everyone takes part in every condition." else "Split equally between the groups."),
-    textInput("ws_alpha", "Significance level", value = value_of("alpha", "0.05"), width = "100%"),
+    whole_study_alpha_field(value_of("alpha", alpha %||% "")),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about ±%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
       whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
