@@ -345,6 +345,9 @@ app_css <- "
   /* The test box's heading asks the question, so the Test version label
      under it is for screen readers only (22 November 2026). */
   .form-group-test > .form-field:first-of-type > .form-group > label.control-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* A folded what-if tool shows its question once, as the fold's title. */
+  .sure-fold > div > h5:first-child { display: none; }
+  .sure-fold { margin-top: 0.5rem; }
   /* A field guide's labels sit beside their text, not above it (22 November 2026). */
   .input-guide dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.9rem; margin: 0.25rem 0 0; }
   .input-guide dt { font-weight: 600; }

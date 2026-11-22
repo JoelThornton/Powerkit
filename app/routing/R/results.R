@@ -2001,7 +2001,7 @@ rank_switch_ui <- function(forms, ep_id, spec, result) {
   if (is.null(pair) || !isTRUE(result$goal_type %in% c("sample_size", "power")) ||
       !isTRUE(spec$target_test$method %in% pair$params)) return(NULL)
   p(class = "result-rank-switch small",
-    sprintf("Might you analyse with %s instead, for example if the scores turn out skewed? Then choose it now: this plan is for the test you chose, and picking the test after a normality test alters the error rates of the test you then run (Rochon, Gondan and Kieser, 2012). ",
+    sprintf("Might you analyse with %s instead, if the scores turn out skewed? Choose it now: picking the test after a normality test alters its error rates (Rochon, Gondan and Kieser, 2012). ",
       pair$rank_name),
     actionButton("rank_switch", sprintf("Plan with %s instead", pair$rank_name), class = "btn btn-link p-0 align-baseline"))
 }
@@ -2204,8 +2204,8 @@ scenarios_ui <- function(spec, result = NULL) {
   div(class = "scenario-panel",
     h5(class = "h6", "What if the true effect is smaller?"),
     p(class = "small", sprintf(paste0(
-      "You planned for %s = %s. Enter the smallest effect you'd still find plausible (closer to %s, in the same direction) and the largest, ",
-      "and Powerkit shows power for all three, with the analysis and any between-study variation as planned. It doesn't suggest values."),
+      "You planned for %s = %s. Enter the smallest effect you'd still find plausible (closer to %s) and the largest, ",
+      "to see power for all three. Powerkit doesn't suggest values."),
       e$label, format(round(planned, 3)), explore_null_text(e))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
@@ -3571,8 +3571,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       bayes_robustness_ui(spec, calc$robustness),
       bayes_uncertain_ui(spec, result),
       explore,
-      scen,
-      assume),
+      # The two tools that ask for values of your own fold under their
+      # questions, so the card opens on the answer's curve (22 November
+      # 2026); the slider above stays in view.
+      if (!is.null(scen)) tags$details(class = "result-more sure-fold", tags$summary("What if the true effect is smaller?"), scen),
+      if (!is.null(assume)) tags$details(class = "result-more sure-fold", tags$summary("Which assumption matters most?"), assume)),
     labs_learn_ui(spec, result),
     bayes_card,
     sequential_card,
@@ -4667,7 +4670,7 @@ bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
   if (!bayes_companion_applies(tree, ep_id, spec, result)) return(NULL)
   div(class = "result-card result-bayes", id = "result-bayes",
     h4(class = "h5", "Planning to interpret a non-significant result?"),
-    p("A non-significant result doesn't show there is no effect. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in Powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
+    p("A non-significant result doesn't show there is no effect. An equivalence test (its own analysis in Powerkit) or a Bayes factor can answer that question, and either can need more people than this plan."),
     actionButton("bayes_companion_show", "See what a Bayes factor would add to this plan", class = "btn btn-outline-primary",
       onclick = "this.hidden = true;"),
     uiOutput("bayes_companion"))
