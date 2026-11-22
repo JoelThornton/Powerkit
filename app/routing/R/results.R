@@ -2204,7 +2204,7 @@ scenarios_ui <- function(spec, result = NULL) {
   div(class = "scenario-panel",
     h5(class = "h6", "What if the true effect is smaller?"),
     p(class = "small", sprintf(paste0(
-      "You planned for %s = %s. Enter the smallest effect you'd still find plausible (closer to %s) and the largest, ",
+      "You planned for %s = %s. Enter the smallest effect you'd still find plausible (closer to %s, in the same direction) and the largest, ",
       "to see power for all three. Powerkit doesn't suggest values."),
       e$label, format(round(planned, 3)), explore_null_text(e))),
     div(class = "d-flex gap-3 flex-wrap",
