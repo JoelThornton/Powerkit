@@ -19,10 +19,16 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 # The planner's starting values, as its screen had them.
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_pool_from = "se", rep_pool_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
-  rep_original_alpha = "0.05", rep_published = "unknown", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
-  rep_alpha = "", rep_power = "", rep_claim_dependence = "unknown", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
-  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided",
-  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_between_factors = "1", rep_assurance = "0.8")
+  rep_original_alpha = "0.05", rep_published = "unknown", rep_tau = "", rep_tau_r = "", rep_effect_type = "d",
+  rep_alpha = "", rep_power = "", rep_claim_dependence = "unknown", rep_threshold = "", labs_power = "", labs_alpha = "0.05",
+  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "",
+  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_between_factors = "1", rep_assurance = "")
+
+# Starting values before 22 November 2026, when these fields stopped being
+# chosen for the researcher. A record before version 3 left them out when
+# they were unchanged, so it means these.
+replication_field_defaults_v2 <- list(rep_tau = "0.05", rep_tau_r = "0.025", rep_threshold = "10", labs_power = "0.8",
+  rep_sided = "two.sided", rep_assurance = "0.8")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
@@ -41,7 +47,7 @@ replication_clean_fields <- function(fields) {
 
 replication_record <- function(fields = list(), endpoint = NULL) {
   ep <- if (is.character(endpoint) && length(endpoint) == 1L && grepl("^E[0-9]+$", endpoint)) endpoint
-  record <- list(format = replication_plan_format, version = 2L, fields = replication_clean_fields(fields))
+  record <- list(format = replication_plan_format, version = 3L, fields = replication_clean_fields(fields))
   if (!is.null(ep)) record$endpoint <- ep
   record
 }
@@ -58,6 +64,9 @@ replication_normalise <- function(record) {
       fields$rep_post_mean <- fields$rep_effect
       fields$rep_effect <- NULL
     }
+  }
+  if ((record$version %||% 1L) < 3L) {
+    for (id in names(replication_field_defaults_v2)) fields[[id]] <- fields[[id]] %||% replication_field_defaults_v2[[id]]
   }
   replication_record(fields, record$endpoint)
 }

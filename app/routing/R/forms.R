@@ -523,7 +523,12 @@ precision_goal_fields <- function(tool) {
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
          type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
     list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",
-         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = tool[["conf_level"]], default_source = tool[["conf_level_source"]])
+         # Empty, as the significance level is (22 November 2026): one
+         # click gives the usual 95%.
+         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = NULL,
+         usual = tool[["conf_level"]], usual_label = sprintf("Use %s, the usual level", format(tool[["conf_level"]])),
+         shortcuts = c(tool[["conf_level"]], 0.9, 0.99), shortcut_labels = c(sprintf("Use %s, the usual level", format(tool[["conf_level"]])), "0.90", "0.99"),
+         default_source = tool[["conf_level_source"]])
   )
 }
 
@@ -656,7 +661,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     situation,
     list(id = "cost_ratio", label = "How many times worse is a false positive than a missed effect?",
-         help = "1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%).",
+         help = "Your judgement: 1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%). It starts at 1 only as a placeholder: change it to what a false positive and a missed effect would cost in your study.",
          type = "number", path = "goal.cost_ratio", needed_for = "justified_alpha", min_exclusive = 0, default = 1,
          default_source = "both mistakes weighted equally"),
     list(id = "prior_odds", label = "How much more likely is the effect to be real than not, before the study?",
@@ -807,7 +812,7 @@ safeguard_fields <- function(template) {
          path = "effect_justification.small_telescopes.alpha", optional = TRUE, default = 0.05, min_exclusive = 0, max_exclusive = 0.5,
          default_source = "The usual two-sided level; change it if the original study used another", shown_if = telescoping)),
     list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
-         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
+         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one. More protection plans for a smaller effect, so it needs more people. Like target power, it is your choice.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }

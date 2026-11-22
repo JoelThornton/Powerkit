@@ -1695,7 +1695,13 @@ server <- function(input, output, session) {
       state$preset_version <- NULL
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
-      if (state$screen == "g_vars") save_guided_variables()
+      if (state$screen == "g_vars") {
+        save_guided_variables()
+        # Every variable answered before the analyses (the screen hides
+        # the button until then).
+        answered <- vapply(tree$guided$variables, function(v) !is.null(input[[paste0("g_", v$id)]]), logical(1))
+        if (!identical(value, "variables") && !all(answered)) return()
+      }
       if (state$screen == "g_analyses") {
         save_guided_analyses()
         # Two or more main analyses need the claim's rule before the plan
@@ -2363,7 +2369,9 @@ server <- function(input, output, session) {
     content = function(file) {
       export <- engine_function("export_whole_study_script")
       goal <- input$ws_script_goal %||% "sample_size"
-      spec <- whole_study_script_spec(state$ws_spec, forms, goal, input$ws_target %||% "0.8")
+      # The button shows only once a target power is chosen for a search.
+      req(!identical(goal, "sample_size") || nzchar(input$ws_target %||% ""))
+      spec <- whole_study_script_spec(state$ws_spec, forms, goal, input$ws_target)
       export(spec, file = file, run_time = whole_study_script_time(forms, whole_study_screen()$plan, goal))
     }
   )
@@ -3151,7 +3159,18 @@ server <- function(input, output, session) {
   # Labs: Bayesian planning, from the engine's bayes_planning().
   bayes_plan <- eventReactive(input$bayes_run, {
     num <- function(x, default) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1 || is.na(v)) default else v }
-    if (identical(input$bayes_design, "sequential")) {
+    # Nothing is filled in for the researcher (22 November 2026): say what
+    # is still to choose, in the fields' words.
+    sequential <- identical(input$bayes_design, "sequential")
+    missing <- c(
+      if (is.na(num(input$bayes_n, NA))) "the sample size",
+      if (is.na(num(input$bayes_effect, NA))) "the effect you expect",
+      if (is.na(num(input$bayes_effect_sd, NA))) "how unsure you are about it (0 if not at all)",
+      if (is.na(num(input$bayes_threshold, NA))) "the evidence threshold",
+      if (!sequential && is.na(num(input$bayes_target, NA))) "the chance of reaching it",
+      if (sequential && is.na(num(input$bayes_threshold_null, NA))) "the threshold for stopping for no effect")
+    if (length(missing)) return(list(problem = paste0("Still needed: ", paste(missing, collapse = ", "), ".")))
+    if (sequential) {
       return(tryCatch(engine_function("bayes_sequential")(
         n_min = num(input$bayes_n_min, NA), n_max = num(input$bayes_n, NA), step = num(input$bayes_step, NA),
         type = input$bayes_type %||% "two.sample",
@@ -3622,7 +3641,8 @@ server <- function(input, output, session) {
             else p("The simulation needs powerkit's engine, which isn't installed where this prototype is running."))
         } else if (isTRUE(ws$plan$experiment)) {
           isolate(whole_study_experiment_ui(forms, ws$plan, ws$labels,
-            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values))
+            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values,
+            alpha = whole_study_plan_alpha(state$plan_values)))
         } else {
           isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared, ws$plan, state$plan_values),
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",
