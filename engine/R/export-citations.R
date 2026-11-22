@@ -99,6 +99,7 @@ formula_reference_key <- function(provenance) {
   # (SimplyAgree's blandPowerCurve(), backend-agreement.R).
   if (identical(provenance$backend, "SimplyAgree") && grepl("Lu et al.", fun, fixed = TRUE)) return("Lu2016_bland_altman_n")
   if (!identical(provenance$backend, "stats")) return(NULL)
+  if (grepl("measured predictors", fun, fixed = TRUE)) return("Shieh2007_random_regression")
   if (grepl("Pillai's V", fun, fixed = TRUE)) "Faul2007_gpower" else if (grepl("Levy's noncentral F", fun, fixed = TRUE)) "Jan2014_welch_anova" else if (grepl("Donner & Eliasziw", fun, fixed = TRUE)) "Donner1987_icc"
 }
 

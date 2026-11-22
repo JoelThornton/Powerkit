@@ -71,6 +71,13 @@
 #' partial eta-squared of the adjusted means (noncentrality N gamma^2,
 #' Shieh, 2020); `"random"`, the default, is Shieh's method for covariates
 #' measured on each person.
+#' Multiple regression's F tests (design `multiple_regression`, templates
+#' `r2_zero`, `r2_increase` and `single_coefficient`, method `"f_test"`)
+#' take `target_test > predictor_model`: `"random"`, the default, for
+#' predictors measured on each person (assumed multivariate normal; the
+#' fixed-predictor power averaged over them, Shieh, 2007), or `"fixed"` for
+#' predictors set by the design, as G*Power and pwrss's
+#' `power.f.regression()` take them (noncentrality f^2 N).
 #' The mixed models with a score (templates `crossed_two_condition`,
 #' `crossed_conditions`, `two_level`, `three_level`, `item_predictor`) take
 #' `target_test > df_method`: `"satterthwaite"` (the default, lmerTest) or

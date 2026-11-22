@@ -724,6 +724,13 @@
           ],
           "description": "ANCOVA only (oneway_ancova, factorial_ancova): whether the covariates are measured on each person ('random', the default, Shieh's method) or fixed by the design ('fixed', as G*Power takes them); see those templates."
         },
+        "predictor_model": {
+          "enum": [
+            "random",
+            "fixed"
+          ],
+          "description": "Multiple regression's F tests only (multiple_regression, method 'f_test'): whether the predictors are measured on each person ('random', the default) or set by the design ('fixed', as G*Power and pwrss take them); see design multiple_regression."
+        },
         "df_method": {
           "enum": [
             "satterthwaite",
@@ -4783,7 +4790,14 @@
                       "quantile_regression",
                       "bayes_factor"
                     ],
-                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\")). Template r2_zero also allows 'bayes_factor': the Bayes factor for R-squared (BayesFactor's linearReg.R2stat(), the JZS Bayes factor of regressionBF() and lmBF(), JASP's default Bayesian linear regression), exact."
+                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by formula (see 'predictor_model'); the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\")). Template r2_zero also allows 'bayes_factor': the Bayes factor for R-squared (BayesFactor's linearReg.R2stat(), the JZS Bayes factor of regressionBF() and lmBF(), JASP's default Bayesian linear regression), exact."
+                  },
+                  "predictor_model": {
+                    "enum": [
+                      "random",
+                      "fixed"
+                    ],
+                    "description": "Method 'f_test' only. 'random' (the default): the predictors are measured on each person and vary from sample to sample, assumed multivariate normal; power is the fixed-predictor power averaged over them (Shieh, 2007), slightly lower than G*Power's. 'fixed': the predictors' values are set by the design, as G*Power and pwrss's power.f.regression() take them (noncentrality f^2 N)."
                   }
                 }
               }

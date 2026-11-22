@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-22"
+    title: "Multiple regression allows for measured predictors"
+    text: "The multiple regression card now asks whether your predictors are measured on each person, such as scores or age, or set by the design, such as doses chosen in advance. For measured predictors, which differ from one sample to the next, Powerkit now works out the F test's power allowing for that, which needs a few more people than G*Power's answer: 173 rather than 167 for two predictors added to three. Choose predictors set by the design to get G*Power's answer. The Bayes factor versions on this card still treat the predictors as set."

@@ -63,6 +63,8 @@ export_script <- function(spec, result, file = NULL) {
       heterogeneity_script(spec, result)
     } else if (variance_formula_test(spec)) {
       variance_script(spec, result)
+    } else if (regression_measured(spec)) {
+      pwrss_script(spec, result)
     } else if (manova_by_v(spec)) {
       pillai_script(spec, result)
     } else if (welch_levy_test(spec)) {

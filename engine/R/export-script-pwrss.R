@@ -7,6 +7,7 @@
 
 pwrss_script <- function(spec, result) {
   inputs <- pwrss_inputs(spec)
+  if (regression_measured(spec)) return(regression_measured_script(spec, result, inputs))
   c(
     script_header(spec, result, "pwrss", inputs$description),
     "library(pwrss)",
@@ -497,8 +498,12 @@ welch_sensitivity_section <- function(spec, result) {
 # grid, the first grid value whose power reaches the target, then uniroot()
 # between it and the one before.
 pwrss_search_section <- function(spec, result) {
-  search_section(result, pwrss_search_plan(spec),
-    sprintf("# pwrss's %s() solves for n or power, not for the effect, so powerkit", pwrss_inputs(spec)$fun))
+  opening <- if (regression_measured(spec)) {
+    "# The power calculation above gives power, not the effect, so powerkit"
+  } else {
+    sprintf("# pwrss's %s() solves for n or power, not for the effect, so powerkit", pwrss_inputs(spec)$fun)
+  }
+  search_section(result, pwrss_search_plan(spec), opening)
 }
 
 # The same search for the other formula tests (formula_search_plan(),
@@ -574,5 +579,48 @@ sawtooth_goal_section <- function(spec, result) {
       r_code(result$n_required$n), r_code(result$curve$power)
     ),
     ""
+  )
+}
+
+# The F tests of multiple regression with measured predictors (the default,
+# regression-measured.R): the fixed-predictor power averaged over the
+# chi-square distribution of the noncentrality, in base R. The same inputs
+# lines as pwrss's version, which stays available with fixed predictors.
+regression_measured_script <- function(spec, result, inputs) {
+  args <- inputs$args(1000)
+  k_lines <- switch(spec$template,
+    r2_zero = c("k_total <- predictors", "k_tested <- predictors"),
+    single_coefficient = c("k_total <- predictors_total", "k_tested <- 1"),
+    r2_increase = c("k_total <- predictors_total", "k_tested <- predictors_tested")
+  )
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    pwrss_script_inputs(spec),
+    k_lines,
+    goal_inputs(spec, result),
+    "",
+    "# Power at a total sample size, with the predictors measured on each person",
+    "# (assumed multivariate normal), so they differ from sample to sample.",
+    "# Given the predictors, F is noncentral F(k_tested, n - k_total - 1) with",
+    "# noncentrality f2 times a chi-square on n - 1 - (k_total - k_tested) df (the",
+    "# tested predictors' cross-products after the others are partialled out).",
+    "# Power is the noncentral F's tail averaged over that chi-square (Shieh, 2007).",
+    "# With predictors set by the design, pwrss::power.f.regression() gives",
+    "# G*Power's fixed-model power, noncentrality f2 * n, a little higher.",
+    "power_at <- function(n_total) {",
+    sprintf("  f2 <- %s # Cohen's f-squared of the tested predictors",
+      if (spec$template == "r2_zero") "r2 / (1 - r2)" else "partial_r2 / (1 - partial_r2)"),
+    "  df1 <- k_tested",
+    "  df2 <- n_total - k_total - 1",
+    "  critical <- qf(1 - alpha, df1, df2)",
+    "  m <- n_total - 1 - (k_total - k_tested)",
+    "  tail <- function(w) dchisq(w, m) * pf(critical, df1, df2, ncp = f2 * w, lower.tail = FALSE)",
+    "  integrate(tail, qchisq(1e-12, m), qchisq(1e-12, m, lower.tail = FALSE),",
+    "    rel.tol = 1e-10, subdivisions = 1000L)$value",
+    "}",
+    "",
+    pwrss_goal_section(spec, result),
+    comparison_section()
   )
 }

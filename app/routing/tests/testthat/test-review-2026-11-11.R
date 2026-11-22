@@ -487,7 +487,7 @@ test_that("the regression card takes Cohen's f-squared, converted by the engine 
   fields <- form_fields(form_groups(forms, "E24"))
   values <- list(question = "r2_increase", goal = "sample_size", r2_given = "f2", f2 = "0.0588", r2_reduced = "0",
     predictors_total = "5", predictors_tested = "2", Y_label = "Wellbeing", power = "0.8", alpha = "0.05",
-    just_type = "smallest_effect_of_interest", r2c_test = "f_test")
+    just_type = "smallest_effect_of_interest", r2c_test = "f_test", predictor_model = "random")
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E24", fields, values)
   expect_identical(spec$effect_justification$conversion, list(from = "f2", value = 0.0588))

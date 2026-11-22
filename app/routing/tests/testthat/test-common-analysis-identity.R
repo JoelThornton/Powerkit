@@ -10,7 +10,7 @@ test_that("common form choices reach their intended analysis and preserve fixed 
     list(id="E7",change=list(test_version="anova_f",method="exact"),backend="Superpower",method="anova_f"),
     list(id="E8",change=list(test_version="anova_f",method="exact"),backend="Superpower",method="anova_f"),
     list(id="E9",change=list(interaction_metric="r2_change",r2_change=".02",r2_main=".1"),backend="pwrss",method="ols_t"),
-    list(id="E24",change=list(question="r2_increase"),backend="pwrss",method="f_test"))
+    list(id="E24",change=list(question="r2_increase"),backend="stats",method="f_test"))
   for (case in cases) {
     fields <- form_fields(form_groups(forms,case$id))
     defaults <- setNames(lapply(fields,function(f) f[["default"]] %||% ""),vapply(fields,function(f) f$id,""))

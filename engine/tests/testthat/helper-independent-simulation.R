@@ -491,15 +491,16 @@ independent_ancova_power <- function(means, sd, r2, covariates, per_cell, effect
   }, nrep, seed)
 }
 
-# Linear regression with predictors set by the design (the fixed model, as
-# G*Power's F tests assume): the same predictor values in every study,
-# centred and uncorrelated with SD 1 in the sample, so the sample's
-# R-squared values are the population's. `controls` predictors explain
-# r2_reduced; `tested` more explain the rest of r2_full. Each study draws a
-# normal outcome and tests the tested predictors by the F test of the
-# model with them against the model without (with no controls, the
-# regression's overall F).
-independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, tested,
+# Linear regression. `controls` predictors explain r2_reduced; `tested`
+# more explain the rest of r2_full. With measured = FALSE the predictors
+# are set by the design (the fixed model, as G*Power's F tests assume):
+# the same values in every study, centred and uncorrelated with SD 1 in the
+# sample, so the sample's R-squared values are the population's. With
+# measured = TRUE each study draws new independent standard normal
+# predictors. Each study draws a normal outcome and tests the tested
+# predictors by the F test of the model with them against the model
+# without (with no controls, the regression's overall F).
+independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, tested, measured = FALSE,
                                          alpha = 0.05, nrep, seed) {
   k <- controls + tested
   set.seed(seed)
@@ -508,6 +509,10 @@ independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, t
   centre <- drop(x %*% slopes)
   tested_columns <- controls + seq_len(tested)
   independent_power(function() {
+    if (measured) {
+      x <- matrix(stats::rnorm(n * k), n)
+      centre <- drop(x %*% slopes)
+    }
     y <- centre + stats::rnorm(n, sd = sqrt(1 - r2_full))
     full <- stats::lm(y ~ x)
     reduced <- if (controls == 0) stats::lm(y ~ 1) else stats::lm(y ~ x[, -tested_columns, drop = FALSE])
