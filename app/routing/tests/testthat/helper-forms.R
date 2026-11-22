@@ -290,7 +290,8 @@ form_examples$E77 <- list(purpose = "development", outcome = "binary", Y_label =
   c_statistic = "0.8", prevalence = "0.2", goal = "criteria", shrinkage = "0.9",
   just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
 
-# The mediation analysis selector starts at the existing ML/MC method.
+# The mediation analysis selector has no starting choice: the examples use
+# the maximum likelihood and Monte Carlo method, which runs here.
 for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
   form_examples[[ep]]$method <- "monte_carlo_ci"
 }

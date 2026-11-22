@@ -1325,7 +1325,7 @@ server <- function(input, output, session) {
     long_route = NULL,       # checked app route for reopening a local-script result
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
-    ticked = character(), primary = character(), asks = list(), rule = "each",
+    ticked = character(), primary = character(), asks = list(), rule = NULL,
     plan_id = NULL,          # guided route: the analysis whose input screen is open
     plan_results = list(),   # guided route: the last calculation for each analysis, by analysis id
     plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
@@ -1696,7 +1696,12 @@ server <- function(input, output, session) {
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
       if (state$screen == "g_vars") save_guided_variables()
-      if (state$screen == "g_analyses") save_guided_analyses()
+      if (state$screen == "g_analyses") {
+        save_guided_analyses()
+        # Two or more main analyses need the claim's rule before the plan
+        # (the screen hides the button until it is chosen).
+        if (identical(value, "plan") && length(state$primary) >= 2 && is.null(state$rule)) return()
+      }
       if (state$screen == "g_sim") save_whole_study_values()
       if (identical(value, "simulate")) state$ws_calc <- NULL
       state$plan_opened <- NULL

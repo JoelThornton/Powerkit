@@ -244,12 +244,12 @@ mediation_analysis_group <- function(simple = FALSE) {
   group <- mediation_analysis_group_full()
   if (!simple) return(group)
   f <- group$fields[[1]]
-  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, for planning)"), f$choices)
-  f$default <- "joint_significance"
-  f$default_source <- "the quick estimate, so the screen gives an answer straight away (pwrss's power.z.mediation(method = 'joint') formula, a little optimistic); choose a simulated method for the number you report"
+  # Offered, not preselected (22 November 2026): it is a rough first look,
+  # not the analysis a study reports.
+  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, a rough first look)"), f$choices)
   f$choice_notes <- list(
     joint_significance = "Validation in progress: this estimate has not had a validation run yet (the full simulation has). An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
-  f$help <- paste("Start with the quick estimate to see roughly how many people you need.", f$help)
+  f$help <- paste("The quick estimate shows roughly how many people you need, straight away; it is not the analysis to report.", f$help)
   group$fields[[1]] <- f
   group
 }
@@ -259,10 +259,11 @@ mediation_analysis_group_full <- function() {
     note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
     note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",
     fields = list(list(id = "method", label = "Estimation and confidence interval", type = "select",
-      path = "target_test.method", required = TRUE, default = "monte_carlo_ci",
-      default_source = "the existing power4mome method: maximum likelihood and a Monte Carlo interval; choose OLS bootstrap for PROCESS-style analysis",
-      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval (current Powerkit method)",
-        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style)",
+      # Nothing preselected (22 November 2026): the method is the analysis
+      # the researcher will report, and PROCESS's is the usual one.
+      path = "target_test.method", required = TRUE,
+      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval",
+        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style; the usual one)",
         percentile_bootstrap = "Maximum likelihood + percentile bootstrap"),
       help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option keeps its existing browser workflow.")))
 }

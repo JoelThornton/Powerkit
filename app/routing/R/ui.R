@@ -1255,10 +1255,15 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       radioButtons("g_rule", "You have more than one main analysis. What does your study's claim need?",
         choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
         choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
-        selected = rule %||% "each", width = "100%"
+        # Not chosen for the researcher (22 November 2026): whether the
+        # main analyses need a correction is their claim's call.
+        selected = rule %||% character(0), width = "100%"
       )
     ),
-    action_bar(pick_button("Show my plan", "guided:plan", class = "btn btn-primary"))
+    conditionalPanel(sprintf("(%s) && !input.g_rule", several_main),
+      p(class = "status status-soon", role = "note", "Say above what your study's claim needs, and then you can see your plan.")),
+    conditionalPanel(sprintf("!(%s) || input.g_rule", several_main),
+      action_bar(pick_button("Show my plan", "guided:plan", class = "btn btn-primary")))
   )
 }
 
@@ -1266,7 +1271,8 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
                            history = list(), route_label = "Plan a whole study", raw_answers = answers,
                            forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
-  rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
+  rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)
+  rule_def <- if (length(rule_def)) rule_def[[1]]
   role_badge <- function(id) if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Main analysis") else tags$span(class = "badge bg-secondary ms-2", "Extra analysis")
   # One row per analysis: its name, its role, what powerkit calls it and
   # the button to its input screen; the full card is folded away.
@@ -1304,9 +1310,9 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
   separate <- tagList(
     if (length(ticked) == 0) p("No analyses ticked yet.") else rows,
     h3(class = "h4 mt-4", "Combined sample size"),
-    if (several_main) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ".")),
+    if (several_main) p(tags$strong("Your claim:"), if (is.null(rule_def)) " not chosen yet: say what it needs on the screen before this one." else paste0(" ", rule_def$label, ".")),
     combined_n_ui(tree, ticked, primary, asks, answers, forms, results),
-    if (several_main) tags$details(class = "plan-more", tags$summary("About your claim and significance levels"), p(rule_def$note)),
+    if (several_main && !is.null(rule_def)) tags$details(class = "plan-more", tags$summary("About your claim and significance levels"), p(rule_def$note)),
     if (length(shared_rel) || length(ticked) >= 2) tags$details(class = "plan-more",
       tags$summary("Check that your numbers describe the same study"),
       shared_values_ui(tree, ticked, answers, asks, shared),

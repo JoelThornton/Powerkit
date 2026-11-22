@@ -945,7 +945,7 @@ and 830 people.
 | --- | --- | --- | --- |
 | G\*Power | No test for crossed random effects | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`; for a factor, `fixed(xname)` tests by a likelihood ratio by default [simr help] | The model's own parameters | — |
-| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
+| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()` with the adjustment the researcher chooses (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, the adjustment Departure 17 |
 
 
 With a yes/no outcome (from 1 November 2026) the default test of the
@@ -1073,8 +1073,8 @@ repeated.
 | E10, E11, E12, E16 mediation | Residuals of parallel mediators free (Departure 7) | Maximum likelihood with a Monte Carlo interval (default; Departure 6, Known difference 14), maximum likelihood or ordinary regression (PROCESS-style) with a percentile bootstrap, and a quick joint-significance estimate | Fine |
 | E42, E39 mediation, X in groups or a yes/no or ordered mediator | Monte Carlo interval (E42); delta-method natural indirect effect (E39) | X, M and Y types (E39) | Fine |
 | E13, E14, E17, E38, E40 moderated mediation | Monte Carlo interval; W standardised; the interactions as products of standardised variables (stated on the form since 22 November 2026) | Model, X and W types | Fine |
-| E33, E63, E67, E68, E41, E62 mixed models | Every participant responds to every item (E33, E63, E67); groups of equal size (E62); Satterthwaite's df by default (Departure 16) | Satterthwaite or Kenward-Roger; Wald or likelihood-ratio for yes/no; pairwise follow-ups with an adjustment (E63) | Fine |
-| E75 repeated counts, yes/no, categories | — | Likelihood-ratio or Wald (counts); likelihood-ratio only for yes/no (the Wald test ran above alpha) | Fine |
+| E33, E63, E67, E68, E41, E62 mixed models | Every participant responds to every item (E33, E63, E67); groups of equal size (E62) | Satterthwaite (Departure 16) or Kenward-Roger, neither selected to start (22 November 2026); Wald or likelihood-ratio for yes/no, chosen by the researcher (likelihood-ratio selected on E63, where the Wald test ran above alpha); pairwise follow-ups with an adjustment (E63) | Fine |
+| E75 repeated counts, yes/no, categories | — | Likelihood-ratio or Wald (counts, neither selected to start); likelihood-ratio only for yes/no (the Wald test ran above alpha) | Fine |
 | E78 Cochran's Q | — | — | Fine |
 | E43 survival | — | Log-rank or Cox; group sizes | Fine |
 | E69 reliability and agreement | — | ICC test or Walter's method, alpha, kappa, Bland-Altman (MOVER by default, Departure 27, the original or Lu's formula); one- or two-sided | Fine |
@@ -1685,7 +1685,9 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   each of these cards also offers Kenward and Roger's degrees of freedom
   (`target_test > df_method` "kenward_roger"; simr's method "kr", or
   lmerTest's `ddf = "Kenward-Roger"` for three or more conditions), the
-  same departure from simr's z test. With E33's example at 20
+  same departure from simr's z test. From 22 November 2026 neither starts
+  selected: the researcher picks the one they will report, and
+  Satterthwaite's is marked as the usual one. With E33's example at 20
   participants, on the same 500 simulated data sets: 27.0% with
   Kenward-Roger, 27.4% with Satterthwaite and 29.2% with z, the two
   corrections reaching the same decision in 99.6% of them (simr 1.0.11,
@@ -1700,20 +1702,23 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   ("Satterthwaite's test is never more liberal than simr's z test")
   checks the direction on the same simulated data sets.
 
-### 17. Pairwise comparisons: Holm's adjustment by default, not Superpower's none
+### 17. Pairwise comparisons: Holm's adjustment offered first, not Superpower's none
 
 Decided by the maintainer on 31 October 2026 (`docs/decisions.md`: Holm
-and Bonferroni first); Holm's method as the default is powerkit's.
+and Bonferroni first). From 22 November 2026 no adjustment starts
+selected: whether to adjust depends on the claim (Rubin, 2021, against
+Mayo, 2018, as for the claim on every input screen), so the form asks,
+and recommends Holm's method among the adjustments.
 
 - **Established convention:** Superpower's `ANOVA_power()` reports the
   power of every pairwise t-test with `p_adjust = "none"` by default, and
   adjusts them together (`p.adjust(paired_p, method = p_adjust)`, Superpower
   0.2.4.1) when asked.
 - **powerkit:** the pairwise comparison option on the one-way ANOVA cards
-  (E18, E54) adjusts by Holm's method unless the user chooses Bonferroni's
-  or none, because a study analysed by several pairwise tests and reported
-  without adjustment overstates its evidence. Holm's method never rejects
-  less often than Bonferroni's.
+  (E18, E54) asks for Holm's method, Bonferroni's or none. Holm's is
+  marked as recommended if the researcher adjusts, since it controls the
+  same error and never rejects less often than Bonferroni's; none is
+  described as the choice when each comparison is its own claim.
 - **Size:** for None against Praise in the one-way example (means 10, 11
   and 13, SD 6, 30 per group, three comparisons), 31.2% with Holm's
   adjustment, 30.1% with Bonferroni's and 47.8% with none (Superpower's
