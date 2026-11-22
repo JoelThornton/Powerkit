@@ -2327,7 +2327,9 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "formula = y ~ A * B, # both factors and their interaction",
       "X = X, # the design (above)",
       "betas = betas, # coefficients that give each cell's proportion (above)",
-      sprintf("test = test, # %s", logistic_factorial_effect_words(spec)),
+      if (logistic_factorial_lr(spec)) {
+        sprintf("tested = tested, # %s", logistic_factorial_effect_words(spec))
+      } else sprintf("test = test, # %s", logistic_factorial_effect_words(spec)),
       "family = binomial() # logistic regression"
     ),
     chi_square_independence = c(
@@ -2909,8 +2911,22 @@ spower_derived_lines <- function(spec) {
       "# (all terms, solved on the log-odds scale).",
       "model <- model.matrix(~ A * B, cells)",
       "betas <- drop(solve(model, qlogis(probabilities[cbind(as.integer(cells$A), as.integer(cells$B))])))",
-      sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
-      sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
+      if (logistic_factorial_lr(spec)) c(
+        sprintf("# The likelihood-ratio test of %s: the model against the same", logistic_factorial_effect_words(spec)),
+        "# model without these coefficients' columns (type III, as",
+        "# car::Anova(type = 3, test.statistic = \"LR\") reports it).",
+        sprintf("tested <- %s", r_code(logistic_factorial_design(spec)$tested)),
+        "p_logistic_factorial_lr <- function(formula, X, betas, tested, family = binomial()) {",
+        "  fit <- p_glm(formula = formula, X = X, betas = betas, test = NULL, family = family, return_analysis = TRUE)",
+        "  design <- model.matrix(fit)",
+        "  keep <- !colnames(design) %in% tested",
+        "  reduced <- glm.fit(design[, keep, drop = FALSE], model.response(model.frame(fit)), family = family)",
+        "  pchisq(reduced$deviance - fit$deviance, df = sum(!keep), lower.tail = FALSE)",
+        "}"
+      ) else c(
+        sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
+        sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
+      )
     ),
     manova = if (permanova_test(spec)) c(
       "# The experiment, as powerkit runs it: each group's scores, multivariate",
