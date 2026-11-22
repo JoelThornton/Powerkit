@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "Simulation accuracy moves into Settings"
+    text: >-
+      The input screens are shorter: how precise a simulation should be is now chosen
+      under Settings, at the foot of the screen, and the Settings line names your
+      choice whenever the analysis is simulated. An analysis worked out by formula no
+      longer shows a simulation section in the middle of the screen.
+  - date: "2026-11-22"
     title: "Three-way interactions: the effect's box says what it means"
     text: "The three-way interaction card's effect box now says that the number is the coefficient of the product of the standardised X, W and Z, which is what a regression on standardised scores reports, rather than calling it a standardised coefficient. When X, W and Z are correlated those two differ slightly. The note on the result about simulated studies is also re-measured: in the example, the formula's 853 people give about 78% power rather than 80%, and about 900 are needed."
   - date: "2026-11-22"

@@ -1,8 +1,0 @@
-entries:
-  - date: "2026-11-22"
-    title: "Simulation accuracy moves into Settings"
-    text: >-
-      The input screens are shorter: how precise a simulation should be is now chosen
-      under Settings, at the foot of the screen, and the Settings line names your
-      choice whenever the analysis is simulated. An analysis worked out by formula no
-      longer shows a simulation section in the middle of the screen.
