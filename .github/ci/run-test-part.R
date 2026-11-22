@@ -8,9 +8,11 @@
 # are dealt to parts * lanes lanes by the time each took in an earlier run
 # (.github/ci/<suite>-test-times.csv): longest first, each to the lane
 # with the least time so far, so every lane takes about the same time. A
-# file with no recorded time counts as the median. Lanes 1 to <lanes>
-# belong to part 1, the next <lanes> to part 2, and so on, so every file
-# runs in exactly one part. This part's lanes run side by side, each in
+# file with no recorded time counts as the median. The lanes are given to
+# the parts in turn (lane 1 to part 1, lane 2 to part 2, ..., lane
+# <parts> + 1 to part 1 again), so the slowest files, which are dealt
+# first, go to different runners rather than slowing each other down on
+# one; every file runs in exactly one part. This part's lanes run side by side, each in
 # its own R process (one process per lane, its files one after another),
 # and their output is printed lane by lane once all have finished.
 #
@@ -45,7 +47,7 @@ files <- sort(list.files(dir, pattern = "^test-.*\\.R$"))
 names <- sub("^test-(.*)\\.R$", "\\1", files)
 times <- if (file.exists(times_file)) utils::read.csv(times_file) else data.frame(file = character(), seconds = numeric())
 dealt <- deal_files(names, times$seconds[match(names, times$file)], parts * lanes)
-my_lanes <- (part - 1L) * lanes + seq_len(lanes)
+my_lanes <- which((seq_len(parts * lanes) - 1L) %% parts + 1L == part)
 lane_files <- lapply(my_lanes, function(b) names[dealt$bin_of == b])
 lane_files <- lane_files[lengths(lane_files) > 0]
 if (length(lane_files) == 0) stop("This part was given no test files.", call. = FALSE)
