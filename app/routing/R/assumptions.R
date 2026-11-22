@@ -139,9 +139,9 @@ assumptions_ui <- function(spec, result, candidates) {
   div(class = "assumption-panel",
     h5(class = "h6", "Which assumption matters most?"),
     p(class = "small", sprintf(paste(
-      "For each number you're unsure of, enter the lowest and highest value your evidence supports. Powerkit changes one at a time,",
-      "keeping the rest as planned, and shows %s at each end (or inside the range, where that goes further). The assumption that",
-      "moves it most comes first. Powerkit doesn't suggest values."), answer)),
+      "Enter the lowest and highest value your evidence supports for each number you're unsure of. Powerkit changes one at a time",
+      "and shows %s at each end (or inside the range, where that goes further), the one that moves it most first.",
+      "It doesn't suggest values."), answer)),
     div(class = "assumption-inputs", style = "max-width:100%; overflow-x:auto", tabindex = "0", role = "region",
       `aria-label` = "Plausible values for each assumption",
       tags$table(class = "table table-sm",
