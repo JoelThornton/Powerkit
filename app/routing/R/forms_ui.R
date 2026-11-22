@@ -575,13 +575,16 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     v <- values[[f$id]]
     !is.null(v) && length(v) && nzchar(as.character(v)) && !identical(as.character(v), as.character(f[["default"]] %||% ""))
   }, logical(1)))
+  has_study <- any(section == "study")
+  has_extras <- any(section %in% c("scenarios", "guess")) || length(settings)
   tagList(
-    div(class = "form-section", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
+    form_jump_ui(has_study, has_extras),
+    div(class = "form-section", id = "form-sec-goal", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
     planning_decision_ui(form),
-    if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
+    if (has_study) div(class = "form-section", id = "form-sec-study", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     if (any(section == "question")) tags$details(class = "form-question", open = if (nzchar(values$research_question %||% "")) NA,
       tags$summary("Your scientific question, for the report (optional)"), part("question")),
-    div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
+    div(class = "form-section form-section-effect", id = "form-sec-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
@@ -589,7 +592,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       part("effect")),
     # The optional sections share one card, a row each (22 November 2026);
     # the Settings row keeps its summary of the choices that change the result.
-    if (any(section %in% c("scenarios", "guess")) || length(settings)) div(class = "form-extras",
+    if (has_extras) div(class = "form-extras", id = "form-sec-more",
     if (any(section == "scenarios")) tags$details(class = "form-scenarios", tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
@@ -597,6 +600,33 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       part("settings"), part("accuracy")),
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess")))
   )
+}
+
+# A row of the form's sections across the top, pinned while the page
+# scrolls (22 November 2026): each jumps to its section and is ticked once
+# every needed answer in it is filled in (pkUpdateNeeded() keeps the
+# ticks), so a long form shows where you are and what is left.
+form_jump_ui <- function(has_study, has_extras) {
+  parts <- list(c("goal", "Goal"), if (has_study) c("study", "Study"), c("effect", "Effect size"),
+    if (has_extras) c("more", "Settings"))
+  parts <- Filter(Negate(is.null), parts)
+  # It stands in for the app's step bar on this screen: the steps before
+  # are one tick, this screen's sections follow, then the result.
+  tags$nav(class = "form-jump", `aria-label` = "Sections of this form",
+    tags$ol(
+      tags$li(class = "form-jump-before", tags$span(class = "form-jump-mark", `aria-hidden` = "true", "\u2713"),
+        tags$span(class = "form-jump-name", "Analysis chosen"), tags$span(class = "visually-hidden", " (done)")),
+      lapply(seq_along(parts), function(i) tags$li(
+      tags$a(href = paste0("#form-sec-", parts[[i]][1]), `data-section` = parts[[i]][1],
+        onclick = sprintf("return pkJumpTo('%s')", parts[[i]][1]),
+        tags$span(class = "form-jump-mark", `aria-hidden` = "true", i),
+        tags$span(class = "form-jump-name", parts[[i]][2]),
+        tags$span(class = "visually-hidden form-jump-state", "")))),
+      # Ticked, and a link to it, once a result is on the page.
+      tags$li(class = "form-jump-after", tags$a(href = "#result-heading", class = "form-jump-result", `aria-disabled` = "true",
+        onclick = "var r = document.getElementById('result-heading'); if (!r) return false; r.scrollIntoView({block: 'start'}); r.focus({preventScroll: true}); return false;",
+        tags$span(class = "form-jump-mark", `aria-hidden` = "true", "\u2192"),
+        tags$span(class = "form-jump-name", "Result")))))
 }
 
 # How many needed answers are still empty, in the action bar, updated as
@@ -633,6 +663,35 @@ needed_js <- "
       (named ? 'Still needed: ' + named : (empty.length === 1 ? '1 answer still needed' : empty.length + ' answers still needed'));
     line.classList.toggle('form-needed-done', empty.length === 0);
     line.disabled = empty.length === 0;
+    // The section row's ticks: a section is done when none of its needed
+    // answers is empty.
+    document.querySelectorAll('.form-jump a[data-section]').forEach(function(a) {
+      var sec = document.getElementById('form-sec-' + a.getAttribute('data-section'));
+      if (!sec) return;
+      var done = !empty.some(function(el) { return sec.contains(el); });
+      a.classList.toggle('form-jump-done', done);
+      var mark = a.querySelector('.form-jump-mark'), state = a.querySelector('.form-jump-state');
+      if (!mark.hasAttribute('data-n')) mark.setAttribute('data-n', mark.textContent);
+      mark.textContent = done ? '\u2713' : mark.getAttribute('data-n');
+      if (state) state.textContent = done ? ' (done)' : ' (answers still needed)';
+    });
+  };
+  window.pkSyncResultStep = function() {
+    var a = document.querySelector('.form-jump-result');
+    if (!a) return;
+    var has = !!document.getElementById('result-heading');
+    a.setAttribute('aria-disabled', has ? 'false' : 'true');
+    a.classList.toggle('form-jump-done', has);
+    a.querySelector('.form-jump-mark').textContent = has ? '\u2713' : '\u2192';
+  };
+  $(document).on('shiny:value', function() { setTimeout(pkSyncResultStep, 150); });
+  window.pkJumpTo = function(name) {
+    var sec = document.getElementById('form-sec-' + name);
+    if (!sec) return true;
+    var head = sec.querySelector('.form-section-title, summary') || sec;
+    sec.scrollIntoView({ block: 'start' });
+    head.setAttribute('tabindex', '-1'); head.focus({ preventScroll: true });
+    return false;
   };
   window.pkGoToNeeded = function() {
     var empty = pkNeededEmpty();

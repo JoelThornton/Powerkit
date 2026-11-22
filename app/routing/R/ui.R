@@ -131,7 +131,9 @@ screen_step <- function(screen, has_result = FALSE) {
 
 progress_ui <- function(current) {
   at <- match(current, names(progress_steps))
-  tags$nav(class = "progress-steps", `aria-label` = "Progress",
+  # On the input screen the form's own section row (form_jump_ui()) takes
+  # this bar's place (22 November 2026), so the page has one row of steps.
+  tags$nav(class = paste("progress-steps", paste0("at-", current)), `aria-label` = "Progress",
     tags$ol(lapply(seq_along(progress_steps), function(i) {
       state <- if (i < at) "done" else if (i == at) "current" else "todo"
       tags$li(class = state, `aria-current` = if (i == at) "step",

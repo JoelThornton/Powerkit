@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-22"
+    title: "A row of sections on the input screen"
+    text: >-
+      The input screen has a row across the top naming its sections: your
+      goal, your study, the effect size and the settings. It stays in view
+      as you scroll, each name takes you to its section, and each is ticked
+      once everything it needs is filled in. Once you calculate, Result is
+      ticked too and takes you to the answer. The row replaces the app's
+      four-step bar on this screen, so there is one row of steps, not two.

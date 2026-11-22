@@ -1242,7 +1242,7 @@ test_that("every info button has something to show, and the optional sections sh
     expect_no_match(html, '<div id="[^"]*_info_body" class="explanation-content">\\s*</div>', perl = TRUE, label = ep)
     # The assumptions, Settings and guess rows sit in one card, Settings
     # with its summary still showing.
-    extras <- regexpr('<div class="form-extras">', html, fixed = TRUE)
+    extras <- regexpr('<div class="form-extras" id="form-sec-more">', html, fixed = TRUE)
     expect_gt(extras, 0, label = ep)
     expect_gt(regexpr('<details class="form-settings">', html, fixed = TRUE), extras, label = ep)
     expect_gt(regexpr('<details class="form-guess">', html, fixed = TRUE), extras, label = ep)
@@ -1304,4 +1304,17 @@ test_that("a box's info button sits in the box's flow and covers its choice note
   # A choice's note is one of its box's explanations, not a second button.
   html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
   expect_match(html, 'class="explanation-help field-more choice-more"', fixed = TRUE)
+})
+
+test_that("the input screen has one row of steps: its own sections, ticked as they fill", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, 'class="form-jump"', fixed = TRUE)
+  for (s in c("goal", "study", "effect", "more")) expect_match(html, sprintf('id="form-sec-%s"', s), fixed = TRUE)
+  expect_match(html, 'data-section="effect"', fixed = TRUE)
+  expect_match(html, 'class="form-jump-result"', fixed = TRUE)
+  # The app's step bar steps aside while the section row is on the page.
+  expect_match(as.character(progress_ui("numbers")), "progress-steps at-numbers", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, "body:has(.form-jump) .progress-steps.at-numbers", fixed = TRUE)
+  expect_match(needed_js, "form-jump-done", fixed = TRUE)
 })

@@ -1028,6 +1028,25 @@ app_css <- "
   .card-more > summary:hover, .rep-more > summary:hover, .mismatch summary:hover, .bayes-mode-what > summary:hover { text-decoration: underline; }
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
+  /* The form's sections across the top, pinned while scrolling (22 November 2026). */
+  .form-jump { position: sticky; top: 0; z-index: 20; background: var(--pk-bg, #f5f6f9); margin: 0 0 0.75rem; padding: 0.4rem 0; border-bottom: 1px solid var(--pk-line, #dde2ea); }
+  .form-jump ol { display: flex; gap: 0.35rem 1.25rem; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+  .form-jump a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 36px; color: #1d2a3a; text-decoration: none; font-size: 0.95rem; }
+  .form-jump a:hover .form-jump-name { text-decoration: underline; }
+  .form-jump-mark { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1px solid #8a96a6; font-size: 0.8rem; color: #4a5565; }
+  .form-jump-done .form-jump-mark { background: #e6f3ea; border-color: #2e7d4f; color: #2e7d4f; font-weight: 700; }
+  .form-section, .form-extras { scroll-margin-top: 3.5rem; }
+  body:has(.form-jump) .progress-steps.at-numbers, body:has(.form-jump) .progress-steps.at-result { display: none; }
+  .form-jump-result[aria-disabled='true'] { pointer-events: none; color: #545b62; }
+  .form-jump-before, .form-jump-after { display: inline-flex; align-items: center; gap: 0.4rem; color: #545b62; font-size: 0.9rem; }
+  .form-jump-before .form-jump-mark { background: #e6f3ea; border-color: #2e7d4f; color: #2e7d4f; }
+  .form-jump-after a:not(.form-jump-done) .form-jump-mark { border-color: transparent; }
+  #result-heading { scroll-margin-top: 4rem; }
+  @media (max-width: 575.98px) {
+    .form-jump ol { flex-wrap: nowrap; overflow-x: auto; gap: 0.9rem; scrollbar-width: none; }
+    .form-jump li { flex: none; }
+    .form-jump-before .form-jump-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  }
   /* The unknown-effect line's action is a link in the sentence. */
   .effect-unsure .effect-unsure-go { padding: 0; border: 0; vertical-align: baseline; font-weight: 600; }
   /* The action bar is a whole rounded bar, pinned a little above the
