@@ -36,7 +36,10 @@ for (const width of [1100, 375, 320]) test(`compact guidance is optional, access
   await expect(page.locator('#f_d')).toHaveValue('0.4');
   expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThan(explainedHeight);
   expect(await page.locator('#f_power').getAttribute('aria-describedby') || '').not.toContain('f_power_help');
-  const help = page.locator('#f_power_info > summary');
+  // With explanations off, the box's one info button opens every
+  // explanation in the box, each under its own field (22 November 2026).
+  const help = page.locator('fieldset.form-group-box').filter({ has: page.locator('#f_power') }).locator(':scope > .box-info');
+  await expect(page.locator('#f_power_info > summary')).toBeHidden();
   await help.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#f_power_help')).toBeVisible();
@@ -53,7 +56,8 @@ for (const width of [1100, 375, 320]) test(`compact guidance is optional, access
   await page.locator('#explanations_on').check();
   await expect(page.locator('#f_power_help_lead')).toBeVisible();
   await expect(page.locator('#f_power_help')).toBeHidden();
-  await expect(help).toBeVisible();
+  await expect(help).toBeHidden();
+  await expect(page.locator('#f_power_info > summary')).toBeVisible();
   await page.locator('#explanations_on').uncheck();
   await expect(page.locator('#f_power_help')).toBeHidden();
   await page.addScriptTag({ path: axePath });
