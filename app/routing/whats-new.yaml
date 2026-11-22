@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "Planned contrasts: the significance level you set, and one-sided tests"
+    text: "The planned contrast card worked out power at a 0.05 significance level whatever level you chose, because of a fault in the package behind it. It now uses the level you set; at 0.05 nothing changes. The card also offers a one-sided test, in the direction of the comparison."
+  - date: "2026-11-22"
     title: "Info buttons no longer cover a box's question"
     text: >-
       With explanations off, a box's info button now sits beside its
