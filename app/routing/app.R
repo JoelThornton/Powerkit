@@ -337,6 +337,12 @@ app_css <- "
   .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
   .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
   .terms-mode .box-has-info .explanation-help.field-more > summary, .terms-mode .box-has-info .explanation-help.group-more > summary { display: none !important; }
+  /* With the fields' own buttons hidden, their labels drop the room kept
+     for them, and a box without a visible heading starts with its
+     question level with the corner button (22 November 2026). */
+  .terms-mode .box-has-info .form-field label.control-label { min-height: 0; padding-right: 0; }
+  .terms-mode .box-has-info > legend.visually-hidden ~ .form-field:first-of-type label.control-label { padding-right: 3rem; }
+  .terms-mode .box-has-info > .group-more:not([open]) { margin: 0; }
   /* Opened explanations in a form box read as one set: the same size and
      colour, no trailing gap (22 November 2026). */
   .terms-mode .form-group-box .explanation-help[open] > .explanation-content { font-size: 0.9rem; color: #3d4652; }
