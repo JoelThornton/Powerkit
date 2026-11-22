@@ -114,8 +114,8 @@ were changed on 6 November:
 - the app is published once a day, only when something it runs changed
   (below);
 - the keep-open message is sent only while the page is in view and has
-  been used in the last 20 minutes, or while a calculation runs
-  (`R/connection.R`);
+  been used in the last 20 minutes (10 since 21 November 2026), or while
+  a calculation runs (`R/connection.R`);
 - the pages search engines index are static files on GitHub Pages, which
   cost nothing to visit, and the app's `robots.txt` asks crawlers to stay
   away (below).
@@ -123,6 +123,39 @@ were changed on 6 November:
 The app's CPU and memory settings in Connect Cloud are the other lever:
 the smallest setting that holds the app and its packages uses the fewest
 credits.
+
+#### The plan's limit (21 November 2026)
+
+The account's credits are enforced: at the monthly limit the account,
+and the app with it, is paused until the reset (the 18th). On the free
+plan (20 credits) the app had used 16 by the evening of 21 November,
+three days into the month. Eight publishes went out in those days, five
+of them started by hand after merges rather than by the schedule. The
+account moved to the Basic plan ($19 a month: 8 GB, 2 CPUs, 100 credits;
+plans page, 21 November 2026) the same day, and:
+
+- a publish by hand is the maintainer's, for an urgent fix only; the
+  daily schedule publishes everything else (`CLAUDE.md`);
+- the keep-open message stops after 10 minutes without use rather than
+  20, so a tab left open in view stops holding the app up sooner.
+
+Connect Cloud's Compute settings page gives the rate: credits per hour =
+0.75 x CPUs + 0.25 x memory in GB (1.75 an hour at 1 CPU and 4 GB, 1.25
+at 1 CPU and 2 GB). Posit's usage export for 15 to 21 November 2026 shows
+the app's memory never above 1.5 GB while serving, so it runs at 1 CPU
+and 2 GB from 21 November; if visitors see it run out of memory, 3 GB
+(1.5 an hour) is the next step. Most of its running time is visitors'
+sessions (each wake lasts at least about six minutes, and a tab left in
+use holds it up for longer); a publish costs about ten minutes.
+
+What a larger plan changes: credits are charged by the hour at a rate set
+by the app's own CPU and memory settings, so the plan raises the limit
+and the largest setting allowed, not the speed by itself. A single
+calculation runs in one R process (`R/results.R` runs it in a background
+process, with a spare one kept ready), so a second CPU does not make one
+simulation faster; it lets the screens stay quick while a calculation
+runs and lets two visitors calculate at once without sharing a core.
+Raising the settings raises the credits used per hour.
 
 #### How the online app is published
 
