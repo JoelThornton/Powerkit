@@ -8,6 +8,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "A shorter results screen"
+    text: >-
+      The results screen is about a fifth shorter. The tools for trying a
+      smaller effect and for finding which assumption matters most now
+      open from their own questions, under the power curve, and several
+      instructions are shorter. With explanations off, the notes on each
+      download are hidden too. Everything that changes or qualifies your
+      answer stays in view.
+  - date: "2026-11-22"
     title: "Less repeated wording on the input screens"
     text: >-
       Headings that only repeated the question under them, such as "Your
