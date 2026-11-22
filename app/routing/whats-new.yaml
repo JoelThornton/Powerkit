@@ -7,6 +7,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-22"
+    title: "Plainer wording on the analysis cards"
+    text: >-
+      The analysis cards and the design finder's help say more directly what each
+      analysis plans. The caution on every mediation card is shorter and keeps its
+      advice, and two cards have clearer names: "Mediation through a yes/no or
+      ordered-category mediator" and "Moderation or mediation of a yes/no, count or
+      category outcome".
   - date: "2026-11-21"
     title: "Clearer messages, and a sample-size search that settles"
     text: >-

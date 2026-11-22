@@ -382,7 +382,7 @@ nodes:
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
-    help: "Powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
+    help: "Two or more conditions, with a score or a yes/no answer on each trial; each participant responds in all of them, or in one."
     options:
       - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, sets: {assignment: within}, help: "e.g. emotional and neutral words, each person reading both kinds."}
       - {label: "Two conditions, and each person responds in both", next: E75, when: {outcome: [count, ordinal]}, sets: {assignment: within}}
@@ -467,7 +467,7 @@ nodes:
     text: "Are the groups themselves part of larger groups that matter for the design?"
     options:
       - {label: "No: one level of groups (for example, classes, or clinics)", next: E34}
-      - {label: "Yes: groups within larger groups", next: E68, help: "For example classes within schools, or therapists within clinics. e.g. schools randomised to a programme, with pupils in several classes in each school."}
+      - {label: "Yes: groups within larger groups", next: E68, help: "For example classes within schools, or therapists within clinics: schools randomised to a programme, with pupils in several classes in each school."}
   # Equivalence for grouped data goes to the grouped card, which says it
   # isn't covered yet: the equivalence card assumes separate people.
   s4_equivalence:
@@ -494,7 +494,7 @@ nodes:
     help: "Less common aims, each with its own analysis."
     options:
       - {label: "That scores are more spread out in one group than another", next: v1_by_times,
-         when: {outcome: score, times: [once, twice]}, help: "Or more consistent, or compared with a fixed value. e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
+         when: {outcome: score, times: [once, twice]}, help: "How much scores vary, not their average: more or less consistent than another group, or than a fixed value. e.g. reaction times are more consistent after training."}
       - {label: "Something about latent variables", help: "That a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM).", next: E37}
       - {label: "That a test's items work the same in two groups", next: E71, help: "Differential item functioning, in item response theory. e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
       - {label: "That people detect a signal better in one condition or group", next: E72, help: "Sensitivity, d', in signal detection. e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
@@ -1103,7 +1103,7 @@ endpoints:
     plain_name: "Compare the same people in two conditions (or before and after)"
     search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing yuen trimmed means robust paired t test outliers heavy tails wrs2 sequential bayes factor optional stopping wilcoxon signed rank test skewed"
     card_points:
-      - "For a crossover (AB/BA), use this card only if the planned analysis is an ordinary paired comparison with no period, sequence or carry-over terms. It does not plan an adjusted crossover analysis or establish that ignoring those effects is reasonable. A dedicated crossover model remains planned."
+      - "For a crossover (AB/BA), use this card only if you will analyse it as an ordinary paired comparison, with no period, sequence or carry-over terms, and can justify leaving them out. A crossover model with those terms is planned for a later version."
       - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / paired_t"
     backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; Spower with WRS2's yuend() for Yuen's trimmed-means test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() for the effect minus the margin for the minimum-effect test (a t-test against the margin, as TOSTER's)"
@@ -1146,8 +1146,8 @@ endpoints:
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
-      - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
-      - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
+      - "Fisher's exact test (an option) is still in validation: it matches pwrss called directly in the engine's tests; checks against G*Power and a published example are to come."
+      - "The Bayes factor test (an option) is still in validation: it matches BayesFactor's contingencyTableBF() table by table and in simulated studies; a check against a published example is to come."
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:
@@ -1190,7 +1190,7 @@ endpoints:
     search_words: "repeated measures split plot group by time pre post two way anova mixed design between within 2x2 crossover counterbalanced mixed anova cohen's f eta squared partial eta-squared"
     card_points:
       - "Unequal groups are simulated (Spower, with afex fitting each ANOVA); equal groups are calculated exactly."
-      - "A crossover analysis may need period, sequence and carry-over assumptions. This card plans the specified mixed ANOVA; it is not a separately validated crossover analysis. Do not replace an adjusted crossover model with the ordinary paired-test card."
+      - "This card plans the mixed ANOVA you specify; it is not a separately validated crossover analysis, which may need period, sequence and carry-over terms. If you will fit a crossover model with those terms, the paired-test card doesn't plan it either."
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
@@ -1221,7 +1221,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI; pwrss's power.z.mediation(method = 'joint') for the quick estimate (joint-significance test)"
     method: Simulation
     card_points:
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run of the simulation (Monte Carlo interval) passed on 16 October 2026. The quick estimate, the method the input screen starts on, has no validation run yet. A check against a published example is still to come."}
@@ -1235,7 +1235,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     card_points:
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Whether X is a score or two groups or conditions", "Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
@@ -1249,7 +1249,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     card_points:
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Whether X is a score or two groups or conditions", "Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
@@ -1263,7 +1263,7 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     card_points:
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths, including the interaction XW -> M"]
     status: runs_validated
     validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
@@ -1278,7 +1278,7 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     card_points:
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Standardised paths, including the interaction MW -> Y"]
     status: runs_validated
     validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
@@ -1317,7 +1317,7 @@ endpoints:
       - "You give X's effects as Cohen's d of the groups (on M, and on Y overall), or as standardised paths per SD of X; with d, Powerkit finds the paths and shows them with the result."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["X's two groups or conditions, and the share in each", "X's effects, and the path M -> Y"]
     refs: "phase 3b decisions, 29 October 2026 (docs/decisions.md)"
     tier: MVP
@@ -1337,7 +1337,7 @@ endpoints:
       - "A yes/no variable is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so its paths are per SD, as for a score; it must be uncorrelated with the other predictor, as a randomised condition is."
       - "With X as two groups, you can give X's effects as Cohen's d of the groups (on M, and on Y overall) instead; Powerkit finds the paths and shows them with the result."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
     alternatives: ["conditional indirect effects for each group"]
@@ -1354,7 +1354,7 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example. The pairwise rank comparisons agree with simulations written out separately, Dunn's z tests among them, and hold alpha for every shape; no published example yet."}
     card_points:
-      - "Powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
+      - "For different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
       - "Expect the groups to vary by different amounts? Welch's F, the test Powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
       - "Will you analyse the data with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with the usual default prior, which you can change."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
@@ -1448,7 +1448,7 @@ endpoints:
     card_points:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "Powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
+      - "The same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other", "the aligned rank transform, if you analyse ranks"]
@@ -1484,7 +1484,7 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
-      - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
+      - "The overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA, for different people in each group, equal group sizes and the same SD in every group."
       - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, as G*Power does, which gives a little more power."
       - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
@@ -1625,7 +1625,7 @@ endpoints:
       - "Compares two groups of different people on an outcome in ordered categories, such as one rating item or a severity grade, without treating it as a score."
       - "You give the share of group 1 in each category and the odds ratio: how much more likely group 2 is to be in a higher category, the same at every step (proportional odds)."
       - "Power comes from a formula (Whitehead's method, as powertools and Hmisc compute it), two-sided; groups can differ in size."
-      - "Two groups only, for now: more groups, a measured predictor or the same people twice aren't covered yet."
+      - "Two groups only. More groups, a measured predictor or the same people twice are not covered yet."
     inputs: ["Names of the groups, the outcome and its categories in order", "The share of group 1 in each category, and the odds ratio", "The size of group 2 relative to group 1 (1 = equal)"]
     tier: v2
     alternatives: ["the Mann-Whitney test, if you analyse the rating as ranks", "a t-test, if you analyse the rating as a score"]
@@ -1659,7 +1659,7 @@ endpoints:
     card_points:
       - "Tests whether the interaction of X and W on Y changes with a third score, Z: the three-way product XWZ, in a regression with every lower-order term."
       - "You give the correlations among the true scores and the three-way effect as the coefficient of the product of the standardised X, W and Z, as InteractionPoweR asks; reliabilities below 1 allow for measurement error."
-      - "Power comes from InteractionPoweR's formula; this route does not simulate studies. The two-way interaction comparison does not establish its accuracy for newly sampled predictors or bound the difference for a three-way design."
+      - "Power comes from InteractionPoweR's formula, without simulating studies. Studies that sample the predictors afresh have a little less power than it gives: in a checked example about 5% more people were needed, as the result says."
       - "All four variables are scores; a yes/no X, W or Z isn't covered yet."
     inputs: ["Correlations of X, W, Z and Y, and of the products XW, XZ and WZ with Y", "The three-way effect (coefficient of the product of the standardised X, W and Z)", "Optional: reliability of X, W, Z and Y"]
     tier: v2
@@ -1667,7 +1667,7 @@ endpoints:
   E32:
     doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
     technical_name: "Mediation and moderation: non-continuous outcomes"
-    plain_name: "Moderation or mediation when the outcome isn't a score"
+    plain_name: "Moderation or mediation of a yes/no, count or category outcome"
     search_words: "logistic moderation interaction binary outcome yes no odds ratio product term multinomial nominal unordered categories count poisson negative binomial rate ratio mediation natural indirect effect causal mediation regmedint"
     template: "logistic_regression or poisson_regression / interaction; logistic_regression / multinomial_interaction; mediation / binary_or_count_outcome"
     no_ready_made_tool: "Mediation of a categorical outcome (three or more unordered answers)"
@@ -1683,8 +1683,8 @@ endpoints:
       - "Mediation of a yes/no or count outcome through a mediator that is a score: regression-based causal mediation analysis (Valeri and VanderWeele), a linear regression for the mediator and a logistic, Poisson or negative binomial regression for the outcome, with the natural indirect effect tested by its delta-method standard error, as the regmedint package computes it. X is two equal groups or a score."
       - "For mediation you give X's effect on the mediator in the mediator's SD, the chance of 'yes' or the mean count in the first group, and the odds or rate ratio per SD of the mediator. For a yes/no outcome the indirect effect is on the log odds-ratio scale, which approximates the risk ratio scale when 'yes' is rare."
       - "Simulated, so the answer carries a little random error. On the log-odds or log-count scale an interaction can differ from one on the proportions or counts themselves."
-      - "Not calculated here yet: mediation of a categorical outcome (three or more unordered answers). For mediation through a yes/no mediator, use the card \"Mediation when a mediator isn't a score\"."
-      - "For the natural indirect effect, a causal quantity, the estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X. Randomising X covers the first two only, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "Not calculated here yet: mediation of a categorical outcome (three or more unordered answers). For mediation through a yes/no mediator, use the card \"Mediation through a yes/no or ordered-category mediator\"."
+      - "The natural indirect effect is a causal quantity. Its estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X; randomising X covers the first two. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     packages:
       - {name: regmedint, url: "https://cran.r-project.org/package=regmedint", what: "Regression-based causal mediation analysis (Valeri and VanderWeele), the analysis Powerkit simulates for mediation of a yes/no or count outcome."}
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For the designs not calculated here yet: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
@@ -1760,7 +1760,7 @@ endpoints:
     validation: {file: test-backend-toster.R, note: "Matches TOSTER called directly in the engine's tests, agrees with a large-sample approximation written out in base R, and keeps the chance of wrongly claiming equivalence at or below alpha. Not yet checked against a published example."}
     card_points:
       - "Two one-sided tests (TOST): Powerkit works out the chance of showing that the true difference lies inside the equivalence bounds, minus and plus the smallest difference that would matter."
-      - "Powerkit calculates this for two groups of different people, the same people measured twice, one mean against a fixed value, a correlation, or two groups' proportions, with the same bound on each side."
+      - "For two groups of different people, the same people measured twice, one mean against a fixed value, a correlation, or two groups' proportions, with the same bound on each side."
       - "Non-inferiority, a bound on one side only, is here too: whether a new condition is no worse than the comparison by more than a margin you set, for two groups, the same people twice, one mean or two proportions (pwrss, one-sided test against the margin)."
       - "Minimum-effect tests, showing an effect is larger than a smallest effect of interest, are a test version on the one-sample, paired and two-group t-test cards (pwrss, a t-test against the margin)."
     inputs: ["What you are comparing, and the names", "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units", "For two groups: the size of group 2 relative to group 1 (1 = equal)", "For a correlation or two proportions: the equivalence bound and the value you expect", "For non-inferiority: the margin, which direction is better, and the difference you expect"]
@@ -1801,14 +1801,14 @@ endpoints:
       - "Moderated mediation where W changes both links of the indirect effect (PROCESS model 58), the first link and the direct path (model 8), or all three (model 59)."
       - "These models have no single index of moderated mediation, so Powerkit plans for the difference between the indirect effects at two values of W (by default one SD below and above its mean), tested by its Monte Carlo confidence interval."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Which links W changes", "Standardised paths, including the interactions", "The two values of W to compare"]
     tier: v2
     alternatives: ["the conditional indirect effect at each value of W, each tested on its own", "a model with W on one link only (PROCESS model 7 or 14), if theory allows"]
   E39:
     doc_name: "Mediation with a yes/no or categorical mediator"
     technical_name: "Mediation: categorical mediator"
-    plain_name: "Mediation when a mediator isn't a score"
+    plain_name: "Mediation through a yes/no or ordered-category mediator"
     search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint ordinal ordered categories likert rating latent response probit lavaan sem"
     template: "mediation / binary_mediator (a yes/no mediator), ordinal_mediator (a mediator in three or more ordered categories); X two groups or a score; Y a score or yes/no"
     backend: "Spower: powerkit's experiment around regmedint::regmedint() for a yes/no mediator (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), and around lavaan::sem() with the mediator declared ordered for ordered categories (the latent-response model; a*b by the delta method), simulated"
@@ -1822,7 +1822,7 @@ endpoints:
       - "For a mediator in ordered categories, such as a rating from 'unlikely' to 'certain', the card uses the usual structural equation model for an ordered variable: the categories are cut from an underlying score, and the indirect effect runs through that score. You give the share of people in each category and the paths on the underlying score."
       - "PROCESS fits a linear regression to the mediator even when it is yes or no or a few categories; this card models the mediator as it is measured. An interaction between X and the mediator, and a mediator in unordered categories, aren't covered yet."
       - "Simulated with Spower, in under a minute for power."
-      - "For the natural indirect effect, a causal quantity, the estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X. Randomising X covers the first two only, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "The natural indirect effect is a causal quantity. Its estimate is unbiased only if nothing unmeasured affects both X and Y, X and M, or M and Y, and no common cause of M and Y is itself changed by X; randomising X covers the first two. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["What X, the mediator and the outcome are", "How X changes the mediator, and how the mediator changes the outcome"]
     tier: v2
     alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in unordered categories, a model for each category (not yet in Powerkit)"]
@@ -1840,7 +1840,7 @@ endpoints:
       - "The test is the index of moderated mediation for the mediator you choose: whether that mediator's indirect effect depends on W."
       - "X and W can each be a score or yes/no (two groups); the mediators are scores, and a mediator chain isn't covered yet."
       - "Simulated with power4mome, as for one mediator: the full run can take a while, so the app gives a quick preview and an R script for the full analysis."
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["Which link W changes, and which variables are yes/no", "Standardised paths for each mediator, including the interactions with W", "Correlations between the mediators' residuals, and of X with W", "Which mediator's index of moderated mediation the hypothesis is about"]
     tier: later
     alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
@@ -2002,7 +2002,7 @@ endpoints:
       - "You give each group's Cohen's d against the first on M, the path M -> Y within groups, and, if you expect them, the direct effects on Y; the groups are equal in size."
       - "You choose whether one comparison or every comparison must be significant; each is tested with a Monte Carlo confidence interval, as on the other mediation cards."
       - "Simulated with Spower: a quick preview in the app, and the full run or the sample size from an R script."
-      - "The power is for the indirect effect as a statistical path. Reading it as X changing Y through M also needs M measured after X and before Y, and nothing unmeasured affecting both M and Y: randomising X doesn't give that, so say in your plan when each is measured and which common causes of M and Y you adjust for."
+      - "This is power for the indirect effect as a statistical path. To read it as X changing Y through M, M must be measured after X and before Y, and nothing unmeasured may affect both M and Y, which randomising X doesn't ensure. Say in your plan when each is measured and which common causes of M and Y you adjust for."
     inputs: ["X's groups or conditions, the first the reference group", "Each group's difference from the first on M, the path M -> Y, and the direct effects"]
     tier: v2
     alternatives: ["a bootstrap confidence interval, which PROCESS reports by default", "a comparison coding other than dummy coding (sequential, Helmert or effect coding)"]
@@ -2017,7 +2017,7 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-lpa.R, note: "Agrees with the same model fitted by an expectation-maximisation algorithm written separately, with the BIC computed by hand, in three cases from a clear to a hard enumeration. Not yet checked against a published simulation table."}
     card_points:
-      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration). Powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
+      - "This plans whether your sample can find the right number of profiles (class enumeration); there is no significance test. Powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
       - "Separation between profiles matters more than sample size. In Tein, Coxe and Cham's (2013) simulations, no sample size up to 1,000 reliably found the right number of profiles when profiles differed by a small or medium amount on each indicator (Cohen's d of .2 or .5); at d = .8, it took at least 500 people and 10 or more indicators; at d = 1.5, 250 people were enough for most criteria."
       - "As a working range, Nylund-Gibson and Choi (2018) suggest that about 300 to 1,000 people is where the usual criteria work adequately; the median sample in published latent profile studies was 377 in Tein and colleagues' review and 494 in Spurk and colleagues' (2020). A small profile needs more people: with a class of 5% of 200 people, its estimates were poor (Nylund, Asparouhov and Muthén, 2007)."
       - "Powerkit uses the BIC, which did best with the bootstrap likelihood ratio test in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013); the bootstrap test is too slow to simulate here. Entropy describes how cleanly people are classified but is not a way to choose the number of profiles."
@@ -2194,10 +2194,10 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-precision.R, note: "Matches MBESS and presize called directly, and simulated intervals give the expected width and, with assurance, the chance of a narrow enough interval. Not yet checked against a published example."}
     card_points:
-      - "Plans the sample size for how precisely the study estimates its result (the width of its confidence interval), rather than for power."
+      - "Plans the sample size for how precisely the study estimates its result: the width of its confidence interval, instead of power."
       - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a difference between two means in the outcome's own units, a correlation (Pearson's, Spearman's or Kendall's), a proportion, an odds ratio, an intraclass correlation or one predictor's coefficient in a multiple regression."
       - "It assumes separate people (or simple pairs of scores). For people within groups, such as pupils in classes, or three or more conditions per person, the interval would be wider than this card says: Powerkit has no precision plan for those designs yet."
-      - "Gives the sample size for the width you set, or the width you would get at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
+      - "Gives the sample size for the width you set, or the width at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
     inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
     tier: v2
     alternatives: ["a power analysis on the card for your test, if you want to show an effect exists rather than estimate its size"]
@@ -2236,7 +2236,7 @@ endpoints:
       - "Two factors crossed, with different people in every combination, and a yes/no outcome: for example, whether people book a flu jab after a gain or loss message from a doctor, a friend or a celebrity."
       - "You give the expected proportion of 'yes' in each combination, and choose the effect: either factor, or their interaction."
       - "The effects are tested as a logistic regression tests them, on the log-odds scale: an interaction there can differ from one on the proportions themselves."
-      - "Simulated, so the answer carries a little random error; groups are equal in size, and only two factors, both between participants, for now."
+      - "Simulated, so the answer carries a little random error. Two factors, both between participants, with groups of equal size."
     inputs: ["Names of the two factors, their levels and the yes/no outcome", "The expected proportion of 'yes' in each combination", "Which effect"]
     tier: later
     alternatives: ["a chi-square test, for one factor and a yes/no outcome", "logistic regression with one predictor, for a single comparison"]
@@ -2314,7 +2314,7 @@ endpoints:
     validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's one-sided and two-sided examples exactly (N = 81 and 103, and its critical value), and agrees with Spower's simulation of the same test (31 October 2026)."}
     card_points:
       - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
-      - "Calculated exactly, as G*Power does."
+      - "Calculated exactly, as in G*Power."
     inputs: ["Your outcome's name", "The expected variance and the fixed value"]
     tier: v2
     alternatives: ["the one-sample t-test, if your hypothesis is about the average rather than the spread"]
@@ -2329,7 +2329,7 @@ endpoints:
     validation: {file: test-backend-variance.R, note: "The F test gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026). Levene's and the Brown-Forsythe test agree with a simulation written separately (an ANOVA of the absolute deviations, without car) and keep the Type I error at alpha (17 November 2026); no published example yet."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
-      - "Groups of equal size only, for now."
+      - "Groups of equal size only."
       - "Three tests: the Brown-Forsythe test (chosen to start with), Levene's test, or the F test G*Power uses. You choose on the input screen."
       - "The F test is calculated exactly and assumes normal scores; with skewed or heavy-tailed scores it finds differences that aren't there. The Brown-Forsythe and Levene tests don't assume normal scores, and are simulated on the score shape you choose."
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group", "The F test, Levene's test or the Brown-Forsythe test"]
@@ -2384,7 +2384,7 @@ endpoints:
       - "Compares one group's means on several outcomes with fixed values, such as published norms or scale midpoints, in one test: one-sample Hotelling's T-squared."
       - "You give each outcome's expected mean, the value it is compared with, each outcome's SD, and how strongly the outcomes are correlated."
       - "Why means and not one effect size: the power depends on how far the means are from the fixed values once the SDs and the correlation are allowed for, and a single effect size doesn't say what those are."
-      - "Calculated exactly, as G*Power does."
+      - "Calculated exactly, as in G*Power."
     inputs: ["The outcomes", "The expected means and the fixed values", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]
@@ -2487,7 +2487,7 @@ endpoints:
     search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
       - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of evidence at the threshold either way."
-      - "Powerkit plans this for every design below, with the usual default priors, which you can change. Open one to start with its Bayes factor test already chosen."
+      - "Every design below has a Bayes factor version, with the usual default priors, which you can change. Open one to start with its Bayes factor test chosen."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; Powerkit uses it for the t-tests."}
