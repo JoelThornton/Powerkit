@@ -449,7 +449,7 @@ known_differences:
   "14": "Mediation: Powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
   "15": "ANCOVA: Powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
   "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much. To plan without the factor, choose the simulation under \u201cHow power is worked out\u201d."
-  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 76% power in simulation rather than 80%, and about 940 were needed. Consider adding about 10% to this sample size."
+  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 78% power in simulation rather than 80%, and about 900 were needed. Consider adding about 5% to this sample size."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). Powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
@@ -471,7 +471,7 @@ known_differences_methods:
   "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
   "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; G*Power treats it as fixed, which gives slightly more power and a slightly smaller sample size."
   "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
-  "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
+  "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 78% where the formula gave 80%, needing about 5% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 # How a replication plan takes each card's original effect (queue item 21;
@@ -1381,10 +1381,10 @@ forms:
           - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
           - {id: r_X_Z, label: "Correlation of X with Z", type: number, path: population.r_X_Z, effect: true, min: -1, max: 1}
           - {id: r_W_Z, label: "Correlation of W with Z", type: number, path: population.r_W_Z, effect: true, min: -1, max: 1}
-      - input: "The three-way effect (standardised coefficient of XWZ)"
+      - input: "The three-way effect (coefficient of the product of the standardised X, W and Z)"
         fields:
-          - {id: b_XWZ, optional_for: [sensitivity], label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
-             help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
+          - {id: b_XWZ, optional_for: [sensitivity], label: "Coefficient of the product XWZ of standardised X, W and Z", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
+             help: "How much the XW interaction changes per SD of Z, in SD units of Y: the coefficient of x*w*z after Y, X, W and Z are each standardised, which is what a regression on standardised scores reports (InteractionPoweR's b.x1x2x3). The product itself is not standardised again, so with correlated X, W and Z this is a little smaller than the product's fully standardised coefficient. Small three-way effects (around 0.05 to 0.1) need large samples."}
       - input: "Optional: reliability of X, W, Z and Y"
         fields:
           - {id: rel_X, label: "Reliability of X", help: "Empty means perfectly reliable.", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}

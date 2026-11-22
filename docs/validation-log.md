@@ -370,11 +370,10 @@ until transcribed). The simulations are in
 | Equivalence tests (two groups, pairs, one sample) | TOSTER | **two one-sided `t.test()`s on base-R studies (21 November 2026)**; Type I error at the bound | `equivalence` |
 | Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
 | Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
+| Three-way interaction | InteractionPoweR | **a population built separately gives its R-squared with and without XWZ, and simulated studies by `lm()` measure Known difference 17 (22 November 2026)**; Type I error | `three_way` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: the three-way interaction
-(InteractionPoweR; its inputs include correlations of the outcome with
-each two-way product, which a separate simulation must reproduce), moderated mediation (power4mome; PROCESS
+checks aside), next in this audit: moderated mediation (power4mome; PROCESS
 models 7 and 14 wait on transcribed published values) and the SEM cards
 (semPower and lavaan).
 

@@ -3726,7 +3726,7 @@
       }
     },
     "template_three_way": {
-      "description": "Y regressed on X, W, Z, their three two-way products and the three-way product XWZ. Parametrised as in InteractionPoweR's power_interaction_3way_r2(): correlations among the true scores, and the standardised coefficient of XWZ.",
+      "description": "Y regressed on X, W, Z, their three two-way products and the three-way product XWZ. Parametrised as in InteractionPoweR's power_interaction_3way_r2(): correlations among the true scores, and the coefficient of the product XWZ of the standardised X, W and Z.",
       "properties": {
         "variables": {
           "required": [
@@ -3801,7 +3801,7 @@
               "$ref": "#/definitions/correlation"
             },
             "b_XWZ": {
-              "description": "Standardised regression coefficient of the three-way product XWZ: the effect tested, in InteractionPoweR's parametrisation (b.x1x2x3).",
+              "description": "Coefficient of the three-way product XWZ of the standardised X, W and Z, with Y standardised: the effect tested, in InteractionPoweR's parametrisation (b.x1x2x3). The product is not standardised again.",
               "type": "number",
               "exclusiveMinimum": -1,
               "exclusiveMaximum": 1

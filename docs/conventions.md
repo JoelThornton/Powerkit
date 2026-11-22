@@ -2625,14 +2625,26 @@ Wired into the app on 18 October 2026 (E25, E26).*
   predictors, as Known difference 1 does for two-way interactions, gives
   less power, and the gap is larger than for two-way models, presumably
   because the triple product is heavier-tailed still.
+- **What b_XWZ means:** InteractionPoweR's b.x1x2x3 is the coefficient of
+  the product of the standardised X, W and Z (Y standardised too), the
+  product not standardised again: its covariance matrix scales x1x2x3 by
+  the product's SD. A population built separately on that meaning gives
+  InteractionPoweR's R-squared with and without XWZ
+  (`test-validation-three-way.R`). Before 22 November 2026 the input
+  screen called it the standardised coefficient, and this entry's sizes
+  were measured with XWZ's fully standardised coefficient at 0.1, which
+  is a slightly smaller effect wherever X, W and Z correlate, so they
+  overstated the gap.
 - **Size:** for the example (`regression_three_way.json`: b_XWZ 0.1, X's
   reliability 0.8), the formula's N for 80% is 853; simulated studies
-  (lm() on new normal predictors, X observed with error) gave 76.2% at 853
-  (3,000 runs), 80.6% at 940 and 82.8% at 1,000 (2,000 each), so about
-  10% more people are needed. With X perfectly reliable: 88.5% by formula,
-  85.5% simulated at 853. Test:
-  `engine/tests/testthat/test-backend-three-way.R`, "simulated studies with
-  random predictors have less power than the fixed-model formula".
+  (lm() on new normal predictors, X observed with error; 4,000 each) gave
+  77.8% at 853, 82.1% at 940 and 84.5% at 1,000, so about 900 people, 5%
+  more, are needed. With X perfectly reliable: 88.5% by formula, 87.2%
+  simulated at 853. For `test-validation-three-way.R`'s example (X, W and Z
+  correlating 0.1 to 0.2, N = 500) the formula gives 65.2% and simulated
+  studies about 62%. Tests: `engine/tests/testthat/test-backend-three-way.R`,
+  "simulated studies with random predictors have less power than the
+  fixed-model formula", and `test-validation-three-way.R`.
 - **Shown to users:** on every E31 result (`app/routing/forms.yaml`,
   `known_differences`, key "17").
 - **Methods paragraph:** `known_differences_methods`, key "17".

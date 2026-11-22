@@ -199,7 +199,11 @@ interactionpower_check_run <- function(spec, inputs, seed) {
 #
 # The spec uses InteractionPoweR's own parametrisation: X is x1, W is x2,
 # Z is x3; correlations among the true scores, with the three-way effect
-# as the standardised coefficient of x1x2x3 (b.x1x2x3).
+# as the coefficient of x1*x2*x3, the product of the standardised scores
+# (b.x1x2x3; Y standardised too). InteractionPoweR doesn't standardise the
+# product again (its covariance matrix scales x1x2x3 by its SD), so with
+# correlated X, W and Z this coefficient is the fully standardised one
+# divided by the product's SD (test-validation-three-way.R).
 interactionpower_3way_backend <- function(spec) {
   inputs <- interactionpower_3way_inputs(spec)
   power_at <- function(n) interactionpower_3way_power(spec, inputs, n)$pwr

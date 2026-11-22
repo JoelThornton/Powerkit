@@ -99,3 +99,40 @@ test_that("three-way interaction: no three-way effect gives power equal to alpha
   spec <- three_way_validation_spec(population, n = 500)
   expect_equal(run_spec(spec)$curve$power, 0.05, tolerance = 1e-6)
 })
+
+# Independent population and simulation ----------------------------------------------
+# The check above calls InteractionPoweR. These build the population
+# separately, from the inputs as the input screen describes them, with
+# b_XWZ the coefficient of the product of the standardised X, W and Z (the
+# product not standardised again, as InteractionPoweR's covariance matrix
+# has it), and correlated predictors so that the product's SD is above 1.
+
+test_that("three-way interaction: InteractionPoweR's R-squared with and without XWZ matches a population built separately", {
+  skip_unless_full_validation()
+  population <- independent_three_way_population(example_population, seed = 701)
+  spec <- three_way_validation_spec(example_population, n = 500)
+  detailed <- interactionpower_3way_power(spec, interactionpower_3way_inputs(spec), 500, detailed_results = TRUE)
+  # 2 million draws: the R-squared values carry Monte Carlo error of about
+  # 0.0002.
+  expect_equal(detailed$totalr2[1], population$r2_full, tolerance = 0.001)
+  expect_equal(detailed$nullr2[1], population$r2_without, tolerance = 0.001)
+})
+
+test_that("three-way interaction: simulated studies of that population have less power than the formula, by about Known difference 17 (simulation, recorded size)", {
+  skip_unless_full_validation()
+  population <- independent_three_way_population(example_population, seed = 702)
+  for (case in list(list(rel = c(X = 1, W = 1, Z = 1, Y = 1), seed = 703),
+                    list(rel = c(X = 0.8, W = 1, Z = 1, Y = 0.9), seed = 704))) {
+    spec <- three_way_validation_spec(example_population, n = 500,
+      reliability = list(X = case$rel[["X"]], Y = case$rel[["Y"]]))
+    formula <- run_spec(spec)$curve$power
+    simulated <- independent_three_way_power(population, 500, case$rel, nrep = validation_nrep(), seed = case$seed)
+    # The formula treats the predictors as fixed; studies that draw new
+    # predictors, whose triple product is heavy-tailed, have less power
+    # (docs/conventions.md, Known difference 17). Recorded size here: 2 to
+    # 6 points.
+    gap <- formula - simulated
+    expect_gt(gap, 0.01)
+    expect_lt(gap, 0.07)
+  }
+})
