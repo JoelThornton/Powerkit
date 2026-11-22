@@ -560,9 +560,11 @@ in [`next.md`](next.md).
 - **Claude Code sessions:** `.claude/settings.json` caps the context
   window before compaction at 400,000 tokens (`autoCompactWindow`), for
   every Claude Code session on this repository.
-- **CI:** R CMD check and the engine's tests in three parts when the
+- **CI:** R CMD check and the engine's tests in five parts when the
   engine, `renv.lock` or the CI setup changed; the app's suite in two
-  parts and the browser checks on every pull request; the Windows and
+  parts and the browser checks on every pull request; each part runs
+  four test files at a time, dealt by recorded times
+  (`.github/ci/run-test-part.R`); the Windows and
   macOS install test when the launcher or lockfile changes, and weekly;
   all in a prebuilt image with R and the locked packages.
 - **Cloud sessions:** `scripts/setup-cloud-session.sh`, as the
