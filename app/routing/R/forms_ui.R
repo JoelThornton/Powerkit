@@ -366,7 +366,6 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     # explanations on the screen still says which analysis it plans
     # (17 November 2026); with them off the heading is that name.
     if (!identical(ep$plain_name, technical_name(ep))) p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep))),
-    p(class = "lead", "Fields marked optional can be left empty."),
     # The label alone: how far the checks have got is on the card and
     # under the result's "Checks for this analysis in general" (15
     # November 2026), not between the person and the form.
@@ -503,24 +502,33 @@ setting_value_text <- function(f, value) {
 
 settings_summary_ui <- function(groups, values) {
   # Fields that depend on another choice (e.g. Welch's method) are left out
-  # of the line; they show inside when that choice is made.
-  fields <- Filter(function(f) is.null(f$shown_if), unlist(lapply(groups, `[[`, "fields"), recursive = FALSE))
+  # of the line; they show inside when that choice is made. The simulation
+  # accuracy is the exception: it is named on the line whenever the
+  # analysis is simulated, since it changes the result's precision.
+  fields <- Filter(function(f) is.null(f$shown_if) || identical(f$id, "simulation_accuracy"),
+    unlist(lapply(groups, `[[`, "fields"), recursive = FALSE))
   items <- lapply(fields, function(f) {
     # Short names for the common settings (12 November 2026), so the line
     # reads at a glance.
     name <- switch(f$id, allocation_ratio = "Group 2 / group 1", attrition = "Dropout", seed = "Seed",
-      ci_draws = "Resamples", trimws(sub("[:(;].*$", "", f$label)))
-    tags$span(class = "setting-item", paste0(name, ": "),
+      ci_draws = "Resamples", simulation_accuracy = "Simulation", trimws(sub("[:(;].*$", "", f$label)))
+    item <- tags$span(class = "setting-item", paste0(name, ": "),
       tags$strong(`data-setting-for` = field_input_id(f), setting_value_text(f, values[[f$id]] %||% f[["default"]])))
+    if (is.null(f$shown_if)) list(item) else list(tags$span(`data-display-if` = shown_if_js(f), `data-ns-prefix` = "", " \u00b7 ", item))
   })
-  Reduce(function(a, b) tagList(a, " \u00b7 ", b), items)
+  plain <- Filter(function(x) identical(x[[1]]$attribs$class, "setting-item"), items)
+  conditional <- Filter(function(x) !identical(x[[1]]$attribs$class, "setting-item"), items)
+  tagList(Reduce(function(a, b) tagList(a, " \u00b7 ", b), lapply(plain, `[[`, 1)), lapply(conditional, `[[`, 1))
 }
 
 form_sections_ui <- function(tree, groups, values, form = list()) {
   section <- vapply(groups, form_section, character(1))
   index <- seq_along(groups)
   part <- function(which) lapply(index[section == which], function(i) group_ui(tree, groups[[i]], values, i))
-  settings <- groups[section == "settings"]
+  # The simulation accuracy sits in Settings (22 November 2026): it is
+  # used only when the analysis is simulated, and its choice is named on
+  # the Settings line whenever it applies.
+  settings <- groups[section %in% c("settings", "accuracy")]
   # Open when a setting has been changed from its default (e.g. a reopened
   # project), so a changed value is never hidden.
   changed <- any(vapply(unlist(lapply(settings, `[[`, "fields"), recursive = FALSE), function(f) {
@@ -539,12 +547,11 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_help_ui(form, groups),
       effect_boxes_ui(groups),
       part("effect")),
-    if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
         settings_summary_ui(settings, values), " \u00b7 ", tags$span(class = "form-settings-change", "Change")),
-      part("settings")),
+      part("settings"), part("accuracy")),
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess"))
   )
 }
