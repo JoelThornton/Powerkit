@@ -372,13 +372,16 @@ until transcribed). The simulations are in
 | Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
 | Three-way interaction | InteractionPoweR | **a population built separately gives its R-squared with and without XWZ, and simulated studies by `lm()` measure Known difference 17 (22 November 2026)**; Type I error | `three_way` |
 | Moderated mediation, PROCESS model 7 | power4mome | **base-R studies with the product of X and W, fitted by `lm()` with a Monte Carlo interval for the index (22 November 2026)**; Type I error | `process_7` |
+| Moderated mediation, PROCESS model 14 | power4mome | **base-R studies with the product of M and W, X and W correlated, fitted by `lm()` with a Monte Carlo interval (22 November 2026)**; Type I error | `process_14` |
+| Moderated mediation, two parallel mediators | power4mome | **base-R studies with correlated mediator residuals, fitted by `lm()` with a Monte Carlo interval for the index through M1 (22 November 2026)**; Type I error | `modmed_parallel` |
+| Moderated mediation, W on two links (models 8, 58, 59) and yes/no X or W | power4mome | studies fitted by OLS one equation at a time, with their own Monte Carlo interval; Type I error | `modmed_difference`, `modmed_binary` |
 | SEM model fit (exact, close and not-close fit) | semPower | **MacCallum, Browne and Sugawara's (1996) noncentral chi-square written out separately (22 November 2026)** | `sem_fit` |
 | SEM factor correlations and invariance | semPower | studies simulated and fitted by lavaan directly | `sem_latent` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: PROCESS model 14 and the models with
-two moderated paths (power4mome), and the other built-in tests and
-corrections listed in `conventions.md`.
+checks aside), next in this audit: the cluster-randomised, multisite and group
+treatment trials (powertools' formulas), then the other built-in tests
+and corrections listed in `conventions.md`.
 
 ## Before this log
 

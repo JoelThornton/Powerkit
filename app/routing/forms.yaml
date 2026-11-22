@@ -2409,7 +2409,7 @@ forms:
           - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
-          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true}
+          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient."}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: c_X_W, label: "Correlation of X with W", help: "Empty means 0.", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
@@ -2464,7 +2464,7 @@ forms:
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true,
              shown_if: {field: modmed_stage, is: process_14}}
-          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true,
+          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient.",
              shown_if: {field: modmed_stage, is: process_14}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
              shown_if: [{any: [{field: x_type, is_not: binary}, {field: x_effects, is_not: d}]}],
@@ -2497,7 +2497,7 @@ forms:
           - {id: p_XW_M, label: "Path XW -> M (W changing the X -> M link)", type: number, path: "population.paths.XW->M", effect: true, help: "The coefficient of the product x*w in the regression of M on X, W and x*w, after X, W and M are each standardised (power4mome's meaning). The product itself is not standardised again, so when X and W correlate this is a little smaller than the product's fully standardised coefficient."}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
-          - {id: p_MW_Y, label: "Path MW -> Y (W changing the M -> Y link)", type: number, path: "population.paths.MW->Y", effect: true,
+          - {id: p_MW_Y, label: "Path MW -> Y (W changing the M -> Y link)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient.",
              shown_if: {field: modmed_model, is_one_of: [process_58, process_59]}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: p_XW_Y, label: "Path XW -> Y (W changing the direct path)", type: number, path: "population.paths.XW->Y", effect: true,

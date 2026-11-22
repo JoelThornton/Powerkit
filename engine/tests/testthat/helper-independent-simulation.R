@@ -264,3 +264,64 @@ independent_modmed7_power <- function(a1, a2, a3, b, c_prime, n, r_x_w = 0, draw
     limits[[1]] > 0 || limits[[2]] < 0
   }, nrep, seed)
 }
+
+# PROCESS model 14 (W moderates M -> Y), drawn from the standardised paths
+# as the input screen describes them: X and W standard normal with
+# correlation r_x_w, M = a X + e, Y = b1 M + b2 W + b3 M W + c' X + e,
+# each residual variance set so that M and Y have variance 1 (the
+# product M W is not standardised again). Under normality the product is
+# uncorrelated with X, W and M, and its variance is 1 + cor(M, W)^2.
+# Both equations are fitted by lm(), and the index of moderated
+# mediation, a * b3, is tested by a Monte Carlo interval as for model 7.
+independent_modmed14_power <- function(a, b1, b2, b3, c_prime, n, r_x_w = 0, draws = 1000,
+                                       alpha = 0.05, nrep, seed) {
+  sigma <- matrix(c(1, r_x_w, r_x_w, 1), 2)
+  r_m_w <- a * r_x_w
+  var_y <- b1^2 + b2^2 + c_prime^2 + b3^2 * (1 + r_m_w^2) +
+    2 * b1 * b2 * r_m_w + 2 * b1 * c_prime * a + 2 * b2 * c_prime * r_x_w
+  independent_power(function() {
+    xw <- MASS::mvrnorm(n, c(0, 0), sigma)
+    x <- xw[, 1]
+    w <- xw[, 2]
+    m <- a * x + stats::rnorm(n, sd = sqrt(1 - a^2))
+    y <- b1 * m + b2 * w + b3 * m * w + c_prime * x + stats::rnorm(n, sd = sqrt(1 - var_y))
+    first <- summary(stats::lm(m ~ x))$coefficients
+    second <- summary(stats::lm(y ~ m * w + x))$coefficients
+    index <- stats::rnorm(draws, first["x", 1], first["x", 2]) *
+      stats::rnorm(draws, second["m:w", 1], second["m:w", 2])
+    limits <- stats::quantile(index, c(alpha / 2, 1 - alpha / 2))
+    limits[[1]] > 0 || limits[[2]] < 0
+  }, nrep, seed)
+}
+
+# Moderated mediation with two parallel mediators, W on both X -> M links
+# (PROCESS model 7 with two mediators): X and W independent standard
+# normals; M_k = a1_k X + a2_k W + a3_k X W + e_k, the residuals of M1
+# and M2 correlated `residual`, each M with variance 1; Y = b1 M1 + b2 M2
+# + c' X + e with variance 1. The index through M1, a3_1 * b1, is tested
+# by a Monte Carlo interval from lm(m1 ~ x * w) and lm(y ~ m1 + m2 + x).
+independent_parallel_modmed7_power <- function(a_m1, a_m2, b1, b2, c_prime, residual, n,
+                                               draws = 1000, alpha = 0.05, nrep, seed) {
+  systematic <- function(a) a[[1]]^2 + a[[2]]^2 + a[[3]]^2
+  e1 <- 1 - systematic(a_m1)
+  e2 <- 1 - systematic(a_m2)
+  error_cov <- residual * sqrt(e1 * e2)
+  cov_m <- sum(a_m1 * a_m2) + error_cov
+  var_y <- b1^2 + b2^2 + c_prime^2 + 2 * b1 * b2 * cov_m +
+    2 * b1 * c_prime * a_m1[[1]] + 2 * b2 * c_prime * a_m2[[1]]
+  errors <- matrix(c(e1, error_cov, error_cov, e2), 2)
+  independent_power(function() {
+    x <- stats::rnorm(n)
+    w <- stats::rnorm(n)
+    e <- MASS::mvrnorm(n, c(0, 0), errors)
+    m1 <- a_m1[[1]] * x + a_m1[[2]] * w + a_m1[[3]] * x * w + e[, 1]
+    m2 <- a_m2[[1]] * x + a_m2[[2]] * w + a_m2[[3]] * x * w + e[, 2]
+    y <- b1 * m1 + b2 * m2 + c_prime * x + stats::rnorm(n, sd = sqrt(1 - var_y))
+    first <- summary(stats::lm(m1 ~ x * w))$coefficients
+    second <- summary(stats::lm(y ~ m1 + m2 + x))$coefficients
+    index <- stats::rnorm(draws, first["x:w", 1], first["x:w", 2]) *
+      stats::rnorm(draws, second["m1", 1], second["m1", 2])
+    limits <- stats::quantile(index, c(alpha / 2, 1 - alpha / 2))
+    limits[[1]] > 0 || limits[[2]] < 0
+  }, nrep, seed)
+}
