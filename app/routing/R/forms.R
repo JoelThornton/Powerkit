@@ -163,7 +163,10 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         if (isTRUE(f$effect) && !isTRUE(f$baseline)) f$optional_for <- c("sensitivity", "sensitivity_curve")
         f
       })
-      if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+      if (has_effect) {
+        g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+        g$note_goals <- c("sensitivity", "sensitivity_curve")
+      }
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })

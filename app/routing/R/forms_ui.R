@@ -306,6 +306,13 @@ effect_box_legend <- function(legend, g) {
   legend
 }
 
+# A box note that only some goals need (`note_goals`) appears only when
+# one of them is chosen (22 November 2026).
+note_for_goals <- function(goals, ui) {
+  if (is.null(goals)) return(ui)
+  conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), ui)
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -330,15 +337,19 @@ group_ui_build <- function(tree, g, values, index) {
       legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
-    if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
+    if (!is.null(g$note) || !is.null(g$note_more)) note_for_goals(g$note_goals, explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
       if (!is.null(g$note)) p(class = "group-note", g$note),
-      if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
+      if (!is.null(g$note_more)) p(class = "group-note", g$note_more))),
     # Routine notes follow explanation mode; required-input prompts and
     # scientific warnings are rendered separately and remain visible.
     # The summary names its terms, so that two of these on one screen
     # don't read as the same link twice (16 November 2026).
-    if (length(hints)) tags$details(class = "form-terms", tags$summary(terms_summary(vapply(hints, `[[`, "", "term"))),
-      div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
+    # The box's terms are one of its explanations (22 November 2026): an
+    # info button in view, and behind the box's corner button with
+    # explanations off, rather than a fold of their own.
+    if (length(hints)) explanation_ui(sprintf("group-%d-terms", index), terms_summary(vapply(hints, `[[`, "", "term")),
+      class = "field-more terms-more",
+      div(id = hint_id, class = "form-terms-list", lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
   # Names that are all optional fold away (1 November 2026): they only
