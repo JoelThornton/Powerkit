@@ -411,3 +411,106 @@ independent_group_treatment_binary_power <- function(p1, p2, icc, m, groups, ind
     abs(z) > stats::qnorm(1 - alpha / 2)
   }, nrep, seed)
 }
+
+# Tests by formula (pwrss) --------------------------------------------------------
+
+# One proportion: the exact power of stats::binom.test() for n people with
+# true proportion p against p0, summed over every count it could see.
+independent_one_proportion_power <- function(n, p, p0, alpha = 0.05, alternative = "two.sided") {
+  x <- 0:n
+  p_values <- vapply(x, function(k) stats::binom.test(k, n, p0, alternative = alternative)$p.value, numeric(1))
+  sum(stats::dbinom(x, n, p)[p_values <= alpha])
+}
+
+# McNemar's exact test: n pairs, each "yes" in the first condition only with
+# probability p_first_only, in the second only with p_second_only, and
+# otherwise the same in both. The test is stats::binom.test() of the pairs
+# that are yes in the second condition only among the discordant pairs
+# (conditional on their number, the usual exact McNemar test); its exact
+# power is summed over every number of discordant pairs and every split.
+independent_mcnemar_exact_power <- function(n, p_first_only, p_second_only, alpha = 0.05, alternative = "two.sided") {
+  discordant <- p_first_only + p_second_only
+  share <- p_second_only / discordant
+  sum(vapply(0:n, function(m) {
+    if (m == 0) return(0)
+    b <- 0:m
+    p_values <- vapply(b, function(k) stats::binom.test(k, m, 0.5, alternative = alternative)$p.value, numeric(1))
+    stats::dbinom(m, n, discordant) * sum(stats::dbinom(b, m, share)[p_values <= alpha])
+  }, numeric(1)))
+}
+
+# Goodness of fit: n people fall into the categories with the true
+# probabilities; each study runs stats::chisq.test() against the null
+# probabilities (Pearson's chi-square, categories - 1 df).
+independent_gof_power <- function(n, probabilities, null_probabilities, alpha = 0.05, nrep, seed) {
+  independent_power(function() {
+    counts <- as.vector(stats::rmultinom(1, n, probabilities))
+    suppressWarnings(stats::chisq.test(counts, p = null_probabilities)$p.value) < alpha
+  }, nrep, seed)
+}
+
+# Two independent correlations: n1 and n2 pairs from bivariate normal
+# populations correlating r1 and r2; each study compares the two sample
+# correlations by Fisher's z, (atanh(r2) - atanh(r1)) / sqrt(1 / (n1 - 3) +
+# 1 / (n2 - 3)), against the standard normal.
+independent_two_correlations_power <- function(n1, n2, r1, r2, alpha = 0.05, alternative = "two.sided", nrep, seed) {
+  sample_r <- function(n, r) stats::cor(MASS::mvrnorm(n, c(0, 0), matrix(c(1, r, r, 1), 2)))[1, 2]
+  independent_power(function() {
+    z <- (atanh(sample_r(n2, r2)) - atanh(sample_r(n1, r1))) / sqrt(1 / (n1 - 3) + 1 / (n2 - 3))
+    p <- switch(alternative,
+      two.sided = 2 * stats::pnorm(-abs(z)),
+      greater = stats::pnorm(z, lower.tail = FALSE),
+      less = stats::pnorm(z)
+    )
+    p < alpha
+  }, nrep, seed)
+}
+
+# ANCOVA with measured covariates (Shieh's model): `means` are the adjusted
+# group or cell means (a vector for one factor; a matrix, rows = levels of
+# A, for two), `per_cell` people in each; `covariates` independent standard
+# normal scores drawn afresh in each study, with equal slopes that together
+# explain r2 of the outcome's variance within cells, whose SD is sd. Each
+# study fits lm() with the covariates first and tests the effect by its
+# sequential F (the same as type II and III in a balanced design).
+independent_ancova_power <- function(means, sd, r2, covariates, per_cell, effect = "main_effect_A",
+                                     alpha = 0.05, nrep, seed) {
+  means <- as.matrix(means)
+  cells <- expand.grid(a = seq_len(nrow(means)), b = seq_len(ncol(means)))
+  a <- factor(rep(cells$a, each = per_cell))
+  b <- factor(rep(cells$b, each = per_cell))
+  centre <- means[cbind(as.integer(a), as.integer(b))]
+  n <- length(centre)
+  slope <- sd * sqrt(r2 / covariates)
+  row <- c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[effect]]
+  independent_power(function() {
+    x <- matrix(stats::rnorm(n * covariates), n)
+    y <- centre + drop(x %*% rep(slope, covariates)) + stats::rnorm(n, sd = sd * sqrt(1 - r2))
+    table <- if (ncol(means) == 1) stats::anova(stats::lm(y ~ x + a)) else stats::anova(stats::lm(y ~ x + a * b))
+    table[row, "Pr(>F)"] < alpha
+  }, nrep, seed)
+}
+
+# Linear regression with predictors set by the design (the fixed model, as
+# G*Power's F tests assume): the same predictor values in every study,
+# centred and uncorrelated with SD 1 in the sample, so the sample's
+# R-squared values are the population's. `controls` predictors explain
+# r2_reduced; `tested` more explain the rest of r2_full. Each study draws a
+# normal outcome and tests the tested predictors by the F test of the
+# model with them against the model without (with no controls, the
+# regression's overall F).
+independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, tested,
+                                         alpha = 0.05, nrep, seed) {
+  k <- controls + tested
+  set.seed(seed)
+  x <- qr.Q(qr(cbind(1, matrix(stats::qnorm(stats::ppoints(n * k))[sample.int(n * k)], n))))[, -1, drop = FALSE] * sqrt(n)
+  slopes <- c(rep(sqrt(r2_reduced / max(controls, 1)), controls), rep(sqrt((r2_full - r2_reduced) / tested), tested))
+  centre <- drop(x %*% slopes)
+  tested_columns <- controls + seq_len(tested)
+  independent_power(function() {
+    y <- centre + stats::rnorm(n, sd = sqrt(1 - r2_full))
+    full <- stats::lm(y ~ x)
+    reduced <- if (controls == 0) stats::lm(y ~ 1) else stats::lm(y ~ x[, -tested_columns, drop = FALSE])
+    stats::anova(reduced, full)[2, "Pr(>F)"] < alpha
+  }, nrep, seed)
+}

@@ -137,6 +137,7 @@ on:
           - contrast
           - ancova
           - two_correlations
+          - formula
           - generic
           - equivalence
           - trend

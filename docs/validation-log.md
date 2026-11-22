@@ -382,10 +382,22 @@ until transcribed). The simulations are in
 | Group treatment trial, yes/no outcome | powertools | **trials simulated in base R (beta-binomial groups), analysed by the z test of the groups' mean proportion against the individuals' (22 November 2026)** | `cluster` |
 | SEM model fit (exact, close and not-close fit) | semPower | **MacCallum, Browne and Sugawara's (1996) noncentral chi-square written out separately (22 November 2026)** | `sem_fit` |
 | SEM factor correlations and invariance | semPower | studies simulated and fitted by lavaan directly | `sem_latent` |
+| One proportion; McNemar's exact test | pwrss | **`binom.test()`'s power summed exactly over every count (for McNemar's test, over the discordant pairs), both directions and one-sided (22 November 2026)**; Type I error at most alpha | `formula` |
+| Goodness of fit | pwrss | **`chisq.test()` on simulated counts, three and four categories against equal and unequal null proportions (22 November 2026)**; pwr's formula; Type I error | `formula` |
+| Multiple regression: R-squared against 0, an R-squared increase, one coefficient | pwrss | **`lm()`'s F test with the predictors set by the design, the model G\*Power's and pwrss's F tests assume (22 November 2026)**; Type I error. With predictors measured afresh in each study, simulated power is about 1 to 2 points lower (for example 73.8% against 75.3% for two predictors added to three, N = 150), which needs 2 to 6 more people for 80% in typical cases | `formula` |
+| Two independent correlations | pwrss | **Fisher's z on simulated bivariate normal studies, equal and unequal groups, two- and one-sided (22 November 2026)**; Type I error | `two_correlations` |
+| ANCOVA (one and two factors) | pwrss | **`lm()` with the covariates drawn afresh in each study (measured, Shieh's model), one factor with one or two covariates and each effect of a 3 x 2 (22 November 2026)**; Superpower's Shieh method; with fixed covariates, `lm()` on the same covariate values in every study; Type I error | `ancova` |
+| Two dependent correlations | pwrss | the G\*Power 3.1 manual's examples 28.3.1 and 28.3.2 | `basic` |
+| Planned contrast | pwrss | the G\*Power 3.1 manual's three examples (two levels against two, linear and quadratic trend) | `contrast` |
+| Logistic regression | pwrss | the G\*Power 3.1 manual's examples, normal and yes/no X | `logistic` |
+| Poisson regression | pwrss | the G\*Power 3.1 manual's yes/no X example (required N) | `poisson` |
+| One and two variances | powerkit (G\*Power's formulas) | the G\*Power 3.1 manual's examples; Spower's simulation | `variances` |
+| Generic t, F, chi-square and z tests | pwrss | the G\*Power 3.1 manual's examples (no data to simulate: the noncentrality is the input) | `generic` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: the other built-in tests and corrections listed
-in `conventions.md`.
+checks aside), next in this audit: survival, meta-analysis, reliability,
+trend, MANOVA and the factorial ANOVAs, then the simulated cards and the
+Bayes factor cards.
 
 ## Before this log
 
