@@ -15,3 +15,9 @@ entries:
       effect size" were two separate links side by side. They are now one
       line: the question, then a link that finds the smallest effect your
       study could detect.
+  - date: "2026-11-22"
+    title: "The effect box no longer lists its choices twice"
+    text: >-
+      The effect box's heading listed the ways to give the effect, the
+      same list as its first question. The heading now just names the
+      box, and the question offers the choices.

@@ -11,3 +11,7 @@
   detect"), in place of an info button beside a separate "I don't know
   my effect size" button. Its explaining sentence follows the
   explanations switch.
+* App: an effect box whose first question is "How you'll give the
+  effect" no longer heads itself with the list of forms that question
+  offers (`effect_box_legend()`): the heading is "The effect", or the
+  part before a colon (the equivalence card's bound and difference).

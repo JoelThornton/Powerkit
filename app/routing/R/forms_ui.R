@@ -298,6 +298,14 @@ legend_repeats_question <- function(legend, g) {
   !length(head) || mean(head %in% words(label)) >= 0.6
 }
 
+effect_box_legend <- function(legend, g) {
+  labels <- vapply(g$fields, function(f) f$label %||% "", character(1))
+  if (is.null(legend) || !any(grepl("^How you\u2019?'?ll give", labels))) return(legend)
+  if (grepl(":", legend, fixed = TRUE)) return(sub(":.*$", "", legend))
+  if (grepl(", or ", legend, fixed = TRUE)) return("The effect")
+  legend
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -305,6 +313,10 @@ group_ui_build <- function(tree, g, values, index) {
   # heading that reads as a list, not a question, so the box led by the
   # test-version choice is headed plainly. Its terms stay explained.
   if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) legend <- "Which test you'll run"
+  # A box whose first question is how you'll give the effect lists the
+  # same forms that choice offers, so its heading names only what it is
+  # ("The effect", or the part before a colon) (22 November 2026).
+  legend <- effect_box_legend(legend, g)
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
   # Short name fields sit two to a row on wider screens; a legend that
