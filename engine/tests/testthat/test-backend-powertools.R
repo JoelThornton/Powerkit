@@ -352,31 +352,42 @@ test_that("the exported yes/no scripts reproduce the result with powertools alon
 # are randomised one by one, and the second condition is delivered in
 # groups, so only that condition is clustered.
 
-test_that("a group treatment trial runs on powertools' irgtt functions and passes its check run", {
+test_that("a group treatment trial runs on irgtt.cont()'s variance with Satterthwaite's df, or irgtt.bin(), and passes its check run", {
   score <- run_spec(binary_spec("group_treatment", list(type = "power", n = 320)))
-  expect_equal(score$provenance$backend_function, "powertools::irgtt.cont")
+  expect_match(score$provenance$backend_function, "Welch-Satterthwaite df", fixed = TRUE)
   expect_true(all(score$check_run$ok))
   yes_no <- run_spec(binary_spec("group_treatment_binary", list(type = "power", n = 400)))
   expect_equal(yes_no$provenance$backend_function, "powertools::irgtt.bin")
   expect_true(all(yes_no$check_run$ok))
 })
 
-test_that("group treatment power equals powertools called directly", {
+# Welch's test of the people taking part individually against the groups'
+# means, written out: the variance irgtt.cont() uses and the
+# Welch-Satterthwaite df (Departure 38).
+satterthwaite_power <- function(m, J, n, delta, icc, sides = 2, alpha = 0.05) {
+  uc <- 1 / n
+  ue <- (1 + (m - 1) * icc) / (m * J)
+  df <- (uc + ue)^2 / (uc^2 / (n - 1) + ue^2 / (J - 1))
+  ncp <- delta / sqrt(uc + ue)
+  crit <- stats::qt(1 - alpha / sides, df)
+  stats::pt(crit, df, ncp, lower.tail = FALSE) + if (sides == 2) stats::pt(-crit, df, ncp) else 0
+}
+
+test_that("group treatment power is the t test with irgtt.cont()'s variance and Satterthwaite's df", {
   # 320 people: 20 groups of 8 in group therapy, 160 treated individually.
-  direct <- powertools::irgtt.cont(m = 8, J = 20, n = 160, delta = 0.4, sd = 1, icc = 0.05, Theta = 1)
-  expect_equal(run_spec(binary_spec("group_treatment", list(type = "power", n = 320)))$curve$power, direct)
+  expect_equal(run_spec(binary_spec("group_treatment", list(type = "power", n = 320)))$curve$power,
+               satterthwaite_power(8, 20, 160, 0.4, 0.05), tolerance = 1e-8)
   # One-sided, in the direction of the effect (d is negative: scores fall).
   spec <- binary_spec("group_treatment", list(type = "power", n = 320))
   spec$target_test$alternative <- "less"
-  expect_equal(run_spec(spec)$curve$power,
-               powertools::irgtt.cont(m = 8, J = 20, n = 160, delta = 0.4, icc = 0.05, sides = 1))
+  expect_equal(run_spec(spec)$curve$power, satterthwaite_power(8, 20, 160, 0.4, 0.05, sides = 1), tolerance = 1e-8)
   spec$target_test$alternative <- "greater"
   expect_spec_problem(spec, "goes the other way")
   direct_bin <- powertools::irgtt.bin(m = 10, J = 20, n = 200, p1 = 0.3, p2 = 0.45, icc = 0.05)
   expect_equal(run_spec(binary_spec("group_treatment_binary", list(type = "power", n = 400)))$curve$power, direct_bin)
   # With no clustering (ICC 0), the score version is a little below an
   # ordinary two-sample t test of the same size: its Satterthwaite df still
-  # count the grouped condition's groups (about 33 df here, not 318).
+  # count the grouped condition's groups (about 68 df here, not 318).
   flat <- run_spec(binary_spec("group_treatment", list(type = "power", n = 320), icc = 0))$curve$power
   t_test <- stats::power.t.test(n = 160, delta = 0.4)$power
   expect_lt(flat, t_test)
@@ -401,20 +412,32 @@ test_that("the group treatment sample size is a whole number of groups, with as 
   expect_equal(yes_no$clusters$outcome, "yes/no")
 })
 
-test_that("the smallest detectable d for a group treatment trial is powertools' own answer", {
+test_that("the smallest detectable d for a group treatment trial is found from the same t-based power", {
   result <- run_spec(binary_spec("group_treatment", list(type = "sensitivity", n = 320, power = 0.8)))
   expect_equal(result$sensitivity$power, 0.8, tolerance = 1e-6)
   expect_equal(result$sensitivity$effect,
-               -stats::uniroot(function(delta) powertools::irgtt.cont(m = 8, J = 20, n = 160, delta = delta, icc = 0.05) - 0.8,
+               -stats::uniroot(function(delta) satterthwaite_power(8, 20, 160, delta, 0.05) - 0.8,
                                c(1e-6, 20), tol = 1e-10)$root, tolerance = 1e-6)
   # The size of the difference from powertools' own solver for delta (a
-  # normal approximation): its d is smaller and falls short of 80% power
-  # by its own power formula (docs/conventions.md).
+  # normal approximation, Departure 14): its d is smaller and falls short
+  # of 80% power (docs/conventions.md).
   direct <- powertools::irgtt.cont(m = 8, J = 20, n = 160, delta = NULL, icc = 0.05, power = 0.8)
   expect_lt(direct, abs(result$sensitivity$effect))
-  expect_equal(abs(result$sensitivity$effect) - direct, 0.0127, tolerance = 0.05)
-  expect_equal(powertools::irgtt.cont(m = 8, J = 20, n = 160, delta = direct, icc = 0.05), 0.771, tolerance = 0.005)
+  expect_equal(satterthwaite_power(8, 20, 160, direct, 0.05), 0.78, tolerance = 0.01)
   expect_error(run_spec(binary_spec("group_treatment_binary", list(type = "sensitivity", n = 400, power = 0.8))), "isn't available yet")
+})
+
+test_that("Satterthwaite's df give more power than irgtt.cont()'s with few groups (Departure 38)", {
+  # irgtt.cont()'s df are about half Satterthwaite's: 11.2 against 21.8
+  # at 10 groups of 8 and 80 people taking part individually (ICC 0.1).
+  ours <- run_spec(binary_spec("group_treatment", list(type = "power", n = 160), icc = 0.1))$curve$power
+  theirs <- powertools::irgtt.cont(m = 8, J = 10, n = 80, delta = 0.4, icc = 0.1)
+  expect_equal(ours, 0.548, tolerance = 0.002)
+  expect_equal(theirs, 0.512, tolerance = 0.002)
+  # The gap closes as groups are added: under a point at 30 groups of 10.
+  many <- satterthwaite_power(10, 30, 300, 0.25, 0.05) - powertools::irgtt.cont(m = 10, J = 30, n = 300, delta = 0.25, icc = 0.05)
+  expect_lt(many, 0.015)
+  expect_gt(many, 0)
 })
 
 test_that("group treatment spec checks", {
@@ -428,7 +451,7 @@ test_that("group treatment spec checks", {
   expect_error(validate_spec(spec), class = "powerkit_spec_error")
 })
 
-test_that("the exported group treatment scripts reproduce each goal with powertools alone", {
+test_that("the exported group treatment scripts reproduce each goal", {
   attrition <- binary_spec("group_treatment", list(type = "power", n = 320))
   attrition$options$attrition <- 0.1
   specs <- list(

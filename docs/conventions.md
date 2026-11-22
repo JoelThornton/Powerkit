@@ -515,8 +515,8 @@ in steps of the whole split and could need up to about four people more
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
 | G\*Power | No test for clustered designs | — | — |
-| powertools | `irgtt.cont()`: people are randomised individually, and those in the intervention condition are treated in J groups of m. The variance of the difference is Theta × sd² × (1 + (m − 1) × ICC) / (mJ) + sd² / n, n being the control condition's size; power by the noncentral t (one-sided) or F with 1 df (two-sided) on Satterthwaite degrees of freedom. Other quantities (J, m, n, delta, alpha) are "solved for using normal approximation" (its help page), that is, with 10,000 df. `irgtt.bin()`: the z test of the difference in proportions, the intervention condition's binomial variance multiplied by the same design effect (powertools 1.0.0 help and source, R/irgtt.cont.R and R/irgtt.bin.R, opened 28 October 2026) | `delta / sd`, with `sd` the outcome's total SD; or `p1` (control) and `p2` (intervention) | `icc = 0`, `Theta = 1`, `alpha = 0.05`, `sides = 2` |
-| **powerkit** | powertools' `irgtt.cont()` and `irgtt.bin()`, by formula (E34, from 28 October 2026) [powerkit] | `d` over the outcome's total SD, taken to be the same in both conditions (`Theta = 1`); or `p1` and `p2`. The ICC is the grouped condition's | The same number of people in each condition (`n = mJ`); condition 2 is the grouped one. The sample size is found from the t-based power, as for every design, so it is a whole number of groups. **The smallest detectable d is also found from that power** (by root-finding), not from `irgtt.cont()`'s own solver for delta (Departure 14): at 20 groups of 8 and 160 people treated individually (ICC 0.05), powertools' normal approximation gives d = 0.340, which has 77.1% power by its own power formula; powerkit gives d = 0.352, with 80% (`test-backend-powertools.R`). With an ICC of 0, the Satterthwaite df still count the groups, so power is a little below an ordinary t test of the same size (0.935 against 0.946 at d = 0.4 and 160 per condition). No smallest detectable effect for a yes/no outcome, since `irgtt.bin()` can't solve for the proportions |
+| powertools | `irgtt.cont()`: people are randomised individually, and those in the intervention condition are treated in J groups of m. The variance of the difference is Theta × sd² × (1 + (m − 1) × ICC) / (mJ) + sd² / n, n being the control condition's size; power by the noncentral t (one-sided) or F with 1 df (two-sided) on degrees of freedom of its own, about half the Welch-Satterthwaite df (Departure 38). Other quantities (J, m, n, delta, alpha) are "solved for using normal approximation" (its help page), that is, with 10,000 df. `irgtt.bin()`: the z test of the difference in proportions, the intervention condition's binomial variance multiplied by the same design effect (powertools 1.0.0 help and source, R/irgtt.cont.R and R/irgtt.bin.R, opened 28 October 2026) | `delta / sd`, with `sd` the outcome's total SD; or `p1` (control) and `p2` (intervention) | `icc = 0`, `Theta = 1`, `alpha = 0.05`, `sides = 2` |
+| **powerkit** | For a score, `irgtt.cont()`'s variance with the Welch-Satterthwaite df (Departure 38, from 22 November 2026); for a yes/no outcome, powertools' `irgtt.bin()`, by formula (E34, from 28 October 2026) [powerkit] | `d` over the outcome's total SD, taken to be the same in both conditions (`Theta = 1`); or `p1` and `p2`. The ICC is the grouped condition's | The same number of people in each condition (`n = mJ`); condition 2 is the grouped one. The sample size is found from the t-based power, as for every design, so it is a whole number of groups. **The smallest detectable d is also found from that power** (by root-finding), not from `irgtt.cont()`'s own solver for delta (Departure 14): at 20 groups of 8 and 160 people treated individually (ICC 0.05), powertools' normal approximation gives d = 0.340, which has 77.1% power by its own power formula; powerkit gives d = 0.352, with 80% (`test-backend-powertools.R`). With an ICC of 0, the Satterthwaite df still count the groups, so power is a little below an ordinary t test of the same size (0.935 against 0.946 at d = 0.4 and 160 per condition). No smallest detectable effect for a yes/no outcome, since `irgtt.bin()` can't solve for the proportions |
 
 ## Structural equation model fit (the chi-square test of exact fit, by RMSEA)
 
@@ -1495,15 +1495,16 @@ as an experimental option, for a statistician's check
   freedom. The d it returns therefore has less than the target power by its
   own power formula.
 - **powerkit:** the smallest detectable d is the value at which
-  `irgtt.cont()`'s t-based power equals the target power, found by
+  the t-based power (Departure 38's) equals the target power, found by
   root-finding, as the required sample size already is (powerkit searches
   the power at whole numbers of groups, for every design).
 - **Size:** at 20 groups of 8 and 160 people treated individually (ICC
   0.05, 80% power, two-sided α = .05), powertools gives d = 0.340, which
-  has 77.1% power by its own formula; powerkit gives d = 0.352, with 80%.
+  has 78.7% power by the t test powerkit uses (Departure 38; 77.1% by
+  irgtt.cont()'s own power formula); powerkit gives d = 0.346, with 80%.
   The gap narrows as the number of groups grows.
 - **Test:** `test-backend-powertools.R`, "the smallest detectable d for a
-  group treatment trial is powertools' own answer".
+  group treatment trial is found from the same t-based power".
 - **Shown to users:** on the result screen for this design's smallest
   detectable effect (`app/routing/forms.yaml`, `departures`, key "14") and
   in its methods paragraph.
@@ -2308,6 +2309,41 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   `test-validation-bayes-informed.R` (validation chunk `bayes`).
 - **Shown to users:** on the E1, E2 and E3 Bayes factor results with an
   informed prior (`departures_for()`), and in the methods paragraph.
+
+### 38. Group treatment trials with a score: the t test with Welch-Satterthwaite degrees of freedom, not irgtt.cont()'s
+
+**The maintainer's decision, 22 November 2026** (`docs/decisions.md`).
+
+- **Established convention:** powertools' `irgtt.cont()` (1.0.0, its
+  source) takes the variance of the difference as sd² / n for the people
+  taking part individually plus Theta sd² (1 + (m − 1) ICC) / (mJ) for
+  the J groups of m, and tests it by the noncentral t (or F) on degrees
+  of freedom (Ue² (J + 1)/(J − 1) + Uc² (n + 1)/(n − 1)) / (Ue² (J +
+  1)/(J − 1)² + Uc² (n + 1)/(n − 1)²), Uc and Ue being the two parts of
+  the variance. Its help page cites no source. That is a weighted average
+  of J − 1 and n − 1, not the Welch-Satterthwaite df, and about half as
+  large.
+- **powerkit:** the same variance, with the Welch-Satterthwaite df
+  (Uc + Ue)² / (Uc²/(n − 1) + Ue²/(J − 1)) (Delacre, Lakens and Leys,
+  2017, refs.bib `Delacre2017_welch`). With groups of one size these
+  are the df of Welch's test of the individuals' scores against the
+  groups' means, the analysis such a trial is given (and what a mixed
+  model's Satterthwaite test approximates); trials simulated that way
+  and analysed by `t.test()` agree with powerkit and not with
+  `irgtt.cont()` (`test-validation-cluster-randomised.R`, "group
+  treatment trial"). A yes/no outcome still runs on `irgtt.bin()`'s z
+  test, which has no df.
+- **Size:** 54.8% against irgtt.cont()'s 51.2% at 10 groups of 8 and 80
+  people taking part individually (ICC 0.1, d = 0.4, two-sided α =
+  .05; 21.8 df against 11.2); 53.0% against 41.3% at 4 groups of 5 and
+  20 individuals (ICC 0.1, d = 0.8); under one point beyond 30 groups.
+  Sample sizes are correspondingly smaller.
+- **Test:** `test-backend-powertools.R`, "Satterthwaite's df give more
+  power than irgtt.cont()'s with few groups (Departure 38)".
+- **Shown to users:** on the result screen for a group treatment trial
+  with a score (`app/routing/forms.yaml`, `departures`, key "38"), in its
+  methods paragraph, and in the exported R script, which computes the
+  power in base R.
 
 ## Known differences
 
