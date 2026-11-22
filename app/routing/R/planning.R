@@ -411,6 +411,8 @@ input_guide_ui <- function(f) {
   guide <- input_guide(f)
   if (is.null(guide)) return(NULL)
   tags$details(class = "input-guide small", tags$summary("What this means and where to find it", `aria-label` = paste("Help for", f$label)),
-    tags$dl(tags$dt("Meaning"), tags$dd(guide$meaning), tags$dt("Example"), tags$dd(guide$example),
+    # The field's own help is shown just above, so a meaning that repeats it
+    # word for word is left out (it read twice, 22 November 2026).
+    tags$dl(if (!identical(guide$meaning, f$help)) tagList(tags$dt("Meaning"), tags$dd(guide$meaning)), tags$dt("Example"), tags$dd(guide$example),
       tags$dt("Where to look"), tags$dd(guide$source), tags$dt("If unknown"), tags$dd(guide$unknown)))
 }
