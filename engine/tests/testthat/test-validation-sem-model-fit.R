@@ -119,3 +119,30 @@ test_that("the test of close or not-close fit matches a published example (publi
   result <- engine_function("run_spec")(sem_close_validation_spec(method, rmsea, rmsea_null, df, alpha, n))
   expect_equal(result$curve$power, published_power, tolerance = 0.005)
 })
+
+# Independent formula ---------------------------------------------------------------
+# The check above calls semPower. This one writes out the noncentral
+# chi-square of MacCallum, Browne and Sugawara (1996; refs.bib
+# MacCallum1996_rmsea) separately: with N people and df degrees of
+# freedom, the noncentrality for an RMSEA of e is (N - 1) df e^2; the
+# test of exact or close fit rejects above the 1 - alpha quantile under
+# the null RMSEA, and the test of not-close fit below the alpha quantile.
+
+sem_fit_by_formula <- function(rmsea, rmsea_null, df, n, alpha, upper) {
+  ncp <- function(e) (n - 1) * df * e^2
+  if (upper) {
+    1 - stats::pchisq(stats::qchisq(1 - alpha, df, ncp = ncp(rmsea_null)), df, ncp = ncp(rmsea))
+  } else {
+    stats::pchisq(stats::qchisq(alpha, df, ncp = ncp(rmsea_null)), df, ncp = ncp(rmsea))
+  }
+}
+
+test_that("SEM model fit: exact, close and not-close fit agree with MacCallum, Browne and Sugawara's noncentral chi-square written out (formula)", {
+  skip_unless_full_validation()
+  spec <- sem_fit_validation_spec(0.05, 200, 0.05, seed = 325, n = 150)
+  expect_equal(engine_power(spec)$power, sem_fit_by_formula(0.05, 0, 200, 150, 0.05, upper = TRUE), tolerance = 1e-8)
+  close <- engine_function("run_spec")(sem_close_validation_spec("chi_square_close_fit", 0.08, 0.05, 40, 0.05, 300))
+  expect_equal(close$curve$power, sem_fit_by_formula(0.08, 0.05, 40, 300, 0.05, upper = TRUE), tolerance = 1e-8)
+  not_close <- engine_function("run_spec")(sem_close_validation_spec("chi_square_not_close_fit", 0.01, 0.05, 40, 0.05, 300))
+  expect_equal(not_close$curve$power, sem_fit_by_formula(0.01, 0.05, 40, 300, 0.05, upper = FALSE), tolerance = 1e-8)
+})

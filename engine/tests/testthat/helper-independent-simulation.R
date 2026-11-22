@@ -236,3 +236,31 @@ independent_three_way_power <- function(population, n, rel = c(X = 1, W = 1, Z =
     summary(stats::lm(y ~ x * w * z, data = d))$coefficients["x:w:z", "Pr(>|t|)"] < alpha
   }, nrep, seed)
 }
+
+# First-stage moderated mediation (PROCESS model 7): X and W standard
+# normal with correlation r_x_w; M = a1 X + a2 W + a3 XW + error, where XW
+# is the product of the standardised X and W (not standardised again, as
+# power4mome builds it); Y = b M + c' X + error; errors set so that M and
+# Y have variance 1. Each study fits the two regressions with lm() and
+# tests the index of moderated mediation, a3 * b, by a Monte Carlo
+# interval (`draws` draws of a3 and b from normal distributions at their
+# estimates and standard errors, independent across the two equations).
+independent_modmed7_power <- function(a1, a2, a3, b, c_prime, n, r_x_w = 0, draws = 1000,
+                                      alpha = 0.05, nrep, seed) {
+  sigma <- matrix(c(1, r_x_w, r_x_w, 1), 2)
+  var_m <- a1^2 + a2^2 + 2 * a1 * a2 * r_x_w + a3^2 * (1 + r_x_w^2)
+  var_y <- b^2 + c_prime^2 + 2 * b * c_prime * (a1 + a2 * r_x_w)
+  independent_power(function() {
+    xw <- MASS::mvrnorm(n, c(0, 0), sigma)
+    x <- xw[, 1]
+    w <- xw[, 2]
+    m <- a1 * x + a2 * w + a3 * x * w + stats::rnorm(n, sd = sqrt(1 - var_m))
+    y <- b * m + c_prime * x + stats::rnorm(n, sd = sqrt(1 - var_y))
+    first <- summary(stats::lm(m ~ x * w))$coefficients
+    second <- summary(stats::lm(y ~ m + x))$coefficients
+    index <- stats::rnorm(draws, first["x:w", 1], first["x:w", 2]) *
+      stats::rnorm(draws, second["m", 1], second["m", 2])
+    limits <- stats::quantile(index, c(alpha / 2, 1 - alpha / 2))
+    limits[[1]] > 0 || limits[[2]] < 0
+  }, nrep, seed)
+}

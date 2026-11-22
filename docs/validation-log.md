@@ -371,11 +371,14 @@ until transcribed). The simulations are in
 | Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
 | Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
 | Three-way interaction | InteractionPoweR | **a population built separately gives its R-squared with and without XWZ, and simulated studies by `lm()` measure Known difference 17 (22 November 2026)**; Type I error | `three_way` |
+| Moderated mediation, PROCESS model 7 | power4mome | **base-R studies with the product of X and W, fitted by `lm()` with a Monte Carlo interval for the index (22 November 2026)**; Type I error | `process_7` |
+| SEM model fit (exact, close and not-close fit) | semPower | **MacCallum, Browne and Sugawara's (1996) noncentral chi-square written out separately (22 November 2026)** | `sem_fit` |
+| SEM factor correlations and invariance | semPower | studies simulated and fitted by lavaan directly | `sem_latent` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: moderated mediation (power4mome; PROCESS
-models 7 and 14 wait on transcribed published values) and the SEM cards
-(semPower and lavaan).
+checks aside), next in this audit: PROCESS model 14 and the models with
+two moderated paths (power4mome), and the other built-in tests and
+corrections listed in `conventions.md`.
 
 ## Before this log
 
