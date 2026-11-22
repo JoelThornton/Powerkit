@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-22"
+    title: "Less repeated wording on the input screens"
+    text: >-
+      Headings that only repeated the question under them, such as "Your
+      hypothesis", are gone, and the goal and direction buttons now say
+      what each choice needs or means rather than repeating its name.
+      Explanations no longer restate a field's own help, and the number
+      of participants now says it counts the people analysed, after
+      dropout.

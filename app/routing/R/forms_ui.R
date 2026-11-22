@@ -274,6 +274,30 @@ group_ui <- function(tree, g, values, index) {
   own_values <- lapply(g$fields, function(f) values[[f$id]])
   cached_html(list("form_group", g, own_values, index, tree$glossary), function() group_ui_build(tree, g, values, index))
 }
+# A box with one question whose heading only restates it ("Your
+# hypothesis" over "Which directions will your statistical decision
+# test?", "Random seed" over "Random seed") keeps the heading for screen
+# readers only (22 November 2026). It counts as a restatement when the
+# question asks it as a question, or when most of the heading's words are
+# in the question; a heading that adds something (which group is the
+# reference) stays.
+legend_repeats_question <- function(legend, g) {
+  if (identical(legend, "What you want to find out")) return(TRUE)
+  always <- Filter(function(f) is.null(f$shown_if), g$fields)
+  if (length(always) != 1 || is.null(always[[1]]$label) || grepl("reference", legend, fixed = TRUE)) return(FALSE)
+  label <- always[[1]]$label
+  if (grepl("\\?$", label)) return(TRUE)
+  stop <- c("the", "a", "an", "of", "in", "each", "your", "you", "to", "and", "or", "s", "will", "be", "for", "is", "are",
+    "how", "what", "which", "many", "name", "names", "number", "do", "does", "have", "i", "it", "its", "this", "with",
+    "per", "by", "as", "optional", "same", "one", "on", "there")
+  words <- function(x) {
+    w <- setdiff(unique(strsplit(gsub("[^a-z ]", " ", tolower(x)), " +")[[1]]), c(stop, ""))
+    sub("s$", "", w)
+  }
+  head <- words(legend)
+  !length(head) || mean(head %in% words(label)) >= 0.6
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -289,8 +313,8 @@ group_ui_build <- function(tree, g, values, index) {
   # A group that only some choices need (`shown_if`, as on a field; its
   # fields carry the same condition, so the server ignores them too).
   box <- tags$fieldset(
-    class = paste("form-group-box", if (names_only) "form-group-names"),
-    tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
+    class = paste("form-group-box", if (names_only) "form-group-names", if (identical(legend, "Which test you'll run")) "form-group-test"),
+    tags$legend(class = if (legend_repeats_question(legend, g)) "visually-hidden" else "h6",
       legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.

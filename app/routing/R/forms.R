@@ -418,6 +418,9 @@ direction_group <- function(tool, shown_if = NULL) {
         less = "Negative effects only (one-sided test)",
         two_sided = "Effects in either direction (two-sided test; a directional prediction is still possible)"),
       buttons = TRUE, button_labels = list(greater = "Positive only", less = "Negative only", two_sided = "Either direction"),
+      button_notes = list(greater = "One-sided test: an effect the other way can't be declared",
+        less = "One-sided test: an effect the other way can't be declared",
+        two_sided = "Two-sided test: you can still predict a direction"),
       default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
       shown_if = shown_if
     ),
@@ -558,6 +561,19 @@ prediction_goal_fields <- function(tool) {
 
 # Short titles for the goal buttons (R/choice-buttons.R); each goal's full
 # wording is the line under its title.
+# The line under each goal's title says what it is for or what it needs,
+# not the title again (22 November 2026); a goal with no note here keeps
+# its full wording.
+goal_button_notes <- function(form, goals) {
+  if (isTRUE(form$generic)) return(list())
+  unit <- if (isTRUE(form$meta)) "number of studies" else if (identical(form$units, "pairs")) "number of pairs" else "sample size"
+  notes <- list(sample_size = "Give the effect you expect and the power you want",
+    power = sprintf("Give the %s you have or can afford", unit),
+    sensitivity = sprintf("For a fixed %s, when the effect is uncertain", unit),
+    justified_alpha = "Weighs false positives against misses, for a given sample size")
+  notes[intersect(names(notes), names(goals))]
+}
+
 goal_button_labels <- function(form) {
   units <- if (isTRUE(form$meta)) "Number of studies" else if (identical(form$units, "pairs")) "Number of pairs" else "Sample size"
   if (isTRUE(form$generic)) return(list(power = "Power", sensitivity = "Noncentrality needed"))
@@ -586,7 +602,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # paired and two-group t-tests and the correlation (E1-E4).
   if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals,
-    buttons = TRUE, button_labels = goal_button_labels(form))
+    buttons = TRUE, button_labels = goal_button_labels(form), button_notes = goal_button_notes(form, goals))
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)

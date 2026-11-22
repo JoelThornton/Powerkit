@@ -1263,3 +1263,29 @@ test_that("with explanations off, a form box's one info button opens its fields'
   css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
   expect_match(css, ".terms-mode .box-has-info .explanation-help.field-more > summary", fixed = TRUE)
 })
+
+test_that("wording that only restates a heading or a title is not shown", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  # A one-question box's heading that restates its question is for screen
+  # readers only; one that adds something stays.
+  expect_match(html, '<legend class="visually-hidden">Your hypothesis</legend>', fixed = TRUE)
+  expect_true(legend_repeats_question("Random seed", list(fields = list(list(label = "Random seed")))))
+  expect_false(legend_repeats_question("X's groups or conditions, the first the reference group",
+    list(fields = list(list(label = "X's groups or conditions")))))
+  expect_false(legend_repeats_question("Which mediation analysis will you run?",
+    list(fields = list(list(label = "Estimation and confidence interval")))))
+  # The goal and direction buttons' lines say what each needs or means,
+  # not the title again.
+  notes <- goal_button_notes(forms$forms$E2, list(sample_size = "", power = "", sensitivity = ""))
+  expect_identical(notes$power, "Give the sample size you have or can afford")
+  expect_match(notes$sample_size, "effect you expect", fixed = TRUE)
+  expect_match(html, "data-notes=", fixed = TRUE)
+  # A field with help of its own doesn't repeat it as a general meaning.
+  power <- Filter(function(f) identical(f$id, "power"), form_fields(closing_groups(forms, "E2")))[[1]]
+  expect_no_match(as.character(input_guide_ui(power)), "<dt>Meaning</dt>", fixed = TRUE)
+  # A count of people says it is counted after dropout, and no count's
+  # example is about pairs unless it counts pairs.
+  n <- input_guide(list(id = "n", type = "number", label = "Number of participants analysed"))
+  expect_match(n$meaning, "after exclusions and dropout", fixed = TRUE)
+  expect_no_match(n$example, "pairs", fixed = TRUE)
+})

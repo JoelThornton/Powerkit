@@ -402,8 +402,14 @@ additional_input_guide <- function(f) {
     "0.30 means 30%; a vector of category shares must satisfy this screen's sum and ordering rules.", "Comparable category counts, a sampling/recruitment plan or an explicit population scenario."))
   if (grepl("lr_time|accrual|follow_up", key)) return(make("A duration for the recruitment/follow-up design, in the same time unit as every other duration on this screen.",
     "Use 12 throughout for twelve months; do not mix a value in years with other fields in months.", "The study schedule and comparable event/follow-up information, with the same time origin."))
-  if (grepl("number|how many|items|participants|people|pairs|predictors|covariates|groups|occasions|tested|study_size|effects_per_study|conv_n[12]", key)) return(make("A count of the units or model components named in this field. Analysed participants, pairs, items, studies and model terms are not interchangeable.",
-    "40 pairs means 40 pairs, not 40 individual people. For a tested-term index, 1 denotes the first term in the stated order.", "The study protocol, sampling frame, model specification or the same earlier study's reported count."))
+  # Counts (22 November 2026): people are counted after exclusions and
+  # dropout; other units are named so a pair or a term isn't taken for a
+  # person. The example used to describe pairs and term indices on every
+  # count, whatever it counted.
+  if (grepl("participants|people", key) && !grepl("pairs", key)) return(make("A count of the people whose data are analysed, after exclusions and dropout, not the number recruited.",
+    "If you recruit 100 and expect 10 to drop out, 90 are analysed.", "Your recruitment plan or budget, less the exclusions and dropout you expect, or the earlier study's reported count."))
+  if (grepl("number|how many|items|pairs|predictors|covariates|groups|occasions|tested|study_size|effects_per_study|conv_n[12]", key)) return(make("A count of exactly the unit the question names: pairs, items, studies and model terms are each counted as themselves, not as people.",
+    "40 pairs is entered as 40, not as the 80 people in them.", "The study protocol, sampling frame, model specification or the same earlier study's reported count."))
   return(NULL)
 }
 
@@ -411,8 +417,9 @@ input_guide_ui <- function(f) {
   guide <- input_guide(f)
   if (is.null(guide)) return(NULL)
   tags$details(class = "input-guide small", tags$summary("What this means and where to find it", `aria-label` = paste("Help for", f$label)),
-    # The field's own help is shown just above, so a meaning that repeats it
-    # word for word is left out (it read twice, 22 November 2026).
-    tags$dl(if (!identical(guide$meaning, f$help)) tagList(tags$dt("Meaning"), tags$dd(guide$meaning)), tags$dt("Example"), tags$dd(guide$example),
+    # The field's own help is shown just above and says what the field
+    # means, so the family's general meaning is left out (it repeated it,
+    # 22 November 2026).
+    tags$dl(if (is.null(f$help)) tagList(tags$dt("Meaning"), tags$dd(guide$meaning)), tags$dt("Example"), tags$dd(guide$example),
       tags$dt("Where to look"), tags$dd(guide$source), tags$dt("If unknown"), tags$dd(guide$unknown)))
 }
