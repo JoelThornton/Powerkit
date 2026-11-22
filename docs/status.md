@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 21 November 2026.*
+*Last updated: 22 November 2026.*
 
 *Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
@@ -16,18 +16,24 @@ the plan (`decisions.md`, 13 November 2026).
 
 ## Now
 
-Colleague testing began on 16 November 2026. What testers report, and
+Colleague testing began on 16 November 2026. New designs and features are paused while it runs, except where a design fixes a current problem (21 November 2026). What testers report, and
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
 smaller items), is `next.md` item 22 and comes first while testing runs;
 with it, item 24 audits every card that runs for a check independent of
-the package it wraps, and the method choices each card makes for the
+the package it wraps (moderation in regression, the ordinal card, the
+repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
+logistic factorial, the three-way interaction, every moderated mediation
+card, the SEM model-fit tests and the clustered designs now have one (a group treatment trial now uses Satterthwaite's degrees
+of freedom, Departure 38); the record and the
+cards still to do are in `validation-log.md`, "Independent checks by
+card"), and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
-size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026); results and exports are next. A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; the first, write-ups describing a different design, is fixed: the methods, ethics and sample-size sentences now give the group split the engine ran (`sample_structure()`, so unequal cells are written as run) and the design's own unit (pairs, time points, items). The ethics paragraph now says what success means for designs without a significance test (factor recovery, the number of profiles) and, for the test of not-close fit, the chance of showing the model fits closely. A simulated chance of zero for evidence of no effect is reported as none of the simulated studies, with an upper bound, not as impossible. The assumptions comparison also looks inside each range, so a range that crosses no effect no longer reads as "no change". Search finds cards by the tests they offer (RMSEA, sphericity corrections, the likelihood-ratio and Wald tests), an empty search offers a way back to the full list, and the main power figure shows a decimal near 80%, 90% and 95%. The full write-up's sample-size rule states only what the calculation assumes and leaves the recruitment cap, replacement and stopping rule for the author. A plan's downloads carry joint power only for the correlation and analyses now entered. Every mediation card and write-up says the power is for a statistical path and what a causal reading assumes. The last, the Bayes factor tables, now simulates the group sizes its sampling plan fixes (decided 21 November 2026), so all nine are closed.
+size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026), and the results screen's sentences, evidence panel included, are plainer and shorter (21 November 2026), as are the cards, the design finder's help, form help and the downloads, and new Updates entries follow a checked style rule (22 November 2026); the full methods paragraph follows Lakens's (2022) reporting tables, with fill-in prompts for what only the author can say (why this significance level and target power, where the code is shared, and what a fixed sample's data are for). On the input screens, the simulation accuracy now sits in Settings, named on its line when the analysis is simulated, the first step in moving what doesn't apply to the chosen method out of view (22 November 2026). Folded sections share one turning-arrow style, underlines mark links only, the optional rows at the foot of a form (assumptions, Settings, the guess) share one card, and with explanations off each box has one info button in its corner, which opens every explanation in it under its own field. Headings that only restated their question, button lines that repeated their title and general meanings that repeated a field's own help are gone (22 November 2026). A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; the first, write-ups describing a different design, is fixed: the methods, ethics and sample-size sentences now give the group split the engine ran (`sample_structure()`, so unequal cells are written as run) and the design's own unit (pairs, time points, items). The ethics paragraph now says what success means for designs without a significance test (factor recovery, the number of profiles) and, for the test of not-close fit, the chance of showing the model fits closely. A simulated chance of zero for evidence of no effect is reported as none of the simulated studies, with an upper bound, not as impossible. The assumptions comparison also looks inside each range, so a range that crosses no effect no longer reads as "no change". Search finds cards by the tests they offer (RMSEA, sphericity corrections, the likelihood-ratio and Wald tests), an empty search offers a way back to the full list, and the main power figure shows a decimal near 80%, 90% and 95%. The full write-up's sample-size rule states only what the calculation assumes and leaves the recruitment cap, replacement and stopping rule for the author. A plan's downloads carry joint power only for the correlation and analyses now entered. Every mediation card and write-up says the power is for a statistical path and what a causal reading assumes. The last, the Bayes factor tables, now simulates the group sizes its sampling plan fixes (decided 21 November 2026), so all nine are closed. Messages about the answers name fields and choices as the screen shows them, a simulated sample-size search with few replications adds points rather than stopping without an answer, and the SEM card's factor analysis takes up to 100 items (21 November 2026).
 Replication plans compare BUCSS publication assumptions when the original's
 publication process is unknown. Goals and exports describe what the selected
 criterion can show, including the replication Bayes factor for designs without
@@ -168,10 +174,30 @@ each area, is at the end of
   goodness-of-fit and rank-test examples now reach E59, E73, E48 and the
   cards offering each rank test, and the whole-study route sends several
   outcomes or latent variables to the safety net rather than a one-score
-  card (`walkthroughs.md`). Whether researchers give those answers is for
+  card (`walkthroughs.md`). Since 22 November 2026 a curved relationship
+  reaches E24 in "Help me choose" (the whole-study route has no answer
+  for a curve yet), several outcome scores related to predictors
+  together reach the safety net, and examples whose brief names something
+  the analysis must keep list the cards that would drop it, which
+  `test-walkthroughs.R` refuses. Whether researchers give those answers is for
   testers (`next.md` item 22). The result's evidence panel is headed
   "Evidence for this analysis method", since its records match the method
-  and options, not the sample size, effect or alpha entered.
+  and options, not the sample size, effect or alpha entered; with nothing
+  recorded it says so in one line.
+  The finder's answers set the input screen they settle (outcome type,
+  who is in which condition; `finder_form_values()` in `route-fit.R`);
+  the note listing them is redrawn as fields change, so a field changed
+  after the finder set it is named with both values. A yes/no-or-categories answer on trials, in groups or measured
+  twice is asked how many categories it has before a card is offered;
+  three or more reach the safety net with a note on what Powerkit can't
+  plan (21 November 2026, from the finder audit of that day). Many
+  measurements ask whether one group's trajectory or a difference in
+  slopes is the hypothesis, and offer two scores measured together;
+  mediation over time is told the within-person card has no indirect
+  effect. Two groups measured once are asked whether the score is adjusted
+  for a covariate and whether several scores are one joint test or
+  separate claims; a curved relationship goes to multiple regression with
+  a squared term.
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;
@@ -276,7 +302,20 @@ each area, is at the end of
   hypothesis, sampling plan, analysis plan, what sets the sensitivity,
   interpretation of each outcome, theory at stake; also on its own from
   the plan's Study plan report button), the merged references and each analysis's own files; the zip
-  opens again as the plan. "Plan my whole study" makes or fills a study
+  opens again as the plan. The table's analysis and interpretation cells, the plan's target column and the single-analysis
+  planning document's decision rule come from one source (`decision-rule.R`, 21 November 2026), so a
+  non-inferiority test, a test of not-close fit, a minimum-effect test, a validation plan, factor
+  recovery, profile selection and a precision plan each state the same decision as their write-ups,
+  with no alpha where there is no test. The write-ups keep the researcher's quoted reasons as written
+  (unit rewording never reaches a quotation), count occasions within people as observations, and the
+  ethics paragraph gives the power reached at the N found beside the target, says a several-tests
+  claim's chance is for one test, names a meta-analysis's subgroup, slope or heterogeneity test, treats
+  observed power as retrospective with no case for recruiting, and leaves the investigators' weighing of
+  burden against precision for them to state. A study plan's page and document check the shared N: each
+  analysis the engine can calculate is rerun at the largest separate requirement, its power shown, and
+  N stepped up to the first value meeting every target (an analysis that can't be rerun leaves the N an
+  unchecked candidate), and a replication plan's agreement criterion has a third, inconclusive outcome
+  (Lakens, 2017). That audit's findings are all fixed. "Plan my whole study" makes or fills a study
   plan that keeps the guided plan, its analyses (with the roles the
   guided plan gives them) and the last whole-study result, and reopens
   the guided screens from the plan's page. A plan's significance level
@@ -294,8 +333,11 @@ each area, is at the end of
 - **Experimental: whole-study planning.** The guided plan simulates
   several analyses of one study together, so the chance all succeed is
   counted rather than assumed: measured predictors or two groups
-  (randomised or not), people measured once or twice, mediation and
+  (randomised or not), people measured once or twice, up to three
+  covariates that every analysis adjusts for, mediation and
   moderated mediation (power4mome), factorial experiments (Superpower),
+  including the same people in three or more conditions, and the
+  moderator's own effect beside its interaction,
   and a pair-level moderator in dyadic studies. Joint power for several
   outcomes of one randomised trial uses PUMP. Its result gives a
   planning document (PDF, Word or Markdown) with every analysis and its
@@ -421,7 +463,7 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 27 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 26 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
   of item 25 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
@@ -492,7 +534,11 @@ The app is online at
 most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
 second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
-installs from ([`hosting-options.md`](hosting-options.md)). "Copy page
+installs from ([`hosting-options.md`](hosting-options.md)). It runs on
+Connect Cloud's Basic plan (100 credits a month, enforced: the account
+is paused at the limit until the reset on the 18th;
+[`hosting-options.md`](hosting-options.md), "The plan's limit"). A
+publish by hand costs credits and is the maintainer's to run. "Copy page
 link" gives the open tab, the Labs tool or the open card (`?card=E8`,
 which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main
@@ -523,9 +569,11 @@ in [`next.md`](next.md).
 - **Claude Code sessions:** `.claude/settings.json` caps the context
   window before compaction at 400,000 tokens (`autoCompactWindow`), for
   every Claude Code session on this repository.
-- **CI:** R CMD check and the engine's tests in three parts when the
+- **CI:** R CMD check and the engine's tests in five parts when the
   engine, `renv.lock` or the CI setup changed; the app's suite in two
-  parts and the browser checks on every pull request; the Windows and
+  parts and the browser checks on every pull request; each part runs
+  four test files at a time, dealt by recorded times
+  (`.github/ci/run-test-part.R`); the Windows and
   macOS install test when the launcher or lockfile changes, and weekly;
   all in a prebuilt image with R and the locked packages.
 - **Cloud sessions:** `scripts/setup-cloud-session.sh`, as the

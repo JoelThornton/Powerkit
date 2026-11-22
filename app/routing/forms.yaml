@@ -387,6 +387,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "38": "Group treatment trial with a score: Powerkit tests the difference with Welch-Satterthwaite degrees of freedom, the usual ones for comparing the people taking part individually with the groups' means, and what a mixed model's Satterthwaite test gives. powertools' irgtt.cont() uses the same variance but computes the degrees of freedom another way and gets about half as many, so it gives less power when there are few groups: 51% rather than 55% with 10 groups of 8 and 80 people taking part individually (ICC 0.1, d = 0.4), and up to about 12 percentage points less with 4 to 6 groups. With 30 or more groups the two differ by about a point."
   "37": "Bayes factor t-tests with an informed prior (a centre other than 0, or degrees of freedom other than 1): Powerkit works out the chance of evidence exactly from bfpwr's own Bayes factor, because bfpwr's power function, powertbf01(), gives wrong answers for informed priors in small samples. With a prior centred on 0.3 (scale 0.15), an expected effect of 0.4 (SD 0.1) and a threshold of 10, 10 people give a 5.4% chance of strong evidence (5.5% in simulated studies), where powertbf01() gives 0; from about 30 people the two agree within a point or two."
   "35": "A measured score in a Cox regression: Powerkit counts both tails of the two-sided test, so with no effect the power is alpha (5%). powerSurvEpi's formula counts only the tail in the effect's direction, which gives alpha / 2 with no effect and too little with small effects (4.5% against 5.8% for a hazard ratio of 1.05 with 100 people); for effects worth planning for the difference is well under 0.001."
   "36": "The z test of one proportion (R's prop.test()): Powerkit sums the chance of every possible count where prop.test() would be significant, so the power is the test's own, with no approximation. pwrss and the textbook formula use a normal approximation, which can be off by a few percentage points either way: for 20% against 10% at 80% power, 78 people rather than pwrss's 86 without the continuity correction, and 89 rather than 96 with it."
@@ -411,7 +412,7 @@ departures:
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power. Both round the groups to whole people at each total, but powerkit's total always reaches the target, so it can be one higher (for 95% power with group 2 twice the size of group 1, 371 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. Powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): separate power calculations do not establish the chance that several tests all succeed. Here one population model generates each study and the supported analyses use the same data, so their joint success is counted directly. Comparisons with separate calculations cover the recorded cases only; omitted model terms can change what an individual analysis estimates. This is not validation of every study plan."
-  "14": "Smallest detectable effect when only one condition is in groups: Powerkit finds the d at which powertools' power formula (irgtt.cont(), a t test) reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 77% power rather than 80%; Powerkit gives 0.352."
+  "14": "Smallest detectable effect when only one condition is in groups: Powerkit finds the d at which the t test's power reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 79% power rather than 80%; Powerkit gives 0.346."
   "18": "Meta-analysis: under the random-effects model Powerkit plans for the Hartung-Knapp test unless you choose otherwise, because it keeps the chance of a false positive closer to alpha than the z test, especially with few studies (IntHout, Ioannidis & Borm, 2014); metapower plans for the z test. No package has a formula for its power, so it is simulated (metafor's rma(test = \"knha\"), with Spower). It gives less power: for d = 0.15 in ten studies of 40 with I-squared 0.5, about 16.5% against 21.4% with the z test."
   "17": "Pairwise comparisons: Powerkit adjusts the p-values for the number of comparisons by Holm's method unless you choose otherwise; Superpower's ANOVA_power() adjusts none by default. Adjusting costs power: for None against Praise in powerkit's example (means 10, 11 and 13, SD 6, 30 per group), 31.2% with Holm's adjustment, 30.1% with Bonferroni's and 47.8% with none."
   "16": "Mixed model: the condition is tested with Satterthwaite's t test (lmerTest), or Kenward and Roger's (pbkrtest) if you choose it, not simr's default z test, which treats the t statistic as normal and so rejects too often in designs with few participants or items. In powerkit's example (40 items), the z test gives 42.0% power at 40 participants where Satterthwaite's gives 39.6% (27.7% and 25.0% at 20 participants)."
@@ -449,7 +450,7 @@ known_differences:
   "14": "Mediation: Powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
   "15": "ANCOVA: Powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
   "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much. To plan without the factor, choose the simulation under \u201cHow power is worked out\u201d."
-  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 76% power in simulation rather than 80%, and about 940 were needed. Consider adding about 10% to this sample size."
+  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 78% power in simulation rather than 80%, and about 900 were needed. Consider adding about 5% to this sample size."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). Powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
@@ -471,7 +472,7 @@ known_differences_methods:
   "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
   "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; G*Power treats it as fixed, which gives slightly more power and a slightly smaller sample size."
   "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
-  "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
+  "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 78% where the formula gave 80%, needing about 5% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 # How a replication plan takes each card's original effect (queue item 21;
@@ -1381,10 +1382,10 @@ forms:
           - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
           - {id: r_X_Z, label: "Correlation of X with Z", type: number, path: population.r_X_Z, effect: true, min: -1, max: 1}
           - {id: r_W_Z, label: "Correlation of W with Z", type: number, path: population.r_W_Z, effect: true, min: -1, max: 1}
-      - input: "The three-way effect (standardised coefficient of XWZ)"
+      - input: "The three-way effect (coefficient of the product of the standardised X, W and Z)"
         fields:
-          - {id: b_XWZ, optional_for: [sensitivity], label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
-             help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
+          - {id: b_XWZ, optional_for: [sensitivity], label: "Coefficient of the product XWZ of standardised X, W and Z", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
+             help: "How much the XW interaction changes per SD of Z, in SD units of Y: the coefficient of x*w*z after Y, X, W and Z are each standardised, which is what a regression on standardised scores reports (InteractionPoweR's b.x1x2x3). The product itself is not standardised again, so with correlated X, W and Z this is a little smaller than the product's fully standardised coefficient. Small three-way effects (around 0.05 to 0.1) need large samples."}
       - input: "Optional: reliability of X, W, Z and Y"
         fields:
           - {id: rel_X, label: "Reliability of X", help: "Empty means perfectly reliable.", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
@@ -2386,7 +2387,7 @@ forms:
         fields:
           - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
           - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true}
-          - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true}
+          - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true, help: "The coefficient of the product x*w in the regression of M on X, W and x*w, after X, W and M are each standardised (power4mome's meaning). The product itself is not standardised again, so when X and W correlate this is a little smaller than the product's fully standardised coefficient."}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: c_X_W, label: "Correlation of X with W", help: "Optional: empty means 0, for example when X is randomised. It must be 0 if X or W is yes/no.", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
@@ -2409,7 +2410,7 @@ forms:
           - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
-          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true}
+          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient."}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: c_X_W, label: "Correlation of X with W", help: "Empty means 0.", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
@@ -2459,12 +2460,12 @@ forms:
              shown_if: [{any: [{field: x_type, is_not: binary}, {field: x_effects, is_not: d}]}]}
           - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true,
              shown_if: {field: modmed_stage, is: process_7}}
-          - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true,
+          - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true, help: "The coefficient of the product x*w in the regression of M on X, W and x*w, after X, W and M are each standardised (power4mome's meaning). The product itself is not standardised again, so when X and W correlate this is a little smaller than the product's fully standardised coefficient.",
              shown_if: {field: modmed_stage, is: process_7}}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true,
              shown_if: {field: modmed_stage, is: process_14}}
-          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true,
+          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient.",
              shown_if: {field: modmed_stage, is: process_14}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
              shown_if: [{any: [{field: x_type, is_not: binary}, {field: x_effects, is_not: d}]}],
@@ -2494,10 +2495,10 @@ forms:
         fields:
           - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
           - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true}
-          - {id: p_XW_M, label: "Path XW -> M (W changing the X -> M link)", type: number, path: "population.paths.XW->M", effect: true}
+          - {id: p_XW_M, label: "Path XW -> M (W changing the X -> M link)", type: number, path: "population.paths.XW->M", effect: true, help: "The coefficient of the product x*w in the regression of M on X, W and x*w, after X, W and M are each standardised (power4mome's meaning). The product itself is not standardised again, so when X and W correlate this is a little smaller than the product's fully standardised coefficient."}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
-          - {id: p_MW_Y, label: "Path MW -> Y (W changing the M -> Y link)", type: number, path: "population.paths.MW->Y", effect: true,
+          - {id: p_MW_Y, label: "Path MW -> Y (W changing the M -> Y link)", type: number, path: "population.paths.MW->Y", effect: true, help: "The coefficient of the product m*w in the regression of Y, after M, W and Y are each standardised (power4mome's meaning). The product itself is not standardised again, so when M and W correlate this is a little smaller than the product's fully standardised coefficient.",
              shown_if: {field: modmed_model, is_one_of: [process_58, process_59]}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: p_XW_Y, label: "Path XW -> Y (W changing the direct path)", type: number, path: "population.paths.XW->Y", effect: true,
@@ -4476,7 +4477,7 @@ forms:
     # outcome.
     methods_name: "a clustered design (the test of the difference between conditions, allowing for the grouping)"
     tool: powertools
-    departures: ["14"]
+    departures: ["14", "38"]
     known_differences: ["16"]
     known_differences_if_metric: {"16": proportion}
     known_differences_if_template: {"16": [cluster_randomised, multisite]}
@@ -4613,9 +4614,9 @@ forms:
              shown_if: {field: question, is: model_fit},
              choices: {cfa: "A confirmatory factor analysis (CFA): items, each measuring one factor",
                        df: "Another model: I know its degrees of freedom"}}
-          - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, integer: true,
+          - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, max: 100, integer: true,
              shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
-             help: "For example, 12 questionnaire items."}
+             help: "For example, 12 questionnaire items. Up to 100 here, since counting a larger model's degrees of freedom takes semPower minutes; for more, choose \u201cAnother model\u201d and enter the degrees of freedom lavaan reports."}
           - {id: factors, writeup_label: "factors", label: "Number of factors", type: number, path: population.factors, required: true, min: 1, integer: true,
              shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
              help: "The factors are allowed to correlate, and each item measures one factor. Powerkit counts the model's degrees of freedom from these."}
@@ -4667,7 +4668,7 @@ forms:
              shown_if: {field: question, is: invariance}}
           - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: invariance},
-             help: "A typical value for your items, for example 0.7. Every item has this loading in every group and on every occasion, apart from the items that differ in the last one."}
+             help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people. Every item has this loading in every group and on every occasion, apart from the items that differ in the last one."}
           - {id: noninvariant, writeup_label: "items that differ", label: "Number of items that differ in the last group", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
              shown_if: {field: question, is: invariance},
              help: "How many of the first factor's items differ in the last group (or on the last occasion). At least one item must be the same everywhere. The other groups or occasions, and the other factors, are invariant."}
@@ -4692,7 +4693,7 @@ forms:
           - {id: fc_items2, writeup_label: "items on factor 2", label: "Items measuring factor 2", type: number, path: population.indicators.2, required: true, min: 2, integer: true,
              shown_if: {field: question, is: factor_correlation}}
           - {id: fc_loading1, writeup_label: "loading on factor 1", label: "Standardised loading of factor 1's items", type: number, path: population.loadings.1, required: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: {field: question, is: factor_correlation}, help: "A typical value, for example 0.6."}
+             shown_if: {field: question, is: factor_correlation}, help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people."}
           - {id: fc_loading2, writeup_label: "loading on factor 2", label: "Standardised loading of factor 2's items", type: number, path: population.loadings.2, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: factor_correlation}}
           - {id: fc_r, writeup_label: "correlation", label: "Correlation between the factors", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
@@ -4713,7 +4714,7 @@ forms:
           - {id: lr_indicators, writeup_label: "items per factor", label: "Items measuring each factor", type: number, path: population.indicators, required: true, min: 2, integer: true,
              shown_if: {field: question, is: latent_regression}, help: "The same for the outcome and every predictor."}
           - {id: lr_loading, writeup_label: "loading", label: "Standardised loading of every item", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: {field: question, is: latent_regression}, help: "A typical value, for example 0.6."}
+             shown_if: {field: question, is: latent_regression}, help: "Take it from a published factor analysis of the same or similar items. A loading runs from 0 to 1; its square is the share of an item's variance its factor explains. Lower loadings need more people."}
 
   # Planned contrast (pwrss's t test of one weighted combination of the
   # group means, k.covariates = 0): equal groups, two-sided only, because

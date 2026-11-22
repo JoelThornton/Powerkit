@@ -19,7 +19,7 @@ test_that("in the other two routes, every path leaves the screening at an end po
     expect_true(all(is_endpoint_id(ends) | ends == after), label = route)
     expect_true(after %in% ends, label = route)
     # The screening alone: no path reaches a question beyond it.
-    for (p in paths) expect_true(all(p %in% c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", "c2", "d1", after) | is_endpoint_id(p)), label = paste(p, collapse = " > "))
+    for (p in paths) expect_true(all(p %in% c("s1", "o5a", "s2", "s2_trials", "s2_trials_cat", "s3", "t1", "t2", "s4", "c_cat", "c1", "c2", "d1", after) | is_endpoint_id(p)), label = paste(p, collapse = " > "))
   }
 })
 
@@ -177,7 +177,7 @@ test_that("the guided route offers the comparison for every study, and moderatio
   ids <- function(answers) vapply(applicable_analyses(tree, answers), function(a) a$id, character(1))
   base <- list(x = "cond2", outcome = "score", mediators = "none", moderator = "none", covariate = "none")
   expect_identical(ids(base), "compare")
-  expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "mediation", "check", "modmed"))
+  expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "w_main", "mediation", "check", "modmed"))
 })
 
 test_that("cards never show test file names to users", {

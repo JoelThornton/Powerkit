@@ -6461,7 +6461,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.81.2",
+        "Version": "0.81.25",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6480,19 +6480,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "f4d60adb0c54a398bcc696db0cdc41f7728dc672",
-        "RemoteSha": "f4d60adb0c54a398bcc696db0cdc41f7728dc672",
+        "RemoteRef": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
+        "RemoteSha": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "f4d60adb0c54a398bcc696db0cdc41f7728dc672",
-        "GithubSHA1": "f4d60adb0c54a398bcc696db0cdc41f7728dc672",
+        "GithubRef": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
+        "GithubSHA1": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-21 17:36:37 UTC; runner",
+        "Packaged": "2026-11-22 12:46:37 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-21 17:37:20 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-22 12:47:35 UTC; unix"
       }
     },
     "powertools": {
@@ -8860,10 +8860,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "51a54db6550fbd4cb6f579a7c46b6282"
+      "checksum": "107cbb4d01c445a218d9213cd2530769"
     },
     "forms.yaml": {
-      "checksum": "53c95a35cc816c3f11ba455829fe2998"
+      "checksum": "e40d38857cb741a00bc4493957e46093"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8878,22 +8878,25 @@
       "checksum": "981038794256b7685c7e99d4a9ae9f1f"
     },
     "R/assumptions.R": {
-      "checksum": "1e55c5f8baa8abcaa6b57cfb8f88d82f"
+      "checksum": "4081659eb5f6f5122273ad2d987c1b72"
     },
     "R/bayes-mode.R": {
       "checksum": "61ceec04bc71a01248f8cd559b2136f8"
     },
     "R/capabilities.R": {
-      "checksum": "3c7e6345d184482cc963931b47924ef4"
+      "checksum": "1b9762eaf9cfc4019aa5a812c5f8f632"
     },
     "R/choice-buttons.R": {
-      "checksum": "dbc638a5324e5c4c591a5336d3f1a87f"
+      "checksum": "4eb5ab03952fe63d9f29e1b1f9cb2bc5"
     },
     "R/connection.R": {
-      "checksum": "4202198638547db78e2c62fba62abe56"
+      "checksum": "645892d22179aa446ef54f9a74091e92"
     },
     "R/count-test-notes.R": {
       "checksum": "a556b41b7dc4d4ebd8e62f069beb61a8"
+    },
+    "R/decision-rule.R": {
+      "checksum": "000e4a4325417db93e5d4fe9a5fcbf7c"
     },
     "R/documents.R": {
       "checksum": "5a8411f75b9ac287a9e664d3195e5460"
@@ -8905,52 +8908,52 @@
       "checksum": "f9cd950b4f27f5f426169a7f72e221ae"
     },
     "R/forms_ui.R": {
-      "checksum": "54bea0f9a80ff793f437ac5fe5b3702a"
+      "checksum": "dc2ac7bc231535da8425d3f87131afac"
     },
     "R/forms.R": {
-      "checksum": "d108f072ac80ca7725ebfda5533ecc86"
+      "checksum": "afa6c41197595e847b0a57c729d08040"
     },
     "R/input-support.R": {
       "checksum": "e6b1580ff9ee634f06684662951c11a4"
     },
     "R/keep-result.R": {
-      "checksum": "4c34951d70883929f0c2d20275ad2b29"
+      "checksum": "01d979474ed1b10eb465050021502219"
     },
     "R/labs.R": {
       "checksum": "c20884a6793404d6978feec9ed2a3dd2"
     },
     "R/map.R": {
-      "checksum": "1aadfe6aae6f153c423889f953298cab"
+      "checksum": "05c61b63efb66961f54bb9cf1f8437cb"
     },
     "R/plan-bundle.R": {
-      "checksum": "11f21aa65950c3893673e9f496c7243e"
+      "checksum": "019b5c534240bd5ef9bb6a2e97b0e597"
     },
     "R/planning-safeguards.R": {
       "checksum": "f9f3d3bc788fa5eedb2c9e8de761f766"
     },
     "R/planning.R": {
-      "checksum": "d18deb65a7cbd4f31e991841e205f5c2"
+      "checksum": "b50b011889fe427fcd4d174be05aea2f"
     },
     "R/project.R": {
       "checksum": "aac3b43d65bc8e471f715be9ecbe45c1"
     },
     "R/replication.R": {
-      "checksum": "a68cf8f95167d6ca671c2b7b6907179c"
+      "checksum": "a5dc189586e83526358c7d72d6713a96"
     },
     "R/results-prediction.R": {
-      "checksum": "c064fdbed137d483c979b75845b350c4"
+      "checksum": "24b0c333d82310a40b03a2441b5e150d"
     },
     "R/results.R": {
-      "checksum": "b76016b1ca99750b0704f2d3fbb3890e"
+      "checksum": "f743ce3d96fd524611d3d512c7295475"
     },
     "R/route-fit.R": {
-      "checksum": "7677d2778d5a1e875368c3820b5bcf4f"
+      "checksum": "06592de04680b3130b5bd5712e5df968"
     },
     "R/sample.R": {
       "checksum": "44f913b6f7bd36461fbfc3aee08b13af"
     },
     "R/scenarios.R": {
-      "checksum": "80d66ff8889865cec2716a879c847f23"
+      "checksum": "9a6a913ebcf5d209c93c6563a323a3b6"
     },
     "R/selected-evidence.R": {
       "checksum": "117665dcb343c916aba8dc7f9be6e077"
@@ -8965,7 +8968,7 @@
       "checksum": "3249eb8392cc6f55a081567b29ff3e71"
     },
     "R/study-plan.R": {
-      "checksum": "8b88739b944d34389800922ed1a9c113"
+      "checksum": "0ad1ca3e9feebe5e7147f54d2cc3fe8a"
     },
     "R/study-plans.R": {
       "checksum": "fafcea5bffdaa96bb9d2a71dca2a819f"
@@ -8980,16 +8983,16 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "c97f30f64e5e6b9daa4cf37dcc052cb5"
+      "checksum": "153687008c80cb15563e8a120b931534"
     },
     "R/whole-study.R": {
-      "checksum": "73b95543edf6dafb817a952957fd9769"
+      "checksum": "3d91f4825091b59128d5a117181025f0"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "d2dc2e168baf58590268901686d425c9"
+      "checksum": "bd645ba2ae61f89f2c56d10b1192aa0d"
     },
     "whats-new-archive.yaml": {
       "checksum": "1c8fea0340f52b3fb556cebc16955878"
@@ -8998,7 +9001,7 @@
       "checksum": "3deb002bbaa98f06844fb88d56047327"
     },
     "whats-new.yaml": {
-      "checksum": "d171475a663e8f546a1d230a5fac7682"
+      "checksum": "660cd402029388f02b72a0f307ed247d"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

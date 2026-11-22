@@ -114,7 +114,7 @@ simulated_scale_search <- function(guess, power, seed, level, simulate_at_x, lim
     estimate <- scale_from_curve(near(), power, level)
   }
   if (is.na(estimate$scale) || is.na(estimate$lower) || is.na(estimate$upper)) {
-    abort_run("The search for the smallest detectable effect could not pin it down: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed.")
+    abort_run(unsettled_search_message(NULL, points$rejections / points$nrep, power, "effect"))
   }
   list(points = points, estimate = estimate, fitted = fitted)
 }

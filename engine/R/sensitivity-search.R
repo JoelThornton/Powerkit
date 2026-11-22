@@ -257,7 +257,7 @@ formula_search_plan <- function(spec) {
         script = "b_x1x2x3 <<- direction * x",
         effect = function(x) direction * x, effect_script = "direction * found",
         effect_name = "b_XWZ",
-        what = "standardised coefficient of the three-way product XWZ, with the correlations and reliabilities kept"
+        what = "coefficient of the three-way product XWZ of standardised X, W and Z, with the correlations and reliabilities kept"
       )
     },
     growth_curve = {

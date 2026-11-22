@@ -42,6 +42,21 @@ test_that("every Updates entry has a date, a title and plain-words text", {
   }
 })
 
+# The style rule for new entries (docs/adding-a-test.md, "Change notes
+# and version numbers"), checked on the entries still waiting for a
+# version so that the published history is left as it was.
+test_that("entries waiting for a version follow the Updates style rule", {
+  internal <- "`|\\b(engine|backend|specs?|endpoints?|templates?|yaml)\\b|\\.R\\b|\\b[a-z]+_[a-z_]+\\b"
+  for (f in waiting_paths) {
+    for (e in yaml::read_yaml(f, fileEncoding = "UTF-8")$entries) {
+      label <- paste(basename(f), e$title)
+      expect_lte(nchar(e$title), 70, label = label)
+      expect_lte(length(strsplit(trimws(e$text), "\\s+")[[1]]), 100, label = label)
+      expect_no_match(paste(e$title, e$text), internal, perl = TRUE, ignore.case = TRUE, label = label)
+    }
+  }
+})
+
 test_that("the Updates tab still shows the archived entries", {
   dir <- withr::local_tempdir()
   file.copy(whats_new_path, dir)

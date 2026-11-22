@@ -2,16 +2,6 @@
 # Bayesian ANOVA, the effect's inclusion Bayes factor from BayesFactor's
 # anovaBF(), simulated with Spower.
 
-bfthree_spec <- function(within = c("B", "C"), n = 40, nrep = 100, ...) {
-  spec <- read_spec(system.file("specs", "anova_factorial_three.json", package = "powerkit"))
-  for (v in c("A", "B", "C")) spec$variables[[v]]$type <- if (v %in% within) "within_factor" else "between_factor"
-  if (!length(within)) spec$population$r <- NULL
-  spec$target_test <- utils::modifyList(list(effect = "interaction_ABC", method = "bayes_factor", evidence_threshold = 3), list(...))
-  spec$goal <- list(type = "power", n = n)
-  spec$options <- list(nrep = nrep, seed = 20261115)
-  spec
-}
-
 test_that("the inputs read the cell means as an array, which factors are within and JASP's default prior", {
   inputs <- bfthree_inputs(validate_quietly(bfthree_spec()))
   expect_identical(unname(dim(inputs$means)), c(2L, 2L, 2L))
@@ -109,11 +99,4 @@ test_that("problems are named in plain words", {
   spec <- bfthree_spec()
   spec$options$method <- "exact"
   expect_spec_problem(spec, "is simulated; remove 'options > method'")
-})
-
-test_that("the R script reproduces the run", {
-  skip_unless_scripts_can_run()
-  spec <- bfthree_spec(within = character(), effect = "main_effect_C", n = 40)
-  run <- expect_script_reproduces_power(spec, run_quietly(spec))
-  expect_true(any(grepl("anovaBF(", run$script, fixed = TRUE)))
 })

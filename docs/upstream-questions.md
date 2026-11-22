@@ -122,6 +122,16 @@ Questions about powertools 1.0.0, from its source (opened 28 October
    return only power and the inputs. Could they be returned, as pwrss
    does? Researchers checking a result against another tool ask for them,
    and powerkit shows them only where a package reports them.
+5. **The degrees of freedom in `irgtt.cont()`.** Its df are (Ue² (J + 1)
+   / (J − 1) + Uc² (n + 1) / (n − 1)) / (Ue² (J + 1) / (J − 1)² + Uc²
+   (n + 1) / (n − 1)²), a weighted average of J − 1 and n − 1. The
+   Welch-Satterthwaite df for the same two variances, (Uc + Ue)² /
+   (Uc² / (n − 1) + Ue² / (J − 1)), are about twice as many (21.8
+   against 11.2 at 10 groups of 8 and 80 individuals, ICC 0.1), and
+   trials simulated and analysed by Welch's test agree with them (power
+   .546 against irgtt.cont()'s .512 and Satterthwaite's .548). What is
+   the source of the formula? Until this is answered, powerkit uses
+   Satterthwaite's df (`docs/conventions.md`, Departure 38).
 
 ## bfpwr
 

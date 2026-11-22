@@ -46,12 +46,7 @@
 %                            citation("pwrss") 1.3.3 gives only the manual)
 %   stats_method             the method source for stats::power.prop.test()
 %                            (placeholder: citation("stats") gives R itself)
-%   TOSTER_method            TOSTER's method paper (placeholder:
-%                            citation("TOSTER") 0.8.6 lists Lakens (2017) and
-%                            Caldwell (2022), but its author fields split
-%                            each name into separate authors, so they can't
-%                            be copied as they are; for the maintainer to
-%                            add a checked entry)
+%   TOSTER_method            TOSTER's method paper, Lakens (2017) (below)
 %   semPower_method          semPower's method paper (below)
 %   bfpwr_method             bfpwr's method paper (below)
 %   presize_method           presize's paper (below)
@@ -964,4 +959,16 @@
   pages = {199--223},
   doi = {10.1037/1082-989X.1.2.199},
   note = {Verified 2026-11-19 at https://api.crossref.org/works/10.1037/1082-989X.1.2.199},
+}
+
+@Article{TOSTER_method,
+  author = {Dani{\"e}l Lakens},
+  title = {Equivalence Tests: A Practical Primer for t Tests, Correlations, and Meta-Analyses},
+  journal = {Social Psychological and Personality Science},
+  year = {2017},
+  volume = {8},
+  number = {4},
+  pages = {355--362},
+  doi = {10.1177/1948550617697177},
+  note = {Verified 2026-11-21 against the published article's first page: title, author, journal, year, volume, issue, pages and DOI. One of the two method papers citation("TOSTER") 0.8.6 lists. Cited for the two one-sided tests and for the outcome a replication's agreement interval gives when it crosses a bound, which the article calls undetermined (neither statistically equivalent nor statistically different; p. 356, Figure 1)},
 }

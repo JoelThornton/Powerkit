@@ -13,7 +13,9 @@ route_card_outcomes <- list(
   E35 = list(takes = "score", words = "a score measured over time in two groups"),
   E45 = list(takes = "score", words = "a score measured over time, with normally distributed errors"),
   E74 = list(takes = "score", words = "two scores measured over time"),
-  E34 = list(takes = c("score", "yesno", "count"), words = "a score or a yes/no outcome")
+  E34 = list(takes = c("score", "yesno"), words = "a score or a yes/no outcome"),
+  E62 = list(takes = c("score", "yesno"), words = "a score or a yes/no outcome"),
+  E68 = list(takes = c("score", "yesno"), words = "a score or a yes/no outcome")
 )
 
 # The designs the equivalence card (E36) covers, from what the finder was told.
@@ -35,9 +37,12 @@ equivalence_gap_words <- function(ctx) {
 # The messages for a card reached with these answers (`ctx`), or none.
 route_fit_messages <- function(tree, ep_id, ctx = list()) {
   ep <- tree$endpoints[[ep_id %||% ""]]
-  if (is.null(ep) || identical(ep_id, tree$safety_net$endpoint)) return(character())
+  if (is.null(ep)) return(character())
+  # A part of the study no card plans (tree.yaml, finder_gaps), on any
+  # card the finder ends on, the safety net included.
+  out <- unname(unlist(tree$finder_gaps[ctx$gap %||% character()]))
+  if (identical(ep_id, tree$safety_net$endpoint)) return(out)
   covered <- !identical(ep$status, "not_in_powerkit")
-  out <- character()
   if (identical(ctx$goal, "equivalence")) {
     if (identical(ep_id, "E36")) {
       if (!equivalence_covers(ctx)) {
@@ -66,7 +71,40 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
       "You said the same people are in three or more conditions. This card compares two (McNemar's test). For three or more,",
       "use the card for the same people measured more than once with a yes/no outcome, which plans Cochran's Q."))
   }
-  if (identical(ep_id, "E41") && identical(ctx$times, "twice")) {
+  if (identical(ep_id, "E2") && identical(ctx$outcomes, "separate")) {
+    out <- c(out, paste(
+      "You said each outcome score is a claim of its own. Plan each one on this card, and on its input screen answer",
+      "\u201cHow many tests does your conclusion rest on?\u201d: separate claims need no correction (Rubin, 2021), a related",
+      "group corrected together (Mayo, 2018) or a claim that any one result supports needs a stricter significance level,",
+      "and a claim that needs every result needs more power for each. For one joint test of all the scores instead, use",
+      "the card for groups compared on several outcomes at once."))
+  }
+  if (identical(ep_id, "E24") && identical(ctx$shape, "curve")) {
+    out <- c(out, paste(
+      "You expect a curved relationship, such as an inverted U. A correlation measures a straight line, so it can miss a",
+      "strong curve. On this card, plan the curve as the R-squared a squared term adds: choose \u201cWhether some predictors",
+      "add to the others\u201d, with two predictors in the full model (the score and its square) and one tested (the square)."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$hypothesis, "mediation")) {
+    out <- c(out, paste(
+      "You said the effect works through something else (mediation), with the same people measured more than once.",
+      "This card doesn't calculate an indirect effect: it plans the effect of something measured on each occasion (X),",
+      "of something measured once per person (W), and whether W changes X's effect. Within-person mediation needs two",
+      "more paths, from X to the mediator and from the mediator to the outcome allowing for X, and a timing in which the",
+      "mediator is measured after X and before the outcome. Powerkit doesn't plan it yet; its power is simulated in R",
+      "with a multilevel mediation model. You can still use this card for one of its own effects."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$trajectory, "one_group")) {
+    out <- c(out, paste(
+      "You described one group's change over time. This card plans it as the effect of something that changes from",
+      "occasion to occasion (X), here time, and tests \u201cX's effect within people\u201d: the average change. It takes X's",
+      "effect per SD of X, so multiply the average change per unit of time by the SD of the occasions (for weeks 1 to 8,",
+      "about 2.45), and do the same for how much people's own rates of change differ (the SD of X's effect). With the",
+      "same occasions for everyone, this gives the same model as a growth curve with a random slope. The card also asks",
+      "for something measured once per person (W): if there is none, give W's effect and the moderation as 0. The",
+      "answer is the power to detect the average change, not differences between people's changes."))
+  }
+  if (identical(ep_id, "E41") && identical(ctx$times, "twice") && !identical(ctx$hypothesis, "mediation")) {
     out <- c(out, paste(
       "If one measurement predicts the other later, allowing for the earlier score (for example, whether baseline anxiety predicts",
       "depression at follow-up, adjusting for baseline depression), that is a regression with the baseline as a covariate, which",
@@ -80,7 +118,7 @@ route_fit_ui <- function(tree, ep_id, ctx = list()) {
   if (!length(messages)) return(NULL)
   div(class = "status status-soon route-fit-note", role = "note",
     lapply(messages, function(m) p(class = "mb-1", m)),
-    if (identical(ep_id, "E41") && identical(ctx$times, "twice")) pick_button("Open multiple regression", "ep:E24", class = "btn btn-outline-primary btn-sm"))
+    if (identical(ep_id, "E41") && identical(ctx$times, "twice") && !identical(ctx$hypothesis, "mediation")) pick_button("Open multiple regression", "ep:E24", class = "btn btn-outline-primary btn-sm"))
 }
 
 # "Plan my whole study" (V-02, V-05): what the route can't do for this
@@ -110,4 +148,86 @@ safety_net_ways_ui <- function() {
     action_bar(
       pick_button("Search every analysis by name", "route:known", class = "btn btn-outline-primary"),
       actionButton("safety_open_map", "Open the methods map", class = "btn btn-outline-primary")))
+}
+
+# The finder's answers, carried into the input screen (finder audit, 21
+# November 2026): each card's fields that a screening answer settles, and
+# the value each answer gives. Only a field the card has and a value among
+# its choices is set; anything the user then changes stays theirs.
+finder_form_fills <- list(
+  outcome = list(
+    E33 = list(field = "outcome_type", values = c(score = "continuous", yesno = "binary")),
+    E63 = list(field = "outcome_type", values = c(score = "continuous", yesno = "binary")),
+    E67 = list(field = "outcome_type", values = c(score = "continuous", yesno = "binary")),
+    E41 = list(field = "two_outcome", values = c(score = "continuous", yesno = "binary")),
+    E62 = list(field = "two_outcome", values = c(score = "continuous", yesno = "binary")),
+    E68 = list(field = "three_outcome", values = c(score = "continuous", yesno = "binary")),
+    E34 = list(field = "outcome_type", values = c(score = "standardised", yesno = "proportion")),
+    E75 = list(field = "glmm_outcome", values = c(count = "count", yesno = "binary", ordinal = "categorical"))
+  ),
+  shape = list(
+    E24 = list(field = "question", values = c(curve = "r2_increase"))
+  ),
+  trajectory = list(
+    E41 = list(field = "two_level_effect", values = c(one_group = "within_effect"))
+  ),
+  assignment = list(
+    E33 = list(field = "crossed_participants", values = c(within = "within_factor", between = "between_factor")),
+    E63 = list(field = "crossed_participants", values = c(within = "within_factor", between = "between_factor")),
+    E75 = list(field = "glmm_people", values = c(within = "within_factor", between = "between_factor"))
+  )
+)
+
+#' Input values the finder's answers (`ctx`) settle for card `ep_id`: a
+#' named list of field values.
+finder_form_values <- function(forms, ep_id, ctx = list()) {
+  fields <- form_fields(form_groups(forms, ep_id))
+  by_id <- stats::setNames(fields, vapply(fields, function(f) f$id %||% "", character(1)))
+  out <- list()
+  for (key in names(finder_form_fills)) {
+    fill <- finder_form_fills[[key]][[ep_id]]
+    answer <- ctx[[key]]
+    if (is.null(fill) || is.null(answer) || !answer %in% names(fill$values)) next
+    value <- fill$values[[answer]]
+    field <- by_id[[fill$field]]
+    if (is.null(field) || !value %in% names(field$choices)) next
+    out[[fill$field]] <- value
+  }
+  out
+}
+
+#' The note at the top of an input screen opened from the finder: which
+#' fields were set from the answers (`filled`), as the screen labels them,
+#' and any that `values` (what the screen holds now) no longer matches. The
+#' screen redraws it as fields change (app.R, `output$finder_filled_note`),
+#' so a field changed after the finder set it says so beside the others
+#' (finder record, 21 November 2026): the calculation follows the screen,
+#' and a change can mean the screen no longer plans the study described.
+finder_filled_note_ui <- function(forms, ep_id, filled, values = filled) {
+  if (!length(filled)) return(NULL)
+  fields <- form_fields(form_groups(forms, ep_id))
+  field_for <- function(id) Filter(function(x) identical(x$id, id), fields)[[1]]
+  choice <- function(f, v) f$choices[[as.character(v)]] %||% as.character(v)
+  # A field the screen hasn't drawn yet still holds the finder's value.
+  now <- function(id) if (is.null(values[[id]])) filled[[id]] else values[[id]]
+  changed <- names(filled)[!vapply(names(filled), function(id) identical(as.character(now(id)), as.character(filled[[id]])), logical(1))]
+  kept <- setdiff(names(filled), changed)
+  kept_items <- lapply(kept, function(id) {
+    f <- field_for(id)
+    tags$li(paste0(f$label, ": "), tags$strong(choice(f, filled[[id]])))
+  })
+  changed_items <- lapply(changed, function(id) {
+    f <- field_for(id)
+    tags$li(paste0(f$label, ": "), tags$strong(choice(f, now(id))),
+      " (your answers gave ", tags$strong(choice(f, filled[[id]]), .noWS = "outside"), ")")
+  })
+  div(class = paste("alert carried-note finder-filled-note", if (length(changed)) "alert-warning" else "alert-info"),
+    role = if (length(changed)) "status" else "note", `aria-live` = "polite",
+    if (length(kept)) tagList(
+      p(tags$strong("Set from your answers. "), "Check these match your study; change them below if they don't."),
+      tags$ul(kept_items)),
+    if (length(changed)) tagList(
+      p(tags$strong("Changed since the design finder set it. "),
+        "The calculation uses what the screen says, so check it describes your study. If it doesn't, change it back; if your answers in the finder were wrong, the finder may suggest a different analysis."),
+      tags$ul(class = "finder-changed", changed_items)))
 }

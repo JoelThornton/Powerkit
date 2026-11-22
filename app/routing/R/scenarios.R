@@ -30,7 +30,7 @@ assumption_record_lines <- function(values, fields) {
 }
 
 format_assumption_records <- function(records, values, fields) {
-  if (!length(records)) return("No individual assumption source/status records were entered. Values remain planning assumptions.")
+  if (!length(records)) return("No source was recorded for individual values, so they remain planning assumptions.")
   vapply(records, function(a) {
     f <- Filter(function(f) identical(f$id, a$field), fields)
     label <- if (length(f)) f[[1]]$label else a$field
@@ -44,7 +44,7 @@ format_assumption_records <- function(records, values, fields) {
 
 named_alternative_lines <- function(values, fields) {
   x <- read_scenario_library(values$scenario_library, fields)
-  if (!length(x$alternatives)) return("No named alternative assumptions were saved.")
+  if (!length(x$alternatives)) return("No alternative values were saved for comparison.")
   unlist(lapply(x$alternatives, function(a) {
     changed <- names(a$values)[vapply(names(a$values), function(id) !identical(a$values[[id]], as.character(values[[id]] %||% "")), logical(1))]
     changed <- intersect(changed, vapply(fields, `[[`, "", "id"))

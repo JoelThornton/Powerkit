@@ -132,8 +132,10 @@
 #' randomised to the two conditions within each group, by powertools'
 #' `multisite.cont()`; `goal > n` is a whole number of groups. Group
 #' treatment trials (template `group_treatment`): people are randomised one
-#' by one and the second condition is delivered in groups, by powertools'
-#' `irgtt.cont()` or, for a yes/no outcome, `irgtt.bin()`; `goal > n` is
+#' by one and the second condition is delivered in groups: for a score,
+#' the variance of powertools' `irgtt.cont()` with the t test's
+#' Welch-Satterthwaite degrees of freedom; for a yes/no outcome,
+#' `irgtt.bin()`; `goal > n` is
 #' split equally between the conditions.
 #' Structural equation models (design `sem`, template `model_fit`): the
 #' power of the chi-square test of exact fit to reject a model whose misfit

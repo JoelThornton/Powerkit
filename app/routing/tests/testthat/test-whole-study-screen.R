@@ -360,10 +360,50 @@ test_that("measured twice, a baseline covariate is the first measurement, so the
   expect_true(plan_base$ok)
   expect_identical(plan_base$analyses, plan_none$analyses)
   expect_identical(plan_base$roles, plan_none$roles)
-  # Other covariates still aren't simulated, and the reason says so.
+  # Other covariates are added beside the baseline (C1, then C2 and C3).
   other <- whole_study_plan(tree, modifyList(none, list(covariate = "other")), "moderation", "moderation", list())
-  expect_false(other$ok)
-  expect_true(any(grepl("other than the first measurement", other$reasons, fixed = TRUE)))
+  expect_true(other$ok)
+  expect_identical(other$roles, c("X", "W", "B", "C1", "Y"))
+  # A covariate that isn't a score measured on each person isn't simulated.
+  unsure <- whole_study_plan(tree, modifyList(none, list(covariate = "notsure")), "moderation", "moderation", list())
+  expect_false(unsure$ok)
+  expect_true(any(grepl("covariates are scores", unsure$reasons, fixed = TRUE)))
+})
+
+test_that("covariates: every analysis adjusts for them, the screen asks how many and for their paths, and the write-up says so", {
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  answers <- modifyList(ws_answers, list(covariate = "other"))
+  # The effect of X with covariates is the multiple regression (E24), or
+  # the ANCOVA (E23) for two groups; both are the regression adjusting for them.
+  plan <- whole_study_plan(tree, answers, c("compare", "mediation", "moderation"), c("compare", "mediation"), list(), n_covariates = "2")
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_y", "indirect", "interaction"))
+  expect_equal(plan$roles, c("X", "W", "M", "C1", "C2", "Y"))
+  expect_identical(plan$n_covariates, 2L)
+  groups <- whole_study_plan(tree, modifyList(answers, list(x = "cond2", moderator = "none")), "compare", "compare", list())
+  expect_true(groups$ok)
+  expect_equal(groups$roles, c("X", "C1", "Y"))
+  labels <- whole_study_labels(plan$roles, list())
+  expect_identical(labels[["C2"]], "Second covariate")
+  skeleton <- whole_study_skeleton(plan, labels)
+  params <- params_of(skeleton)
+  expect_true(all(c("C1->M", "C2->M", "C1->Y", "C2->Y") %in% params$paths))
+  expect_true(all(c("X<->C1", "W<->C2", "C1<->C2") %in% params$correlations))
+  html <- as.character(whole_study_ui(forms, plan, params, labels, list(), 200L, "all"))
+  expect_match(html, "How many covariates every analysis adjusts for", fixed = TRUE)
+  expect_match(html, "ws_name_C2", fixed = TRUE)
+  expect_match(html, whole_study_input_id("C1<->C2"), fixed = TRUE)
+  expect_match(whole_study_path_label("X<->C1"), "Correlation of the predictor with the first covariate (X with C1; for groups", fixed = TRUE)
+  expect_match(whole_study_path_label("C1->M"), "from the first covariate (C1) to the mediator (M)", fixed = TRUE)
+  # The screen's choice of how many reaches the plan.
+  expect_identical(whole_study_values(list(ws_n_covariates = "3"), params)$n_covariates, "3")
+  # The methods paragraph says what every analysis adjusted for.
+  r <- list(analyses = data.frame(id = "compare", label = "The effect", power = 0.8, role = "main"),
+    implied = list(compare = list(values = c(r = 0.2, r_C1_Y = 0.3, r_C2_Y = 0.1))),
+    provenance = list(backend = "power4mome", packages = list(powerkit = "0.80.0", power4mome = "0.2.1"), nrep = 200, seed = 1),
+    n = 200, alpha = 0.05, claim = "each", models = list(population_values = ""))
+  expect_match(whole_study_methods(r), "adjusted each of its regressions (for the mediators and the outcome) for the two covariates (C1, C2)", fixed = TRUE)
 })
 
 test_that("a manipulation check beside a mediation is planned and simulated as M on X alone", {
@@ -445,4 +485,91 @@ test_that("a two-group predictor can be given as Cohen's d, which the engine tur
   expect_match(paste(whole_study_spec(skeleton, params, values, "each", nrep = 200)$problems, collapse = " "), "Path X")
   r <- list(group_d = list(Y = 0.4), found_paths = list(`X->Y` = 0.1987))
   expect_match(whole_study_group_d_text(r), "path from X to Y (0.199) gives a Cohen's d of 0.4", fixed = TRUE)
+})
+
+test_that("the same people in three or more conditions: the plan offers it and simulates it as a repeated-measures or two-way within ANOVA", {
+  g <- tree$guided
+  x_var <- Filter(function(v) identical(v$id, "x"), g$variables)[[1]]
+  w_var <- Filter(function(v) identical(v$id, "moderator"), g$variables)[[1]]
+  many <- list(times = "many_conditions")
+  expect_true(all(c("within3", "within2") %in% names(guided_options(x_var, many))))
+  expect_false("within3" %in% names(guided_options(x_var, list(times = "twice"))))
+  expect_true("within" %in% names(guided_options(w_var, many)))
+  expect_false("within" %in% names(guided_options(w_var, list(times = "once"))))
+  base <- list(x = "within3", outcome = "score", mediators = "none", moderator = "none", covariate = "none", times = "many_conditions")
+  compare <- analysis_by_id(tree, "compare")
+  moderation <- analysis_by_id(tree, "moderation")
+  expect_identical(resolve_analysis(tree, compare, base)$endpoint, "E54")
+  expect_identical(resolve_analysis(tree, compare, modifyList(base, list(moderator = "two")))$endpoint, "E55")
+  expect_identical(resolve_analysis(tree, moderation, modifyList(base, list(moderator = "two")))$endpoint, "E55")
+  both <- modifyList(base, list(x = "within2", moderator = "within"))
+  expect_identical(resolve_analysis(tree, compare, both)$endpoint, "E20")
+  expect_identical(resolve_analysis(tree, moderation, both)$endpoint, "E20")
+
+  # One factor in three or more conditions: a repeated-measures ANOVA.
+  plan <- whole_study_plan(tree, base, "compare", "compare", list())
+  expect_true(plan$experiment)
+  expect_identical(plan$template, "oneway_within")
+  expect_identical(plan$x_levels, 3L)
+  labels <- whole_study_labels(plan$roles, list())
+  values <- list(x_levels = "Easy, Medium, Hard", sd = "100", r = "0.6", n = "40", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "600", ws_mean_2_1 = "620", ws_mean_3_1 = "650"))
+  built <- whole_study_experiment_spec(plan, labels, values, "each", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$experiment$template, "oneway_within")
+  expect_identical(built$spec$experiment$variables$A$type, "within_factor")
+  expect_length(whole_study_check(built$spec), 0)
+
+  # Both factors within people: a two-way repeated-measures ANOVA, X as A.
+  plan <- whole_study_plan(tree, both, c("compare", "moderation"), c("compare", "moderation"), list())
+  expect_true(plan$ok)
+  expect_identical(plan$template, "factorial_within")
+  expect_identical(plan$x_factor, "A")
+  expect_true(plan$w_within)
+  html <- as.character(whole_study_experiment_ui(forms, plan, whole_study_labels(plan$roles, list()), 30L, "all"))
+  expect_match(html, "two-way repeated-measures ANOVA", fixed = TRUE)
+  expect_match(html, "Correlation between a person's scores in any two conditions", fixed = TRUE)
+  expect_match(html, "Everyone takes part in every condition.", fixed = TRUE)
+  values <- list(x_levels = "Valid, Invalid", w_levels = "Short, Medium, Long", sd = "80", r = "0.6", n = "30", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "400", ws_mean_1_2 = "410", ws_mean_1_3 = "420", ws_mean_2_1 = "430", ws_mean_2_2 = "450", ws_mean_2_3 = "470"))
+  built <- whole_study_experiment_spec(plan, whole_study_labels(plan$roles, list()), values, "all", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$experiment$template, "factorial_within")
+  expect_identical(built$spec$experiment$variables$B$type, "within_factor")
+  expect_length(whole_study_check(built$spec), 0)
+
+  # X in three or more conditions crossed with groups: a mixed ANOVA.
+  plan <- whole_study_plan(tree, modifyList(base, list(moderator = "three")), c("compare", "moderation"), "moderation", list())
+  expect_identical(plan$template, "mixed")
+  expect_identical(plan$x_factor, "B")
+})
+
+test_that("the moderator's own effect is a planned analysis: Y on W in a regression study, W's main effect in an experiment", {
+  w_main <- analysis_by_id(tree, "w_main")
+  expect_false(is.null(w_main))
+  expect_true("w_main" %in% vapply(applicable_analyses(tree, ws_answers), `[[`, "", "id"))
+  expect_false("w_main" %in% vapply(applicable_analyses(tree, modifyList(ws_answers, list(moderator = "none"))), `[[`, "", "id"))
+  expect_identical(resolve_analysis(tree, w_main, ws_answers)$endpoint, "E4")
+  expect_identical(resolve_analysis(tree, w_main, modifyList(ws_answers, list(x = "cond2", moderator = "two")))$endpoint, "E7")
+  expect_identical(resolve_analysis(tree, w_main, modifyList(ws_answers, list(x = "within3", moderator = "two", times = "many_conditions")))$endpoint, "E55")
+  # A regression study: Y on W alone, beside the interaction.
+  plan <- whole_study_plan(tree, ws_answers, c("moderation", "w_main"), c("moderation", "w_main"), list())
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("interaction", "w_y"))
+  expect_equal(plan$roles, c("X", "W", "Y"))
+  alone <- whole_study_plan(tree, ws_answers, "w_main", "w_main", list())
+  expect_true(alone$ok)
+  expect_equal(alone$roles, c("X", "W", "Y"))
+  twice <- whole_study_plan(tree, modifyList(ws_answers, list(x = "cond2", times = "twice")), "w_main", "w_main", list())
+  expect_true(twice$ok)
+  expect_identical(twice$analyses[[1]]$test, "w_y")
+  # An experiment: the main effect of the moderator's factor.
+  exp <- whole_study_plan(tree, modifyList(ws_answers, list(x = "cond2", moderator = "three", mediators = "none")),
+    c("compare", "w_main"), "w_main", list())
+  expect_true(exp$experiment)
+  expect_identical(vapply(exp$analyses, function(a) a$effect, ""), c("main_effect_A", "main_effect_B"))
+  mixed <- whole_study_plan(tree, list(x = "within3", outcome = "score", mediators = "none", moderator = "two", covariate = "none",
+    times = "many_conditions"), c("compare", "w_main"), "compare", list())
+  expect_identical(vapply(mixed$analyses, function(a) a$effect, ""), c("main_effect_B", "main_effect_A"))
+  expect_match(whole_study_experiment_label("w_main", c(X = "Task", W = "Group", Y = "Score")), "The main effect of Group", fixed = TRUE)
 })

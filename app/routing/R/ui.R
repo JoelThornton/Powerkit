@@ -152,7 +152,7 @@ progress_ui <- function(current) {
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
   "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
-  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project", "plans_view")
+  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "finder_filled", "checked_project", "plans_view")
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.
@@ -238,7 +238,7 @@ site_address <- "https://joelthornton.github.io/Powerkit"
 # The stored value keeps its earlier meaning: '1' means explanations off.
 terms_toggle_ui <- function() {
   tags$label(class = "terms-toggle form-switch", `for` = "explanations_on",
-    title = "Turn off to fold the help text under each question behind an info button",
+    title = "Turn off to fold the help text behind an info button on each box",
     tags$input(type = "checkbox", role = "switch", id = "explanations_on", class = "form-check-input",
       checked = NA, onchange = "pkSetTermsMode(!this.checked)"),
     "Show explanations")
@@ -272,12 +272,15 @@ terms_js <- "
     // explanations off it opens or closes every explanation in the box.
     var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
     var boxNotes = function(box) {
-      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more'))
+      return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more, details.explanation-help.field-more, details.explanation-help.group-more'))
         .filter(function(d) { return d.closest(boxSel) === box; });
     };
     document.querySelectorAll(boxSel).forEach(function(box) {
       var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
-      var hasNote = notes.some(function(n) { return n.classList.contains('rep-note'); });
+      // An input form's box takes the button when any field in it has an
+      // explanation; each still opens under its own field (22 November 2026).
+      var isNote = function(n) { return n.classList.contains('rep-note') || n.classList.contains('field-more') || n.classList.contains('group-more'); };
+      var hasNote = notes.some(isNote);
       if (!hasNote) { if (btn) btn.remove(); box.classList.remove('box-has-info'); return; }
       if (!btn) {
         btn = document.createElement('button');
@@ -285,13 +288,13 @@ terms_js <- "
         btn.setAttribute('aria-label', 'Explanations for this part'); btn.title = 'Show or hide the explanations here';
         btn.innerHTML = '<span aria-hidden=\"true\">i</span>';
         btn.addEventListener('click', function() {
-          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && n.classList.contains('rep-note'); });
+          var ns = boxNotes(box), open = !ns.some(function(n) { return n.open && isNote(n); });
           ns.forEach(function(n) { n.open = open; });
           window.pkSyncExplanations(false);
         });
         box.appendChild(btn); box.classList.add('box-has-info');
       }
-      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && n.classList.contains('rep-note'); }) ? 'true' : 'false');
+      btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && isNote(n); }) ? 'true' : 'false');
     });
   };
   window.pkSetTermsMode = function(on) {
@@ -1073,7 +1076,7 @@ card_how_words <- c(
   script = "A preview here, then an R script to run on your computer"
 )
 
-validation_scope_note <- "Checks apply to the cases described in this record, not automatically to every test version, population or decision rule. Package agreement, independent simulation and published examples are different kinds of evidence."
+validation_scope_note <- "Each check covers the cases its record describes; other test versions, populations or decision rules may not be covered. Agreement with a package, an independent simulation and a published example are different kinds of evidence."
 
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
@@ -1180,16 +1183,6 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
 # only the option the screening chose (plus the safety net).
 guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   g <- tree$guided
-  if (identical(ctx$times, "many_conditions")) {
-    return(tagList(
-      screen_nav_ui(),
-      trail_ui(history, tree),
-      h2("Plan a whole study: your variables"),
-      div(class = "status status-soon", g$many_conditions_note),
-      placeholders_at(tree, "guided_variables"),
-      action_bar(pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"))
-    ))
-  }
   tagList(
     screen_nav_ui(),
     trail_ui(history, tree),

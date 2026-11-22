@@ -46,6 +46,19 @@ and 80% together, about 89.4% each).
      (serial mediation, PROCESS model 6; moderated mediation, model 14)
      run at the paths to Y divided by sqrt(1 - p_BY^2)
      (test-validation-whole-study-twice.R).
+   - covariates (21 November 2026): up to three scores measured on each
+     person, C1 to C3, as exogenous variables with their correlations
+     with X, W, B and each other, and a path from each to every mediator
+     and to Y. Every analysis's model adds them to each of its equations
+     (the mediators' and the outcome's), as PROCESS does when covariates
+     are named: the effect of X becomes the multiple regression (E24) or,
+     for two groups, the ANCOVA (E23); the manipulation check, M on X,
+     adjusts for them too. With a two-group X that differs on them, each
+     covariate is regressed on X and the exogenous variables before it,
+     as W and B are. Checked against base-R simulations of the same
+     population analysed with `stats::lm()`, and the indirect effect
+     against the simple mediation card at the rescaled paths
+     (test-validation-whole-study-covariates.R).
 
    - X as two groups (31 October 2026), drawn by power4mome's
      `rbinary_rs()` and standardised. Randomised groups are uncorrelated
@@ -147,6 +160,22 @@ power, under the same claims ("each", "all", "any" with Bonferroni) as the
 path-model studies. The guided plan's "effect of X" is the ANOVA's main
 effect of X there, and the moderation the X x W interaction.
 
+The same people in three or more conditions (21 November 2026): the
+guided plan now asks about these studies instead of sending them to the
+design finder. X in three or more conditions is a repeated-measures
+ANOVA (`oneway_within`); crossed with groups of W, a mixed ANOVA
+(`mixed`); crossed with a W whose conditions everyone also takes, a
+two-way repeated-measures ANOVA (`factorial_within`, one correlation
+between any two of a person's scores). Each F test's power agrees with
+Superpower's exact power for it (`test-whole-study-experiment.R`).
+
+The moderator's own effect (21 November 2026): a planned analysis of its
+own, "the effect of the moderator on the outcome". With a measured W it
+is the regression of Y on W alone (`w_y`, adjusted for the baseline and
+covariates as Y on X is), the test the correlation card runs; its power
+agrees with pwr's at the implied correlation (`test-whole-study.R`). In
+an experiment it is W's main effect in the factorial ANOVA.
+
 ## What it is checked against
 
 `engine/tests/testthat/test-whole-study.R` (every CI run):
@@ -208,8 +237,10 @@ alone, and the joint power against a simulation written separately with
 4. **Precision.** Is 1,000 replications (Monte Carlo SE at most about
    1.6 points) enough for a joint power, or should the default be higher?
    And is 200 (about 7 points either way) a fair quick look in the app?
-5. **Scope.** Measured predictor, score outcome, no covariates. Which
-   extension matters most next: a two-group X, or covariates?
+5. **Scope.** Covariates enter every equation of every analysis, as
+   PROCESS adds them. Is that right for the mediators (a covariate measured
+   after X could be a consequence of it), or should a user be able to
+   adjust only the outcome's equation?
 6. **The sample size under "each".** At each simulated n the search takes
    the rejections of the main analysis with the lowest power there. Where
    two analyses have similar power, the lower of two noisy estimates is

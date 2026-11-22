@@ -18,10 +18,10 @@
       "type": "object"
     },
     "variables": {
-      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), M, or M1 and M2, for the mediators, and B, the outcome measured at baseline when each person is measured twice (every analysis then adjusts Y for B, as an ANCOVA does). All are scores (continuous), except that X may be two groups or conditions (binary).",
+      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), M, or M1 and M2, for the mediators, B, the outcome measured at baseline when each person is measured twice (every analysis then adjusts Y for B, as an ANCOVA does), and C1, C2, C3, covariates measured on each person (each predicts every mediator and Y, and every analysis adjusts every equation for them, as PROCESS does with covariates). All are scores (continuous), except that X may be two groups or conditions (binary).",
       "type": "object",
       "required": ["X", "Y"],
-      "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2", "B"]},
+      "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2", "B", "C1", "C2", "C3"]},
       "additionalProperties": {
         "type": "object",
         "required": ["type", "label"],
@@ -38,7 +38,10 @@
           "M": {"properties": {"type": {"const": "continuous"}}},
           "M1": {"properties": {"type": {"const": "continuous"}}},
           "M2": {"properties": {"type": {"const": "continuous"}}},
-          "B": {"properties": {"type": {"const": "continuous"}}}
+          "B": {"properties": {"type": {"const": "continuous"}}},
+          "C1": {"properties": {"type": {"const": "continuous"}}},
+          "C2": {"properties": {"type": {"const": "continuous"}}},
+          "C3": {"properties": {"type": {"const": "continuous"}}}
         }
       }]
     },
@@ -69,15 +72,15 @@
           "exclusiveMaximum": 1
         },
         "correlations": {
-          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals. 'X<->B' and 'W<->B': with a baseline B, its correlations with X and W. With a two-group X, 'X<->W' and 'X<->B' are 0 unless given (people randomised to the groups); given, as for non-randomised groups, W and B are drawn from X with the standardised regressions that give these correlations.",
+          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals. 'X<->B' and 'W<->B': with a baseline B, its correlations with X and W. With covariates, each one's correlation with X, W, B and the other covariates ('X<->C1', 'C1<->C2', ...). With a two-group X, its correlations ('X<->W', 'X<->B', 'X<->C1', ...) are 0 unless given (people randomised to the groups); given, as for non-randomised groups, W, B and the covariates are drawn from X (and each from those before it) with the standardised regressions that give these correlations.",
           "type": "object",
-          "propertyNames": {"enum": ["X<->W", "M1<->M2", "X<->B", "W<->B"]},
+          "propertyNames": {"enum": ["X<->W", "X<->B", "X<->C1", "X<->C2", "X<->C3", "W<->B", "W<->C1", "W<->C2", "W<->C3", "B<->C1", "B<->C2", "B<->C3", "C1<->C2", "C1<->C3", "C2<->C3", "M1<->M2"]},
           "additionalProperties": {"type": "number", "exclusiveMinimum": -1, "exclusiveMaximum": 1}
         }
       }
     },
     "analyses": {
-      "description": "The planned analyses, each fitted to every simulated data set with its own model. x_y: the regression of Y on X alone (the test of the correlation). x_m: the regression of the mediator M on X alone (a manipulation check; one mediator). interaction: Y on X, W and X x W, testing X x W. indirect: the mediation model, testing the indirect effect along 'path' by a Monte Carlo confidence interval. index_of_mome: moderated mediation (PROCESS model 7 if W moderates X -> M, model 14 if W moderates M -> Y), testing the index of moderated mediation by a Monte Carlo confidence interval.",
+      "description": "The planned analyses, each fitted to every simulated data set with its own model. x_y: the regression of Y on X alone (the test of the correlation). w_y: the regression of Y on the moderator W alone (the moderator's own effect). x_m: the regression of the mediator M on X alone (a manipulation check; one mediator). interaction: Y on X, W and X x W, testing X x W. indirect: the mediation model, testing the indirect effect along 'path' by a Monte Carlo confidence interval. index_of_mome: moderated mediation (PROCESS model 7 if W moderates X -> M, model 14 if W moderates M -> Y), testing the index of moderated mediation by a Monte Carlo confidence interval.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -87,7 +90,7 @@
         "properties": {
           "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
           "label": {"type": "string", "minLength": 1},
-          "test": {"enum": ["x_y", "x_m", "interaction", "indirect", "index_of_mome", "anova_effect"]},
+          "test": {"enum": ["x_y", "w_y", "x_m", "interaction", "indirect", "index_of_mome", "anova_effect"]},
           "role": {"enum": ["main", "extra"]},
           "path": {"type": "string", "pattern": "^X->(M|M1|M2)(->M2)?->Y$"},
           "moderated_link": {"enum": ["x_m", "m_y"]},
@@ -96,7 +99,7 @@
         "allOf": [
           {"if": {"properties": {"test": {"const": "indirect"}}}, "then": {"required": ["path"], "properties": {"moderated_link": false}}},
           {"if": {"properties": {"test": {"const": "index_of_mome"}}}, "then": {"required": ["moderated_link"], "properties": {"path": false}}},
-          {"if": {"properties": {"test": {"enum": ["x_y", "x_m", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}},
+          {"if": {"properties": {"test": {"enum": ["x_y", "w_y", "x_m", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}},
           {"if": {"properties": {"test": {"const": "anova_effect"}}}, "then": {"required": ["effect"], "properties": {"path": false, "moderated_link": false}}, "else": {"properties": {"effect": false}}}
         ]
       }

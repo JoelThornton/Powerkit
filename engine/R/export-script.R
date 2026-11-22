@@ -53,7 +53,9 @@ export_script <- function(spec, result, file = NULL) {
   } else switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (continuity_corrected(spec)) {
+    stats = if (is_group_treatment(spec)) {
+      powertools_script(spec, result)
+    } else if (continuity_corrected(spec)) {
       corrected_exact_script(spec, result)
     } else if (binom_test_method(spec)) {
       binom_test_script(spec, result)
@@ -238,14 +240,12 @@ script_header <- function(spec, result, package, call_description) {
 }
 
 # The evidence record, at the end of the script so that the code comes
-# first: "no linked record" reads as a failed check when it opens the file.
+# first: "no record yet" reads as a failed check when it opens the file.
 evidence_section <- function(evidence) {
   c(
     "",
     "# Checks recorded for this analysis ------------------------------------------",
     "# From powerkit's evidence register, for this version of the analysis.",
-    "# \"No linked record\" means no check of that kind is linked to this exact",
-    "# version yet; it does not mean a check failed.",
     paste0("# ", comment_text(evidence_record_text(evidence)))
   )
 }
@@ -3913,7 +3913,7 @@ interactionpower_3way_script <- function(spec, result) {
     ),
     "# Correlations are among the true scores; the three-way effect is the",
     "# standardised regression coefficient of the product x1x2x3.",
-    line("b_x1x2x3", inputs$b.x1x2x3, "the three-way interaction XWZ (standardised coefficient)"),
+    line("b_x1x2x3", inputs$b.x1x2x3, "the three-way interaction: the coefficient of XWZ, the product of standardised X, W and Z"),
     line("r_x1_y", inputs$r.x1.y, "X with Y"),
     line("r_x2_y", inputs$r.x2.y, "W with Y"),
     line("r_x3_y", inputs$r.x3.y, "Z with Y"),

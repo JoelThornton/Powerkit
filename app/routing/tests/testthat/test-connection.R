@@ -53,7 +53,7 @@ test_that("the keep-open message stops when the page is left alone, unless a cal
   # A message sent for ever would keep the app (paid for by the hour)
   # running for as long as a forgotten tab stayed open (6 November 2026).
   expect_match(connection_js, "connected && keepOpen()", fixed = TRUE)
-  expect_match(connection_js, "IDLE_MS = 20 * 60 * 1000", fixed = TRUE)
+  expect_match(connection_js, "IDLE_MS = 10 * 60 * 1000", fixed = TRUE)
   expect_match(connection_js, "document.visibilityState === 'visible' && now - lastActive < IDLE_MS", fixed = TRUE)
   expect_match(connection_js, "e.message.custom.calc_progress", fixed = TRUE)
   expect_no_match(connection_js, "if (connected) Shiny.setInputValue('pk_heartbeat'", fixed = TRUE)

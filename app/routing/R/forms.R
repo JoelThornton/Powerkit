@@ -288,13 +288,13 @@ simulation_accuracy_group <- function(forms, ep_id) {
     if (length(test)) when <- list(field = test[[1]]$id, is = "hartung_knapp")
   }
   group <- list(input = NULL, title = "Simulation accuracy", note = paste(
-    "Used only when this analysis is simulated. More simulated studies shrink the random error in the answer;",
-    "they do not resolve uncertainty about your effect size, SDs, correlations or other assumptions."),
-    note_more = paste(
-    "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
-    "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
+    "Used only when this analysis is simulated. More simulated studies shrink the answer's random error;",
+    "they do not resolve uncertainty about your effect size, SDs, correlations or other assumptions."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
+      help = paste(
+        "Each margin is an approximate 95% margin for the random error in a probability, if every simulated study gives a valid decision.",
+        "Failures can reduce the effective number of decisions: the result shows the actual interval and failure counts.",
+        "More simulations don't guarantee a sample-size search's accuracy. Formulas have no simulation error."),
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
         standard = "Standard: about +/-3 percentage points (1,000 studies)",
@@ -418,6 +418,9 @@ direction_group <- function(tool, shown_if = NULL) {
         less = "Negative effects only (one-sided test)",
         two_sided = "Effects in either direction (two-sided test; a directional prediction is still possible)"),
       buttons = TRUE, button_labels = list(greater = "Positive only", less = "Negative only", two_sided = "Either direction"),
+      button_notes = list(greater = "One-sided test: an effect the other way can't be declared",
+        less = "One-sided test: an effect the other way can't be declared",
+        two_sided = "Two-sided test: you can still predict a direction"),
       default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
       shown_if = shown_if
     ),
@@ -558,6 +561,19 @@ prediction_goal_fields <- function(tool) {
 
 # Short titles for the goal buttons (R/choice-buttons.R); each goal's full
 # wording is the line under its title.
+# The line under each goal's title says what it is for or what it needs,
+# not the title again (22 November 2026); a goal with no note here keeps
+# its full wording.
+goal_button_notes <- function(form, goals) {
+  if (isTRUE(form$generic)) return(list())
+  unit <- if (isTRUE(form$meta)) "number of studies" else if (identical(form$units, "pairs")) "number of pairs" else "sample size"
+  notes <- list(sample_size = "Give the effect you expect and the power you want",
+    power = sprintf("Give the %s you have or can afford", unit),
+    sensitivity = sprintf("For a fixed %s, when the effect is uncertain", unit),
+    justified_alpha = "Weighs false positives against misses, for a given sample size")
+  notes[intersect(names(notes), names(goals))]
+}
+
 goal_button_labels <- function(form) {
   units <- if (isTRUE(form$meta)) "Number of studies" else if (identical(form$units, "pairs")) "Number of pairs" else "Sample size"
   if (isTRUE(form$generic)) return(list(power = "Power", sensitivity = "Noncentrality needed"))
@@ -586,7 +602,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # paired and two-group t-tests and the correlation (E1-E4).
   if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals,
-    buttons = TRUE, button_labels = goal_button_labels(form))
+    buttons = TRUE, button_labels = goal_button_labels(form), button_notes = goal_button_notes(form, goals))
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
@@ -1551,6 +1567,37 @@ plain_engine_message <- function(message, fields, local = isTRUE(getOption("powe
     if (is.null(f$path)) next
     engine_path <- gsub(".", " > ", f$path, fixed = TRUE)
     message <- gsub(sprintf("'%s'", engine_path), quote_label(f), message, fixed = TRUE)
+  }
+  # A list entered in several fields (paths ending .1, .2, ...) is named by
+  # its parent ('target_test > w_values'): that becomes the fields' labels.
+  parents <- vapply(fields, function(f) if (grepl("\\.[0-9]+$", f$path %||% "")) sub("\\.[0-9]+$", "", f$path) else "", "")
+  for (parent in setdiff(unique(parents), "")) {
+    labels <- vapply(fields[parents == parent], quote_label, "")
+    shown <- if (length(labels) == 1) labels else paste(paste(labels[-length(labels)], collapse = ", "), "and", labels[length(labels)])
+    message <- gsub(sprintf("'%s'", gsub(".", " > ", parent, fixed = TRUE)), shown, message, fixed = TRUE)
+  }
+  # A message often names a second field by its last part alone ("... and
+  # 'icc_group' add up to ..."): that too becomes the label, where only one
+  # field on the screen ends that way.
+  ends <- vapply(fields, function(f) if (is.null(f$path)) "" else sub("^.*\\.", "", f$path), "")
+  for (i in seq_along(fields)) {
+    if (!nzchar(ends[i]) || sum(ends == ends[i]) > 1) next
+    message <- gsub(sprintf("'%s'", ends[i]), quote_label(fields[[i]]), message, fixed = TRUE)
+  }
+  # A choice is named by its value ("is 'less'", "use 'two_sided'", "the
+  # joint test (\"rate_and_zero\")"): the value becomes what the screen
+  # shows, for a field the message names, or for a value written like a
+  # code (with an underscore) that only one field on the screen offers.
+  values <- unlist(lapply(fields, function(f) names(f$choices)))
+  for (f in fields) {
+    if (is.null(f$choices)) next
+    named <- grepl(quote_label(f), message, fixed = TRUE)
+    for (v in names(f$choices)) {
+      if (!named && !(grepl("_", v, fixed = TRUE) && sum(values == v) == 1)) next
+      shown <- sprintf("\u201c%s\u201d", f$button_labels[[v]] %||% f$choices[[v]])
+      message <- gsub(sprintf("'%s'", v), shown, message, fixed = TRUE)
+      message <- gsub(sprintf("\"%s\"", v), shown, message, fixed = TRUE)
+    }
   }
   # A sentence that still names a setting this screen doesn't show can't be
   # acted on here, so it is left out.

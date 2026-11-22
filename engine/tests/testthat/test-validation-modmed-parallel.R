@@ -101,3 +101,18 @@ test_that("moderated mediation, two mediators: Type I error is near alpha when X
   spec <- parallel_modmed_spec("process_7", first_stage_paths(a3_m1 = 0), "X->M1->Y", seed = 701, n = 300)
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+# Independent simulation ------------------------------------------------------------
+# The check above calls power4mome. This one draws the studies in base R
+# from the standardised paths and the mediators' residual correlation as
+# the input screen describes them, fits the regressions with lm() and
+# forms the Monte Carlo interval of the index through M1 separately.
+
+test_that("moderated mediation, two mediators: agrees with lm() and a Monte Carlo interval on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  spec <- parallel_modmed_spec("process_7", first_stage_paths(), "X->M1->Y", seed = 801, n = 250)
+  reference <- independent_parallel_modmed7_power(c(0.3, -0.1, -0.15), c(0.2, -0.1, -0.1),
+    b1 = 0.4, b2 = 0.2, c_prime = 0.05, residual = 0.3, n = 250,
+    draws = validation_ci_draws(), nrep = validation_nrep(), seed = 1801)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+})

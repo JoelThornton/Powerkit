@@ -9,7 +9,9 @@
 #
 # Covered: different people measured once, a measured predictor (X) or
 # two groups or conditions (next.md item 1, 31 October 2026), a score
-# outcome, no covariates, a measured moderator or none, and one or two
+# outcome, up to three covariates that are scores (each predicts every
+# mediator and the outcome, and every analysis adjusts every equation for
+# them, as PROCESS does), a measured moderator or none, and one or two
 # mediators that are scores. Each ticked analysis must lead to one of the
 # end points below. With two groups, the comparison of the groups (E2) is
 # the regression of Y on the groups, Student's t test; the moderation (E15)
@@ -26,17 +28,21 @@
 
 whole_study_tests <- c(E4 = "x_y", E9 = "interaction", E10 = "indirect", E11 = "indirect",
   E12 = "indirect", E13 = "index_of_mome", E14 = "index_of_mome",
-  E2 = "x_y", E15 = "interaction", E16 = "indirect")
+  E2 = "x_y", E15 = "interaction", E16 = "indirect",
+  # With covariates, the effect of X is the ANCOVA (two groups) or the
+  # multiple regression (a score X), adjusting for them.
+  E23 = "x_y", E24 = "x_y")
 
 # Plain names for the variables and product terms in path labels.
 whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the moderator (W)",
   B = "the first measurement of the outcome (B)", M = "the mediator (M)", M1 = "the first mediator (M1)", M2 = "the second mediator (M2)",
+  C1 = "the first covariate (C1)", C2 = "the second covariate (C2)", C3 = "the third covariate (C3)",
   XW = "the predictor x moderator interaction (XW)", MW = "the mediator x moderator interaction (MW)")
 
 # Measured twice: the analysis that each planned analysis becomes once Y
 # is adjusted for its first measurement (whole_study_plan()).
-whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome", check = "x_m")
-whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41")
+whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome", check = "x_m", w_main = "w_y")
+whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41", w_main = "E24")
 
 # The effect of X on the mediator (a manipulation check, tree.yaml's
 # `check`): M on X alone, whatever card it leads to (the two-group
@@ -54,6 +60,12 @@ whole_study_path_label <- function(key) {
   if (identical(key, "X<->B")) return("Correlation of the predictor with the first measurement of the outcome (X with B; for groups or conditions, 0 if people are randomised to them)")
   if (identical(key, "W<->B")) return("Correlation of the moderator with the first measurement of the outcome (W with B)")
   if (identical(key, "M1<->M2")) return("Correlation of the two mediators' residuals (what M1 and M2 share beyond X)")
+  if (grepl("<->", key, fixed = TRUE)) {
+    pair <- strsplit(key, "<->", fixed = TRUE)[[1]]
+    return(sprintf("Correlation of %s with %s (%s with %s%s)", sub(" \\(.*$", "", whole_study_names[[pair[1]]]),
+      sub(" \\(.*$", "", whole_study_names[[pair[2]]]), pair[1], pair[2],
+      if (identical(pair[1], "X")) "; for groups or conditions, 0 if people are randomised to them" else ""))
+  }
   ends <- strsplit(key, "->", fixed = TRUE)[[1]]
   sprintf("Path %s → %s: from %s to %s", ends[1], ends[2], whole_study_names[[ends[1]]], whole_study_names[[ends[2]]])
 }
@@ -63,7 +75,7 @@ whole_study_input_id <- function(key) paste0("ws_", gsub("[^A-Za-z0-9]", "_", ke
 # Whether the plan can be simulated as a whole study, and if so the
 # engine's analyses and variables. Returns list(ok, reasons, analyses,
 # variables, mediators, path_choices).
-whole_study_plan <- function(tree, answers, ticked, primary, asks) {
+whole_study_plan <- function(tree, answers, ticked, primary, asks, n_covariates = 1L) {
   experiment <- whole_study_experiment_plan(tree, answers, ticked, primary)
   if (!is.null(experiment)) return(experiment)
   reasons <- character()
@@ -75,7 +87,10 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   # as "none" (8 November 2026).
   covariate <- answers$covariate %||% "none"
   if (twice && identical(covariate, "baseline")) covariate <- "none"
-  if (!identical(covariate, "none")) reasons <- c(reasons, "there are no covariates other than the first measurement of the outcome")
+  # Other covariates: scores measured on each person, which every analysis
+  # adjusts for (the screen asks how many, up to three).
+  if (!covariate %in% c("none", "other")) reasons <- c(reasons, "any covariates are scores measured on each person")
+  covariates <- if (identical(covariate, "other")) paste0("C", seq_len(max(1L, min(3L, as.integer(n_covariates %||% 1L))))) else character()
   if (!(answers$times %||% "once") %in% c("once", "twice")) reasons <- c(reasons, "each person is measured once or twice")
   if (!answers$moderator %in% c("none", "score")) reasons <- c(reasons, "the moderator, if any, is a measured score")
   if (!answers$mediators %in% c("none", "one", "several")) reasons <- c(reasons, "the mediators, if any, are scores")
@@ -92,8 +107,10 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
           (asks[[id]] %||% "") %in% names(whole_study_twice_links)))
     }, logical(1))
   } else {
+    # The moderator's own effect: Y on a measured W alone (E4, or E24
+    # with covariates).
     ifelse(ticked == "check", endpoints %in% whole_study_check_endpoints & identical(answers$mediators, "one"),
-      endpoints %in% names(whole_study_tests))
+      ifelse(ticked == "w_main", endpoints %in% c("E4", "E24"), endpoints %in% names(whole_study_tests)))
   }
   outside <- ticked[!covered]
   if (length(outside)) {
@@ -110,19 +127,19 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
     id <- ticked[i]
     ep <- endpoints[[i]]
     a <- list(id = id, label = analysis_by_id(tree, id)$label,
-      test = if (twice || identical(id, "check")) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
+      test = if (twice || id %in% c("check", "w_main")) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
       role = if (id %in% primary) "main" else "extra")
     if (identical(a$test, "indirect")) a$path <- if (length(mediators) == 1) "X->M->Y" else if (serial) "X->M1->M2->Y" else "X->M1->Y"
     if (identical(a$test, "index_of_mome")) a$moderated_link <- if (twice) whole_study_twice_links[[asks[[id]]]] else link[[ep]]
     a
   })
   tests <- vapply(analyses, function(a) a$test, "")
-  roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome"))) "W",
-    if (any(tests %in% c("indirect", "index_of_mome", "x_m"))) mediators, if (twice) "B", "Y")
+  roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome", "w_y"))) "W",
+    if (any(tests %in% c("indirect", "index_of_mome", "x_m"))) mediators, if (twice) "B", covariates, "Y")
   path_choices <- if (length(mediators) == 2 && "indirect" %in% tests) {
     if (serial) c("X->M1->M2->Y", "X->M1->Y", "X->M2->Y") else c("X->M1->Y", "X->M2->Y")
   }
-  list(ok = TRUE, analyses = analyses, roles = roles, binary_x = identical(answers$x, "cond2"),
+  list(ok = TRUE, analyses = analyses, roles = roles, binary_x = identical(answers$x, "cond2"), n_covariates = length(covariates),
     mediators = if (length(mediators) == 2 && any(tests %in% c("indirect", "index_of_mome", "x_m"))) (if (serial) "serial" else "parallel"),
     path_choices = path_choices)
 }
@@ -142,41 +159,50 @@ whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
   w <- answers$moderator %||% "none"
   times <- answers$times %||% "once"
   between_x <- x %in% c("cond2", "cond3") && identical(times, "once")
-  within_x <- identical(x, "within2") && identical(times, "twice")
+  # Within people: two conditions measured twice, or, in three or more
+  # conditions per person, three or more conditions of X, or X crossed
+  # with a moderator whose conditions everyone takes too.
+  w_within <- identical(w, "within") && identical(times, "many_conditions") && x %in% c("within2", "within3")
+  within_x <- (identical(x, "within2") && identical(times, "twice")) ||
+    (identical(x, "within3") && identical(times, "many_conditions")) || w_within
   if (!(between_x || within_x)) return(NULL)
-  if (!w %in% c("none", "two", "three")) return(NULL)
+  if (!w %in% c("none", "two", "three") && !w_within) return(NULL)
   if (identical(x, "cond2") && identical(w, "none")) return(NULL)
   # Other outcomes, covariates and mediators: the general route says why
   # it can't simulate the plan.
   if (!identical(answers$outcome, "score") || !identical(answers$covariate %||% "none", "none") ||
     !identical(answers$mediators %||% "none", "none")) return(NULL)
   reasons <- character()
-  outside <- setdiff(ticked, c("compare", "moderation"))
+  outside <- setdiff(ticked, c("compare", "moderation", if (!identical(w, "none")) "w_main"))
   if (length(outside)) reasons <- c(reasons, sprintf("every analysis is one the simulation covers (not yet: %s)",
     paste(vapply(outside, function(id) analysis_by_id(tree, id)$label, ""), collapse = "; ")))
   if (length(ticked) == 0) reasons <- c(reasons, "at least one analysis is planned")
   if (length(intersect(ticked, primary)) == 0) reasons <- c(reasons, "at least one analysis is a main analysis")
   if (length(reasons)) return(list(ok = FALSE, reasons = reasons))
   has_w <- !identical(w, "none")
-  template <- if (within_x) {
-    if (!has_w) "oneway_within" else if (identical(w, "two")) "2x2_mixed" else "mixed"
+  template <- if (w_within) {
+    "factorial_within"
+  } else if (within_x) {
+    if (!has_w) "oneway_within" else if (identical(w, "two") && identical(x, "within2")) "2x2_mixed" else "mixed"
   } else {
     if (!has_w) "oneway_between" else if (identical(x, "cond2") && identical(w, "two")) "2x2_between" else "factorial_between"
   }
   # Factor A is the between factor: X measured once, W in a mixed design.
-  # With W measured once, X is A and W is B.
-  x_factor <- if (within_x && has_w) "B" else "A"
-  effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction")
+  # With W measured once, or both within people, X is A and W is B.
+  x_factor <- if (within_x && has_w && !w_within) "B" else "A"
+  effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction",
+    w_main = if (x_factor == "A") "main_effect_B" else "main_effect_A")
   analyses <- lapply(ticked, function(id) {
     list(id = id, label = whole_study_experiment_labels[[id]], test = "anova_effect", effect = effect_of[[id]],
       role = if (id %in% primary) "main" else "extra")
   })
   list(ok = TRUE, experiment = TRUE, analyses = analyses, template = template, x_factor = x_factor,
-    x_within = within_x, has_w = has_w, x_levels = if (identical(x, "cond3")) 3L else 2L,
+    x_within = within_x, w_within = w_within, has_w = has_w, x_levels = if (x %in% c("cond3", "within3")) 3L else 2L,
     w_levels = if (identical(w, "three")) 3L else 2L, roles = c("X", if (has_w) "W", "Y"))
 }
 
 whole_study_experiment_labels <- c(compare = "The main effect of X (in the factorial ANOVA)",
+  w_main = "The main effect of the moderator (in the factorial ANOVA)",
   moderation = "Whether the effect of X depends on the moderator (the X x W interaction)")
 
 # The variables' names: from what the user typed on the plan's input
@@ -184,7 +210,8 @@ whole_study_experiment_labels <- c(compare = "The main effect of X (in the facto
 # `named`: names typed on the simulation screen itself
 # (whole_study_name_inputs()), which come first.
 whole_study_labels <- function(roles, plan_values, named = list()) {
-  defaults <- c(X = "Predictor", Y = "Outcome", B = "Outcome, first measurement", W = "Moderator", M = "Mediator", M1 = "First mediator", M2 = "Second mediator")
+  defaults <- c(X = "Predictor", Y = "Outcome", B = "Outcome, first measurement", W = "Moderator", M = "Mediator", M1 = "First mediator", M2 = "Second mediator",
+    C1 = "First covariate", C2 = "Second covariate", C3 = "Third covariate")
   out <- defaults[roles]
   if (length(named)) plan_values <- c(list(stats::setNames(named, paste0(names(named), "_label"))), plan_values)
   for (r in roles) {
@@ -207,7 +234,8 @@ whole_study_labels <- function(roles, plan_values, named = list()) {
 # The outcome's first measurement is named after the outcome.
 whole_study_name_roles <- function(roles) setdiff(roles, "B")
 whole_study_name_words <- c(X = "The predictor or condition (X)", W = "The moderator (W)", M = "The mediator (M)",
-  M1 = "The first mediator (M1)", M2 = "The second mediator (M2)", Y = "The outcome (Y)")
+  M1 = "The first mediator (M1)", M2 = "The second mediator (M2)", Y = "The outcome (Y)",
+  C1 = "The first covariate (C1)", C2 = "The second covariate (C2)", C3 = "The third covariate (C3)")
 whole_study_name_inputs <- function(roles, labels) {
   tagList(
     h3(class = "h5", "What your variables are called"),
@@ -321,6 +349,8 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     tags$ul(lapply(plan$analyses, function(a) tags$li(a$label, " ",
       tags$span(class = if (a$role == "main") "badge bg-primary" else "badge bg-secondary", if (a$role == "main") "Main analysis" else "Extra analysis")))),
     p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
+    if (isTRUE(plan$n_covariates > 0)) selectInput("ws_n_covariates", "How many covariates every analysis adjusts for",
+      choices = c("One" = "1", "Two" = "2", "Three" = "3"), selected = as.character(plan$n_covariates), width = "100%"),
     whole_study_name_inputs(plan$roles, labels),
     if (!is.null(plan$path_choices)) selectInput("ws_path", "Which indirect effect does the mediation analysis test?",
       choices = plan$path_choices, selected = path %||% plan$path_choices[1], width = "100%"),
@@ -367,7 +397,7 @@ whole_study_values <- function(input, params) {
     }
   }
   c(out, list(n = input$ws_n %||% "", alpha = input$ws_alpha %||% "",
-    seed = input$ws_seed %||% "", path = input$ws_path))
+    seed = input$ws_seed %||% "", path = input$ws_path, n_covariates = input$ws_n_covariates))
 }
 
 # A two-group X: the paths from X that can be given as Cohen's d of the
@@ -705,6 +735,11 @@ whole_study_methods <- function(r, full = FALSE) {
   # outcome for every analysis, which each adjusted for.
   twice <- any(vapply(r$implied, function(i) "r_B_Y" %in% names(i$values), logical(1)))
   baseline <- if (twice) "Each person was measured twice, and every analysis adjusted the second measurement of the outcome for the first, as an analysis of covariance does. " else ""
+  # Covariates: the engine reports each one's correlation with the outcome.
+  n_cov <- length(grep("^r_C[123]_Y$", names(r$implied[[1]]$values %||% c())))
+  if (n_cov > 0) baseline <- paste0(baseline, sprintf(
+    "Every analysis adjusted each of its regressions (for the mediators and the outcome) for %s, which predicted the mediators and the outcome in the population model. ",
+    if (n_cov == 1) "the covariate (C1)" else sprintf("the %s covariates (%s)", c("two", "three")[n_cov - 1], paste0("C", seq_len(n_cov), collapse = ", "))))
   joint <- if (!is.null(r$joint) && !identical(r$claim, "each")) sprintf(
     " The study's claim needs %s to be significant: the chance that %s was significant in the same simulated study was %s.",
     if (r$joint$rule == "all") "every main analysis" else "at least one main analysis",
@@ -785,6 +820,8 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
   value_of <- function(key, default = "") values[[key]] %||% default
   design_words <- if (!plan$has_w) {
     if (plan$x_within) "the same people in each condition: a repeated-measures ANOVA" else "different people in each condition: a one-way ANOVA"
+  } else if (isTRUE(plan$w_within)) {
+    sprintf("%s crossed with %s, everyone taking part in every combination: a two-way repeated-measures ANOVA", labels[["X"]], labels[["W"]])
   } else if (plan$x_within) {
     sprintf("%s within participants crossed with groups of %s: a mixed ANOVA", labels[["X"]], labels[["W"]])
   } else {
@@ -806,15 +843,15 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     textInput("ws_x_levels", sprintf("Levels of %s", labels[["X"]]),
       value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%", placeholder = "Separate with commas"),
     if (plan$has_w) textInput("ws_w_levels", sprintf("Levels of %s", labels[["W"]]),
-      value = value_of("w_levels", whole_study_experiment_default_levels("Group", plan$w_levels)), width = "100%", placeholder = "Separate with commas"),
+      value = value_of("w_levels", whole_study_experiment_default_levels(if (isTRUE(plan$w_within)) "Condition" else "Group", plan$w_levels)), width = "100%", placeholder = "Separate with commas"),
     p(class = "text-muted", "The means you expect, in the outcome's own units. Their pattern sets every effect: equal means in a row and a column mean no effect there, and parallel rows mean no interaction."),
     uiOutput("ws_means_grid"),
     textInput("ws_sd", sprintf("SD of %s within each cell", labels[["Y"]]), value = value_of("sd"), width = "100%", placeholder = "The same in every cell"),
-    if (plan$x_within) textInput("ws_r", sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
+    if (plan$x_within) textInput("ws_r", if (isTRUE(plan$w_within)) "Correlation between a person's scores in any two conditions" else sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
       value = value_of("r"), width = "100%"),
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
-    p(class = "text-muted small", if (plan$x_within && !plan$has_w) "Everyone takes part in every condition." else "Split equally between the groups."),
+    p(class = "text-muted small", if (plan$x_within && (!plan$has_w || isTRUE(plan$w_within))) "Everyone takes part in every condition." else "Split equally between the groups."),
     textInput("ws_alpha", "Significance level", value = value_of("alpha", "0.05"), width = "100%"),
     p(class = "text-muted", sprintf(
       "This screen runs a quick look: %s simulated studies, so each power is within about ±%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
@@ -830,6 +867,7 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
 whole_study_experiment_label <- function(id, labels) {
   switch(id,
     compare = sprintf("The main effect of %s", labels[["X"]]),
+    w_main = sprintf("The main effect of %s", labels[["W"]]),
     moderation = sprintf("Whether the effect of %s depends on %s (the interaction)", labels[["X"]], labels[["W"]]),
     id)
 }
@@ -873,12 +911,16 @@ whole_study_experiment_spec <- function(plan, labels, values, rule, nrep) {
   seed <- num(values$seed)
   if (is.na(seed) || seed != round(seed) || seed < 1 || seed > 2147483647) problems <- c(problems, "Random seed: enter a whole number of 1 or more.")
   if (length(problems)) return(list(problems = problems))
-  factor_type <- function(role) if (identical(role, "X") && plan$x_within) "within_factor" else "between_factor"
+  factor_type <- function(role) {
+    if ((identical(role, "X") && plan$x_within) || (identical(role, "W") && isTRUE(plan$w_within))) "within_factor" else "between_factor"
+  }
   variables <- list(A = list(type = factor_type(axes$rows$role), label = labels[[axes$rows$role]], levels = as.list(rows)))
   if (!is.null(axes$columns)) variables$B <- list(type = factor_type(axes$columns$role), label = labels[[axes$columns$role]], levels = as.list(cols))
   variables$Y <- list(type = "continuous", label = labels[["Y"]])
   template <- if (is.null(axes$columns)) {
     if (plan$x_within) "oneway_within" else "oneway_between"
+  } else if (isTRUE(plan$w_within)) {
+    "factorial_within"
   } else if (plan$x_within) {
     if (length(rows) == 2 && length(cols) == 2) "2x2_mixed" else "mixed"
   } else {
@@ -996,7 +1038,7 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
     else sprintf("power4mome %s, with lavaan %s and manymome %s", pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])
   others <- names(pv$packages)[names(pv$packages) != "powerkit"]
   unname(c("# Whole-study simulation report", "",
-    sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
+    sprintf("Planning draft for review, made with %s. It is not a preregistration, and it can't show that the assumptions are right.",
       powerkit_cited(pv$packages[["powerkit"]])), "",
     "**Validation in progress.** The whole-study simulation is new in Powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",
     sprintf("These numbers come from a quick look of %s simulated studies, so each power is within about ±%s percentage points. For numbers to report, and for the sample size you need, run the full simulation with the R script for it on the result page.",

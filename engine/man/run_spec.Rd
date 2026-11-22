@@ -239,8 +239,10 @@ each condition. Multisite trials (template \code{multisite}): people are
 randomised to the two conditions within each group, by powertools'
 \code{multisite.cont()}; \code{goal > n} is a whole number of groups. Group
 treatment trials (template \code{group_treatment}): people are randomised one
-by one and the second condition is delivered in groups, by powertools'
-\code{irgtt.cont()} or, for a yes/no outcome, \code{irgtt.bin()}; \code{goal > n} is
+by one and the second condition is delivered in groups: for a score,
+the variance of powertools' \code{irgtt.cont()} with the t test's
+Welch-Satterthwaite degrees of freedom; for a yes/no outcome,
+\code{irgtt.bin()}; \code{goal > n} is
 split equally between the conditions.
 Structural equation models (design \code{sem}, template \code{model_fit}): the
 power of the chi-square test of exact fit to reject a model whose misfit

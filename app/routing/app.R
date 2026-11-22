@@ -30,6 +30,7 @@ source(file.path("R", "input-support.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "results-prediction.R"), local = TRUE)
+source(file.path("R", "decision-rule.R"), local = TRUE)
 source(file.path("R", "count-test-notes.R"), local = TRUE)
 source(file.path("R", "planning-safeguards.R"), local = TRUE)
 source(file.path("R", "sample.R"), local = TRUE)
@@ -181,7 +182,7 @@ app_css <- "
   .replication-steps .shiny-options-group label:has(input:checked)::before { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
   .replication-steps .shiny-options-group label:has(input:focus-visible) { outline: 2px solid #0a5a8c; outline-offset: 2px; border-radius: 0.3rem; }
   .card-more { margin-top: 0.75rem; }
-  .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
+  .card-more > summary { cursor: pointer; color: #0a5a8c; min-height: 44px; display: flex; align-items: center; }
   .field-help { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
   .explanation-help { margin: 0.2rem 0 0.5rem; }
   .explanation-help > summary { display: none; }
@@ -243,7 +244,7 @@ app_css <- "
   /* Replication guidance (rep_note()): one sentence in view, the rest
      under a small More control, closed to start with. */
   .rep-note { margin: 0 0 0.5rem; }
-  .rep-more > summary { display: inline; cursor: pointer; color: #0a5a8c; text-decoration: underline; font-size: 0.85rem; }
+  .rep-more > summary { display: inline; cursor: pointer; color: #0a5a8c; font-size: 0.85rem; }
   .rep-more[open] > p { margin-top: 0.25rem; }
   .rep-also-fold { margin-bottom: 0.75rem; }
   .rep-also-fold > summary { cursor: pointer; font-weight: 500; }
@@ -335,6 +336,20 @@ app_css <- "
   .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
   .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
   .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
+  .terms-mode .box-has-info .explanation-help.field-more > summary, .terms-mode .box-has-info .explanation-help.group-more > summary { display: none !important; }
+  /* Opened explanations in a form box read as one set: the same size and
+     colour, no trailing gap (22 November 2026). */
+  .terms-mode .form-group-box .explanation-help[open] > .explanation-content { font-size: 0.9rem; color: #3d4652; }
+  .terms-mode .form-group-box .explanation-content .field-help, .terms-mode .form-group-box .explanation-content .input-guide { font-size: inherit; color: inherit; }
+  .terms-mode .form-group-box .explanation-content > :last-child, .terms-mode .form-group-box .explanation-content p:last-child { margin-bottom: 0; }
+  /* The test box's heading asks the question, so the Test version label
+     under it is for screen readers only (22 November 2026). */
+  .form-group-test > .form-field:first-of-type > .form-group > label.control-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* A field guide's labels sit beside their text, not above it (22 November 2026). */
+  .input-guide dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.9rem; margin: 0.25rem 0 0; }
+  .input-guide dt { font-weight: 600; }
+  .input-guide dd { margin: 0; }
+  @media (max-width: 575.98px) { .input-guide dl { display: block; } .input-guide dd { margin-bottom: 0.35rem; } }
   .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
   .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
   /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
@@ -378,7 +393,7 @@ app_css <- "
   .form-section-effect > .form-group-box { border-color: #0a5a8c; border-width: 2px; }
   .form-settings, .form-guess { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.6rem 1rem; margin: 1rem 0; }
   .form-settings > summary, .form-guess > summary { cursor: pointer; min-height: 44px; padding: 0.3rem 0; }
-  .form-settings-title { font-weight: 600; color: #0a5a8c; text-decoration: underline; }
+  .form-settings-title { font-weight: 600; color: var(--pk-navy, #0b2a4a); }
   .form-settings[open] > summary { margin-bottom: 0.5rem; }
   .setting-item { white-space: normal; }
   .form-group-box legend { float: none; width: auto; padding: 0 0.25rem; margin-bottom: 0.25rem; font-weight: 600; }
@@ -397,7 +412,7 @@ app_css <- "
   .spec-json { white-space: pre-wrap; font-size: 0.8rem; background: #f4f6f9; padding: 0.5rem; border-radius: 0.4rem; }
   #copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
   .mismatch { margin-top: 1.25rem; border-top: 1px solid #dde2ea; padding-top: 0.75rem; }
-  .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .mismatch summary { color: #0a5a8c; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
   .copy-status.fb-sent { background: #e8f5ee; border: 1px solid #1f8a5b; border-left-width: 4px; border-radius: var(--pk-radius); padding: 0.75rem 1rem; color: #14502f; font-size: 1rem; }
@@ -673,7 +688,7 @@ app_css <- "
   .bayes-mode-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.9rem; max-width: 30rem; }
   .bayes-mode-toggle .form-switch { margin: 0; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; padding-left: 0; }
   .bayes-mode-toggle .form-switch .form-check-input { margin: 0; float: none; flex: none; }
-  .bayes-mode-what > summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--pk-blue); text-decoration: underline; cursor: pointer; list-style: none; font-size: 0.95rem; }
+  .bayes-mode-what > summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--pk-blue); cursor: pointer; list-style: none; font-size: 0.95rem; }
   .bayes-mode-what > summary::-webkit-details-marker { display: none; }
   .bayes-mode-what[open] { flex-basis: 100%; }
   .bayes-mode-what > p { max-width: 36rem; color: #4a5563; padding-bottom: 0.5rem; }
@@ -928,7 +943,8 @@ app_css <- "
   .effect-unsure > div:last-child { display: inline; }
   .effect-unsure .explanation, .effect-unsure > div:first-child { display: inline; }
   .form-settings, .form-guess { padding: 0.6rem 1.25rem; }
-  .form-settings-change { color: var(--pk-blue); text-decoration: underline; }
+  .form-settings-change { color: var(--pk-blue); }
+  .form-settings > summary:hover .form-settings-change { text-decoration: underline; }
   .form-settings[open] .form-settings-change { display: none; }
   .form-names { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); margin-bottom: 0.9rem; }
   .form-names > summary { cursor: pointer; min-height: 52px; padding: 0.7rem 1.25rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.6rem; }
@@ -941,8 +957,9 @@ app_css <- "
   .form-names[open] > summary::after { transform: rotate(225deg); }
   .form-names > .form-group-box { border: 0; box-shadow: none; margin: 0; padding-top: 0.25rem; }
   .usual-value { min-height: 44px; min-width: 44px; max-width: 100%; white-space: normal; margin-top: 0.35rem; }
-  .action-bar .form-needed { margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
+  .action-bar .form-needed { text-decoration: none; margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
   .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
+  .action-bar .form-needed:not(:disabled):hover { text-decoration: underline; }
   .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
   /* A field reached with Tab, or scrolled to by a step or a 'needed' link, stops above the
      sticky action bar instead of under it (WCAG 2.4.11, focus not obscured). */
@@ -982,15 +999,26 @@ app_css <- "
   .irs--shiny .irs-handle { background: var(--pk-blue); border-color: var(--pk-blue); box-shadow: 0 1px 3px rgba(20,40,75,.3); }
   .irs--shiny .irs-handle:hover, .irs--shiny .irs-handle.state_hover, .irs--shiny .irs-handle:active { background: #084a73; }
   .irs--shiny .irs-min, .irs--shiny .irs-max { background: #e9eef4; color: #44505e; }
-  .result-more > summary, .result-validation > summary, .card-more > summary, .mismatch summary, .capabilities-fold > summary { list-style: none; }
-  .result-more > summary::-webkit-details-marker, .result-validation > summary::-webkit-details-marker, .card-more > summary::-webkit-details-marker,
-  .mismatch summary::-webkit-details-marker, .capabilities-fold > summary::-webkit-details-marker { display: none; }
-  .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before, .mismatch summary::before, .capabilities-fold > summary::before {
+  /* One fold style across the app (22 November 2026): a small chevron that
+     turns when the section opens, in place of the browser's triangle, and no
+     underline, which is kept for links to other pages. :where() keeps this
+     weaker than a fold's own marker (the help '?', the timeline dot). */
+  :where(details) > summary { list-style: none; }
+  :where(details) > summary::-webkit-details-marker { display: none; }
+  :where(details) > summary::before {
     content: ''; flex: none; display: inline-block; width: 0.45rem; height: 0.45rem; margin: 0 0.6rem 0 0.15rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
-    transform: rotate(-45deg); transition: transform .15s ease; vertical-align: 0.1em; }
-  .result-more[open] > summary::before, .result-validation[open] > summary::before, .card-more[open] > summary::before, .mismatch details[open] > summary::before,
-  details.mismatch[open] > summary::before, .capabilities-fold[open] > summary::before { transform: rotate(45deg); }
-  @media (prefers-reduced-motion: reduce) { .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before { transition: none; } }
+    transform: rotate(-45deg); transition: transform .15s ease; vertical-align: 0.15em; }
+  :where(details[open]) > summary::before { transform: rotate(45deg); vertical-align: 0.3em; }
+  .explanation-help > summary::before, .known-family > summary::before, .form-names > summary::before { content: none; }
+  @media (prefers-reduced-motion: reduce) { :where(details) > summary::before { transition: none; } }
+  /* The optional sections at the foot of a form share one card, a row each,
+     instead of a bare line and two separate cards (22 November 2026). */
+  .form-extras { background: #fff; border: 1px solid var(--pk-line, #dde2ea); border-radius: var(--pk-radius, 0.6rem); box-shadow: var(--pk-shadow, none); padding: 0 1.25rem; margin: 1rem 0; }
+  .form-extras > details { border: 0; box-shadow: none; border-radius: 0; margin: 0; padding: 0.15rem 0; background: none; }
+  .form-extras > details + details { border-top: 1px solid var(--pk-line, #dde2ea); }
+  .form-extras > details > summary { cursor: pointer; min-height: 44px; padding: 0.6rem 0; }
+  .form-extras > details[open] { padding-bottom: 0.75rem; }
+  .card-more > summary:hover, .rep-more > summary:hover, .mismatch summary:hover, .bayes-mode-what > summary:hover { text-decoration: underline; }
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
   /* The I don't know my effect size link starts at the column's edge when it is
@@ -1290,6 +1318,7 @@ server <- function(input, output, session) {
     plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
     plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
     plan_filled = character(), # guided route: shared values filled in on the open input screen
+    finder_filled = list(), # the finder's answers set on the open input screen (route-fit.R)
     ws_values = list(),      # whole-study simulation: the values typed on its screen
     plan_opened = NULL,      # guided route: the saved plan just reopened, for its notice
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
@@ -1375,6 +1404,13 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # What the finder set on this screen, redrawn as fields change, so a
+  # field changed afterwards is named beside the others (route-fit.R).
+  output$finder_filled_note <- renderUI({
+    req(length(state$finder_filled))
+    finder_filled_note_ui(forms, state$endpoint, state$finder_filled,
+      utils::modifyList(isolate(state$form_values) %||% list(), current_form_values()))
+  })
   # Metadata only: this validates inputs and looks up recorded evidence; it
   # never runs a power calculation when a field changes.
   output$selected_evidence <- renderUI({
@@ -1573,6 +1609,10 @@ server <- function(input, output, session) {
     } else if (pick == "form") {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
+      # The finder's answers (outcome, who is in which condition) set the
+      # fields they settle (route-fit.R); what follows may override them.
+      state$finder_filled <- finder_form_values(forms, state$endpoint, state$ctx)
+      state$form_values <- utils::modifyList(state$finder_filled, state$form_values)
       state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
       if (identical(state$preset_version$endpoint, state$endpoint)) {
         state$form_values <- version_form_values(state$preset_version, state$form_values)
@@ -2224,7 +2264,7 @@ server <- function(input, output, session) {
   # values the engine says the population needs, and the run.
   whole_study_screen <- reactive({
     answers <- routed_answers()
-    plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks)
+    plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks, state$ws_values$n_covariates %||% 1L)
     if (!isTRUE(plan$ok)) return(list(plan = plan))
     labels <- whole_study_labels(plan$roles, state$plan_values, state$ws_names %||% list())
     # An experiment (a factorial ANOVA) needs no path model.
@@ -2239,6 +2279,13 @@ server <- function(input, output, session) {
     if (isTRUE(ws$plan$experiment)) state$ws_values <- whole_study_experiment_values(input, ws$plan)
     else if (!is.null(ws$params)) state$ws_values <- whole_study_values(input, ws$params)
   }
+  # The number of covariates changes the model: keep what was typed, then
+  # redraw the screen with the covariates' paths and correlations.
+  observeEvent(input$ws_n_covariates, {
+    if (identical(input$ws_n_covariates, isolate(state$ws_values$n_covariates) %||% "1")) return()
+    state$ws_names <- whole_study_names_from_input(input, isolate(whole_study_screen())$plan$roles)
+    save_whole_study_values()
+  }, ignoreInit = TRUE)
   # An experiment's grid of cell means follows the levels typed, keeping
   # the means already entered.
   output$ws_means_grid <- renderUI({
@@ -2550,7 +2597,11 @@ server <- function(input, output, session) {
     shown <- plans_page_shown()
     req(shown)
     plan <- isolate(state$plans[[shown$view]])
-    if (is.null(plan)) plans_list_ui(shown$plans, shown$current, shown$running) else plan_page_ui(plan, shown$n, shown$running)
+    if (is.null(plan)) return(plans_list_ui(shown$plans, shown$current, shown$running))
+    # The shared N, checked by rerunning each analysis at it (formula
+    # results only; plan_shared_n()).
+    shared <- tryCatch(plan_shared_n(plan$entries, engine_function("run_spec")), error = function(e) NULL)
+    plan_page_ui(plan, shown$n, shown$running, shared = shared)
   })
   output$plan_status <- renderUI({
     plan <- state$plans[[state$plans_view %||% ""]]
@@ -3531,7 +3582,8 @@ server <- function(input, output, session) {
         form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
-          carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
+          carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled)
+            else if (length(state$finder_filled)) uiOutput("finder_filled_note"))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = tagList(

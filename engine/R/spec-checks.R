@@ -220,8 +220,8 @@ check_cell_ratio_allowed <- function(spec) {
   if (identical(spec$goal$type, "sensitivity")) {
     return(paste0(
       "The smallest detectable effect isn't available with unequal cells: it ",
-      "uses Superpower's exact method, which takes equal cells only. Use goal ",
-      "type 'power' or 'sample_size'."
+      "uses Superpower's exact method, which takes equal cells only. Ask ",
+      "for the power at a given sample size, or the sample size, instead."
     ))
   }
   if (identical(spec$options$method, "exact")) {
@@ -2510,8 +2510,9 @@ check_regression_interaction <- function(spec) {
     paste0(
       "These correlations are impossible together: they imply that %s, %s ",
       "and their interaction explain %s%% of the variance in %s (R-squared = %s), ",
-      "but R-squared must be below 1. Make one or more of r_X_Y, r_W_Y and ",
-      "r_XW_Y smaller, or change r_X_W."
+      "but R-squared must be below 1. Make one or more of the correlations ",
+      "with Y ('population > r_X_Y', 'r_W_Y' and 'r_XW_Y') smaller, or change ",
+      "the correlation of X with W ('r_X_W')."
     ),
     var_label(spec, "X"), var_label(spec, "W"), format_number(round(100 * r2, 1)),
     var_label(spec, "Y"), format_number(round(r2, 3))

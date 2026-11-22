@@ -6,8 +6,8 @@
 #      check powerkit against powertools called directly, and against the
 #      textbook variance done with pwrss's generic t test
 #   2. published examples: below, to be transcribed by the maintainer
-#   3. direct-call agreement with a simulation: not yet (no simulation
-#      option)
+#   3. agreement with trials simulated separately: below, by the t test
+#      of the groups' differences between conditions
 #   4. Type I error: d = 0 gives alpha by construction (unit tests)
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
@@ -93,4 +93,21 @@ test_that("multisite trial: required groups match a published worked example (pu
     d, icc, icc_effect, cluster_size, alpha, tails, seed = 312, target_power = target_power
   )
   expect_equal(engine_n_required(spec)$n / cluster_size, published_groups)
+})
+
+# Independent simulation ------------------------------------------------------
+# The unit tests compare powerkit with powertools called directly. This
+# draws trials in base R as the input screen describes them (the ICC as
+# the share of variance between the groups' means; the effect's
+# variation as a share of the outcome's variance, a quarter of the
+# effect's variance) and tests the average effect by the groups'
+# differences, which with half of each group in each condition is the
+# mixed model's test.
+
+test_that("multisite trial: agrees with trials simulated separately (simulation)", {
+  skip_unless_full_validation()
+  spec <- multisite_validation_spec(0.3, 0.1, 0.02, 20, 0.05, 2, seed = 304, n = 240)
+  reference <- independent_multisite_power(0.3, 0.1, 0.02, m = 20, groups = 12,
+    nrep = validation_nrep(), seed = 1304)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
 })

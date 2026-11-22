@@ -6,8 +6,10 @@
 #      check powerkit against powertools called directly, and against the
 #      design-effect calculation done with pwrss's generic t test
 #   2. published examples: below, to be transcribed by the maintainer
-#   3. direct-call agreement with a simulation: not yet (no simulation
-#      option)
+#   3. agreement with trials simulated separately: below, by the group
+#      means' t test (groups of one size) and a mixed model (groups of
+#      different sizes), and for a group treatment trial by Welch's test
+#      of the individuals against the groups' means
 #   4. Type I error: d = 0 gives alpha by construction (unit tests)
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
@@ -114,4 +116,82 @@ test_that("cluster-randomised trial, groups of different sizes: power matches a 
     n = cluster_size * groups_per_condition * 2
   )
   expect_power_exact(engine_power(spec), published_power)
+})
+
+# Independent simulation ------------------------------------------------------
+# The unit tests compare powerkit with powertools called directly. These
+# draw trials in base R as the input screen describes them (d over the
+# total SD, the ICC as the share of variance between groups) and analyse
+# them the usual way: the t test of the group means for groups of one
+# size, a mixed model with a random intercept (Satterthwaite's df) for
+# groups of different sizes.
+
+test_that("cluster-randomised trial: agrees with trials simulated separately and analysed by group means (simulation)", {
+  skip_unless_full_validation()
+  spec <- cluster_validation_spec(0.4, 0.05, 20, 0.05, 2, seed = 304, n = 400)
+  reference <- independent_cluster_trial_power(0.4, 0.05, 20, groups_per_condition = 10,
+    nrep = validation_nrep(), seed = 1304)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+})
+
+test_that("cluster-randomised trial, groups of different sizes: agrees with a mixed model on simulated trials (simulation)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("lmerTest")
+  # powertools adjusts for the sizes' spread by a relative efficiency (an
+  # approximation), so a small allowance is given beyond simulation error.
+  spec <- cluster_validation_spec(0.4, 0.05, 20, 0.05, 2, seed = 305, cluster_size_sd = 8, n = 400)
+  reference <- independent_cluster_trial_power(0.4, 0.05, 20, groups_per_condition = 10, m_sd = 8,
+    nrep = 4000, seed = 1305)
+  expect_power_within_approximation(engine_power(spec), reference, reference_nrep = 4000, allowance = 0.02)
+})
+
+group_treatment_validation_spec <- function(d, icc, cluster_size, seed, n) {
+  v <- validation_variable
+  validation_spec(
+    design = "cluster_trial",
+    template = "group_treatment",
+    variables = list(
+      X = v("binary", "Condition", levels = list("Individual", "Group")),
+      Y = v("continuous", "Outcome")
+    ),
+    population = list(metric = "standardised", d = d, icc = icc, cluster_size = cluster_size),
+    target_test = list(effect = "mean_difference", method = "cluster_t", alpha = 0.05, alternative = "two_sided"),
+    seed = seed,
+    n = n
+  )
+}
+
+test_that("group treatment trial: agrees with trials simulated separately and analysed by Welch's test (simulation)", {
+  skip_unless_full_validation()
+  # 10 groups of 8 and 80 people taking part individually, where
+  # irgtt.cont()'s own df (11.2) would give .512 (Departure 38).
+  spec <- group_treatment_validation_spec(0.4, 0.1, 8, seed = 306, n = 160)
+  reference <- independent_group_treatment_power(0.4, 0.1, m = 8, groups = 10, individuals = 80,
+    nrep = validation_nrep(), seed = 1306)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  # Few groups, where the two df differ most: 4 groups of 5.
+  few <- group_treatment_validation_spec(0.8, 0.1, 5, seed = 307, n = 40)
+  reference_few <- independent_group_treatment_power(0.8, 0.1, m = 5, groups = 4, individuals = 20,
+    nrep = validation_nrep(), seed = 1307)
+  expect_power_near(engine_power(few), reference_few, reference_nrep = validation_nrep())
+})
+
+test_that("group treatment trial, yes/no outcome: agrees with trials simulated separately (simulation)", {
+  skip_unless_full_validation()
+  v <- validation_variable
+  spec <- validation_spec(
+    design = "cluster_trial",
+    template = "group_treatment",
+    variables = list(
+      X = v("binary", "Condition", levels = list("Individual", "Group")),
+      Y = v("binary", "Outcome")
+    ),
+    population = list(metric = "proportion", p1 = 0.3, p2 = 0.45, icc = 0.05, cluster_size = 10),
+    target_test = list(effect = "proportion_difference", method = "z_test", alpha = 0.05, alternative = "two_sided"),
+    seed = 308,
+    n = 400
+  )
+  reference <- independent_group_treatment_binary_power(0.3, 0.45, 0.05, m = 10, groups = 20,
+    individuals = 200, nrep = validation_nrep(), seed = 1308)
+  expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
 })

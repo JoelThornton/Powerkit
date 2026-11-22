@@ -1,3 +1,337 @@
+# powerkit 0.81.25
+
+* Validation: the group treatment trial with a yes/no outcome is now
+  checked against trials simulated separately from powertools
+  (beta-binomial groups, the z test of the groups' mean proportion
+  against the individuals'), in the `cluster` chunk.
+
+* App: wording that only restated a title is gone from the input forms.
+  A one-question box whose heading restates its question
+  (`legend_repeats_question()`) keeps the heading for screen readers
+  only; the test box hides its "Test version" label under "Which test
+  you'll run". Choice buttons take `button_notes`, so the goal and
+  direction buttons say what each needs or means
+  (`goal_button_notes()`) instead of repeating the title. A field with
+  help of its own no longer shows the general "Meaning" of its family,
+  and the count guide says people are counted after dropout, without the
+  example about pairs and term indices on every count.
+
+# powerkit 0.81.24
+
+* App: on input forms, `pkSyncExplanations()` gives each
+  `.form-group-box` with a field or box explanation the corner
+  `.box-info` button the replication planner uses, and hides the
+  per-field and per-box summaries inside it; the button opens every
+  explanation in the box, each under its field. Field guides lay their
+  labels beside the text, and the default "If unknown" line is shorter.
+
+* App: one fold style (a turning chevron, `:where(details) > summary` in
+  app.R) replaces the browser's triangle and the underlined fold titles;
+  underlines are kept for links. The optional rows at the foot of an
+  input form (`form-scenarios`, `form-settings`, `form-guess`) sit in one
+  `form-extras` card. A field with nothing to explain gets no info button
+  (a select whose only content was its default's source opened an empty
+  box), and a field guide no longer repeats the field's help as its
+  "Meaning".
+
+* Group treatment trials with a score (template `group_treatment`) now
+  test the difference with the Welch-Satterthwaite degrees of freedom,
+  keeping `irgtt.cont()`'s variance (Departure 38). `irgtt.cont()`'s own
+  df are about half as many and gave too little power with few groups
+  (51.2% against 54.8% at 10 groups of 8; up to about 12 points with 4
+  to 6 groups). The backend recorded is `stats`, and the exported script
+  computes the power in base R. Yes/no outcomes still use `irgtt.bin()`.
+* Validation: the cluster-randomised, multisite and group treatment
+  trials with a score are now checked against trials simulated
+  separately from powertools (`cluster` and `multisite` chunks).
+
+# powerkit 0.81.23
+
+* Validation: PROCESS model 14 (with X and W correlated) and moderated
+  mediation through two parallel mediators (with correlated mediator
+  residuals) are now checked against studies simulated separately from
+  power4mome, both regressions fitted by `lm()` with a Monte Carlo
+  interval for the index (`process_14` and `modmed_parallel` chunks).
+  The MW -> Y field on the moderated mediation forms now says what the
+  path is, as the XW -> M field does.
+
+# powerkit 0.81.22
+
+* Validation: PROCESS model 7 is now checked against studies simulated
+  separately from power4mome (the product of X and W entering M, both
+  regressions fitted by `lm()`, and a Monte Carlo interval for the index
+  of moderated mediation), with correlated X and W. The SEM model-fit
+  tests (exact, close and not-close fit) are checked against MacCallum,
+  Browne and Sugawara's (1996) noncentral chi-square written out
+  separately from semPower. Both run in their designs' validation chunks
+  (`process_7`, `sem_fit`); `docs/validation-log.md` records them.
+* The moderated mediation forms' XW -> M field now says what the path
+  is (the coefficient of the product of standardised X and W, the
+  product not standardised again), which the PROCESS model 7 check
+  confirmed with correlated X and W.
+
+# powerkit 0.81.21
+
+* App: the full methods paragraph (`planning_writeup()`) leaves bracketed
+  prompts for what only the author can state, following Lakens (2022,
+  refs.bib Lakens2022_justification, Tables 3 and 4): why the
+  significance level and target power were chosen when no reason was
+  entered (`reason_prompts()`), where the reproducing script or saved
+  plan is shared, and, for a power or smallest-effect goal whose sample
+  size is fixed by resources, what the data will be used for at that
+  size. The short paragraph is unchanged.
+
+# powerkit 0.81.20
+
+* App: the simulation accuracy group renders inside the folded Settings
+  section (`form_sections_ui()`), and `settings_summary_ui()` names it on
+  the Settings line, shown only when its condition holds where it has
+  one. The input screen's "Fields marked optional can be left empty" line
+  is removed (queue item 26).
+
+# powerkit 0.81.19
+
+* Three-way interaction (E31): the three-way effect is labelled as what
+  InteractionPoweR's `b.x1x2x3` is, the coefficient of the product of the
+  standardised X, W and Z (Y standardised too), not the product's fully
+  standardised coefficient, in the input screen, schema, sensitivity
+  wording and R script. A population built separately on that meaning
+  reproduces InteractionPoweR's R-squared with and without XWZ
+  (`test-validation-three-way.R`). Known difference 17 is re-measured on
+  that meaning: the formula's 853 for 80% gives about 78% in simulated
+  studies (not 76%), and about 900 people are needed (not 940).
+
+# powerkit 0.81.18
+
+* Exports: the R script's evidence comments (`evidence_record_text()`) use
+  the planning document's plain labels and states, omit the registry's
+  repeated note for a category with no linked record, give the scope in
+  words, and replace the registry's developer-facing limits with two
+  sentences on what the checks cover; the registry's identifiers come
+  last. The simulated data set's script comment and help say plainly that
+  the data are made from the values entered. In the app, the planning
+  document, study plan report and whole-study report reword their opening
+  disclaimer, assumption, attrition and closing notes, and the full
+  methods paragraph names the package whose population check ran (queue
+  item 26, exports).
+* App: the simulation accuracy group's second note moved into the
+  `simulation_accuracy` field's help (form help, queue item 26).
+* Docs: `adding-a-test.md` gives a style rule for Updates entries
+  (title of 70 characters or fewer, at most 100 words, what a researcher
+  sees, no internal names), and `test-whats-new.R` checks the length and
+  internal names in entries still waiting in `whats-new.d/`.
+
+# powerkit 0.81.17
+
+* App: card points and finder help in `tree.yaml` reworded to the
+  plain-wording rule (queue item 26): the mediation cards' causal caveat
+  and the natural-indirect-effect caveat are shorter with the same
+  conditions and advice; the crossover notes on E3 and E8, the
+  validation-status points on E5, the three-way formula's scope on E31
+  and several "Powerkit calculates this for" openings say what the card
+  plans. E32 and E39 have plain names that say what they plan, and E32's
+  pointer to E39 follows the new name.
+
+# powerkit 0.81.16
+
+* Validation: simulations written separately from each card's package for
+  the equivalence tests (two one-sided `t.test()`s, two groups, pairs and
+  one sample), the Mann-Whitney and signed-rank tests (one-sided
+  `wilcox.test()` on skewed and heavy-tailed scores, unequal groups) and
+  the logistic factorial (`glm()` with sum-to-zero contrasts, each
+  effect's Wald chi-square), in `helper-independent-simulation.R`.
+
+# powerkit 0.81.15
+
+* `search_n()`: when the probit fit to the points within 20% of the
+  estimate has no upper limit inside that grid (its points are noisy at
+  few replications), points above the estimate are simulated and the
+  fit is repeated, up to twice. A Bland-Altman sample size at 200
+  replications stopped with "could not pin down the required n" for two
+  of four seeds; all four now return 32 to 34. Searches that succeeded
+  before are unchanged, as the extra points are added only when the
+  local interval was missing.
+* Messages: the impossible-correlations check of moderation names the
+  correlations by their spec paths, which the app turns into its field
+  labels, and the unequal-cells ANOVA's sensitivity message asks for the
+  power or the sample size in words rather than goal types.
+* App: `plain_engine_message()` also replaces a field named by the last
+  part of its path, a list entered in several fields (named by its
+  parent path) and a choice named by its value (for a field the message
+  names) with what the screen shows.
+* App: the SEM card's number of items for a CFA's fit is capped at 100:
+  `semPower.getDf()` takes 3 s at 100 items, 12 s at 150 and minutes
+  beyond, and the check runs as fields change. More items go through
+  the card's degrees-of-freedom route.
+* A simulated search that still finds no answer says what it simulated
+  (`unsettled_search_message()`): the highest power and where, when the
+  target was never reached (power can level off below it, as in an
+  interrupted time series with few points before the change), or the
+  range it crossed the target in. The smallest-detectable-effect search
+  says the same. The app's interrupted-time-series example (helper
+  values) now uses a drop of 5, which reaches 80%; a drop of 3 levels off
+  below it.
+
+# powerkit 0.81.14
+
+* Continuous integration: the engine's tests run in five parts and the
+  app's tests in two, each part running four test files at a time in
+  separate R processes (`.github/ci/run-test-part.R`). Files are dealt to
+  the lanes by their recorded times (`.github/ci/engine-test-times.csv`,
+  `.github/ci/app-test-times.csv`). The slowest test files are split into
+  smaller files so that no single file sets the length of a run. Every
+  test still runs on every pull request.
+
+# powerkit 0.81.13
+
+* App: the input screen's "Set from your answers" note
+  (`finder_filled_note_ui()`) is rendered by `output$finder_filled_note`
+  from the current field values, so a field changed after the design
+  finder set it is listed with the screen's value and the finder's,
+  in a warning. Before, a changed field silently left the list.
+
+# powerkit 0.81.12
+
+* The online app's keep-open message stops after 10 minutes without use
+  instead of 20, and sessions no longer publish the app by hand after a
+  merge, to use fewer of the hosting plan's credits
+  (docs/hosting-options.md, "The plan's limit").
+
+# powerkit 0.81.11
+
+* App: a study plan's page and planning document check the shared
+  sample size (`plan_shared_n()`). Each analysis the engine calculates
+  in closed form is rerun at the largest separate requirement; when any
+  falls short of its target, N is stepped up until every target is met,
+  and each analysis's power is shown at both numbers. Power is not
+  monotone in N for exact tests, so the largest separate answer can fall
+  short: two one-proportion outcomes (.80 against .50 and .70 against
+  .40, two-sided `binom.test()`) need 20 and 21 separately, reach 76.9%
+  and 85.2% at 21, and first both reach 80% at 24. A simulated analysis
+  leaves the N an unchecked candidate. The text says these are each
+  test's own power, not the chance that all succeed in one study.
+* App: a replication plan's agreement criterion reads as three outcomes
+  (inside the bound, entirely beyond it, or crossing it: inconclusive),
+  citing Lakens (2017), now in refs.bib as `TOSTER_method` in place of
+  its placeholder.
+
+# powerkit 0.81.10
+
+* Validation: simulations written separately from each card's package
+  (`helper-independent-simulation.R`) for moderation in regression
+  (`lm()`, with and without measurement error), the ordinal outcome in two
+  groups (`MASS::polr()`, both directions of the shift, uneven shares,
+  unequal groups), one-way repeated measures and the mixed ANOVA
+  (`aov()` with an Error stratum). The record of which cards have a check
+  independent of their backend is in docs/validation-log.md.
+
+# powerkit 0.81.9
+
+* Design finder (app), people measured once: two groups of different
+  people now asks what the comparison uses (new question F1b): one score
+  as it is (E2), one score adjusted for a covariate measured beforehand
+  (E23), several scores tested together (E59) or several scores each a
+  claim of its own (E2, with a note pointing to the input screen's claim
+  question). A relationship between two scores offers a curved
+  relationship such as an inverted U, which goes to multiple regression
+  (E24) set to the R-squared a squared term adds, since a correlation can
+  miss a strong curve. The exploratory factor analysis choice says it
+  plans recovery of the expected loadings, not how many factors to retain.
+
+* Design finder (app), repeated measurements: "how people change" now
+  asks whether two groups change at different rates (E35, a difference in
+  slopes) or one group's scores change over time (new question T2). One
+  group goes to the within-person card (E41) with its within-person
+  effect preselected and a note on entering time as X, per SD of the
+  occasions. The many-times screen offers two scores measured together on
+  each occasion (E76); the diary walkthrough now reaches it rather than
+  E35. Mediation with the same people measured more than once still
+  reaches E41, which now says it doesn't calculate an indirect effect and
+  names the missing paths and timing, in place of the note about
+  baseline-adjusted regression.
+
+# powerkit 0.81.8
+
+* Design finder (app): the answers given in the finder now set the input
+  screen they settle (`finder_form_values()`, `R/route-fit.R`): the
+  outcome type on the trial cards, the mixed-model cards and the cluster
+  trial, ordered categories on the repeated counts and ratings card, and
+  whether each person is in one condition or all of them. A note on the
+  input screen lists what was set. Before, the screen opened on each
+  card's defaults, so a yes/no outcome with each person in one condition
+  opened as a score with both conditions.
+* The finder asks how many categories a yes/no-or-categories answer has
+  before a card is offered: on trials (new question S2c), in groups (C0)
+  and answered twice by the same people (Q3c). Three or more go to the
+  safety net with a note on what is missing (`finder_gaps` in tree.yaml):
+  for paired answers, marginal homogeneity (Stuart-Maxwell) and symmetry
+  (Bowker) are different questions. People in groups with a count,
+  ordered or yes/no outcome are asked what the hypothesis involves (C1),
+  as with a score; the grouped cards (E34, E62, E68) then say they take a
+  score or a yes/no outcome rather than appearing to fit a count.
+
+# powerkit 0.81.7
+
+* App: the write-ups hold the researcher's own words (the effect size's
+  source and adjustment, and the reasons for alpha, power, the evidence
+  threshold and a one-sided test) as placeholders while a paragraph is
+  built and its units reworded, and put them back as written
+  (`hold_user_text()`, `restore_user_text()`): a quoted "140 participants"
+  is no longer rewritten as observations. `analysed_text()` counts
+  occasions within people as observations, so the full sample-size rule
+  no longer calls 1,120 person-occasions participants. The ethics
+  paragraph gives the power reached at the N found beside the target
+  (88.9% at N = 12 for an 80% target), says a several-tests claim's
+  chance is for one test and names the study-level goal, names a
+  meta-analysis's subgroup difference, moderator slope or heterogeneity
+  rather than an average effect, and asks the investigators to say how
+  they weighed burden against precision instead of asserting it.
+  Observed power is written up as a retrospective analysis, and its
+  ethics paragraph no longer justifies recruitment.
+
+# powerkit 0.81.6
+
+* Whole-study simulation: a new analysis `w_y`, the regression of Y on
+  the moderator W alone (its own effect, adjusted for the baseline and
+  covariates as `x_y` is), tested with `test_parameters(pars = "Y~W")`.
+
+# powerkit 0.81.5
+
+* App: the decision an analysis commits the researcher to (its test name
+  with version and correction, direction, bounds, what counts as success
+  and how to read each outcome) is built once, in `decision-rule.R`, and
+  used by the planning document, a study plan's target column and its
+  Registered Report table. Before, the table called a non-inferiority test
+  TOST, a validation plan's target said developing with shrinkage 0.9, the
+  one-proportion z test was named as the exact binomial test, the test of
+  not-close fit was called a test of exact fit, and factor recovery and
+  profile selection read "a significance test at alpha = ,". A one-way
+  ANOVA's F test is no longer called two-sided. The ethics paragraph of a
+  minimum-effect test gives the chance of showing the effect is larger
+  than the smallest effect of interest. `methods_test_name()` moves the
+  methods paragraph's test naming out of `writeup_text()`.
+
+# powerkit 0.81.4
+
+* Whole-study simulation: tests that fully within-people experiments
+  (`oneway_within` with three conditions, `factorial_within`) give each
+  F test's exact power; the app's study plan now offers them.
+
+# powerkit 0.81.3
+
+* No engine change. The app's results screen was reworded (queue item 27):
+  shorter sentences that say what each part does, the evidence panel included, with the same numbers,
+  method names and warnings.
+
+* Whole-study simulation (experimental): up to three covariates, C1 to
+  C3, scores measured on each person. Each predicts every mediator and
+  the outcome in the population, with its correlations with X, W, the
+  baseline and the other covariates (`population > correlations`, e.g.
+  `X<->C1`, `C1<->C2`), and every analysis adjusts each of its equations
+  for them, as PROCESS does. A two-group X may differ on them (each is
+  regressed on the exogenous variables before it). Validation in
+  `test-validation-whole-study-covariates.R` (chunk `whole_study`).
+
 # powerkit 0.81.2
 
 * The repeated-measures card for a count, a yes/no answer or ordered

@@ -139,14 +139,16 @@
    "A score or scale",
    "Independent people",
    "Many times",
-   "Measurements over time, to see how people change"
+   "Measurements over time, to see how people change",
+   "Two groups change at different rates"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
     "Many times",
-    "Measurements over time, to see how people change"
+    "Measurements over time, to see how people change",
+    "Two groups change at different rates"
    ]
   },
   "guided": {
@@ -154,7 +156,8 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "Measurements over time, to see how people change"
+    "Measurements over time, to see how people change",
+    "Two groups change at different rates"
    ]
   },
   "reaches": {
@@ -173,14 +176,14 @@
    "A score or scale",
    "Independent people",
    "Many times",
-   "Measurements over time, to see how people change"
+   "Two scores measured together on each occasion, to see whether they go together within people"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
     "Many times",
-    "Measurements over time, to see how people change"
+    "Two scores measured together on each occasion, to see whether they go together within people"
    ]
   },
   "guided": {
@@ -188,14 +191,24 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "Measurements over time, to see how people change"
+    "Two scores measured together on each occasion, to see whether they go together within people"
    ]
   },
   "reaches": {
-   "choose": "E35",
-   "known": "E35",
-   "guided": "E35"
-  }
+   "choose": "E76",
+   "known": "E76",
+   "guided": "E76"
+  },
+  "changes": [
+   {
+    "change": "finder audit, 21 November 2026: the many-times screen asks for two scores measured together",
+    "before": {
+     "choose": "E35",
+     "known": "E35",
+     "guided": "E35"
+    }
+   }
+  ]
  },
  {
   "id": "timeseries",
@@ -492,7 +505,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -609,6 +623,13 @@
    "choose": "E59",
    "known": "E59",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E2",
+    "E18"
+   ],
+   "why": "the outcomes are analysed together; a single-score card drops all but one"
   }
  },
  {
@@ -622,7 +643,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -664,7 +686,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -706,7 +729,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "A score or scale"
+   "A score, with a curved relationship such as an inverted U"
   ],
   "known": {
    "answers": [
@@ -732,9 +755,18 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E4",
+   "choose": "E24",
    "known": "E-unsure",
    "guided": "E4"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4"
+   ],
+   "why": "a correlation measures a straight line and can miss an inverted U; the whole-study route has no answer for a curve yet, so it still ends at E4 (an open gap)",
+   "open_in": [
+    "guided"
+   ]
   }
  },
  {
@@ -748,7 +780,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -819,6 +852,13 @@
    "choose": "E37",
    "known": "E37",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4",
+    "E24"
+   ],
+   "why": "the latent variables and their indicators are the model; a correlation or regression of scores drops the measurement model"
   }
  },
  {
@@ -1266,7 +1306,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -1308,7 +1349,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, compared as it is"
   ],
   "known": {
    "answers": [
@@ -1547,7 +1589,8 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Twice",
-   "A difference between groups or conditions"
+   "A difference between groups or conditions",
+   "Two: yes or no"
   ],
   "known": {
    "answers": [
@@ -2215,7 +2258,8 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two groups, different people in each"
+   "Two groups, different people in each",
+   "One outcome score, adjusted for a covariate measured beforehand"
   ],
   "known": {
    "answers": [
@@ -2241,10 +2285,20 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E2",
+   "choose": "E23",
    "known": "E23",
    "guided": "E23"
-  }
+  },
+  "changes": [
+   {
+    "change": "finder audit, 21 November 2026: two groups are asked whether the score is adjusted for a covariate",
+    "before": {
+     "choose": "E2",
+     "known": "E23",
+     "guided": "E23"
+    }
+   }
+  ]
  },
  {
   "id": "u-mlogit",
@@ -2369,6 +2423,13 @@
    "choose": "E59",
    "known": "E59",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E2",
+    "E18"
+   ],
+   "why": "the outcomes are analysed together; a single-score card drops all but one"
   }
  },
  {
@@ -2382,7 +2443,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "Several predictors at once, or controlling for other variables"
+   "Several outcome scores, related to the predictors together"
   ],
   "known": {
    "answers": [
@@ -2408,7 +2469,7 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E24",
+   "choose": "E-unsure",
    "known": "E-unsure",
    "guided": "E24"
   }
@@ -2466,7 +2527,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "Several predictors at once, or controlling for other variables"
+   "Several outcome scores, related to the predictors together"
   ],
   "known": {
    "answers": [
@@ -2492,9 +2553,16 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E24",
+   "choose": "E-unsure",
    "known": "E-unsure",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4",
+    "E24"
+   ],
+   "why": "a set of scores is related to another set; a single-outcome card drops the sets"
   }
  }
 ]

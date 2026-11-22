@@ -227,7 +227,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
-        "Powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
+        "Powerkit checked the values it passes to the package. Cite the package and the method paper: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
         h4(class = "h6", "Where Powerkit differs from other tools' defaults"),

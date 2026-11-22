@@ -22,7 +22,8 @@ test_that("accuracy presets change only replication controls and old answers ret
   expect_equal(custom$options$nrep, 2345L)
   html <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
   expect_match(html, "do not resolve uncertainty", fixed = TRUE)
-  expect_match(html, "Failures can reduce", fixed = TRUE)
+  accuracy <- Filter(function(f) identical(f$id, "simulation_accuracy"), simulation_accuracy_group(forms, "E2")[[1]]$fields)[[1]]
+  expect_match(accuracy$help, "Failures can reduce", fixed = TRUE)
 })
 
 test_that("unfamiliar numeric families have meanings, illustrations, sources and an honest unknown route", {
@@ -88,7 +89,7 @@ test_that("assumption sources and named nuisance alternatives survive draft and 
   calc <- run_calculation(build_spec(forms, "E2", fields, v))
   calc$route <- route
   doc <- paste(planning_document(tree, forms, calc), collapse = "\n")
-  for (word in c(v$research_question, "Equal groups", "assumed", calc$result$provenance$spec_hash, "not register a preregistration")) expect_match(doc, word, fixed = TRUE)
+  for (word in c(v$research_question, "Equal groups", "assumed", calc$result$provenance$spec_hash, "is not a preregistration")) expect_match(doc, word, fixed = TRUE)
   # Readers' wording: a prototype until 1.0, the checks in words in their own
   # section, and no registry codes or screen-only labels in the methods text.
   for (word in c("a prototype in development", "## Validation evidence", "## Reproducibility record", "A significance test at alpha = 0.05, two-sided."))
@@ -116,5 +117,5 @@ test_that("planning recruitment keeps the counted units instead of relabelling p
   lines <- paste(planning_recruitment_lines(result, list(unit = "pairs")), collapse = " ")
   expect_match(lines, "Analysed: 40 pairs. Recruitment target: 50 pairs.", fixed = TRUE)
   expect_no_match(lines, "50 participants", fixed = TRUE)
-  expect_match(planning_recruitment_lines(list(recruitment = NA), list(unit = "pairs")), "does not establish", fixed = TRUE)
+  expect_match(planning_recruitment_lines(list(recruitment = NA), list(unit = "pairs")), "whether you expect any losses", fixed = TRUE)
 })

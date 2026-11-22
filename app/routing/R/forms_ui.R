@@ -103,7 +103,11 @@ field_ui <- function(f, value, described_by = character()) {
   # both explanation modes; with explanations off the line folds too.
   lead <- if (is.null(f$prompt)) help_lead(f$help)
   rest <- if (!is.null(lead)) help_rest(f$help) else f$help
-  more <- if (!is.null(f$help) || !is.null(f$default_source) || !is.null(input_guide(f))) explanation_ui(
+  # A select's starting value shows as selected, so its source adds no
+  # line; a field with nothing else to say gets no info button (an empty
+  # one opened onto a blank box, 22 November 2026).
+  source_line <- !is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")
+  more <- if (!is.null(f$help) || source_line || !is.null(input_guide(f))) explanation_ui(
       paste0(id, "_info"), f$label, class = "field-more",
       if (!is.null(lead)) div(class = "field-help field-lead-copy", lead),
       if (!is.null(f$help)) div(id = help_id, class = "field-help", rest %||% ""),
@@ -111,7 +115,7 @@ field_ui <- function(f, value, described_by = character()) {
     # Shown only where a number is filled in to start with: a line about an
     # empty box or a pre-selected choice describes the app, not the study
     # (11 November 2026).
-    if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) div(id = source_id, class = "default-source", title = f$default_source,
+    if (source_line) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
@@ -270,6 +274,30 @@ group_ui <- function(tree, g, values, index) {
   own_values <- lapply(g$fields, function(f) values[[f$id]])
   cached_html(list("form_group", g, own_values, index, tree$glossary), function() group_ui_build(tree, g, values, index))
 }
+# A box with one question whose heading only restates it ("Your
+# hypothesis" over "Which directions will your statistical decision
+# test?", "Random seed" over "Random seed") keeps the heading for screen
+# readers only (22 November 2026). It counts as a restatement when the
+# question asks it as a question, or when most of the heading's words are
+# in the question; a heading that adds something (which group is the
+# reference) stays.
+legend_repeats_question <- function(legend, g) {
+  if (identical(legend, "What you want to find out")) return(TRUE)
+  always <- Filter(function(f) is.null(f$shown_if), g$fields)
+  if (length(always) != 1 || is.null(always[[1]]$label) || grepl("reference", legend, fixed = TRUE)) return(FALSE)
+  label <- always[[1]]$label
+  if (grepl("\\?$", label)) return(TRUE)
+  stop <- c("the", "a", "an", "of", "in", "each", "your", "you", "to", "and", "or", "s", "will", "be", "for", "is", "are",
+    "how", "what", "which", "many", "name", "names", "number", "do", "does", "have", "i", "it", "its", "this", "with",
+    "per", "by", "as", "optional", "same", "one", "on", "there")
+  words <- function(x) {
+    w <- setdiff(unique(strsplit(gsub("[^a-z ]", " ", tolower(x)), " +")[[1]]), c(stop, ""))
+    sub("s$", "", w)
+  }
+  head <- words(legend)
+  !length(head) || mean(head %in% words(label)) >= 0.6
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -285,8 +313,8 @@ group_ui_build <- function(tree, g, values, index) {
   # A group that only some choices need (`shown_if`, as on a field; its
   # fields carry the same condition, so the server ignores them too).
   box <- tags$fieldset(
-    class = paste("form-group-box", if (names_only) "form-group-names"),
-    tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
+    class = paste("form-group-box", if (names_only) "form-group-names", if (identical(legend, "Which test you'll run")) "form-group-test"),
+    tags$legend(class = if (legend_repeats_question(legend, g)) "visually-hidden" else "h6",
       legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
@@ -366,7 +394,6 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     # explanations on the screen still says which analysis it plans
     # (17 November 2026); with them off the heading is that name.
     if (!identical(ep$plain_name, technical_name(ep))) p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep))),
-    p(class = "lead", "Fields marked optional can be left empty."),
     # The label alone: how far the checks have got is on the card and
     # under the result's "Checks for this analysis in general" (15
     # November 2026), not between the person and the form.
@@ -503,24 +530,33 @@ setting_value_text <- function(f, value) {
 
 settings_summary_ui <- function(groups, values) {
   # Fields that depend on another choice (e.g. Welch's method) are left out
-  # of the line; they show inside when that choice is made.
-  fields <- Filter(function(f) is.null(f$shown_if), unlist(lapply(groups, `[[`, "fields"), recursive = FALSE))
+  # of the line; they show inside when that choice is made. The simulation
+  # accuracy is the exception: it is named on the line whenever the
+  # analysis is simulated, since it changes the result's precision.
+  fields <- Filter(function(f) is.null(f$shown_if) || identical(f$id, "simulation_accuracy"),
+    unlist(lapply(groups, `[[`, "fields"), recursive = FALSE))
   items <- lapply(fields, function(f) {
     # Short names for the common settings (12 November 2026), so the line
     # reads at a glance.
     name <- switch(f$id, allocation_ratio = "Group 2 / group 1", attrition = "Dropout", seed = "Seed",
-      ci_draws = "Resamples", trimws(sub("[:(;].*$", "", f$label)))
-    tags$span(class = "setting-item", paste0(name, ": "),
+      ci_draws = "Resamples", simulation_accuracy = "Simulation", trimws(sub("[:(;].*$", "", f$label)))
+    item <- tags$span(class = "setting-item", paste0(name, ": "),
       tags$strong(`data-setting-for` = field_input_id(f), setting_value_text(f, values[[f$id]] %||% f[["default"]])))
+    if (is.null(f$shown_if)) list(item) else list(tags$span(`data-display-if` = shown_if_js(f), `data-ns-prefix` = "", " \u00b7 ", item))
   })
-  Reduce(function(a, b) tagList(a, " \u00b7 ", b), items)
+  plain <- Filter(function(x) identical(x[[1]]$attribs$class, "setting-item"), items)
+  conditional <- Filter(function(x) !identical(x[[1]]$attribs$class, "setting-item"), items)
+  tagList(Reduce(function(a, b) tagList(a, " \u00b7 ", b), lapply(plain, `[[`, 1)), lapply(conditional, `[[`, 1))
 }
 
 form_sections_ui <- function(tree, groups, values, form = list()) {
   section <- vapply(groups, form_section, character(1))
   index <- seq_along(groups)
   part <- function(which) lapply(index[section == which], function(i) group_ui(tree, groups[[i]], values, i))
-  settings <- groups[section == "settings"]
+  # The simulation accuracy sits in Settings (22 November 2026): it is
+  # used only when the analysis is simulated, and its choice is named on
+  # the Settings line whenever it applies.
+  settings <- groups[section %in% c("settings", "accuracy")]
   # Open when a setting has been changed from its default (e.g. a reopened
   # project), so a changed value is never hidden.
   changed <- any(vapply(unlist(lapply(settings, `[[`, "fields"), recursive = FALSE), function(f) {
@@ -539,13 +575,15 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_help_ui(form, groups),
       effect_boxes_ui(groups),
       part("effect")),
-    if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
-    if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
+    # The optional sections share one card, a row each (22 November 2026);
+    # the Settings row keeps its summary of the choices that change the result.
+    if (any(section %in% c("scenarios", "guess")) || length(settings)) div(class = "form-extras",
+    if (any(section == "scenarios")) tags$details(class = "form-scenarios", tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
         settings_summary_ui(settings, values), " \u00b7 ", tags$span(class = "form-settings-change", "Change")),
-      part("settings")),
-    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess"))
+      part("settings"), part("accuracy")),
+    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional)"), part("guess")))
   )
 }
 

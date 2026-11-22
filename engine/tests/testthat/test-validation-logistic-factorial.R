@@ -80,3 +80,20 @@ test_that("logistic factorial: Type I error is near alpha when the interaction i
   spec <- logit_factorial_validation_spec(list(as.list(row1), as.list(row2)), "interaction", seed = 1001, n = 600)
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+# Independent simulation ------------------------------------------------------------
+# The check above calls Spower with powerkit's own coefficients. This one
+# draws each person's outcome from the cell chances as entered and fits
+# glm() with sum-to-zero contrasts, testing each effect by its Wald
+# chi-square.
+
+test_that("logistic factorial: each effect agrees with glm() on studies simulated separately (simulation)", {
+  skip_unless_full_validation()
+  effects <- c(main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+  for (i in seq_along(effects)) {
+    spec <- logit_factorial_validation_spec(cells_2x3, names(effects)[i], seed = 1100 + i, n = 600)
+    reference <- independent_logistic_factorial_power(cells_2x3, effects[[i]], n = 600,
+      nrep = validation_nrep(), seed = 1200 + i)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+})

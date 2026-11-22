@@ -4874,3 +4874,110 @@ different test. Part of the audit of method choices (next.md item 25).
   no random error, and a run takes a fraction of a second.
 - **Departure 37** in docs/conventions.md records the difference from
   `powertbf01()` and its size.
+
+## 2026-11-21 · New designs paused while colleague testing runs
+
+While colleague testing runs, the queue's fixes come first: wrong or
+misleading results, wording and assumptions, and the independent checks
+of item 24. New designs and features wait, except a design that fixes a
+current problem, such as a gap that sends researchers to the wrong
+analysis. Why: testers are judging what is already there, and a check
+that doesn't depend on a card's own package does more for trust in the
+results than another design. Recorded at the top of docs/next.md.
+
+## 2026-11-21 · The online app: no publishing by hand, and quiet tabs close sooner
+
+Posit Connect Cloud's credits are now enforced: at the monthly limit the
+account, and the online app with it, is paused until the reset. On the
+free plan (20 credits) the app had used 16 by 21 November, three days
+into the month, with eight publishes, five of them started by hand after
+merges. The account moved to the Basic plan (100 credits) the same day.
+
+- **Publishing:** the daily schedule is unchanged. A publish by hand
+  ("Run workflow") is the maintainer's, for an urgent fix; pull requests
+  and sessions don't start one after a merge (`CLAUDE.md`).
+- **Keep-open message:** sent while the page is in view and has been used
+  in the last 10 minutes (20 before), or while a calculation runs, so a
+  tab left open stops holding the app up sooner. Answers on an input
+  screen still come back from the browser's copy after a reconnect.
+
+## 2026-11-22 · Input screens: settings that don't apply move into Settings
+
+The plain-wording pass (queue item 26) measured the input screens with
+explanations on: the longest (two groups, paired, ANCOVA, one-way ANOVA,
+multiple regression) show about 550 to 650 words, about 40 of them
+navigation, and their help already meets the wording rule. A cleaner
+screen is better for the researcher, so what doesn't apply to the chosen
+method moves into the folded Settings section, provided nothing that
+changes a decision is hidden and no default becomes a new ritual. First
+step: the simulation accuracy, used only when the analysis is simulated,
+moves into Settings, and the Settings line names it ("Simulation:
+Standard") whenever it applies. The claim (how many tests the conclusion
+rests on) stays in view, as decided on 12 November 2026, since it can
+change the significance level or the power each test needs. The line
+"Fields marked optional can be left empty" is dropped: each optional
+field already says so.
+
+## 2026-11-22 · The full methods paragraph asks why the significance level and target power were chosen
+
+Lakens (2022, "Sample size justification", Table 4; refs.bib
+Lakens2022_justification) asks an a priori power analysis to list and
+justify the significance level and the desired power. Until now, with no
+reason entered, the paragraph stated the value alone and never said a
+reason was missing (2026-11-08, "Conventional values start empty").
+Decided: when no reason is entered, the full methods paragraph leaves a
+bracketed prompt for each ("[Say why this significance level was
+chosen.]", "[Say why this target power was chosen.]"), as it does for the
+sample size rule, where the code is shared, and what a fixed sample's
+data are for. The short paragraph still states the value alone, and a
+reason, when entered, is written as a sentence as before.
+
+## 2026-11-22 · Input forms: one info button per box
+
+With explanations off, every field on an input form had its own info
+button, so a box carried a column of them. Decided: each box with any
+explanation has one info button in its top-right corner, as the
+replication planner's boxes already do (2026-11-19); it opens or closes
+every explanation in the box at once, and each still opens under its own
+field, so a note that belongs to one field stays beside it. With
+explanations on, nothing changes. To keep a whole box readable when it
+opens, a field guide's labels (Example, Where to look, If unknown) sit
+beside their text, its default "If unknown" line is one sentence, and the
+opened notes in a box share one size and colour.
+
+## 2026-11-22 · One style for folded sections, and underlines only for links
+
+Folded sections used several markers (the browser's triangle, a chevron on
+the results screen, underlined blue text) and underlines also marked
+things that only fold open, so a reader could not tell a link to another
+page from a section that opens in place. Decided: every folded section
+opens from a small chevron that turns when it opens (except where a fold
+has its own marker, such as the help "?" or an analysis group's arrow on
+the right); a fold's title is not underlined, and underlining is kept for
+links and for action words inside a sentence (it shows on hover for fold
+titles). The optional sections at the foot of an input form (assumptions
+and named alternatives, Settings, the guess) share one card, a row each;
+the Settings row still shows its summary of the choices that change the
+result.
+
+## 2026-11-22 · Group treatment trials with a score use the Welch-Satterthwaite degrees of freedom
+
+**Decision (maintainer).** For a group treatment trial (people randomised
+one by one, the second condition delivered in groups) with a score
+outcome, powerkit keeps the variance of powertools' `irgtt.cont()` and
+tests it with the Welch-Satterthwaite degrees of freedom, (Uc + Ue)² /
+(Uc² / (n − 1) + Ue² / (J − 1)), instead of `irgtt.cont()`'s own df
+(Departure 38).
+
+**Why.** The independent check of item 24 drew such trials as the input
+screen describes them and analysed them by Welch's test of the people
+taking part individually against the groups' means. Their power agreed
+with Satterthwaite's df (.546 simulated, .548 by formula, at 10 groups
+of 8 and 80 individuals, ICC 0.1, d = 0.4) and not with `irgtt.cont()`
+(.512), whose df, a weighted average of J − 1 and n − 1 with no source
+on its help page, are about half as many. The difference is under a
+point with 30 or more groups and up to about 12 points with 4 to 6, so
+the old answer asked for more groups than a trial needs. A yes/no
+outcome still runs on `irgtt.bin()`'s z test, which has no df. The
+question is recorded for powertools' authors in
+`docs/upstream-questions.md`.

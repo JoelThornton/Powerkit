@@ -18,8 +18,9 @@
 #   same draft format as "Save a draft" (R/drafts.R), so a new session
 #   offers to continue where the visitor left off.
 # * The small message is sent only while the page is in view and has been
-#   used in the last 20 minutes, or while a calculation runs (6 November
-#   2026). The host charges for every hour the app is running, and it
+#   used in the last 10 minutes, or while a calculation runs (6 November
+#   2026; 20 minutes until 21 November 2026, when the free plan's credits
+#   ran low). The host charges for every hour the app is running, and it
 #   keeps running while any connection is open: a message sent for ever
 #   would keep the app up for as long as a forgotten tab stayed open. A
 #   visitor who comes back after that gets their answers back from the
@@ -92,7 +93,7 @@ connection_js <- "
   // When the visitor last used the page, and when a calculation last
   // reported progress (calc_progress, every half second while one runs, or
   // kept_progress, every second while a run kept in a study plan goes on).
-  var IDLE_MS = 20 * 60 * 1000, lastActive = Date.now(), lastProgress = 0;
+  var IDLE_MS = 10 * 60 * 1000, lastActive = Date.now(), lastProgress = 0;
   ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll', 'input'].forEach(function(type) {
     document.addEventListener(type, function() { lastActive = Date.now(); }, {capture: true, passive: true});
   });
@@ -121,7 +122,7 @@ connection_js <- "
     } catch (e) {}
     if (plans.legacy || Object.keys(plans.records).length) Shiny.setInputValue('pk_saved_plans', plans, {priority: 'event'});
     // A small message every 20 seconds while the page is being used (in
-    // view and used in the last 20 minutes) or a calculation runs, so that
+    // view and used in the last 10 minutes) or a calculation runs, so that
     // the connection isn't closed for being quiet while the visitor reads
     // or thinks. A page left alone is allowed to go quiet, so the server
     // can close it and the host can stop the app.

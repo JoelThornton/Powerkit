@@ -343,6 +343,50 @@ allowance. Joint-test power, power4mome vs simsem:
 
 Each chunk took under half an hour (2 tests at a time, 2 cores each).
 
+## Independent checks by card
+
+**Why.** A comparison with the package a card wraps, called directly,
+checks that powerkit passes the right numbers, not what they mean: the
+direction of an effect, one- or two-sided, per group or in total, true or
+observed scores. The ordinal card planned an odds ratio's shift the wrong
+way until 17 November 2026 while agreeing with the package by hand. So
+each card records which of its checks don't depend on its backend: a
+simulation that draws data from the study as the researcher describes it
+and runs the usual test, a formula or package written independently, a
+Type I error check, or a published example (placeholders don't count
+until transcribed). The simulations are in
+`helper-independent-simulation.R` and run in each design's chunk.
+
+| Card | Backend | Independent power checks | Where |
+| --- | --- | --- | --- |
+| t-tests, correlation, chi-square, two proportions | Spower | pwr's formulas; G\*Power values; Type I error | `basic` |
+| Simple, parallel and serial mediation | power4mome | pwrss and simsem (cross-check chunks) | `mediation_crosscheck*` |
+| Moderation in regression | InteractionPoweR | **base-R studies fitted by `lm()`, with and without measurement error (21 November 2026)**; Type I error | `interactions` |
+| Ordinal outcome, two groups | powertools | **proportional-odds studies fitted by `MASS::polr()`, both directions, uneven shares, unequal groups (21 November 2026)** | `ordinal` |
+| One-way repeated measures | Superpower | **base-R studies analysed by `aov()` (21 November 2026)**; Type I error | `anova` |
+| Mixed ANOVA beyond 2 x 2 | Superpower | **base-R studies by `aov()`, each effect (21 November 2026)**; Type I error | `anova` |
+| 2 x 2 between, unequal cells, unequal mixed groups | Superpower | Sommet et al.'s published values; pwrss's Shieh formula; `pwr.t2n.test()` | `anova`, `anova_mixed_unequal` |
+| Repeated measures without sphericity | Superpower | an independent reference with Greenhouse-Geisser | `anova` |
+| Equivalence tests (two groups, pairs, one sample) | TOSTER | **two one-sided `t.test()`s on base-R studies (21 November 2026)**; Type I error at the bound | `equivalence` |
+| Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
+| Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026)**; Type I error | `logistic_factorial` |
+| Three-way interaction | InteractionPoweR | **a population built separately gives its R-squared with and without XWZ, and simulated studies by `lm()` measure Known difference 17 (22 November 2026)**; Type I error | `three_way` |
+| Moderated mediation, PROCESS model 7 | power4mome | **base-R studies with the product of X and W, fitted by `lm()` with a Monte Carlo interval for the index (22 November 2026)**; Type I error | `process_7` |
+| Moderated mediation, PROCESS model 14 | power4mome | **base-R studies with the product of M and W, X and W correlated, fitted by `lm()` with a Monte Carlo interval (22 November 2026)**; Type I error | `process_14` |
+| Moderated mediation, two parallel mediators | power4mome | **base-R studies with correlated mediator residuals, fitted by `lm()` with a Monte Carlo interval for the index through M1 (22 November 2026)**; Type I error | `modmed_parallel` |
+| Moderated mediation, W on two links (models 8, 58, 59) and yes/no X or W | power4mome | studies fitted by OLS one equation at a time, with their own Monte Carlo interval; Type I error | `modmed_difference`, `modmed_binary` |
+| Cluster-randomised trial (a score) | powertools | **trials simulated in base R, analysed by the group means' t test, and with groups of different sizes by a mixed model (lmerTest) (22 November 2026)**; pwrss's t test with the design effect | `cluster` |
+| Multisite trial (a score) | powertools | **trials simulated in base R with the effect varying between groups, analysed by the t test of the groups' differences (22 November 2026)** | `multisite` |
+| Group treatment trial (a score) | powerkit (Departure 38) | **trials simulated in base R, analysed by Welch's test of the individuals against the groups' means; found powertools' df too few and led to Departure 38 (22 November 2026)** | `cluster` |
+| Cluster-randomised and multisite trials, yes/no outcome | powertools | the trial simulated and fitted by lme4's `glmer()` (the card's simulation route) agrees with the formula written out without powertools' factor 1.2, which measures Known difference 16 | `cluster` (`test-backend-cluster-glmer.R`) |
+| Group treatment trial, yes/no outcome | powertools | **trials simulated in base R (beta-binomial groups), analysed by the z test of the groups' mean proportion against the individuals' (22 November 2026)** | `cluster` |
+| SEM model fit (exact, close and not-close fit) | semPower | **MacCallum, Browne and Sugawara's (1996) noncentral chi-square written out separately (22 November 2026)** | `sem_fit` |
+| SEM factor correlations and invariance | semPower | studies simulated and fitted by lavaan directly | `sem_latent` |
+
+Still compared only with their own package for power (Type I error
+checks aside), next in this audit: the other built-in tests and corrections listed
+in `conventions.md`.
+
 ## Before this log
 
 Runs recorded in `docs/decisions.md` before this file existed. The loop bug

@@ -632,6 +632,22 @@ test_that("the settings line shows each setting's value, and opens when one has 
   expect_match(changed, 'data-setting-for="f_seed">42<', fixed = TRUE)
 })
 
+test_that("the simulation accuracy sits in Settings and is named on its line when it applies", {
+  for (ep in c("E18", "E2")) {
+    html <- as.character(form_ui(tree, forms, ep, form_groups(forms, ep)))
+    start <- regexpr('<details class="form-settings">', html, fixed = TRUE)
+    settings <- substr(html, start, regexpr("Guess the answer first", html, fixed = TRUE))
+    expect_match(settings, 'id="f_simulation_accuracy"', fixed = TRUE, label = ep)
+    expect_match(settings, 'data-setting-for="f_simulation_accuracy">Standard<', fixed = TRUE, label = ep)
+    # Outside Settings there is no simulation section.
+    expect_equal(lengths(regmatches(html, gregexpr('id="f_simulation_accuracy"', html, fixed = TRUE))), 1, label = ep)
+  }
+  # On a card whose test is worked out by formula unless simulation is
+  # chosen, the line names it only once simulation is chosen.
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, '<span data-display-if="[^"]*welch_method[^"]*"[^>]*>\\s*\u00b7\\s*<span class="setting-item">\\s*Simulation: ', perl = TRUE)
+})
+
 test_that("power and N appear only for the goals that need them; optional fields say so", {
   f <- Filter(function(f) f$id == "n", form_fields(form_groups(forms, "E2")))[[1]]
   html <- as.character(field_ui(f, NULL))
@@ -1061,7 +1077,7 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # Simulation guidance uses the same named info disclosure as other notes.
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
   expect_match(acc, 'aria-label="Info: Simulation accuracy"', fixed = TRUE)
-  expect_match(acc, "More simulations do not guarantee", fixed = TRUE)
+  expect_match(acc, "More simulations don't guarantee", fixed = TRUE)
 })
 
 test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {
@@ -1182,4 +1198,94 @@ test_that("a field shown only for some choices clears its box's floated heading"
   # wrapper alone left such a field beside the heading (17 November 2026).
   css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(css, "fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *", fixed = TRUE)
+})
+
+test_that("engine messages name fields and choices as the screen shows them", {
+  # A choice named by its value, for a field the message names.
+  e2 <- fields_for("E2")
+  msg <- plain_engine_message("'target_test > alternative' is 'less', but the effect you specified goes the other way; use 'two_sided', or check the population values.", e2)
+  expect_match(msg, "is “Negative only”", fixed = TRUE)
+  expect_match(msg, "use “Either direction”", fixed = TRUE)
+  expect_no_match(msg, "'", fixed = TRUE)
+  # A second field named by the last part of its path.
+  e26 <- fields_for("E26")
+  msg <- plain_engine_message("'population > p_first_only' and 'p_second_only' add up to 1.2, but together they can't be more than 1.", e26)
+  expect_no_match(msg, "p_second_only", fixed = TRUE)
+  expect_match(msg, "second condition only", fixed = TRUE)
+  # A pair of values entered in two fields, named by their parent.
+  e38 <- fields_for("E38")
+  msg <- plain_engine_message("'target_test > w_values' must be two different values of W.", e38)
+  expect_match(msg, "“The lower value of W, in SDs from its mean” and “The higher value of W, in SDs from its mean”", fixed = TRUE)
+  # A code-like value in double quotes, unique on the screen, is named too.
+  msg <- plain_engine_message("The joint test of both parts (\"rate_and_zero\") has no direction: make it two-sided, or test one part.", fields_for("E28"))
+  expect_no_match(msg, "rate_and_zero", fixed = TRUE)
+  expect_match(msg, "Both parts", fixed = TRUE)
+  # The moderation cards' impossible correlations name the fields.
+  e9 <- fields_for("E9")
+  msg <- plain_engine_message(paste("Make one or more of the correlations with Y ('population > r_X_Y', 'r_W_Y' and 'r_XW_Y') smaller,",
+    "or change the correlation of X with W ('r_X_W')."), e9)
+  expect_no_match(msg, "r_X_Y|r_W_Y|r_XW_Y|r_X_W")
+})
+
+test_that("the SEM card's item count stays where semPower counts degrees of freedom quickly", {
+  items <- Filter(function(f) identical(f$id, "indicators"), fields_for("E37"))[[1]]
+  expect_identical(items$max, 100L)
+  expect_match(form_problems(fields_for("E37"), modifyList(form_examples$E37, list(indicators = "120"))), "at most 100", fixed = TRUE)
+})
+
+test_that("every info button has something to show, and the optional sections share one card", {
+  for (ep in c("E1", "E2", "E18")) {
+    html <- as.character(form_ui(tree, forms, ep, form_groups(forms, ep)))
+    # An info button whose panel would open empty is not drawn.
+    expect_no_match(html, '<div id="[^"]*_info_body" class="explanation-content">\\s*</div>', perl = TRUE, label = ep)
+    # The assumptions, Settings and guess rows sit in one card, Settings
+    # with its summary still showing.
+    extras <- regexpr('<div class="form-extras">', html, fixed = TRUE)
+    expect_gt(extras, 0, label = ep)
+    expect_gt(regexpr('<details class="form-settings">', html, fixed = TRUE), extras, label = ep)
+    expect_gt(regexpr('<details class="form-guess">', html, fixed = TRUE), extras, label = ep)
+  }
+  html <- as.character(form_ui(tree, forms, "E1", form_groups(forms, "E1")))
+  expect_no_match(html, 'id="f_effect_units_info"', fixed = TRUE)
+})
+
+test_that("a field's guide doesn't repeat the field's own help as its meaning", {
+  d <- Filter(function(f) identical(f$id, "d"), fields_for("E2"))[[1]]
+  guide <- as.character(input_guide_ui(d))
+  expect_no_match(guide, "<dt>Meaning</dt>", fixed = TRUE)
+  expect_match(guide, "<dt>Example</dt>", fixed = TRUE)
+})
+
+test_that("with explanations off, a form box's one info button opens its fields' explanations", {
+  # The corner button covers field and box explanations, and the per-field
+  # buttons inside such a box are hidden.
+  expect_match(terms_js, "details.explanation-help.field-more, details.explanation-help.group-more", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, ".terms-mode .box-has-info .explanation-help.field-more > summary", fixed = TRUE)
+})
+
+test_that("wording that only restates a heading or a title is not shown", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  # A one-question box's heading that restates its question is for screen
+  # readers only; one that adds something stays.
+  expect_match(html, '<legend class="visually-hidden">Your hypothesis</legend>', fixed = TRUE)
+  expect_true(legend_repeats_question("Random seed", list(fields = list(list(label = "Random seed")))))
+  expect_false(legend_repeats_question("X's groups or conditions, the first the reference group",
+    list(fields = list(list(label = "X's groups or conditions")))))
+  expect_false(legend_repeats_question("Which mediation analysis will you run?",
+    list(fields = list(list(label = "Estimation and confidence interval")))))
+  # The goal and direction buttons' lines say what each needs or means,
+  # not the title again.
+  notes <- goal_button_notes(forms$forms$E2, list(sample_size = "", power = "", sensitivity = ""))
+  expect_identical(notes$power, "Give the sample size you have or can afford")
+  expect_match(notes$sample_size, "effect you expect", fixed = TRUE)
+  expect_match(html, "data-notes=", fixed = TRUE)
+  # A field with help of its own doesn't repeat it as a general meaning.
+  power <- Filter(function(f) identical(f$id, "power"), form_fields(closing_groups(forms, "E2")))[[1]]
+  expect_no_match(as.character(input_guide_ui(power)), "<dt>Meaning</dt>", fixed = TRUE)
+  # A count of people says it is counted after dropout, and no count's
+  # example is about pairs unless it counts pairs.
+  n <- input_guide(list(id = "n", type = "number", label = "Number of participants analysed"))
+  expect_match(n$meaning, "after exclusions and dropout", fixed = TRUE)
+  expect_no_match(n$example, "pairs", fixed = TRUE)
 })

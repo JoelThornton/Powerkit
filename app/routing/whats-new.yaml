@@ -7,6 +7,179 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-22"
+    title: "Less repeated wording on the input screens"
+    text: >-
+      Headings that only repeated the question under them, such as "Your
+      hypothesis", are gone, and the goal and direction buttons now say
+      what each choice needs or means rather than repeating its name.
+      Explanations no longer restate a field's own help, and the number
+      of participants now says it counts the people analysed, after
+      dropout.
+  - date: "2026-11-22"
+    title: "One info button for each box on the input screens"
+    text: >-
+      With explanations off, each box on an input screen now has one info
+      button in its corner instead of one beside every question. It opens
+      all the explanations in that box, each under its own question, so
+      the screen stays clean until you want the detail. The explanations
+      are shorter and laid out more compactly.
+  - date: "2026-11-22"
+    title: "Tidier folded sections and links"
+    text: >-
+      Sections that fold open now share one small arrow that turns as they
+      open, and only links to other pages are underlined. At the foot of
+      each input screen, the assumptions, Settings and guess rows sit
+      together in one box, with Settings still showing its choices. An
+      info button that opened onto an empty grey box is gone, and a
+      field's explanation no longer says the same thing twice.
+  - date: 2026-11-22
+    title: "Group treatment trials: more accurate power with few groups"
+    text: "When people are randomised one by one and only one condition is delivered in groups, Powerkit now uses the usual (Welch-Satterthwaite) degrees of freedom for the test with a score outcome. powertools' formula, which Powerkit used before, gave too little power when there are few groups, up to about 12 percentage points with 4 to 6 groups, so it asked for more groups than a trial needs. With 30 or more groups the answers barely change. The results screen says so. Separate simulations now also check the clustered designs' power."
+  - date: "2026-11-22"
+    title: "The design finder keeps several outcomes; SEM help drops a number"
+    text: >-
+      In Help me choose, several outcome scores related to predictors together
+      now have their own answer, which says Powerkit can't plan that yet and
+      what to do if each outcome is a claim of its own. The regression card
+      says how to plan a curved relationship. The SEM screens no longer call
+      0.7 a typical loading: they say where to find a value. The evidence
+      panel says once when no check is recorded.
+  - date: 2026-11-22
+    title: "Moderated mediation: what the second-stage interaction means"
+    text: "The interaction path MW -> Y now says which number it is: the coefficient of the product of the standardised M and W, as the regression of Y reports it. A separate simulation now also checks the power of the cards with W on the mediator-to-outcome link and with two mediators."
+  - date: 2026-11-22
+    title: "Moderated mediation: what the interaction path means"
+    text: "The interaction path XW -> M on the moderated mediation forms now says exactly which number it is: the coefficient of the product of the standardised X and W, as the regression of M reports it. When X and W are correlated this is a little smaller than the product's own standardised coefficient, so a value taken from a paper that standardised the product too should be lowered slightly. A separate simulation now checks these cards' power."
+  - date: "2026-11-22"
+    title: "Fill-in prompts in the full methods paragraph"
+    text: >-
+      The full methods paragraph now leaves short fill-in prompts for what only you can
+      say: why you chose the significance level and the target power (when you haven't
+      given a reason), where the R script or saved plan is shared, and, when your sample
+      size is set by your resources, what the data will be used for at that size. They
+      follow Lakens's (2022) guide to justifying a sample size.
+  - date: "2026-11-22"
+    title: "Simulation accuracy moves into Settings"
+    text: >-
+      The input screens are shorter: how precise a simulation should be is now chosen
+      under Settings, at the foot of the screen, and the Settings line names your
+      choice whenever the analysis is simulated. An analysis worked out by formula no
+      longer shows a simulation section in the middle of the screen.
+  - date: "2026-11-22"
+    title: "Three-way interactions: the effect's box says what it means"
+    text: "The three-way interaction card's effect box now says that the number is the coefficient of the product of the standardised X, W and Z, which is what a regression on standardised scores reports, rather than calling it a standardised coefficient. When X, W and Z are correlated those two differ slightly. The note on the result about simulated studies is also re-measured: in the example, the formula's 853 people give about 78% power rather than 80%, and about 900 are needed."
+  - date: "2026-11-22"
+    title: "Plainer wording in the downloads and the simulation settings"
+    text: >-
+      The planning document, the study plan report, the R script and the simulated
+      data set say what they are, and what they can't show, in plainer words. The list
+      of checks behind an analysis no longer repeats the same bookkeeping note on every
+      line, and the full methods paragraph names the package that was checked against
+      your population. On the input screen, the simulation accuracy section is shorter:
+      the detail about its margins is in the setting's help.
+  - date: "2026-11-22"
+    title: "Plainer wording on the analysis cards"
+    text: >-
+      The analysis cards and the design finder's help say more directly what each
+      analysis plans. The caution on every mediation card is shorter and keeps its
+      advice, and two cards have clearer names: "Mediation through a yes/no or
+      ordered-category mediator" and "Moderation or mediation of a yes/no, count or
+      category outcome".
+  - date: "2026-11-21"
+    title: "Clearer messages, and a sample-size search that settles"
+    text: >-
+      Messages about your answers now name each field and choice as the screen shows
+      them, instead of Powerkit's internal names (for example "Either direction"
+      rather than two_sided). A simulated sample-size search with few replications,
+      such as Bland-Altman limits of agreement at 200, could stop without an answer;
+      it now simulates a few more sample sizes and gives one, and a search that still finds no answer says the highest power it reached and where. The structural equation
+      model card takes up to 100 items for a factor analysis's fit; for a larger model,
+      enter its degrees of freedom.
+  - date: "2026-11-21"
+    title: "The input screen says when you change something the design finder set"
+    text: >-
+      When the design finder opens an input screen, it lists the fields it set from
+      your answers, such as the type of outcome. If you then change one of them, the
+      list now says so straight away, showing what your answers gave and what the
+      screen says now, so you can check the screen still describes your study.
+  - date: "2026-11-21"
+    title: "Study plans check the sample size they share"
+    text: >-
+      When a study plan's analyses need different sample sizes, its page and report
+      no longer assume the largest one is enough for all of them. Powerkit works out
+      each analysis's power at that number and, if one falls short of its target,
+      finds the first number at which every analysis reaches its own. A replication
+      plan's agreement check now has three outcomes: the two studies agree, they differ
+      by more than matters, or the result is inconclusive.
+  - date: "2026-11-21"
+    title: "Two groups: the design finder asks about covariates and several outcomes"
+    text: >
+      For two groups of different people, the design finder now asks
+      whether you compare one score as it is, adjust it for something
+      measured beforehand (ANCOVA), test several scores together, or make a
+      separate claim about each score. A relationship you expect to be
+      curved, such as an inverted U, goes to multiple regression with a
+      squared term, since a correlation can miss a strong curve. The
+      exploratory factor analysis choice says it plans whether the loadings
+      you expect are recovered, not how many factors to retain.
+  - date: "2026-11-21"
+    title: "Repeated measurements: the design finder asks what the change is"
+    text: >
+      For people measured many times, the design finder now asks whether
+      two groups change at different rates or one group changes over time,
+      and offers two scores measured together on each occasion (for
+      example sleep and mood each day). Mediation with the same people
+      measured more than once says plainly that the indirect effect isn't
+      calculated, and which paths and timing it would need.
+  - date: "2026-11-21"
+    title: The design finder keeps your answers
+    text: >
+      When the design finder opens an analysis, its input screen now starts
+      from what you told the finder: a yes/no outcome rather than a score,
+      and each person in one condition or in all of them. A note at the top
+      lists what was set. The finder also asks how many categories an
+      answer has before suggesting McNemar's test or an analysis of trials
+      or of people in groups, and with three or more says what Powerkit
+      can't plan yet. People in groups with a count outcome are asked what
+      the hypothesis involves, and the card says it takes a score or a
+      yes/no outcome.
+  - date: "2026-11-21"
+    title: "Write-ups keep your words as written and give the power reached"
+    text: >-
+      Your reasons, quoted in the methods and ethics paragraphs, are no longer
+      changed when Powerkit rewords its units (a quoted "140 participants" stays as
+      you wrote it). The ethics paragraph gives the power your sample size actually
+      reaches beside the target, says when a chance is for one of several tests,
+      names what a meta-analysis tests, and leaves it to you to say how you weighed
+      participants' time against precision. A calculation from a finished study's own
+      result (observed power) is described as retrospective.
+  - date: "2026-11-21"
+    title: "Plan the moderator's own effect"
+    text: "A study plan with a moderator can now include the moderator's own effect on the outcome (its main effect) as an analysis, with its own card, and simulating the whole study includes it: in a regression study as the outcome on the moderator, in an experiment as the moderator's main effect in the ANOVA."
+  - date: "2026-11-21"
+    title: "Study plans and planning documents state the same decision as the write-up"
+    text: >-
+      A study plan's design table and target, and an analysis's planning document,
+      now name the test you chose and what counts as success, as the methods
+      paragraph does. A non-inferiority test is no longer described as a two-sided
+      equivalence test, validating a prediction model is no longer called developing
+      one, the one-proportion z test is named as chosen, the test of not-close fit
+      says a significant result shows close fit, and factor recovery, profile
+      selection and precision plans no longer mention a significance test.
+  - date: "2026-11-21"
+    title: "Plan a whole study with three or more conditions per person"
+    text: "Plan a whole study now covers studies where everyone takes part in three or more conditions: one factor (a repeated-measures ANOVA), crossed with groups (a mixed ANOVA), or two factors that everyone takes every combination of. Before, these studies were sent to Help me choose and planned one analysis at a time."
+  - date: "2026-11-21"
+    title: "Plainer wording on the results screen"
+    text: >-
+      The results screen's explanations are shorter and plainer: the sliders, the
+      scenarios, which assumption matters most, the notes on planned power and what power
+      can't tell you, the simulated data, the downloads and the evidence panel. The numbers, methods and
+      warnings are unchanged.
+  - date: "2026-11-21"
+    title: "Covariates in the whole-study simulation"
+    text: "When your plan has covariates, simulating the whole study now includes them: say how many (up to three), how strongly each relates to your other variables, and every analysis adjusts for them, the mediators included. Before, a plan with covariates couldn't be simulated as a whole study."
   - date: "2026-11-21"
     title: "The smallest effect you could detect, for repeated counts, yes/no answers and ratings"
     text: "The card for people measured more than once with a count, a yes/no answer or a rating now offers \"the smallest effect I'd have a good chance of finding\": the smallest rate or odds ratio between the conditions, or with groups the smallest difference in how the groups change. It comes as an R script to run on your own computer, as the required sample size does. Cochran's Q works it out here in the app."
