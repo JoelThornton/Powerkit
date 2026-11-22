@@ -3044,6 +3044,10 @@ departures_for <- function(forms, ep_id, spec) {
   # trial with a score outcome only.
   if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised") &&
         identical(spec$goal$type, "sensitivity"))) keys <- setdiff(keys, "14")
+  # Departure 39 (measured predictors) applies to multiple regression's F
+  # tests unless the predictors are set by the design.
+  if (!(identical(spec$design, "multiple_regression") && identical(spec$target_test$method, "f_test") &&
+        !identical(spec$target_test$predictor_model, "fixed"))) keys <- setdiff(keys, "39")
   # Departure 38 (Satterthwaite's df) is for a group treatment trial with
   # a score; a yes/no outcome runs on irgtt.bin()'s z test.
   if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised"))) keys <- setdiff(keys, "38")

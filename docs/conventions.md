@@ -1057,7 +1057,7 @@ repeated.
 | E56 three factors | Equal cells, one SD | F or Bayes factor | Fine |
 | E19 planned contrast | Pooled SD, equal groups, one contrast, no alpha adjustment | Weights; raw or standardised; one- or two-sided | Fine. A one-sided test was added on 22 November 2026, and the alpha fixed: pwrss's `power.t.contrasts()` gave the power at 0.05 whatever alpha was set |
 | E23 ANCOVA | Shieh's method | Covariates measured (random) or set (fixed); F or Bayes factor | Fine (asked since 17 November 2026) |
-| E24 multiple regression | Fixed-predictor F for R-squared tests | F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine |
+| E24 multiple regression | Normal predictors when measured (Departure 39); the Bayes factors take them as fixed | Predictors measured or set by the design (F test); F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine (asked since 22 November 2026; the Bayes factors' predictors next) |
 | E25 one proportion | — | Exact binomial, `binom.test()`, z with or without correction, Bayes factor | Fine |
 | E26 McNemar | — | Exact, chi-square with or without correction | Fine |
 | E36 equivalence (TOST) | Student's t for two groups (TOSTER's `power_t_TOST()`), symmetric bounds | Comparison, units, which direction is better | **Note:** TOSTER's `t_TOST()` runs Welch's tests by default; with equal SDs the two give nearly the same power, so this is a note on the card, not a change |
@@ -2414,6 +2414,51 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   with a score (`app/routing/forms.yaml`, `departures`, key "38"), in its
   methods paragraph, and in the exported R script, which computes the
   power in base R.
+
+### 39. Multiple regression's F tests: predictors measured on each person by default, not fixed (G\*Power, pwrss)
+
+**The maintainer's decision, 22 November 2026** (`docs/decisions.md`).
+
+- **Established convention:** G\*Power's F tests for R-squared against 0,
+  an R-squared increase and one coefficient treat the predictors as fixed
+  ("fixed model": Y = X beta + e with fixed and known predictor values),
+  noncentrality lambda = f² N [GP-man, 14]; pwrss's `power.f.regression()`
+  (1.3.3), MBESS's `ss.power.R2()` (5.0.1) and WebPower's `wp.regression()`
+  (0.9.4) compute the same. G\*Power offers a separate exact "random
+  model" for R-squared against 0 only (Gatsonis and Sampson, 1989, refs.bib
+  `Gatsonis1989_multiple_correlation`).
+- **powerkit:** measured predictors by default (`target_test >
+  predictor_model` "random"): the fixed-predictor power averaged over the
+  predictors' distribution (Shieh, 2007, refs.bib
+  `Shieh2007_random_regression`). For multivariate normal predictors,
+  given the predictors F is noncentral F(q, N − k − 1) with noncentrality
+  f² times a chi-square on N − 1 − (k − q) df (the Wishart distribution of
+  the tested predictors' cross-products after the others are partialled
+  out), so power is one integral of the noncentral F's tail over that
+  chi-square (`engine/R/regression-measured.R`). No package powerkit builds
+  on computes it. Predictors set by the design ("fixed") keep G\*Power's
+  and pwrss's answer, and the input screen asks which, preselecting
+  neither, as the ANCOVA card does for its covariates (Known difference
+  15). Simulated studies with predictors drawn afresh agree with the
+  formula, and with predictor values held fixed agree with pwrss
+  (`test-validation-formula-tests.R`).
+- **Size:** two predictors added to three (R-squared .10 to .15): 73.6%
+  against 75.3% at N = 150, and 173 against 167 people for 80%; one
+  coefficient (partial R-squared .04, four predictors): 68.5% against
+  70.0% at 150, 196 against 191; R-squared .10 with five predictors: 124
+  against 122; f² .15 with three: 80 against 77; f² .02 with one
+  predictor: 398 against 395. The gap is a few people, largest in small
+  samples with many control predictors, and shrinks as N grows.
+- **Not yet:** the Bayes factor versions on the same card (R-squared
+  against 0, exact from the noncentral F; the increase and one
+  coefficient, simulated with fixed orthonormal predictors) still take
+  the predictors as fixed (`docs/next.md`).
+- **Test:** `test-backend-regression-measured.R`, "measured predictors
+  give less power than G\*Power's fixed model (Departure 39)".
+- **Shown to users:** on the result screen for these tests unless the
+  predictors are set by the design (`app/routing/forms.yaml`,
+  `departures`, key "39"), in the methods paragraph, and in the exported
+  R script, which computes the power in base R.
 
 ## Known differences
 

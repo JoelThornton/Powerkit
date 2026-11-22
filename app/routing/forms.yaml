@@ -387,6 +387,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "39": "Multiple regression with measured predictors: Powerkit works out the F test's power for predictors that differ from one sample to the next, as measured scores do, averaging over the samples they could give (Shieh, 2007). G*Power and pwrss treat the predictors as fixed, which gives a little more power: for two predictors added to three, 75.3% against 73.6% here at N = 150, and 167 against 173 people for 80%. Choose predictors set by the design for G*Power's answer."
   "38": "Group treatment trial with a score: Powerkit tests the difference with Welch-Satterthwaite degrees of freedom, the usual ones for comparing the people taking part individually with the groups' means, and what a mixed model's Satterthwaite test gives. powertools' irgtt.cont() uses the same variance but computes the degrees of freedom another way and gets about half as many, so it gives less power when there are few groups: 51% rather than 55% with 10 groups of 8 and 80 people taking part individually (ICC 0.1, d = 0.4), and up to about 12 percentage points less with 4 to 6 groups. With 30 or more groups the two differ by about a point."
   "37": "Bayes factor t-tests with an informed prior (a centre other than 0, or degrees of freedom other than 1): Powerkit works out the chance of evidence exactly from bfpwr's own Bayes factor, because bfpwr's power function, powertbf01(), gives wrong answers for informed priors in small samples. With a prior centred on 0.3 (scale 0.15), an expected effect of 0.4 (SD 0.1) and a threshold of 10, 10 people give a 5.4% chance of strong evidence (5.5% in simulated studies), where powertbf01() gives 0; from about 30 people the two agree within a point or two."
   "35": "A measured score in a Cox regression: Powerkit counts both tails of the two-sided test, so with no effect the power is alpha (5%). powerSurvEpi's formula counts only the tail in the effect's direction, which gives alpha / 2 with no effect and too little with small effects (4.5% against 5.8% for a hazard ratio of 1.05 with 100 people); for effects worth planning for the difference is well under 0.001."
@@ -3124,6 +3125,7 @@ forms:
     sides: false
     methods_name: "a multiple regression F test"
     tool: pwrss
+    departures: ["39"]
     sensitivity: true
     sensitivity_shown_if: {any: [[{field: question, is: r2_increase}, {field: r2c_test, is_not: bayes_factor}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
     directional: false
@@ -3173,6 +3175,16 @@ forms:
              shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
              help: "The r scale of a Cauchy distribution on the standardised coefficients. The prior you will use when you analyse the data. 0.354 is the usual default; use the same value as in your analysis plan."}
+          # Measured or set predictors (22 November 2026, Departure 39): the
+          # researcher says which; neither is preselected, as for the
+          # ANCOVA's covariates (docs/decisions.md).
+          - {id: predictor_model, label: "How the predictors come about", type: select, path: target_test.predictor_model, required: true,
+             shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: r2_increase}, {field: r2c_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]},
+             choices: {random: "Measured on each person (for example, scores, age or income); the usual case",
+                       fixed: "Set by the design (for example, doses or conditions chosen in advance)"},
+             help: "This changes how the predictors' spread enters the plan. Measured predictors differ from one sample to the next, which costs a little power.",
+             choice_notes: {random: "Powerkit averages the power over the samples the predictors could give, assuming they are roughly normal (Shieh, 2007). G*Power and pwrss treat the predictors as fixed, so they give a little more power and a slightly smaller sample.",
+                            fixed: "The predictors' values are chosen in advance and would be the same in a repeat of the study, as G*Power and pwrss assume. For measured predictors this gives slightly too much power."}}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine

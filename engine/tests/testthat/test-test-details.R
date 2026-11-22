@@ -21,7 +21,10 @@ test_that("a paired t-test's details are pwrss's for the same test and give pwr'
 
 test_that("an F test's details reproduce the power (pwrss and Superpower)", {
   for (file in c("regression_r2_increase.json", "anova_oneway_between.json", "anova_2x2_mixed.json")) {
-    result <- suppressWarnings(run_spec(spec_at(file, list(type = "power", n = 120))))
+    spec <- spec_at(file, list(type = "power", n = 120))
+    # pwrss's details are for predictors set by the design (Departure 39).
+    if (identical(spec$design, "multiple_regression")) spec$target_test$predictor_model <- "fixed"
+    result <- suppressWarnings(run_spec(spec))
     d <- result$details
     expect_identical(d$statistic, "F", label = file)
     expect_length(d$df, 2)

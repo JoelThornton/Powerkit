@@ -2426,6 +2426,10 @@ check_single_coefficient <- function(spec) {
 
 check_multiple_regression <- function(spec) {
   pop <- spec$population
+  # Measured or set predictors (Departure 39) describe the F test's model.
+  if (!is.null(spec$target_test$predictor_model) && !identical(spec$target_test$method, "f_test")) {
+    return("'target_test > predictor_model' applies to the F test (method \"f_test\") only; remove it for this test.")
+  }
   if (identical(spec$template, "single_coefficient")) {
     return(check_single_coefficient(spec))
   }

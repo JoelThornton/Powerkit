@@ -20,9 +20,14 @@ coef_spec <- function(method = "ols_hc3", n = 150, nrep = 100, ratio = 2, shape 
 }
 
 test_that("the usual test of one coefficient is pwrss's F test of one predictor", {
-  result <- run_quietly(coef_spec("f_test"))
+  # With predictors set by the design (G*Power's fixed model); measured
+  # predictors, the default, are test-backend-regression-measured.R's.
+  fixed <- coef_spec("f_test")
+  fixed$target_test$predictor_model <- "fixed"
+  result <- run_quietly(fixed)
   expect_equal(result$provenance$backend, "pwrss")
   increase <- example_spec("regression_r2_increase")
+  increase$target_test$predictor_model <- "fixed"
   # Partial R-squared 0.05 is an R-squared increase from 0.2 to 0.24 when
   # one of three predictors is tested.
   increase$population <- list(metric = "r_squared", r2_full = 0.24, r2_reduced = 0.2, predictors_total = 3, predictors_tested = 1)

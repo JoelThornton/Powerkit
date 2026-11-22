@@ -773,9 +773,11 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
   expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
+  # E24's F tests with measured predictors are powerkit's formula in base R
+  # (Departure 39); set predictors stay on pwrss.
   for (ep in c("E24", "E25")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
-    expect_identical(calc$result$provenance$backend, "pwrss", label = ep)
+    expect_identical(calc$result$provenance$backend, if (ep == "E24") "stats" else "pwrss", label = ep)
   }
   # One-way ANCOVA, on pwrss's Shieh method.
   calc <- run_calculation(light_spec("E23"), run, seed = 1L)
@@ -2330,7 +2332,15 @@ test_that("one regression coefficient (E24's third question) asks how it is test
   expect_null(robust$population$quantile)
   skip_without_run()
   calc <- run_calculation(usual, run, seed = 1L)
-  expect_identical(calc$result$provenance$backend, "pwrss")
+  # Measured predictors (Departure 39) by powerkit's formula; set
+  # predictors by pwrss.
+  expect_identical(usual$target_test$predictor_model, "random")
+  expect_identical(calc$result$provenance$backend, "stats")
+  expect_identical(names(departures_for(forms, "E24", usual)), "39")
+  set <- build_spec(forms, "E24", fields, modifyList(values, list(predictor_model = "fixed")))
+  expect_identical(run_calculation(set, run, seed = 1L)$result$provenance$backend, "pwrss")
+  expect_length(departures_for(forms, "E24", set), 0)
+  expect_length(departures_for(forms, "E24", robust), 0)
   robust$options$nrep <- 100L
   calc <- run_calculation(robust, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "Spower")

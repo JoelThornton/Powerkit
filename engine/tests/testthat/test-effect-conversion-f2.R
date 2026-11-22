@@ -12,6 +12,8 @@ f2_spec <- function(template, f2, goal = list(type = "power", n = 150), reduced 
   spec$population[[effect]] <- NULL
   if (!is.null(reduced)) spec$population$r2_reduced <- reduced
   spec$effect_justification$conversion <- list(from = "f2", value = f2)
+  # G*Power's fixed model, whose power the checks below write out.
+  spec$target_test$predictor_model <- "fixed"
   spec
 }
 
@@ -48,6 +50,7 @@ test_that("a regression given by f-squared has the power of the same f-squared g
   one$population$variance_ratio <- NULL
   given <- example_spec("regression_coefficient")
   given$target_test$method <- "f_test"
+  given$target_test$predictor_model <- "fixed"
   given$population$variance_ratio <- NULL
   given$options <- list(seed = 7)
   given$goal <- list(type = "power", n = 150)

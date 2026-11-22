@@ -10,6 +10,10 @@ wave2_spec <- function(name, goal, ...) {
   spec$goal <- goal
   changes <- list(...)
   spec[names(changes)] <- changes
+  # The regression checks here are of pwrss's and G*Power's fixed model
+  # (predictors set by the design); measured predictors, the default, are
+  # checked in test-backend-regression-measured.R (Departure 39).
+  if (identical(spec$design, "multiple_regression")) spec$target_test$predictor_model <- "fixed"
   spec
 }
 
