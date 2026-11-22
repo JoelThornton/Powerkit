@@ -1,3 +1,32 @@
+# powerkit 0.81.24
+
+* App: on input forms, `pkSyncExplanations()` gives each
+  `.form-group-box` with a field or box explanation the corner
+  `.box-info` button the replication planner uses, and hides the
+  per-field and per-box summaries inside it; the button opens every
+  explanation in the box, each under its field. Field guides lay their
+  labels beside the text, and the default "If unknown" line is shorter.
+
+* App: one fold style (a turning chevron, `:where(details) > summary` in
+  app.R) replaces the browser's triangle and the underlined fold titles;
+  underlines are kept for links. The optional rows at the foot of an
+  input form (`form-scenarios`, `form-settings`, `form-guess`) sit in one
+  `form-extras` card. A field with nothing to explain gets no info button
+  (a select whose only content was its default's source opened an empty
+  box), and a field guide no longer repeats the field's help as its
+  "Meaning".
+
+* Group treatment trials with a score (template `group_treatment`) now
+  test the difference with the Welch-Satterthwaite degrees of freedom,
+  keeping `irgtt.cont()`'s variance (Departure 38). `irgtt.cont()`'s own
+  df are about half as many and gave too little power with few groups
+  (51.2% against 54.8% at 10 groups of 8; up to about 12 points with 4
+  to 6 groups). The backend recorded is `stats`, and the exported script
+  computes the power in base R. Yes/no outcomes still use `irgtt.bin()`.
+* Validation: the cluster-randomised, multisite and group treatment
+  trials with a score are now checked against trials simulated
+  separately from powertools (`cluster` and `multisite` chunks).
+
 # powerkit 0.81.23
 
 * Validation: PROCESS model 14 (with X and W correlated) and moderated

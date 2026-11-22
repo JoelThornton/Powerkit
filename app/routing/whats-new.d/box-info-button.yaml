@@ -1,9 +1,0 @@
-entries:
-  - date: "2026-11-22"
-    title: "One info button for each box on the input screens"
-    text: >-
-      With explanations off, each box on an input screen now has one info
-      button in its corner instead of one beside every question. It opens
-      all the explanations in that box, each under its own question, so
-      the screen stays clean until you want the detail. The explanations
-      are shorter and laid out more compactly.

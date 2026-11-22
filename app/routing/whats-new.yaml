@@ -8,6 +8,26 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-22"
+    title: "One info button for each box on the input screens"
+    text: >-
+      With explanations off, each box on an input screen now has one info
+      button in its corner instead of one beside every question. It opens
+      all the explanations in that box, each under its own question, so
+      the screen stays clean until you want the detail. The explanations
+      are shorter and laid out more compactly.
+  - date: "2026-11-22"
+    title: "Tidier folded sections and links"
+    text: >-
+      Sections that fold open now share one small arrow that turns as they
+      open, and only links to other pages are underlined. At the foot of
+      each input screen, the assumptions, Settings and guess rows sit
+      together in one box, with Settings still showing its choices. An
+      info button that opened onto an empty grey box is gone, and a
+      field's explanation no longer says the same thing twice.
+  - date: 2026-11-22
+    title: "Group treatment trials: more accurate power with few groups"
+    text: "When people are randomised one by one and only one condition is delivered in groups, Powerkit now uses the usual (Welch-Satterthwaite) degrees of freedom for the test with a score outcome. powertools' formula, which Powerkit used before, gave too little power when there are few groups, up to about 12 percentage points with 4 to 6 groups, so it asked for more groups than a trial needs. With 30 or more groups the answers barely change. The results screen says so. Separate simulations now also check the clustered designs' power."
+  - date: "2026-11-22"
     title: "The design finder keeps several outcomes; SEM help drops a number"
     text: >-
       In Help me choose, several outcome scores related to predictors together

@@ -4931,3 +4931,53 @@ chosen.]", "[Say why this target power was chosen.]"), as it does for the
 sample size rule, where the code is shared, and what a fixed sample's
 data are for. The short paragraph still states the value alone, and a
 reason, when entered, is written as a sentence as before.
+
+## 2026-11-22 · Input forms: one info button per box
+
+With explanations off, every field on an input form had its own info
+button, so a box carried a column of them. Decided: each box with any
+explanation has one info button in its top-right corner, as the
+replication planner's boxes already do (2026-11-19); it opens or closes
+every explanation in the box at once, and each still opens under its own
+field, so a note that belongs to one field stays beside it. With
+explanations on, nothing changes. To keep a whole box readable when it
+opens, a field guide's labels (Example, Where to look, If unknown) sit
+beside their text, its default "If unknown" line is one sentence, and the
+opened notes in a box share one size and colour.
+
+## 2026-11-22 · One style for folded sections, and underlines only for links
+
+Folded sections used several markers (the browser's triangle, a chevron on
+the results screen, underlined blue text) and underlines also marked
+things that only fold open, so a reader could not tell a link to another
+page from a section that opens in place. Decided: every folded section
+opens from a small chevron that turns when it opens (except where a fold
+has its own marker, such as the help "?" or an analysis group's arrow on
+the right); a fold's title is not underlined, and underlining is kept for
+links and for action words inside a sentence (it shows on hover for fold
+titles). The optional sections at the foot of an input form (assumptions
+and named alternatives, Settings, the guess) share one card, a row each;
+the Settings row still shows its summary of the choices that change the
+result.
+
+## 2026-11-22 · Group treatment trials with a score use the Welch-Satterthwaite degrees of freedom
+
+**Decision (maintainer).** For a group treatment trial (people randomised
+one by one, the second condition delivered in groups) with a score
+outcome, powerkit keeps the variance of powertools' `irgtt.cont()` and
+tests it with the Welch-Satterthwaite degrees of freedom, (Uc + Ue)² /
+(Uc² / (n − 1) + Ue² / (J − 1)), instead of `irgtt.cont()`'s own df
+(Departure 38).
+
+**Why.** The independent check of item 24 drew such trials as the input
+screen describes them and analysed them by Welch's test of the people
+taking part individually against the groups' means. Their power agreed
+with Satterthwaite's df (.546 simulated, .548 by formula, at 10 groups
+of 8 and 80 individuals, ICC 0.1, d = 0.4) and not with `irgtt.cont()`
+(.512), whose df, a weighted average of J − 1 and n − 1 with no source
+on its help page, are about half as many. The difference is under a
+point with 30 or more groups and up to about 12 points with 4 to 6, so
+the old answer asked for more groups than a trial needs. A yes/no
+outcome still runs on `irgtt.bin()`'s z test, which has no df. The
+question is recorded for powertools' authors in
+`docs/upstream-questions.md`.
