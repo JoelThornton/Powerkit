@@ -3911,7 +3911,7 @@ interactionpower_3way_script <- function(spec, result) {
     ),
     "# Correlations are among the true scores; the three-way effect is the",
     "# standardised regression coefficient of the product x1x2x3.",
-    line("b_x1x2x3", inputs$b.x1x2x3, "the three-way interaction XWZ (standardised coefficient)"),
+    line("b_x1x2x3", inputs$b.x1x2x3, "the three-way interaction: the coefficient of XWZ, the product of standardised X, W and Z"),
     line("r_x1_y", inputs$r.x1.y, "X with Y"),
     line("r_x2_y", inputs$r.x2.y, "W with Y"),
     line("r_x3_y", inputs$r.x3.y, "Z with Y"),

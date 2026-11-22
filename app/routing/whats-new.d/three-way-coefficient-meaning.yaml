@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-22"
+    title: "Three-way interactions: the effect's box says what it means"
+    text: "The three-way interaction card's effect box now says that the number is the coefficient of the product of the standardised X, W and Z, which is what a regression on standardised scores reports, rather than calling it a standardised coefficient. When X, W and Z are correlated those two differ slightly. The note on the result about simulated studies is also re-measured: in the example, the formula's 853 people give about 78% power rather than 80%, and about 900 are needed."
