@@ -173,10 +173,16 @@ each area, is at the end of
   goodness-of-fit and rank-test examples now reach E59, E73, E48 and the
   cards offering each rank test, and the whole-study route sends several
   outcomes or latent variables to the safety net rather than a one-score
-  card (`walkthroughs.md`). Whether researchers give those answers is for
+  card (`walkthroughs.md`). Since 22 November 2026 a curved relationship
+  reaches E24 in "Help me choose" (the whole-study route has no answer
+  for a curve yet), several outcome scores related to predictors
+  together reach the safety net, and examples whose brief names something
+  the analysis must keep list the cards that would drop it, which
+  `test-walkthroughs.R` refuses. Whether researchers give those answers is for
   testers (`next.md` item 22). The result's evidence panel is headed
   "Evidence for this analysis method", since its records match the method
-  and options, not the sample size, effect or alpha entered.
+  and options, not the sample size, effect or alpha entered; with nothing
+  recorded it says so in one line.
   The finder's answers set the input screen they settle (outcome type,
   who is in which condition; `finder_form_values()` in `route-fit.R`);
   the note listing them is redrawn as fields change, so a field changed

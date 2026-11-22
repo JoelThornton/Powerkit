@@ -623,6 +623,13 @@
    "choose": "E59",
    "known": "E59",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E2",
+    "E18"
+   ],
+   "why": "the outcomes are analysed together; a single-score card drops all but one"
   }
  },
  {
@@ -722,7 +729,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "A score or scale"
+   "A score, with a curved relationship such as an inverted U"
   ],
   "known": {
    "answers": [
@@ -748,9 +755,18 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E4",
+   "choose": "E24",
    "known": "E-unsure",
    "guided": "E4"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4"
+   ],
+   "why": "a correlation measures a straight line and can miss an inverted U; the whole-study route has no answer for a curve yet, so it still ends at E4 (an open gap)",
+   "open_in": [
+    "guided"
+   ]
   }
  },
  {
@@ -836,6 +852,13 @@
    "choose": "E37",
    "known": "E37",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4",
+    "E24"
+   ],
+   "why": "the latent variables and their indicators are the model; a correlation or regression of scores drops the measurement model"
   }
  },
  {
@@ -2400,6 +2423,13 @@
    "choose": "E59",
    "known": "E59",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E2",
+    "E18"
+   ],
+   "why": "the outcomes are analysed together; a single-score card drops all but one"
   }
  },
  {
@@ -2413,7 +2443,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "Several predictors at once, or controlling for other variables"
+   "Several outcome scores, related to the predictors together"
   ],
   "known": {
    "answers": [
@@ -2439,7 +2469,7 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E24",
+   "choose": "E-unsure",
    "known": "E-unsure",
    "guided": "E24"
   }
@@ -2497,7 +2527,7 @@
    "Independent people",
    "Once",
    "A relationship between two things you measure",
-   "Several predictors at once, or controlling for other variables"
+   "Several outcome scores, related to the predictors together"
   ],
   "known": {
    "answers": [
@@ -2523,9 +2553,16 @@
    "analysis": "compare"
   },
   "reaches": {
-   "choose": "E24",
+   "choose": "E-unsure",
    "known": "E-unsure",
    "guided": "E-unsure"
+  },
+  "must_not_reach": {
+   "ids": [
+    "E4",
+    "E24"
+   ],
+   "why": "a set of scores is related to another set; a single-outcome card drops the sets"
   }
  }
 ]

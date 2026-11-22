@@ -58,4 +58,10 @@ test_that("results show captured evidence and older results remain explicitly un
   expect_match(html, "Evidence for this analysis method", fixed = TRUE)
   expect_match(html, "not on your sample size, effect or alpha", fixed = TRUE)
   expect_no_match(html, "exactly these settings", fixed = TRUE)
+  # With nothing recorded, one line says so instead of four alike.
+  none <- record
+  for (k in names(none$categories)) none$categories[[k]]$status <- "not_linked"
+  lines <- evidence_lines(none)
+  expect_identical(lines[1], "No separate check is recorded for this method with these options.")
+  expect_false(any(grepl("Software agreement", lines, fixed = TRUE)))
 })
