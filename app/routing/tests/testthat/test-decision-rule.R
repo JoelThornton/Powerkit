@@ -123,3 +123,27 @@ test_that("an omnibus F test is not called two-sided, and a reliability test nam
   icc <- build_spec(forms, "E69", form_fields(form_groups(forms, "E69")), form_examples$E69)
   expect_match(decision_rule(icc)$interpretation, "Significant: evidence that the ICC is above", fixed = TRUE)
 })
+
+test_that("the full paragraph asks where the reproducing code is shared, and what a fixed sample's data are for", {
+  # Lakens (2022, refs.bib Lakens2022_justification), Tables 3 and 4.
+  planned <- decision_outputs("E2")
+  expect_match(planned$full, "[Say where the R script or saved plan that reproduces this calculation is shared", fixed = TRUE)
+  expect_no_match(planned$full, "what the data will be used for", fixed = TRUE)
+  expect_no_match(planned$short, "[Say where", fixed = TRUE)
+  fixed <- decision_outputs("E2", list(goal = "power", n = "120", situation = "fixed"))
+  expect_match(fixed$full, "[Say what the data will be used for at this sample size", fixed = TRUE)
+})
+
+test_that("the full paragraph asks why the significance level and target power were chosen when no reason is given", {
+  # Lakens (2022), Table 4; decided 22 November 2026.
+  bare <- decision_outputs("E2", list(alpha_reason = "", power_reason = ""))
+  expect_match(bare$full, "[Say why this significance level was chosen.]", fixed = TRUE)
+  expect_match(bare$full, "[Say why this target power was chosen.]", fixed = TRUE)
+  expect_no_match(bare$short, "[Say why", fixed = TRUE)
+  given <- decision_outputs("E2", list(alpha_reason = "the claim is new", power_reason = "a miss would waste a year"))
+  expect_match(given$full, "The significance level of .05 was chosen because the claim is new.", fixed = TRUE)
+  expect_no_match(given$full, "[Say why this", fixed = TRUE)
+  # No target power for the power goal, so no prompt for it.
+  power <- decision_outputs("E2", list(goal = "power", n = "120", power_reason = ""))
+  expect_no_match(power$full, "[Say why this target power", fixed = TRUE)
+})
