@@ -203,6 +203,12 @@ app_css <- "
      first field's.) */
   .terms-mode :not(.form-field) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
   .terms-mode :not(.form-field) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
+  /* A box's terms (22 November 2026): with explanations on, a small link
+     naming them, closed until asked for; with them off, behind the box's
+     corner button like its other notes. */
+  html:not(.terms-mode) .explanation-help.terms-more > summary { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 32px; cursor: pointer; color: #0a5a8c; font-size: 0.88rem; margin-bottom: 0.25rem; }
+  html:not(.terms-mode) .explanation-help.terms-more > summary::after { content: attr(data-label); }
+  html:not(.terms-mode) .explanation-help.terms-more > summary:hover::after { text-decoration: underline; }
   /* A field's help (design review D-11, 12 November 2026): one line in
      view, the rest behind the info button beside the label, closed to
      start with in both modes. With explanations off the line folds too. */
@@ -564,6 +570,7 @@ app_css <- "
   html:not(.terms-mode) .terms-only { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
+  .terms-mode .form-terms-list .hint { display: block; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
   /* A visible focus ring on the top bar's buttons (design review D-29). */
