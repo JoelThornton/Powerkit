@@ -1255,3 +1255,11 @@ test_that("a field's guide doesn't repeat the field's own help as its meaning", 
   expect_no_match(guide, "<dt>Meaning</dt>", fixed = TRUE)
   expect_match(guide, "<dt>Example</dt>", fixed = TRUE)
 })
+
+test_that("with explanations off, a form box's one info button opens its fields' explanations", {
+  # The corner button covers field and box explanations, and the per-field
+  # buttons inside such a box are hidden.
+  expect_match(terms_js, "details.explanation-help.field-more, details.explanation-help.group-more", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, ".terms-mode .box-has-info .explanation-help.field-more > summary", fixed = TRUE)
+})

@@ -11,6 +11,4 @@ links and for action words inside a sentence (it shows on hover for fold
 titles). The optional sections at the foot of an input form (assumptions
 and named alternatives, Settings, the guess) share one card, a row each;
 the Settings row still shows its summary of the choices that change the
-result. Field explanations stay one info button per field: a single
-button per box opened every field's explanation at once, a long block of
-text, and made a warning that belongs to one field easier to miss.
+result.

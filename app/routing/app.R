@@ -336,6 +336,17 @@ app_css <- "
   .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
   .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
   .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
+  .terms-mode .box-has-info .explanation-help.field-more > summary, .terms-mode .box-has-info .explanation-help.group-more > summary { display: none !important; }
+  /* Opened explanations in a form box read as one set: the same size and
+     colour, no trailing gap (22 November 2026). */
+  .terms-mode .form-group-box .explanation-help[open] > .explanation-content { font-size: 0.9rem; color: #3d4652; }
+  .terms-mode .form-group-box .explanation-content .field-help, .terms-mode .form-group-box .explanation-content .input-guide { font-size: inherit; color: inherit; }
+  .terms-mode .form-group-box .explanation-content > :last-child, .terms-mode .form-group-box .explanation-content p:last-child { margin-bottom: 0; }
+  /* A field guide's labels sit beside their text, not above it (22 November 2026). */
+  .input-guide dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.9rem; margin: 0.25rem 0 0; }
+  .input-guide dt { font-weight: 600; }
+  .input-guide dd { margin: 0; }
+  @media (max-width: 575.98px) { .input-guide dl { display: block; } .input-guide dd { margin-bottom: 0.35rem; } }
   .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
   .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
   /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */

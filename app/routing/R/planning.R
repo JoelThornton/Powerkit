@@ -161,7 +161,7 @@ input_guide <- function(f) {
     example = "A correlation table has 1 on its diagonal; a means table uses the outcome's units. Use only the kind of table requested here.", source = "A comparable dataset/model or the paper's full parameter table, with variable definitions and units.") else NULL
   if (is.null(guide)) guide <- additional_input_guide(f)
   if (is.null(guide)) return(NULL)
-  guide$unknown <- guide$unknown %||% "Look for the same quantity in a comparable study. If you find a range, run the plan at both ends and report both."
+  guide$unknown <- guide$unknown %||% "Run the plan at both ends of a plausible range and report both."
   guide
 }
 
