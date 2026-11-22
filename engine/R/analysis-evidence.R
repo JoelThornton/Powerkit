@@ -119,19 +119,32 @@ analysis_evidence <- function(spec, computation_method = NULL) {
     limits = registry$limits, sources = if (length(source_ids)) registry$sources[source_ids] else list())
 }
 
+# The record as comments in the exported R script: what was checked, in
+# words, with the registry's identifiers last (as in the app's planning
+# document). The registry's own note for a missing record repeats the
+# status in its bookkeeping terms, so only the status is given there.
 evidence_record_text <- function(record) {
   if (!is.list(record) || !isTRUE(record$format_version == 1)) return("No supported variant-level evidence snapshot was captured with this result.")
-  labels <- c(package_agreement = "Software agreement", independent = "Independent reference",
-    published = "Published example", full_validation = "Method-validation run")
-  states <- c(recorded = "recorded cases", scoped_only = "scoped checks only",
-    pending = "benchmark pending transcription", not_linked = "no linked record",
-    outside_scope = "outside the recorded case settings")
+  labels <- c(package_agreement = "Agreement with other software", independent = "Agreement with an independent calculation",
+    published = "Agreement with a published example", full_validation = "Large simulation check of the method")
+  states <- c(recorded = "checked on the example cases recorded in the validation log",
+    scoped_only = "checked only in limited settings",
+    pending = "a published benchmark is still to be transcribed",
+    not_linked = "no record yet, so how well it is covered is unknown",
+    outside_scope = "your settings fall outside the cases that were checked")
   lines <- vapply(names(labels), function(kind) {
     item <- record$categories[[kind]]
-    state <- unname(states[item$status %||% "not_linked"])
+    status <- item$status %||% "not_linked"
+    state <- unname(states[status])
     if (length(state) != 1 || is.na(state)) state <- "status not recognised by this version"
-    sprintf("%s: %s. %s", labels[[kind]], state, item$note %||% "")
-  }, character(1))
-  c(sprintf("Variant evidence record: %s; registry %s (%s).", record$record_id, record$registry_version, record$registry_sha256),
-    lines, paste("Coverage:", record$scope), record$limits)
+    note <- if (identical(status, "not_linked")) "" else trimws(item$note %||% "")
+    paste0(labels[[kind]], ": ", state, ".", if (nzchar(note)) paste0(" ", note) else "")
+  }, character(1), USE.NAMES = FALSE)
+  scope <- sub("Complete inputs may narrow the variant. No linked record is not a failed check.",
+    "the checks that apply can narrow as more settings are filled in.", record$scope %||% "", fixed = TRUE)
+  c("These checks cover representative cases, not every value you could enter.",
+    "\"No record yet\" means no separate check exists for this method with these options, not that one failed.",
+    lines, paste("Cases covered:", scope),
+    "Powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
+    sprintf("(Evidence record %s, registry version %s, SHA-256 %s.)", record$record_id, record$registry_version, record$registry_sha256))
 }

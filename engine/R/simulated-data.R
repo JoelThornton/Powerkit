@@ -19,8 +19,9 @@
 #' Draws one data set of `n` participants from the population in a
 #' design specification, with the generator the power analysis uses. It
 #' is for writing and checking the analysis code (in R, SPSS, JASP,
-#' jamovi or Python) before the real data arrive: it is not evidence, not
-#' a pilot, and not a substitute for the analysis plan. The first column,
+#' jamovi or Python) before the real data arrive. It is made from the
+#' values entered, so it says nothing about the real effect, can't serve as
+#' a pilot, and doesn't replace the analysis plan. The first column,
 #' `SIMULATED_NOT_REAL_DATA`, marks every row as simulated, and the
 #' columns are named after the variables' labels.
 #'
@@ -1408,8 +1409,9 @@ simulated_data_section <- function(spec, n, seed) {
     "",
     "# ---- A simulated data set (NOT real data) ----------------------------------",
     "# One data set of the planned size, drawn from the population above. It is",
-    "# for writing and checking your analysis code before the real data arrive:",
-    "# not evidence, not a pilot, and not a substitute for your analysis plan.",
+    "# for writing and checking your analysis code before the real data arrive.",
+    "# It is made from the values you entered, so it says nothing about the real",
+    "# effect, can't serve as a pilot, and doesn't replace your analysis plan.",
     "# Every row is marked as simulated in the column SIMULATED_NOT_REAL_DATA.",
     "# To write it as a CSV file, remove the # before write.csv().",
     sprintf("set.seed(%s)", r_code(seed)),

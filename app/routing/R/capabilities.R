@@ -37,10 +37,11 @@ evidence_reader_lines <- function(record) {
       item <- record$categories[[k]]
       state <- unname(states[item$status %||% "not_linked"])
       if (length(state) != 1 || is.na(state)) state <- "status not recognised"
-      note <- trimws(item$note %||% "")
+      note <- if (identical(item$status %||% "not_linked", "not_linked")) "" else trimws(item$note %||% "")
       paste0("- ", labels[[k]], ": ", state, ".", if (nzchar(note)) paste0(" ", note) else "")
     }, "", USE.NAMES = FALSE),
-    paste("Cases covered:", record$scope),
+    paste("Cases covered:", sub("Complete inputs may narrow the variant. No linked record is not a failed check.",
+      "the checks that apply can narrow as more settings are filled in.", record$scope, fixed = TRUE)),
     sprintf("(Evidence record %s, registry version %s.)", record$record_id, record$registry_version))
 }
 

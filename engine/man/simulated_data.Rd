@@ -33,8 +33,9 @@ for all of an ANCOVA's covariates), or \code{NULL}.
 Draws one data set of \code{n} participants from the population in a
 design specification, with the generator the power analysis uses. It
 is for writing and checking the analysis code (in R, SPSS, JASP,
-jamovi or Python) before the real data arrive: it is not evidence, not
-a pilot, and not a substitute for the analysis plan. The first column,
+jamovi or Python) before the real data arrive. It is made from the
+values entered, so it says nothing about the real effect, can't serve as
+a pilot, and doesn't replace the analysis plan. The first column,
 \code{SIMULATED_NOT_REAL_DATA}, marks every row as simulated, and the
 columns are named after the variables' labels.
 }

@@ -288,13 +288,13 @@ simulation_accuracy_group <- function(forms, ep_id) {
     if (length(test)) when <- list(field = test[[1]]$id, is = "hartung_knapp")
   }
   group <- list(input = NULL, title = "Simulation accuracy", note = paste(
-    "Used only when this analysis is simulated. More simulated studies shrink the random error in the answer;",
-    "they do not resolve uncertainty about your effect size, SDs, correlations or other assumptions."),
-    note_more = paste(
-    "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
-    "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
+    "Used only when this analysis is simulated. More simulated studies shrink the answer's random error;",
+    "they do not resolve uncertainty about your effect size, SDs, correlations or other assumptions."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
+      help = paste(
+        "Each margin is an approximate 95% margin for the random error in a probability, if every simulated study gives a valid decision.",
+        "Failures can reduce the effective number of decisions: the result shows the actual interval and failure counts.",
+        "More simulations don't guarantee a sample-size search's accuracy. Formulas have no simulation error."),
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
         standard = "Standard: about +/-3 percentage points (1,000 studies)",
