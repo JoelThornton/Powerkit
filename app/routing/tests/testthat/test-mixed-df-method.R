@@ -12,7 +12,10 @@ test_that("each mixed-model card asks which degrees of freedom the test uses, wi
     expect_length(df, 1)
     df <- df[[1]]
     expect_setequal(names(df$choices), c("satterthwaite", "kenward_roger"))
-    expect_identical(df$default, "satterthwaite", label = ep)
+    # The researcher chooses (22 November 2026); Satterthwaite's is marked.
+    expect_null(df$default, label = ep)
+    expect_true(isTRUE(df$required), label = ep)
+    expect_match(df$choices$satterthwaite, "the usual one", fixed = TRUE, label = ep)
     expect_identical(df$path, "target_test.df_method", label = ep)
     score <- setNames(list("continuous"), mixed_df_cards[[ep]])
     yes_no <- setNames(list("binary"), mixed_df_cards[[ep]])

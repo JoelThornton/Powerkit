@@ -283,11 +283,13 @@ test_that("the claim is asked in view, and related tests can be corrected as a g
   expect_match(plan_claim$help, "Set by your study plan", fixed = TRUE)
 })
 
-test_that("simple mediation opens on a quick estimate, clearly marked, with the full simulation one choice away", {
+test_that("simple mediation offers a quick estimate, clearly marked, without choosing it for the researcher", {
   for (ep in c("E10", "E16")) {
     fields <- form_fields(form_groups(forms, ep))
     method <- Filter(function(f) identical(f$id, "method"), fields)[[1]]
-    expect_identical(method$default, "joint_significance", label = ep)
+    # Offered, not preselected (22 November 2026).
+    expect_null(method$default, label = ep)
+    expect_match(method$choices$ols_percentile_bootstrap, "the usual one", fixed = TRUE, label = ep)
     expect_setequal(names(method$choices), c("joint_significance", "monte_carlo_ci", "ols_percentile_bootstrap", "percentile_bootstrap"))
     draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
     expect_false(field_applies(draws, list(method = "joint_significance")), label = ep)

@@ -32,7 +32,11 @@ researcher (every card's are listed in `conventions.md`, "Choices each
 card makes for the researcher"; the planned contrast offers a one-sided
 test and uses the alpha set, which pwrss's contrast function ignored
 (22 November 2026); the factorial logistic regression's likelihood-ratio
-test is next;
+test is next; input screens no longer preselect a test where neither is
+clearly better (the mixed models' yes/no test and degrees of freedom,
+the multinomial, interaction and item-bias tests), a mediation analysis
+or a pairwise adjustment, and the whole-study finder asks what a claim with two or
+more main analyses needs (22 November 2026);
 so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,

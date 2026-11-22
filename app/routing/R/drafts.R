@@ -143,8 +143,11 @@ restore_guided_plan <- function(record, tree) {
   ticked <- chars(p$ticked)
   primary <- chars(p$primary)
   rules <- vapply(g$combination_rules, `[[`, "", "id")
-  rule <- chars(p$rule %||% "each")
-  if (!all(ticked %in% ids) || !all(primary %in% ticked) || length(rule) != 1 || !rule %in% rules) return(bad)
+  # No rule until the researcher chooses one (22 November 2026); a plan
+  # saved earlier keeps the rule it was saved with.
+  rule <- chars(p$rule)
+  if (!all(ticked %in% ids) || !all(primary %in% ticked) || length(rule) > 1 || (length(rule) == 1 && !rule %in% rules)) return(bad)
+  if (!length(rule)) rule <- NULL
   history <- p$history %||% list()
   if (length(history) > 500 || any(!vapply(history, function(h) {
     is.list(h) && length(chars(h$node)) == 1 && chars(h$node) %in% names(tree$nodes) &&

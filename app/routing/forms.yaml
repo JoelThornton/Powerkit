@@ -1577,14 +1577,12 @@ forms:
              shown_if: {field: outcome_type, is: binary}}
           - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: outcome_type, is: binary},
-             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the difference)"},
-             default: wald, default_source: "the test glmer's summary reports, simr's default for a predictor with one coefficient",
+             choices: {wald: "Wald test (the p-value glmer's summary reports; the usual one)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the difference)"},
              help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: outcome_type, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "How much participants and items vary (the variance components)"
         fields:
@@ -1678,20 +1676,19 @@ forms:
              shown_if: {field: outcome_type, is: binary},
              choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences, or the pair's difference)"},
              default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor: with three conditions and 30 participants, glmer's Wald chi-square test rejected 6.2% of 2,000 simulated studies with no difference at alpha .05, the likelihood ratio 5.65% (powerkit's checks, 1 November 2026)",
-             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
+             help: "The likelihood-ratio test starts selected because it keeps false positives closer to your significance level here: with three conditions and 30 participants, the Wald test gave 6.2% false positives at .05 in 2,000 simulated studies with no difference, the likelihood-ratio test 5.65%. lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: outcome_type, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
           - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
              shown_if: {field: conditions_test, is: pairwise},
              help: "The test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: conditions_test, is: pairwise},
-             choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
+             choices: {holm: "Holm's method (recommended if you correct: never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None: each comparison is its own claim"},
+             help: "Whether to correct depends on your claim: correct if the comparisons together support one conclusion, so that a false positive in any of them counts; choose none if each comparison is its own claim. If you correct, Holm's method controls the same error as Bonferroni's and never has less power."}
 
   # The same people measured more than once with a count or yes/no outcome
   # (simr; Spower with glmer.nb() for a negative binomial count), 14
@@ -1769,7 +1766,6 @@ forms:
           - {id: glmm_test, label: "What the test compares", type: select, path: target_test.method, required: true,
              shown_if: {field: glmm_outcome, is_not: binary},
              choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
-             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
              help: "That the conditions differ, or, with groups, that the groups change differently. lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
           - {id: glmm_test_yes_no, label: "What the test compares (yes/no)", type: select, path: target_test.method, required: true,
              shown_if: [{field: glmm_outcome, is: binary}, {any: [{field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
@@ -1834,13 +1830,12 @@ forms:
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and the effect and every SD below are on the log-odds scale."}
           - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: outcome_type, is: binary},
-             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the item score)"},
-             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+             choices: {wald: "Wald test (the p-value glmer's summary reports; the usual one)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the item score)"},
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: outcome_type, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "The effect, and how participants and items vary"
         fields:
@@ -1884,13 +1879,12 @@ forms:
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer): you give each condition's chance of 'yes', and how much schools and classes differ as SDs on the log-odds scale."}
           - {id: three_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: three_outcome, is: binary},
-             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the condition)"},
-             default: wald, default_source: "the test glmer's summary reports, simr's default for a two-condition predictor"}
+             choices: {wald: "Wald test (the p-value glmer's summary reports; the usual one)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the condition)"},
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: three_outcome, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
           - {id: three_assignment, label: "What is assigned to the conditions", type: select, path: population.assignment, required: true,
              choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"},
@@ -2189,13 +2183,12 @@ forms:
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
           - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: two_outcome, is: binary},
-             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
-             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+             choices: {wald: "Wald test (the p-value glmer's summary reports; the usual one)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: two_outcome, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "Each effect, how much people differ, and the occasion-to-occasion SD"
         fields:
@@ -2251,13 +2244,12 @@ forms:
              help: "With yes or no, Powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
           - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
              shown_if: {field: two_outcome, is: binary},
-             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
-             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+             choices: {wald: "Wald test (the p-value glmer's summary reports; the usual one)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: df_method, label: "Degrees of freedom for the test (score outcome)", type: select, path: target_test.df_method, required: true,
              shown_if: {field: two_outcome, is: continuous},
-             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
+             choices: {satterthwaite: "Satterthwaite's (lmerTest; the p-value most lme4 users report; the usual one)", kenward_roger: "Kenward and Roger's (pbkrtest; slower to simulate)"},
              choice_notes: {kenward_roger: "Kenward and Roger's method also adjusts the standard errors of the effects for a small number of participants, items or groups. Each simulated study takes longer to test."},
-             default: satterthwaite, default_source: "Satterthwaite's t test, the p-value lmerTest reports (Departure 16, decided 30 October 2026)",
              help: "Both correct the t or F test for having few participants, items or groups, and they usually give similar p-values. Plan with the one you will report."}
       - input: "Each effect, how much the groups differ, and the residual SD"
         fields:
@@ -2611,8 +2603,8 @@ forms:
              help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is_one_of: [t_test, mann_whitney, dunn]},
-             choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
+             choices: {holm: "Holm's method (recommended if you correct: never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None: each comparison is its own claim"},
+             help: "Whether to correct depends on your claim: correct if the comparisons together support one conclusion, so that a false positive in any of them counts; choose none if each comparison is its own claim. If you correct, Holm's method controls the same error as Bonferroni's and never has less power."}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is_one_of: [kruskal_wallis, mann_whitney, dunn]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -2720,8 +2712,8 @@ forms:
              help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is_one_of: [t_test, wilcoxon_signed_rank, conover]},
-             choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
+             choices: {holm: "Holm's method (recommended if you correct: never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None: each comparison is its own claim"},
+             help: "Whether to correct depends on your claim: correct if the comparisons together support one conclusion, so that a false positive in any of them counts; choose none if each comparison is its own claim. If you correct, Holm's method controls the same error as Bonferroni's and never has less power."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: [{field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}],
@@ -3947,7 +3939,6 @@ forms:
         fields:
           - {id: multinomial_test, label: "Which test", type: select, path: target_test.method, required: true,
              choices: {likelihood_ratio: "Whether the predictor relates to the outcome at all (the likelihood-ratio test, every category together)", wald_z: "Whether one category's odds against the first change (the Wald z test of one coefficient)"},
-             default: likelihood_ratio, default_source: "the likelihood-ratio test of the predictor, the test SPSS's 'Likelihood Ratio Tests' table and car's Anova() report for it",
              help: "The likelihood-ratio test asks whether the predictor matters for the outcome as a whole. If your hypothesis is about one category in particular (for example, more people choosing online search over a doctor), the test of that category is the one to power."}
           - {id: category, label: "The category compared with the first", type: text, path: target_test.category, required: true,
              shown_if: {field: multinomial_test, is: wald_z}}
@@ -3999,7 +3990,6 @@ forms:
              help: "Plan for the test you will run. Freeing only the difficulty is more powerful when only the difficulty changes, but misses a change in discrimination you didn't expect."}
           - {id: irt_stat, label: "Test statistic", type: select, path: target_test.method, required: true,
              choices: {likelihood_ratio: "Likelihood ratio (the usual choice)", wald: "Wald", score: "Score (Lagrange multiplier)", gradient: "Gradient"},
-             default: likelihood_ratio, default_source: "the likelihood-ratio test of the nested multigroup models, the DIF test researchers usually report",
              help: "All four test the same hypothesis and differ little in power in large samples."}
 
   # Growth curves (longpower's diggle.linear.power(), Diggle et al., 2002):
@@ -4386,7 +4376,6 @@ forms:
           - {id: cat_test, label: "Which test (an outcome in categories)", type: select, path: target_test.method, required: true,
              shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
              choices: {likelihood_ratio: "Whether X's effect depends on W for the outcome as a whole (the likelihood-ratio test of the X x W terms, every category together)", wald_z: "Whether it does for one category against the first (the Wald z test of one X x W coefficient)"},
-             default: likelihood_ratio, default_source: "the likelihood-ratio test of the X x W terms, as for multinomial logistic regression of one predictor (the test SPSS's 'Likelihood Ratio Tests' table reports)",
              help: "The likelihood-ratio test asks whether W changes X's effect on the outcome at all. If your hypothesis is about one category in particular, the test of that category is the one to power."}
           - {id: cat_category, label: "The category compared with the first", type: text, path: target_test.category, required: true,
              shown_if: [{field: Y_kind, is: categories}, {field: cat_test, is: wald_z}, {field: analysis, is_not: mediation}]}
