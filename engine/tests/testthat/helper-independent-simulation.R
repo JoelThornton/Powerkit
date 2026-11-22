@@ -325,3 +325,65 @@ independent_parallel_modmed7_power <- function(a_m1, a_m2, b1, b2, c_prime, resi
     limits[[1]] > 0 || limits[[2]] < 0
   }, nrep, seed)
 }
+
+# Cluster-randomised trial with a score (the input screen's description):
+# J1 groups in each condition, group sizes `sizes()` (all m by default);
+# each person's score is d x condition + the group's effect (variance
+# icc) + their own (variance 1 - icc), so d is over the total SD. With
+# groups of one size the test is the t test of the group means with
+# 2 J1 - 2 degrees of freedom, which is the mixed model's test exactly;
+# with groups of different sizes the trial is analysed by a mixed model
+# with a random intercept (lmerTest, REML and Satterthwaite's df).
+independent_cluster_trial_power <- function(d, icc, m, groups_per_condition, m_sd = 0,
+                                            alpha = 0.05, nrep, seed) {
+  j1 <- groups_per_condition
+  arm <- rep(0:1, each = j1)
+  independent_power(function() {
+    if (m_sd == 0) {
+      means <- d * arm + stats::rnorm(2 * j1, 0, sqrt(icc)) +
+        stats::rnorm(2 * j1, 0, sqrt((1 - icc) / m))
+      return(stats::t.test(means[arm == 1], means[arm == 0], var.equal = TRUE)$p.value < alpha)
+    }
+    sizes <- pmax(2, round(stats::rnorm(2 * j1, m, m_sd)))
+    group <- rep(seq_along(sizes), sizes)
+    x <- arm[group]
+    y <- d * x + stats::rnorm(2 * j1, 0, sqrt(icc))[group] + stats::rnorm(length(group), 0, sqrt(1 - icc))
+    fit <- suppressMessages(lmerTest::lmer(y ~ x + (1 | group), REML = TRUE))
+    stats::coef(summary(fit))["x", "Pr(>|t|)"] < alpha
+  }, nrep, seed)
+}
+
+# Multisite trial with a score: J groups of m, half of each group in each
+# condition. Each score is the group's intercept (variance icc) + (d +
+# the group's own departure from d) x condition coded -1/2 and +1/2 + the
+# person's own part. As the input screen says, icc_effect is the share
+# of the outcome's variance from the effect varying, a quarter of the
+# effect's variance, so the departures have SD 2 sqrt(icc_effect) and
+# the person's part variance 1 - icc - icc_effect. With half of each
+# group in each condition, the mixed model's test of d is the one-sample
+# t test of the groups' differences (J - 1 degrees of freedom).
+independent_multisite_power <- function(d, icc, icc_effect, m, groups, alpha = 0.05, nrep, seed) {
+  condition <- rep(c(-0.5, 0.5), each = m / 2)
+  independent_power(function() {
+    differences <- vapply(seq_len(groups), function(j) {
+      y <- stats::rnorm(1, 0, sqrt(icc)) + (d + stats::rnorm(1, 0, 2 * sqrt(icc_effect))) * condition +
+        stats::rnorm(m, 0, sqrt(1 - icc - icc_effect))
+      mean(y[condition > 0]) - mean(y[condition < 0])
+    }, numeric(1))
+    stats::t.test(differences)$p.value < alpha
+  }, nrep, seed)
+}
+
+# Group treatment trial with a score: n people take part individually
+# (scores with variance 1) and J groups of m receive the other condition
+# (each score d + the group's effect, variance icc, + the person's own,
+# variance 1 - icc), as the input screen describes it. Each trial is
+# analysed by Welch's t test of the individuals' scores against the
+# groups' means.
+independent_group_treatment_power <- function(d, icc, m, groups, individuals, alpha = 0.05, nrep, seed) {
+  independent_power(function() {
+    alone <- stats::rnorm(individuals)
+    means <- d + stats::rnorm(groups, 0, sqrt(icc)) + stats::rnorm(groups, 0, sqrt((1 - icc) / m))
+    stats::t.test(means, alone)$p.value < alpha
+  }, nrep, seed)
+}

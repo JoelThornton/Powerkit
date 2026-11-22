@@ -1214,7 +1214,7 @@ cluster_writeup <- function(result, spec = NULL) {
   if (identical(s$assignment, "one_condition")) {
     return(sprintf("Participants were randomised individually and the second condition was delivered in groups of %s; with an intraclass correlation of %s in that condition, its design effect is %s (%s).",
       whole(s$cluster_size), format(s$icc), format(round(s$grouped_design_effect, 2), nsmall = 2),
-      if (identical(s$outcome, "yes/no")) "a z test of the difference in proportions, powertools' irgtt.bin()" else "a t test with Satterthwaite degrees of freedom, powertools' irgtt.cont()"))
+      if (identical(s$outcome, "yes/no")) "a z test of the difference in proportions, powertools' irgtt.bin()" else "a t test with Welch-Satterthwaite degrees of freedom, with the variance of powertools' irgtt.cont()"))
   }
   if (identical(s$outcome, "yes/no")) {
     return(sprintf("%s; the outcome was analysed as yes/no (a z test of the log odds ratio, powertools), with %s of %s on the log-odds scale and %s participants per group.",
@@ -3044,6 +3044,9 @@ departures_for <- function(forms, ep_id, spec) {
   # trial with a score outcome only.
   if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised") &&
         identical(spec$goal$type, "sensitivity"))) keys <- setdiff(keys, "14")
+  # Departure 38 (Satterthwaite's df) is for a group treatment trial with
+  # a score; a yes/no outcome runs on irgtt.bin()'s z test.
+  if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised"))) keys <- setdiff(keys, "38")
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 

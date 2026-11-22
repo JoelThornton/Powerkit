@@ -2730,7 +2730,7 @@ test_that("a group treatment trial (only condition 2 in groups) runs on powertoo
   expect_null(spec$population$cluster_size_sd)
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$status, "ok")
-  expect_identical(calc$result$provenance$backend_function, "powertools::irgtt.cont")
+  expect_match(calc$result$provenance$backend_function, "Welch-Satterthwaite df", fixed = TRUE)
   words <- result_sentences(calc$spec, calc$result)
   expect_match(words[["detail"]], "Only the condition delivered in groups is clustered", fixed = TRUE)
   w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, modifyList(values, list(just_source = "A pilot study.")))
@@ -2747,11 +2747,13 @@ test_that("a group treatment trial (only condition 2 in groups) runs on powertoo
   expect_identical(calc_bin$result$provenance$backend_function, "powertools::irgtt.bin")
 })
 
-test_that("departure 14 shows only for a group treatment trial's smallest detectable d", {
+test_that("departures 14 and 38 show only for a group treatment trial with a score (14 for its smallest detectable d)", {
   base <- list(design = "cluster_trial", template = "group_treatment", population = list(metric = "standardised"),
                target_test = list(method = "cluster_t"), goal = list(type = "sensitivity"))
-  expect_true(any(grepl("0.352", departures_for(forms, "E34", base), fixed = TRUE)))
-  expect_length(departures_for(forms, "E34", modifyList(base, list(goal = list(type = "sample_size")))), 0)
+  expect_true(any(grepl("0.346", departures_for(forms, "E34", base), fixed = TRUE)))
+  # Departure 38 (Satterthwaite's df) shows for every goal of a group
+  # treatment trial with a score; 14 only for the smallest detectable d.
+  expect_identical(names(departures_for(forms, "E34", modifyList(base, list(goal = list(type = "sample_size"))))), "38")
   expect_length(departures_for(forms, "E34", modifyList(base, list(template = "multisite"))), 0)
   expect_length(departures_for(forms, "E34", modifyList(base, list(population = list(metric = "proportion")))), 0)
 })

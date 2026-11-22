@@ -24,7 +24,9 @@ with it, item 24 audits every card that runs for a check independent of
 the package it wraps (moderation in regression, the ordinal card, the
 repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
 logistic factorial, the three-way interaction, every moderated mediation
-card and the SEM model-fit tests now have one; the record and the
+card, the SEM model-fit tests and the clustered designs with a score
+now have one (a group treatment trial now uses Satterthwaite's degrees
+of freedom, Departure 38); the record and the
 cards still to do are in `validation-log.md`, "Independent checks by
 card"), and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53

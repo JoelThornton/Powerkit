@@ -53,7 +53,9 @@ export_script <- function(spec, result, file = NULL) {
   } else switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (continuity_corrected(spec)) {
+    stats = if (is_group_treatment(spec)) {
+      powertools_script(spec, result)
+    } else if (continuity_corrected(spec)) {
       corrected_exact_script(spec, result)
     } else if (binom_test_method(spec)) {
       binom_test_script(spec, result)

@@ -1721,7 +1721,7 @@ endpoints:
     plain_name: "People nested in groups (classes, teams, clinics)"
     search_words: "multilevel mixed model mixed effects hlm hierarchical linear model nested clustered cluster randomised trial intraclass correlation icc"
     template: "cluster_trial / cluster_randomised, multisite, group_treatment"
-    backend: "powertools: crt.parallel.cont() and multisite.cont() for a score (the t test of the difference between conditions, by formula, with the design effect); crt.parallel.bin() and multisite.bin() for a yes/no outcome (the z test of the log odds ratio), or on request Spower's simulation of the trial analysed with lme4's glmer(); irgtt.cont() and irgtt.bin() when only one condition is delivered in groups"
+    backend: "powertools: crt.parallel.cont() and multisite.cont() for a score (the t test of the difference between conditions, by formula, with the design effect); crt.parallel.bin() and multisite.bin() for a yes/no outcome (the z test of the log odds ratio), or on request Spower's simulation of the trial analysed with lme4's glmer(); irgtt.bin() when only one condition is delivered in groups, and for a score the variance of irgtt.cont() with the t test's Welch-Satterthwaite degrees of freedom"
     method: "Formula; for a yes/no outcome, simulation on request"
     status: runs_validation_in_progress
     validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests, for all three designs and both outcomes. Not yet checked against a published worked example in the validation run."}

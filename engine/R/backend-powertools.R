@@ -37,9 +37,10 @@
 #   trial               one by one, and those in the second condition receive
 #                       it in groups (an individually randomised group
 #                       treatment trial), so only that condition is
-#                       clustered. powertools::irgtt.cont(): the t test with
-#                       Satterthwaite degrees of freedom, the grouped
-#                       condition's variance inflated by 1 + (m - 1) * ICC;
+#                       clustered. For a score, irgtt.cont()'s variance (the
+#                       grouped condition's inflated by 1 + (m - 1) * ICC)
+#                       and the t test with Welch-Satterthwaite degrees of
+#                       freedom (group_treatment_power(), Departure 38);
 #                       or, for a yes/no outcome, irgtt.bin(): the z test of
 #                       the difference in proportions with the same design
 #                       effect. The same number of people in each condition,
@@ -68,12 +69,15 @@ powertools_backend <- function(spec, seed = NULL) {
   m <- spec$population$cluster_size
   step <- valid_n_step(spec)
   power_at <- function(n) powertools_power(spec, n)
+  # A group treatment trial with a score: irgtt.cont()'s variance with
+  # Satterthwaite's df, by the noncentral t (Departure 38).
+  satterthwaite <- is_group_treatment(spec) && !is_binary_cluster(spec)
   list(
-    name = "powertools",
-    packages = "powertools",
+    name = if (satterthwaite) "stats" else "powertools",
+    packages = if (satterthwaite) "stats" else "powertools",
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = paste0("powertools::", powertools_function_name(spec))),
+    functions = c(exact = if (satterthwaite) "noncentral t with Welch-Satterthwaite df (irgtt.cont()'s variance)" else paste0("powertools::", powertools_function_name(spec))),
     n_step = step,
     # The fewest groups powertools accepts: two in each condition (J1 >= 2)
     # or, multisite, two in all (J >= 2).
@@ -160,10 +164,46 @@ powertools_call <- function(args, spec) {
   call_backend("powertools", quietly(do.call(fun, args)))
 }
 
-powertools_power <- function(spec, n) {
-  args <- powertools_args(spec, n)
+powertools_power <- function(spec, n, delta = abs(spec$population$d)) {
+  if (is_group_treatment(spec) && !is_binary_cluster(spec)) {
+    return(group_treatment_power(powertools_args(spec, n, delta = delta)))
+  }
+  args <- powertools_args(spec, n, delta = delta)
   args$power <- NULL
   powertools_call(args, spec)
+}
+
+# Power of a group treatment trial with a score (Departure 38): the
+# variance of the difference is irgtt.cont()'s, sd^2 / n for the people
+# taking part individually plus Theta sd^2 (1 + (m - 1) ICC) / (mJ) for
+# the grouped condition, and the test is the t test with the
+# Welch-Satterthwaite degrees of freedom for two variances estimated from
+# n and J units, (Uc + Ue)^2 / (Uc^2 / (n - 1) + Ue^2 / (J - 1)): the df of
+# Welch's test comparing the individuals' scores with the groups' means,
+# and of the mixed model's Satterthwaite test (Delacre, Lakens and Leys,
+# 2017, refs.bib Delacre2017_welch, for Welch's df). irgtt.cont()'s own
+# df, (Ue^2 (J + 1) / (J - 1) + Uc^2 (n + 1) / (n - 1)) / (Ue^2 (J + 1) /
+# (J - 1)^2 + Uc^2 (n + 1) / (n - 1)^2), is a weighted average of J - 1
+# and n - 1 rather than Satterthwaite's, about half as large, and gives
+# too little power when there are few groups (docs/upstream-questions.md).
+# Power is from the noncentral t (one-sided) or F with 1 df (two-sided),
+# as in irgtt.cont().
+group_treatment_power <- function(args) {
+  df_ncp <- group_treatment_df_ncp(args)
+  if (args$sides == 2) {
+    stats::pf(stats::qf(1 - args$alpha, 1, df_ncp$df), 1, df_ncp$df, ncp = df_ncp$ncp^2, lower.tail = FALSE)
+  } else {
+    stats::pt(stats::qt(1 - args$alpha, df_ncp$df), df_ncp$df, ncp = df_ncp$ncp, lower.tail = FALSE)
+  }
+}
+
+group_treatment_df_ncp <- function(args) {
+  uc <- args$sd^2 / args$n
+  ue <- args$Theta * args$sd^2 * (1 + (args$m - 1) * args$icc) / (args$m * args$J)
+  list(
+    df = (uc + ue)^2 / (uc^2 / (args$n - 1) + ue^2 / (args$J - 1)),
+    ncp = args$delta / args$sd / sqrt(uc + ue)
+  )
 }
 
 # The smallest detectable d: powertools solves for delta when it is left
@@ -178,9 +218,7 @@ powertools_power <- function(spec, n) {
 # d from the same power the same way (docs/conventions.md, "Group treatment
 # trials").
 powertools_sensitivity <- function(spec, n, power) {
-  power_at_delta <- function(delta) {
-    powertools_call(utils::modifyList(powertools_args(spec, n, delta = delta), list(power = NULL)), spec)
-  }
+  power_at_delta <- function(delta) powertools_power(spec, n, delta = delta)
   found <- if (is_group_treatment(spec)) {
     stats::uniroot(function(delta) power_at_delta(delta) - power, c(1e-6, 20), tol = 1e-10)$root
   } else {
@@ -559,19 +597,29 @@ powertools_script_group_treatment <- function(spec, result) {
     paste0("  ", call_lines(NULL)),
     "}"
   ) else c(
-    "# Its one-sided test runs in the direction of a positive delta, so the",
-    "# size of d is passed.",
+    "# The variance of the difference is irgtt.cont()'s: 1 / n for the people",
+    "# taking part individually and (1 + (m - 1) ICC) / (m J) for the groups.",
+    "# The test is the t test with the Welch-Satterthwaite degrees of freedom,",
+    "# which is Welch's test of the individuals' scores against the groups'",
+    "# means. (irgtt.cont() computes the df differently and gives about half",
+    "# as many, so it gives less power when there are few groups.)",
     "power_at <- function(n_total, d_value = d) {",
-    paste0("  ", call_lines("abs(d_value)")),
+    "  m <- cluster_size",
+    "  J <- n_total / cluster_size / 2",
+    "  n <- n_total / 2",
+    "  uc <- 1 / n",
+    "  ue <- (1 + (m - 1) * icc) / (m * J)",
+    "  df <- (uc + ue)^2 / (uc^2 / (n - 1) + ue^2 / (J - 1))",
+    "  ncp <- abs(d_value) / sqrt(uc + ue)",
+    if (sides == 2) "  pf(qf(1 - alpha, 1, df), 1, df, ncp = ncp^2, lower.tail = FALSE) # two-sided" else
+      "  pt(qt(1 - alpha, df), df, ncp = ncp, lower.tail = FALSE) # one-sided, in the direction of the specified effect",
     "}"
   )
   goal_lines <- if (spec$goal$type == "sensitivity") {
     s <- result$sensitivity
     c(
       "# Smallest detectable effect ----",
-      "# The d at which power_at() reaches the target power. (irgtt.cont() can",
-      "# also solve for delta itself, but by a normal approximation, which",
-      "# gives a smaller d with less than the target power.) It takes the",
+      "# The d at which power_at() reaches the target power. It takes the",
       "# direction of the effect you specified.",
       "found <- uniroot(function(delta) power_at(n_total, delta) - target_power, c(1e-6, 20), tol = 1e-10)$root",
       sprintf("d <- %sfound", if (s$effect < 0) "-" else ""),
@@ -586,8 +634,9 @@ powertools_script_group_treatment <- function(spec, result) {
     pwr_goal_section(spec, result)
   }
   c(
-    script_header(spec, result, "powertools", paste0("powertools::", fun, "()")),
-    "library(powertools)",
+    if (binary) script_header(spec, result, "powertools", paste0("powertools::", fun, "()")) else
+      script_header(spec, result, "stats", "the t test with Welch-Satterthwaite df (irgtt.cont()'s variance)"),
+    if (binary) "library(powertools)" else "# Base R only: no package is needed.",
     "",
     "# Inputs ----",
     inputs,
