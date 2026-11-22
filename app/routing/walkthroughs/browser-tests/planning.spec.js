@@ -130,6 +130,7 @@ test('an unfinished draft preserves blanks and named alternatives', async ({ pag
 test('precision produces width rather than a power result', async ({ page }, info) => {
   await openAnalysis(page, 'E46', 'precision');
   await setValue(page, 'estimate', 'proportion');
+  await setValue(page, 'conf_level', '0.95');
   await setValue(page, 'goal', 'precision_width');
   await setValue(page, 'p', '0.3');
   await setValue(page, 'n', '120');
