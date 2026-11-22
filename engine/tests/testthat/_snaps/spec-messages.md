@@ -36,7 +36,7 @@
     Condition
       Error:
       ! This design spec has a problem:
-      * These correlations are impossible together: they imply that Daily stress (X), Social support (W) and their interaction explain 111.7% of the variance in Sleep quality (Y) (R-squared = 1.117), but R-squared must be below 1. Make one or more of r_X_Y, r_W_Y and r_XW_Y smaller, or change r_X_W.
+      * These correlations are impossible together: they imply that Daily stress (X), Social support (W) and their interaction explain 111.7% of the variance in Sleep quality (Y) (R-squared = 1.117), but R-squared must be below 1. Make one or more of the correlations with Y ('population > r_X_Y', 'r_W_Y' and 'r_XW_Y') smaller, or change the correlation of X with W ('r_X_W').
 
 ---
 

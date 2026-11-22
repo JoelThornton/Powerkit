@@ -123,3 +123,41 @@ test_that("derived seeds stay in R's valid range", {
   expect_equal(offset_seed(20261012, 0:2), 20261012 + 0:2)
   expect_equal(offset_seed(2147483646, 1), 1)
 })
+
+test_that("a local fit whose interval runs off the top of its grid gets points above it", {
+  # The simulated counts of a Bland-Altman search at 200 replications
+  # (seed 46) that stopped with "could not pin down the required n": the
+  # fit to every point placed n at 33 (32 to 34), but the fit to the points
+  # within 20% (28 to 36) had no upper limit inside its grid, as 36 drew
+  # fewer rejections than 34. New points come from a smooth curve.
+  recorded <- c(`24` = 128, `26` = 140, `28` = 136, `30` = 152, `32` = 160, `34` = 167, `36` = 162,
+    `40` = 185, `45` = 188, `54` = 193)
+  curve <- function(n) stats::pnorm(-2.6 + 0.6 * sqrt(n))
+  backend <- list(
+    name = "mock", packages = character(), n_step = 1, exact_min_n = 2,
+    # Places the first grid at 24 to 36, as that search's bracket did.
+    bracket_power = function(n) stats::pnorm(-2.444 + 0.6 * sqrt(n)),
+    simulate = function(n, nrep, seed, cores) {
+      hits <- if (as.character(n) %in% names(recorded)) recorded[[as.character(n)]] else round(nrep * curve(n))
+      list(rejections = hits, nrep = nrep)
+    }
+  )
+  spec <- list(design = "mock", population = list(), target_test = list(alpha = 0.05), goal = list(type = "sample_size"))
+  local_mocked_bindings(minimum_n = function(spec) 2)
+  out <- search_n(spec, backend, 0.8, 200, 46)
+  expect_false(is.na(out$n_required$upper))
+  expect_gte(out$n_required$n, 30)
+  expect_lte(out$n_required$n, 38)
+  expect_true(any(out$simulations$n > 36 & out$simulations$n <= 40 & out$simulations$fitted))
+})
+
+test_that("a search without an answer says what it simulated", {
+  below <- unsettled_search_message(c(40, 120, 240), c(0.5, 0.71, 0.74), 0.8, "sample size")
+  expect_match(below, "wasn't reached at any sample size simulated (40 to 240): the highest was 74.0%, at 240", fixed = TRUE)
+  expect_match(below, "level off below the target", fixed = TRUE)
+  uneven <- unsettled_search_message(c(28, 32, 36), c(0.7, 0.82, 0.79), 0.8, "sample size")
+  expect_match(uneven, "crosses the target of 80.0% between 28 and 36", fixed = TRUE)
+  effect <- unsettled_search_message(NULL, c(0.6, 0.9), 0.8, "effect")
+  expect_match(effect, "smallest effect you could detect", fixed = TRUE)
+  expect_match(effect, "60.0% to 90.0%", fixed = TRUE)
+})
