@@ -519,3 +519,54 @@ independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, t
     stats::anova(reduced, full)[2, "Pr(>F)"] < alpha
   }, nrep, seed)
 }
+
+# A factorial ANOVA with up to three factors, each between ("b") or within
+# ("w") participants. `mu` holds the cell means with the first factor
+# slowest and the last fastest (Superpower's order; for two factors, the
+# matrix of means row by row); `n` is the total number of participants,
+# split equally over the between cells; every participant's scores in the
+# within cells have SD `sd` and correlate `r` (compound symmetry). Each
+# study draws the scores and fits aov(), with an Error() stratum for each
+# participant when a factor is within (sphericity assumed, as the card's
+# test does). `terms` are aov()'s names ("A", "A:B", ...). Returns the
+# share of studies significant for each term, from the same studies.
+independent_factorial_power <- function(mu, levels, types, sd, r = 0, n, terms, alpha = 0.05, nrep, seed) {
+  names_ <- LETTERS[seq_along(levels)]
+  cells <- rev(expand.grid(lapply(rev(levels), seq_len)))
+  names(cells) <- names_
+  between <- names_[types == "b"]
+  within <- names_[types == "w"]
+  between_cell <- if (length(between)) interaction(cells[between], drop = TRUE, lex.order = TRUE) else factor(rep(1, nrow(cells)))
+  groups <- nlevels(between_cell)
+  per_group <- n / groups
+  stopifnot(per_group == round(per_group))
+  k <- nrow(cells) / groups
+  sigma <- if (length(within)) compound_symmetry(k, sd, r) else matrix(sd^2)
+  # One row per participant and within cell, participants nested in their
+  # between cell.
+  rows <- unlist(lapply(seq_len(groups), function(g) {
+    idx <- which(as.integer(between_cell) == g)
+    rep(idx, per_group)
+  }))
+  d <- cells[rows, , drop = FALSE]
+  d[] <- lapply(d, factor)
+  d$id <- factor(rep(seq_len(n), each = k))
+  rhs <- paste(names_, collapse = " * ")
+  formula <- stats::as.formula(if (length(within)) {
+    sprintf("y ~ %s + Error(id / (%s))", rhs, paste(within, collapse = " * "))
+  } else {
+    sprintf("y ~ %s", rhs)
+  })
+  set.seed(seed)
+  hits <- vapply(seq_len(nrep), function(i) {
+    d$y <- unlist(lapply(seq_len(groups), function(g) {
+      idx <- which(as.integer(between_cell) == g)
+      as.vector(t(MASS::mvrnorm(per_group, mu[idx], sigma)))
+    }))
+    fit <- summary(stats::aov(formula, data = d))
+    tables <- if (length(within)) unname(lapply(fit, `[[`, 1)) else list(fit[[1]])
+    p <- unlist(lapply(tables, function(t) stats::setNames(t[, "Pr(>F)"], trimws(rownames(t)))))
+    p[terms] < alpha
+  }, logical(length(terms)))
+  stats::setNames(rowMeans(matrix(hits, nrow = length(terms))), terms)
+}

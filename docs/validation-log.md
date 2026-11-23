@@ -367,6 +367,7 @@ until transcribed). The simulations are in
 | Mixed ANOVA beyond 2 x 2 | Superpower | **base-R studies by `aov()`, each effect (21 November 2026)**; Type I error | `anova` |
 | 2 x 2 between, unequal cells, unequal mixed groups | Superpower | Sommet et al.'s published values; pwrss's Shieh formula; `pwr.t2n.test()` | `anova`, `anova_mixed_unequal` |
 | Repeated measures without sphericity | Superpower | an independent reference with Greenhouse-Geisser | `anova` |
+| Two-factor ANOVA beyond 2 x 2, three-factor ANOVA | Superpower | **base-R studies analysed by `aov()`, with an Error() stratum per participant for within factors: each effect of within 2 x 3 and 2 x 2 (r .5 and .8), between 3 x 3 and 2 x 4, and 2b x 2w x 3w, 2b x 2b x 2b and 3b x 2w x 2w (22 November 2026)**; Type I error | `anova` |
 | Equivalence tests (two groups, pairs, one sample) | TOSTER | **two one-sided `t.test()`s on base-R studies (21 November 2026)**; Type I error at the bound | `equivalence` |
 | Rank tests (Mann-Whitney, signed-rank) | Spower | **one-sided `wilcox.test()` on base-R studies of the stated shape, unequal groups (21 November 2026)**; Type I error | `rank` |
 | Logistic factorial | Spower | **`glm()` with sum-to-zero contrasts, each effect by its Wald chi-square (21 November 2026), and by car's type III likelihood-ratio test (22 November 2026)**; Type I error of both | `logistic_factorial` |
@@ -392,13 +393,18 @@ until transcribed). The simulations are in
 | Planned contrast | pwrss | the G\*Power 3.1 manual's three examples (two levels against two, linear and quadratic trend) | `contrast` |
 | Logistic regression | pwrss | the G\*Power 3.1 manual's examples, normal and yes/no X | `logistic` |
 | Poisson regression | pwrss | the G\*Power 3.1 manual's yes/no X example (required N) | `poisson` |
+| Time to an event: log-rank test, a measured score's hazard ratio | Hmisc, powerSurvEpi | exponential times with staggered recruitment tested by `survival::survdiff()`, equal and 2:1 groups; Cox models fitted by `survival::coxph()` with a correlated second predictor, hazard ratios above and below 1; Type I error | `survival` |
+| Meta-analysis: the average effect | metapower; powerkit (Hartung-Knapp, Departure 18) | meta-analyses simulated in base R with d and r, fixed and random effects, two- and one-sided, the DerSimonian-Laird and the Hartung-Knapp tests written out separately; Type I error | `meta` |
+| Meta-analysis: subgroups, a score moderator, heterogeneity, several effects per study | metapower, Spower with metafor, POMADE | the between-groups Q by hand; studies drawn directly and fitted by metafor without Spower; for several effects per study, metafor's `rma.mv()` and `robust()` without POMADE; Type I error | `meta` |
+| Reliability: ICC, Cronbach's alpha, kappa | ICC.Sample.Size, statpsych, kappaSize | the one-way random-effects ANOVA's exact F test; simulated scales tested by Bonett and Wright's test; Donner and Eliasziw's goodness-of-fit test on simulated ratings; Type I error | `reliability` |
+| Trend tests: Cochran-Armitage, Jonckheere-Terpstra | Spower | a plain loop of simulated studies outside Spower, including one-sided tests with unequal groups; Type I error | `trend` |
+| MANOVA, Hotelling's T-squared | Spower; powerkit (Hotelling's exact F) | the G\*Power 3.1 manual's examples; a simulation written out separately for one- and two-way MANOVA; pwrss's F test for Hotelling's T-squared; Type I error | `manova` |
 | One and two variances | powerkit (G\*Power's formulas) | the G\*Power 3.1 manual's examples; Spower's simulation | `variances` |
 | Generic t, F, chi-square and z tests | pwrss | the G\*Power 3.1 manual's examples (no data to simulate: the noncentrality is the input) | `generic` |
 
 Still compared only with their own package for power (Type I error
-checks aside), next in this audit: survival, meta-analysis, reliability,
-trend, MANOVA and the factorial ANOVAs, then the simulated cards and the
-Bayes factor cards.
+checks aside), next in this audit: the simulated cards and the Bayes
+factor cards.
 
 ## Before this log
 
