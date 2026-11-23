@@ -20,14 +20,15 @@ Colleague testing began on 16 November 2026. New designs and features are paused
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
 smaller items), is `next.md` item 22 and comes first while testing runs;
-with it, item 24 audits every card that runs for a check independent of
-the package it wraps (moderation in regression, the ordinal card, the
-repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
-logistic factorial, the three-way interaction, every moderated mediation
-card, the SEM model-fit tests, the clustered designs, the formula cards (one proportion, McNemar's exact test, goodness of fit, multiple regression, two correlations and ANCOVA) and the factorial ANOVAs beyond 2 x 2 now have one, and survival, meta-analysis, reliability, trend and MANOVA already had one (a group treatment trial now uses Satterthwaite's degrees
-of freedom, Departure 38; and the multiple regression card's F tests and Bayes factors now treat the predictors as measured unless they are set by the design, Departure 39, because G*Power's fixed model gave about 1 to 2 points too much power for measured predictors); the record and the
-cards still to do are in `validation-log.md`, "Independent checks by
-card"), and the method choices each card makes for the
+the audit of every card that runs is finished (23 November 2026): every
+card has a power check independent of the package it wraps (a group
+treatment trial now uses Satterthwaite's degrees of freedom, Departure
+38; and the multiple regression card's F tests and Bayes factors now
+treat the predictors as measured unless they are set by the design,
+Departure 39, because G*Power's fixed model gave about 1 to 2 points too
+much power for measured predictors; the record is in
+`validation-log.md`, "Independent checks by card"), as is the audit of
+the method choices each card makes for the
 researcher (every card's are listed in `conventions.md`, "Choices each
 card makes for the researcher"; the planned contrast offers a one-sided
 test and uses the alpha set, which pwrss's contrast function ignored

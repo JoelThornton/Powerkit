@@ -197,7 +197,7 @@ validation_chunks <- function() {
 validation_minutes <- function() {
   c(corrected_counts = 2, replication = 0.2, basic = 0.3, welch_spreads = 3, variances = 8, rmcorr = 2, yuen = 3, agreement = 8, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, bayes_ancova = 45, bayes_three = 180, bayes_r2change = 25, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 18, zero_inflated = 6, logistic_interaction = 4, count_interaction = 6, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, riclpm = 15, irt = 12, anova = 22, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60, mediation_mcx = 25, mediation_binm = 10, mediation_ordm = 115, mediation_yglm = 10, mediation_joint = 1,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
-    process_bootstrap = 60, mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
+    process_bootstrap = 90, mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
     contrast = 0.3, ancova = 2, two_correlations = 1, formula = 1, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1, prediction = 0.3,
     whole_study = 175, cluster = 4, multisite = 0.5, sem_fit = 0.3,
