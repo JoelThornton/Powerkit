@@ -20,14 +20,15 @@ Colleague testing began on 16 November 2026. New designs and features are paused
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
 smaller items), is `next.md` item 22 and comes first while testing runs;
-with it, item 24 audits every card that runs for a check independent of
-the package it wraps (moderation in regression, the ordinal card, the
-repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
-logistic factorial, the three-way interaction, every moderated mediation
-card, the SEM model-fit tests, the clustered designs, the formula cards (one proportion, McNemar's exact test, goodness of fit, multiple regression, two correlations and ANCOVA) and the factorial ANOVAs beyond 2 x 2 now have one, and survival, meta-analysis, reliability, trend and MANOVA already had one (a group treatment trial now uses Satterthwaite's degrees
-of freedom, Departure 38; and the multiple regression card's F tests and Bayes factors now treat the predictors as measured unless they are set by the design, Departure 39, because G*Power's fixed model gave about 1 to 2 points too much power for measured predictors); the record and the
-cards still to do are in `validation-log.md`, "Independent checks by
-card"), and the method choices each card makes for the
+the audit of every card that runs is finished (23 November 2026): every
+card has a power check independent of the package it wraps (a group
+treatment trial now uses Satterthwaite's degrees of freedom, Departure
+38; and the multiple regression card's F tests and Bayes factors now
+treat the predictors as measured unless they are set by the design,
+Departure 39, because G*Power's fixed model gave about 1 to 2 points too
+much power for measured predictors; the record is in
+`validation-log.md`, "Independent checks by card"), as is the audit of
+the method choices each card makes for the
 researcher (every card's are listed in `conventions.md`, "Choices each
 card makes for the researcher"; the planned contrast offers a one-sided
 test and uses the alpha set, which pwrss's contrast function ignored
@@ -477,8 +478,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 26 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
-  of item 25 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 25 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  of item 24 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 

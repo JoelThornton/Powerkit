@@ -570,3 +570,33 @@ independent_factorial_power <- function(mu, levels, types, sd, r = 0, n, terms, 
   }, logical(length(terms)))
   stats::setNames(rowMeans(matrix(hits, nrow = length(terms))), terms)
 }
+
+# Simple mediation (X -> M -> Y, standardised paths a, b and c') analysed
+# as PROCESS does: ordinary least squares, one equation at a time, and a
+# percentile bootstrap interval for a * b from `draws` resamples of whole
+# cases. Each resample's a and b come from the centred sums of squares and
+# cross-products of the resampled cases (the OLS estimates lm() gives),
+# so the bootstrap runs without lm() or any mediation package. A study is
+# significant when the (1 - alpha) interval excludes 0.
+independent_mediation_bootstrap_power <- function(a, b, c_prime, n, draws = 1000L, alpha = 0.05, nrep, seed) {
+  sd_m <- sqrt(1 - a^2)
+  sd_y <- sqrt(1 - (c_prime^2 + b^2 + 2 * a * b * c_prime))
+  probs <- c(alpha / 2, 1 - alpha / 2)
+  independent_power(function() {
+    x <- stats::rnorm(n)
+    m <- a * x + stats::rnorm(n, sd = sd_m)
+    y <- c_prime * x + b * m + stats::rnorm(n, sd = sd_y)
+    idx <- matrix(sample.int(n, n * draws, replace = TRUE), n)
+    xs <- matrix(x[idx], n)
+    ms <- matrix(m[idx], n)
+    ys <- matrix(y[idx], n)
+    centre <- function(v) sweep(v, 2, colMeans(v))
+    xs <- centre(xs); ms <- centre(ms); ys <- centre(ys)
+    sxx <- colSums(xs * xs); smm <- colSums(ms * ms); sxm <- colSums(xs * ms)
+    sxy <- colSums(xs * ys); smy <- colSums(ms * ys)
+    a_hat <- sxm / sxx
+    b_hat <- (sxx * smy - sxm * sxy) / (sxx * smm - sxm^2)
+    ci <- stats::quantile(a_hat * b_hat, probs, names = FALSE)
+    ci[1] > 0 || ci[2] < 0
+  }, nrep, seed)
+}

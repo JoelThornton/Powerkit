@@ -2,6 +2,10 @@
 # These checks concern the named complete-data models, not PROCESS software
 # equivalence, clustered data, logistic outcomes or every PROCESS setting.
 # The archived software reference remains the maintainer's to supply.
+# Power is checked against simple mediation simulated in base R and
+# analysed by OLS with a percentile bootstrap of whole cases written out
+# here (independent_mediation_bootstrap_power(),
+# helper-independent-simulation.R), without power4mome or lm().
 
 test_that("OLS bootstrap matches an archived PROCESS software power reference", {
   skip_unless_full_validation()
@@ -37,3 +41,15 @@ for (case in c("simple", "binary_x_model7")) {
     expect_type1_near(engine_power(spec), alpha = .05)
   })
 }
+
+test_that("OLS percentile bootstrap: power agrees with the bootstrap written out on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("lmhelprs", "0.4.2")
+  spec <- mediation_spec("process_4", "M", paths = list("X->M" = .2, "M->Y" = .25, "X->Y" = .1),
+    path = "X->M->Y", n = 150, seed = 2026112301, method = "ols_percentile_bootstrap")
+  # 1,000 resamples per interval on both sides, as in the null checks.
+  spec$options$nrep <- 1000L
+  spec$options$ci_draws <- 1000L
+  reference <- independent_mediation_bootstrap_power(.2, .25, .1, 150, draws = 1000L, nrep = 4000L, seed = 2026112302)
+  expect_power_near(engine_power(spec), reference, reference_nrep = 4000L)
+})

@@ -399,12 +399,37 @@ until transcribed). The simulations are in
 | Reliability: ICC, Cronbach's alpha, kappa | ICC.Sample.Size, statpsych, kappaSize | the one-way random-effects ANOVA's exact F test; simulated scales tested by Bonett and Wright's test; Donner and Eliasziw's goodness-of-fit test on simulated ratings; Type I error | `reliability` |
 | Trend tests: Cochran-Armitage, Jonckheere-Terpstra | Spower | a plain loop of simulated studies outside Spower, including one-sided tests with unequal groups; Type I error | `trend` |
 | MANOVA, Hotelling's T-squared | Spower; powerkit (Hotelling's exact F) | the G\*Power 3.1 manual's examples; a simulation written out separately for one- and two-way MANOVA; pwrss's F test for Hotelling's T-squared; Type I error | `manova` |
+| Bayes factor t-tests, correlation, two proportions, one proportion, contingency table, one-way ANOVA, informed priors, sequential designs, p-value agreement | bfpwr, BayesFactor; powerkit (Departure 37) | each simulated study's Bayes factor computed on its data: `t.test()` with `tbf01()` or the JZS integral written out, JASP's exact correlation formula or the definition integrated, `contingencyTableBF()` and `anovaBF()` on the data, every table enumerated at small n; the no-effect side | `bayes` |
+| Bayes factors of ANOVA effects: two factors, repeated measures, ANCOVA, three factors | BayesFactor, bayestestR | studies drawn by hand, every model that respects marginality fitted with `lmBF()` or `anovaBF()`, and the inclusion Bayes factor computed by hand, without bayestestR; the no-effect side | `bayes_factorial`, `bayes_ancova`, `bayes_three` |
+| Corrected tests of two proportions and a 2 x 2 table | Spower | finite enumeration of every outcome, both directions and one-sided with 2:1 groups; `chisq.test(correct = TRUE)` on multinomial counts; Type I error | `corrected_counts` |
+| Replication plans | BayesRepDesign; pwr and pwrss (small telescopes) | each goal's success rule applied to effects drawn from the design prior, written separately; `t.test()` on simulated people for the classical goal and small telescopes | `replication` |
+| Welch's t and Welch's F with unequal spreads | Spower; powerkit (Levy's approximation) | separately generated and analysed groups across allocations; Type I error with unequal SDs and groups | `welch_spreads` |
+| Repeated-measures correlation | pwrss at rmcorr's effective n | `lm()` with an intercept per person on simulated studies; Type I error | `rmcorr` |
+| Yuen's trimmed-means tests | Spower with WRS2 | Yuen's statistics written out from their definitions; the paired t-test's exact power with no trimming; Type I error with heavy tails and unequal groups | `yuen` |
+| Bland-Altman limits of agreement | Spower with SimplyAgree | the limits and their MOVER and Bland-Altman intervals written out; size at the margin | `agreement` |
+| Dyadic data (APIM), with a moderator | power4mome | X, Y and residuals drawn with `MASS::mvrnorm()` and the APIM fitted by `lavaan::sem()` directly; Type I error | `dyadic` |
+| Aligned rank transform ANOVA, between and within | Spower with ARTool | the aligned rank transform written out from Wobbrock et al. (2011), without ARTool; Type I error with skewed scores | `aligned_rank`, `aligned_rank_within` |
+| PERMANOVA | Spower with vegan | the pseudo-F written out and 999 label permutations, without vegan; Type I error with skewed scores | `permanova` |
+| Negative binomial, zero-inflated and multinomial regression | Spower with MASS, pscl, nnet | gamma-Poisson counts with `glm.nb()`; the zero-inflated likelihood written out and maximised by `optim()`; the G test of the table and a Poisson log-linear fit for multinomial outcomes, and the multinomial likelihood written out for its moderation; Type I error | `negative_binomial`, `zero_inflated`, `multinomial` |
+| Robust (HC3, HC4) and quantile regression | Spower with car, quantreg | pwrss's F test with constant spread; quantile regression drawn by its quantile function and fitted by `rq()` directly; Type I error with changing spread | `robust_regression` |
+| Moderation with a yes/no or count outcome, moderation by groups | Spower | the Wald test's large-sample power from the Fisher information computed separately; pwr's F test for groups; separately written loops fitting `glm()`, `glm.nb()` or `lm()`; Type I error | `logistic_interaction`, `count_interaction`, `group_moderator` |
+| d' in two conditions or groups | Spower | every trial drawn as an evidence value against the criterion, d' corrected and compared by `t.test()` | `signal_detection` |
+| Latent profiles, exploratory factor analysis | Spower with mclust, psych | an EM algorithm and BIC written out; `factanal()` with oblimin and Tucker's congruence computed here | `lpa`, `efa` |
+| Interrupted time series, RI-CLPM | Spower with PITS, powRICLPM | series drawn in base R and fitted by `gls()`; the RI-CLPM written out in lavaan syntax and fitted on base-R data | `its`, `riclpm` |
+| Growth curves, with drop-out | longpower | random intercepts and slopes fitted by `lmer()` with monotone drop-out | `growth` |
+| Differential item functioning | irtpwr | mirt's `multipleGroup()` likelihood-ratio test on simulated responses; Type I error | `irt` |
+| Mediation: a yes/no X, X in three or more groups, a yes/no or ordered mediator, a yes/no or count outcome, the joint-significance estimate | power4mome, Spower with lavaan, manymome or regmedint; pwrss | each data set fitted by OLS or `glm()` one equation at a time and the indirect effect tested by a Monte Carlo interval or a delta method written out (Valeri and VanderWeele, 2013); lavaan's delta parameterisation for an ordered mediator; regressions tested by joint significance; Type I error | `process_4_binary`, `mediation_mcx`, `mediation_binm`, `mediation_ordm`, `mediation_yglm`, `mediation_joint` |
+| PROCESS-style OLS percentile bootstrap | power4mome with lm | **simple mediation simulated in base R with a casewise percentile bootstrap of OLS estimates written out (23 November 2026)**; Type I error, simple and model 7 with a yes/no X | `process_bootstrap` |
+| Precision (interval width) | MBESS, presize | simulated studies with each interval computed from its formula: the median width and the assurance | `precision` |
+| Prediction model sample sizes | pmsampsize, pmvalsampsize | Riley et al.'s closed-form criteria worked out separately (no power and no test) | `prediction` |
+| Whole-study simulation | powerkit (Departure 13) | each analysis against its own card, base-R data analysed by `lm()` for non-randomised groups and covariates; Type I error | `whole_study` |
+| Mixed models: crossed items, two and three levels, item predictors, yes/no trials, repeated counts and yes/no answers, Cochran's Q | simr, Spower with lme4, ordinal | random effects drawn directly and each data set fitted with `lmerTest::lmer()`, `glmer()`, `glmer.nb()` or `clmm()` without simr; Cochran's Q from its own formula; Type I error | `mixed_model`, `glmm` |
 | One and two variances | powerkit (G\*Power's formulas) | the G\*Power 3.1 manual's examples; Spower's simulation | `variances` |
 | Generic t, F, chi-square and z tests | pwrss | the G\*Power 3.1 manual's examples (no data to simulate: the noncentrality is the input) | `generic` |
 
-Still compared only with their own package for power (Type I error
-checks aside), next in this audit: the simulated cards and the Bayes
-factor cards.
+Every card that runs now has at least one power check that doesn't
+depend on its backend (23 November 2026). Most published examples are
+still placeholders for the maintainer, so they aren't counted.
 
 ## Before this log
 
