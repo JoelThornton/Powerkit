@@ -7,6 +7,16 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-23"
+    title: "Clearer help on the input screen"
+    text: >-
+      "How these tests differ", in the box where you choose your test, now
+      explains each test it offers. "What each goal gives you" opens in one
+      click and says what sample size, power and the smallest detectable
+      effect each work out. Clicking "Still needed" now marks every
+      question still to answer. The two-sided test comes first, marked as
+      the usual one, but you still choose. Help with published or missing
+      numbers is now in the effect size section.
   - date: "2026-11-22"
     title: "Multiple regression's Bayes factors allow for measured predictors"
     text: "The Bayes factor versions of the multiple regression card now ask the same question as its F tests: are your predictors measured on each person, or set by the design? Measured predictors differ from one sample to the next, so Powerkit allows for that: for R-squared .10 with three predictors and a threshold of 10, 193 people rather than 189."
@@ -3102,81 +3112,3 @@ entries:
       them won't suit your design and nothing checks that for you, so each
       analysis's card still says what its test assumes; the four questions
       are there on the list if you would rather have it narrowed down.
-  - date: "2026-10-22"
-    title: "The browser's Back button works"
-    text: >-
-      Your browser's Back and Forward buttons now move between powerkit's
-      screens, instead of leaving the site. What you typed on the input
-      screen is still there when you come forward again.
-  - date: "2026-10-22"
-    title: "Help when you're not sure of your effect size"
-    text: >-
-      The effect-size section now explains, in plain words, the ways to a
-      number you can defend, starting from the smallest difference that
-      would matter in your measure's own units. If you don't know what to
-      expect, one button sets powerkit to show the smallest effect your
-      sample could detect instead.
-  - date: "2026-10-22"
-    title: "Labs: choose a tool, and keep your work"
-    text: >-
-      Labs now opens on a list of tools. When you go from your
-      pre-replication notes to planning the replication's sample size,
-      powerkit asks before replacing a plan you've started, copies your
-      notes' words into the reason for your effect size, and gives you a
-      link back to the notes, which are kept.
-  - date: "2026-10-22"
-    title: "Clearer boxes and problems where they are"
-    text: >-
-      The boxes on the input screen have shorter names, with a line of help
-      underneath, and definitions open when you ask for them. When
-      something needs fixing, the message now appears right under the box
-      as well as in the list at the bottom.
-  - date: "2026-10-22"
-    title: "See where you are"
-    text: >-
-      Four steps across the top show where you are: your study, finding
-      your design, your numbers and the result. Analysis cards are shorter:
-      the details of what you'd enter and which package calculates it are
-      under "More about this analysis".
-  - date: "2026-10-22"
-    title: "A shorter input screen"
-    text: >-
-      The screen where you enter your values now starts with what you want
-      to find out, and only shows the boxes that goal needs. Your effect
-      size and where it comes from sit together, and settings you rarely
-      change are folded into one line you can open.
-  - date: "2026-10-22"
-    title: "Rank-based tests, observed power and other tools"
-    text: >-
-      Cards for t-tests, correlations and one-way ANOVA now say that their
-      figure only approximates a rank-based test such as Mann-Whitney. You
-      can choose your finished study's own result as the effect size, with
-      a warning about observed power. Cards for designs powerkit doesn't
-      cover yet name established tools you can use instead.
-  - date: "2026-10-22"
-    title: "Long calculations take turns"
-    text: >-
-      Interactions in regression and mediation take a while to calculate,
-      and everyone using powerkit online shares one server. If several
-      people start one at the same moment, you may be asked to try again
-      in a minute or two. Quick calculations aren't affected.
-  - date: "2026-10-22"
-    title: "A Feedback tab"
-    text: >-
-      Tell us about a problem, ask a question or suggest something from the
-      new Feedback tab, or from "Something doesn't fit?" on any card. It
-      adds where you are in powerkit for you and shows the whole message
-      first. Click Send; no account is needed, and you can leave an email
-      if you'd like a reply.
-  - date: "2026-10-22"
-    title: "Fewer notes for the developers"
-    text: >-
-      The grey "Undecided" boxes and the tab of open questions were notes
-      for powerkit's developers. They are gone from the screens you see.
-  - date: "2026-10-22"
-    title: "Clearer labels"
-    text: >-
-      The banner at the top now names the analyses that calculate in plain
-      words. In "Plan my whole study", the combined sample size and the
-      consistency check are marked "Coming soon"; until then, use the
-      largest sample size from your analyses' cards.
