@@ -12,7 +12,11 @@
 #   R-squared          multiple_regression/r2_zero and r2_increase: the F
 #                      test, pwrss::power.f.regression(); single_coefficient
 #                      (the usual test, method f_test) is the F test of one
-#                      predictor (k.tested = 1), the square of its t test
+#                      predictor (k.tested = 1), the square of its t test.
+#                      pwrss's formula treats the predictors as fixed, so
+#                      it runs with target_test > predictor_model "fixed";
+#                      by default (measured predictors) powerkit's formula
+#                      in regression-measured.R gives the power instead
 #   Fisher's exact     basic_test/two_proportions with method fisher_exact:
 #                      pwrss::power.exact.fisher(method = "exact")
 #   goodness of fit    basic_test/chi_square_gof: Cohen's w from
@@ -50,7 +54,8 @@
 #   contrast           factorial_anova/oneway_contrast: a planned
 #                      comparison between the levels of one factor, the t
 #                      test of a weighted combination of the group means,
-#                      pwrss::power.t.contrasts()
+#                      pwrss::power.t.test() on power.t.contrasts()'s
+#                      noncentrality and df (see the oneway_contrast entry)
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -85,9 +90,10 @@ pwrss_backend <- function(spec, seed = NULL) {
     while (min(analysed_groups(spec, n_min)) < 4) n_min <- n_min + step
   }
   power_at <- function(n) pwrss_power(inputs, n)
+  measured <- !is.null(inputs$measured)
   list(
-    name = "pwrss",
-    packages = "pwrss",
+    name = if (measured) "stats" else "pwrss",
+    packages = if (measured) "stats" else "pwrss",
     methods = "exact",
     default_method = "exact",
     functions = c(exact = inputs$description),
@@ -104,7 +110,9 @@ pwrss_backend <- function(spec, seed = NULL) {
     } else if (identical(spec$template, "independent_t")) {
       function(n, power) welch_sensitivity(spec, n, power)
     },
-    details = function(n) pwrss_details(pwrss_output(inputs$fun, inputs$args(n)), inputs$fun),
+    details = function(n) {
+      if (measured) inputs$measured_details(n) else pwrss_details(pwrss_output(inputs$fun, inputs$args(n)), inputs$fun)
+    },
     # Exact tests of counts: power goes up and down with n.
     sawtooth = spec$template %in% c("one_proportion", "mcnemar") ||
       identical(spec$target_test$method, "fisher_exact"),
@@ -470,20 +478,23 @@ pwrss_inputs <- function(spec) {
       )
     },
     oneway_contrast = {
+      # pwrss 1.3.3's power.t.contrasts() computes, with no covariates, the
+      # noncentral t of psi / SE(psi) on n - k df, but calls power.t.test()
+      # without its alpha (so always at 0.05) and two-sided only
+      # (docs/upstream-questions.md). powerkit makes the same call to
+      # pwrss's power.t.test() with the alpha and sidedness asked for: the
+      # contrast psi = sum(w * mu), its standard error
+      # SD * sqrt(sum(w^2 / n_i)), and df = n - k, as in pwrss's own code.
       k <- length(spec$variables$A$levels)
       weights <- as.numeric(unlist(spec$target_test$weights))
+      means <- as.numeric(unlist(pop$means))
+      psi <- sum(weights * means)
       list(
-        fun = "power.t.contrasts",
-        weights = weights,
+        fun = "power.t.test",
+        weights = weights, means = means, psi = psi,
         args = function(n) list(
-          mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k),
-          n.vector = rep(n / k, k),
-          contrast.matrix = matrix(weights, nrow = 1, dimnames = list("contrast", NULL)),
-          # No covariates, and nothing else explaining the outcome: pwrss
-          # defaults k.covariates to 1, which would spend a denominator
-          # degree of freedom this design doesn't have.
-          r.squared = 0, k.covariates = 0,
-          alpha = alpha, adjust.alpha = "none", ceil.n = FALSE, verbose = 0
+          ncp = psi / (pop$sd * sqrt(sum(weights^2 / rep(n / k, k)))), df = n - k,
+          alpha = alpha, alternative = alternative, plot = FALSE, verbose = 0
         )
       )
     },
@@ -506,16 +517,25 @@ pwrss_inputs <- function(spec) {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
       k_tested <- switch(spec$template, r2_zero = pop$predictors, single_coefficient = 1, pop$predictors_tested)
       partial <- partial_r_squared(spec)
-      list(
+      call <- list(
         fun = "power.f.regression",
         args = function(n) list(
           r.squared.change = partial, k.total = k_total, k.tested = k_tested,
           n = n, alpha = alpha, verbose = 0
         )
       )
+      # Measured predictors (the default, Departure 39): the fixed-predictor
+      # power averaged over the predictors (regression-measured.R).
+      if (regression_measured(spec)) {
+        f2 <- partial / (1 - partial)
+        call$measured <- function(n) regression_measured_power(f2, n, k_total, k_tested, alpha)
+        call$measured_details <- function(n) regression_measured_details(f2, n, k_total, k_tested, alpha)
+        call$description <- regression_measured_description()
+      }
+      call
     }
   )
-  call$description <- sprintf("pwrss::%s", call$fun)
+  call$description <- call$description %||% sprintf("pwrss::%s", call$fun)
   call
 }
 
@@ -549,6 +569,7 @@ gof_w <- function(spec) {
 }
 
 pwrss_power <- function(inputs, n) {
+  if (!is.null(inputs$measured)) return(inputs$measured(n))
   fun <- getExportedValue("pwrss", inputs$fun)
   call_backend("pwrss", quietly(do.call(fun, inputs$args(n))))$power
 }
@@ -690,11 +711,16 @@ pwrss_check_run <- function(spec, inputs) {
         row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
       }
     ),
-    oneway_contrast = rbind(
-      row("means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
-      row("contrast weights passed to pwrss (contrast.matrix)", inputs$weights, as.numeric(args$contrast.matrix)),
-      row("covariates pwrss used (k.covariates)", 0, args$k.covariates)
-    ),
+    oneway_contrast = {
+      k <- length(inputs$weights)
+      rbind(
+        row("value of the contrast, sum of weight x mean", sum(as.numeric(unlist(spec$target_test$weights)) * as.numeric(unlist(pop$means))), inputs$psi),
+        row("noncentrality passed to pwrss at 1,000 people: contrast / (SD x sqrt(sum(weight^2 / group size)))",
+            inputs$psi / (pop$sd * sqrt(sum(inputs$weights^2) / (1000 / k))), args$ncp),
+        row("degrees of freedom passed to pwrss at 1,000 people (n - groups)", 1000 - k, args$df),
+        row("alpha passed to pwrss", spec$target_test$alpha, args$alpha)
+      )
+    },
     interaction_r2_change = {
       r <- args$r.squared.change
       r2_main <- pop$r2_main %||% 0
@@ -714,7 +740,21 @@ pwrss_check_run <- function(spec, inputs) {
       } else {
         (pop$r2_full - pop$r2_reduced) / (1 - pop$r2_full)
       }
-      row("Cohen's f^2 pwrss will use (r.squared.change / (1 - r.squared.change))", expected_f2, r / (1 - r))
+      if (regression_measured(spec)) {
+        k_total <- args$k.total
+        k_tested <- args$k.tested
+        rbind(
+          row("Cohen's f^2 the formula uses (partial R-squared / (1 - partial R-squared))", expected_f2, r / (1 - r)),
+          row("predictors in the model and tested", c(
+            if (spec$template == "r2_zero") pop$predictors else pop$predictors_total,
+            switch(spec$template, r2_zero = pop$predictors, single_coefficient = 1, pop$predictors_tested)
+          ), c(k_total, k_tested)),
+          row("with no effect the formula gives alpha (at 1,000 people)", spec$target_test$alpha,
+              regression_measured_power(0, 1000, k_total, k_tested, spec$target_test$alpha))
+        )
+      } else {
+        row("Cohen's f^2 pwrss will use (r.squared.change / (1 - r.squared.change))", expected_f2, r / (1 - r))
+      }
     }
   )
 }

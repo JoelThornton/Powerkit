@@ -58,6 +58,7 @@ gpower_f_power <- function(f2, n, tested, predictors) {
 test_that("one coefficient's smallest partial R-squared gives G*Power's F test its target power", {
   spec <- example_spec("regression_coefficient")
   spec$target_test$method <- "f_test"
+  spec$target_test$predictor_model <- "fixed" # G*Power's fixed model (Departure 39)
   spec$population$variance_ratio <- NULL
   s <- sensitivity_of(spec, n = 100L)$sensitivity
   expect_equal(gpower_f_power(s$effect / (1 - s$effect), 100, 1, spec$population$predictors_total), 0.8, tolerance = 1e-6)

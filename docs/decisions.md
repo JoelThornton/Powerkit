@@ -4981,3 +4981,145 @@ the old answer asked for more groups than a trial needs. A yes/no
 outcome still runs on `irgtt.bin()`'s z test, which has no df. The
 question is recorded for powertools' authors in
 `docs/upstream-questions.md`.
+
+## 2026-11-22 · The planned contrast offers a one-sided test
+
+The planned contrast card (E19) was two-sided only, because pwrss's
+`power.t.contrasts()` has no one-sided option. A planned contrast is
+usually a directional prediction (a linear trend up the doses, two
+treatments above a control), and its one-sided power is the same
+noncentral t with the critical value at alpha, so the card now offers the
+direction choice every directional card has, with nothing preselected. The
+same change bypasses a fault in pwrss 1.3.3: without covariates,
+`power.t.contrasts()` gives the power at alpha 0.05 whatever alpha it is
+passed (docs/upstream-questions.md, pwrss). The engine passes the
+function's own noncentrality and df to pwrss's `power.t.test()`; at alpha
+0.05, two-sided, results are unchanged. Not a departure: the test and its
+noncentrality are pwrss's.
+
+## 2026-11-22 · The factorial logistic regression offers the likelihood-ratio test
+
+The factorial logistic regression card (E47) ran the Wald test of the
+effect's coefficients only, the test Spower's `p_glm()` runs. R's usual
+commands for this model, `car::Anova()` and `anova(test = "LRT")`, report
+the likelihood-ratio test, so researchers commonly run it. The card now
+offers it, as the type III test of the same hypothesis
+(`car::Anova(type = 3, test.statistic = "LR")`), and preselects it; the
+Wald test stays an option. With sparse cells the Wald test loses power
+the likelihood-ratio test keeps (17% against 30% in a 2 x 2 example with
+20 per cell), while the likelihood-ratio test runs a little above alpha
+(about 7% at 0.05 there, where Wald's ran at 0.4% to 2.4%); the form's
+help says both (docs/conventions.md, "Choices each card makes for the
+researcher").
+
+## 2026-11-22 · The factorial logistic regression asks which test will be run
+
+The factorial logistic regression card (E47) offers three tests of the
+same effect: Firth's penalised likelihood-ratio test (logistf), the
+likelihood-ratio test and the Wald test. None is preselected. They test
+the same hypothesis and differ in how the p-value is worked out, so the
+power should be for the one the researcher will run, and the form says
+when each fits. Firth's test was added because, with few events, the
+likelihood-ratio test runs above alpha and the Wald test loses power,
+while Firth's test kept false positives near alpha and kept the power
+(docs/conventions.md, "Choices each card makes for the researcher"). This
+replaces the same day's preselection of the likelihood-ratio test.
+
+## 2026-11-22 · Input screens leave equivalent tests and corrections to the researcher
+
+Extends the factorial logistic regression decision of the same day (no
+test preselected where several test the same effect) to every card. Where
+the alternatives test the same hypothesis and the literature does not
+make one clearly better, the menu starts on "Choose one", with the usual
+option marked: the yes/no-outcome test on the mixed-model cards (E33,
+E67, E68, E41, E62; Wald marked as the usual one, the p-value glmer's
+summary reports), Satterthwaite's or Kenward and Roger's degrees of
+freedom (Satterthwaite's marked), E75's count test, E70's and E32's
+choice between the whole outcome and one category (a choice of
+hypothesis, so nothing is marked), and E71's test statistic (the
+likelihood ratio marked). Where a method is clearly better it stays
+selected, under the rule that the better method is the default: the
+likelihood-ratio test on E63, where the Wald test rejected 6.2% of 2,000
+null studies at alpha .05, now says so on the screen. Whether to adjust
+pairwise comparisons depends on the claim (Rubin, 2021; Mayo, 2018), so
+the adjustment starts unselected, with Holm's method recommended among
+the adjustments; the whole-study finder's rule for two or more main
+analyses likewise starts unselected instead of at "each analysis on its
+own". The Greenhouse-Geisser correction stays selected (Departure 26). The mediation
+cards' analysis menu also starts unselected, with PROCESS's ordinary
+regression and percentile bootstrap marked as the usual one: researchers
+report the analysis they run, and simple mediation opened on the
+joint-significance quick estimate, which can give a sample size about
+10% short; it stays as an option, described as a rough first look.
+
+## 2026-11-22 · Questions about the study and levels like alpha start empty
+
+A review of every option the input screens fill in before the researcher
+chooses found 51 questions that describe the study itself (which effect
+is tested, the outcome type, who is assigned, whether participants see
+every condition, what a meta-analysis or prediction model is for)
+starting on the commonest or first answer. A researcher who clicks
+through then plans a different study from their own, the failure the
+21 November finder audit set out to remove, and the cards disagreed
+(E59 chose the interaction where E7, E20, E21, E55 and E56 leave "Which
+effect" empty). They now start on "Choose one". Levels that work like
+the significance level, which has started empty since 8 November 2026,
+now do the same, with the usual value one click away: the confidence
+level, Tucker's congruence target (Lorenzo-Seva & ten Berge, 2006), the
+whole-study screen's significance level and target power, the
+replication planner's Bayes factor threshold and BUCSS assurance, and
+the Tools tab's targets. A correlation between factors or predictors
+starts empty, since 0, the old value, is the most hopeful case. The
+replication planner's direction and between-study variation start
+unselected; its quick answer still fills in the usual settings, visibly
+(the variation at Kenny and Judd's smallest example, decided 15 November
+2026). The Tools Bayes factor planner no longer starts at d = 0.5, a
+"medium effect" default the app says it never uses. Kept: equal group
+sizes, one SD throughout, two mediators (the number validated), the
+published criteria of Riley and colleagues, the RMSEA null of 0.05
+(MacCallum et al., 1996) and the 95% limits of agreement.
+
+## 2026-11-22 · Multiple regression: measured predictors by default
+
+The independent check of the multiple regression card (E24, queue item 24)
+found that its F tests, pwrss's `power.f.regression()` and G*Power's fixed
+model (noncentrality f² N), give about 1 to 2 points more power than
+studies whose predictors are measured afresh each time: 75.3% against
+73.8% simulated for two predictors added to three at N = 150 (20,000
+studies). The maintainer chose measured predictors as the default, with
+G*Power's fixed version kept as an option.
+
+- **Method:** the fixed-predictor power averaged over multivariate normal
+  predictors (Shieh, 2007): given the predictors the noncentrality is f²
+  times a chi-square on N − 1 − (k − q) df, so power is one integral. No
+  package powerkit builds on computes it (pwrss 1.3.3, MBESS 5.0.1 and
+  WebPower 0.9.4 take the fixed model), so it is written in the engine
+  from the published result and checked against simulated studies.
+- **Input screen:** the card asks whether the predictors are measured or
+  set by the design, preselecting neither, as the ANCOVA card does for
+  its covariates (18 November 2026, nothing preselected where the study
+  decides). A spec without the setting is planned with measured
+  predictors.
+- **Recorded as** Departure 39 (conventions.md), shown on the result
+  screen and in the methods paragraph. The Bayes factor versions on the
+  same card still take the predictors as fixed; changing them is queued.
+
+## 2026-11-22 · Multiple regression's Bayes factors: measured predictors too
+
+The decision of the same day to plan multiple regression's F tests with
+measured predictors by default (Departure 39) covers the card's Bayes
+factors, which answer the same questions and had taken the predictors as
+fixed in the same way.
+
+- **R-squared against 0:** the Bayes factor rises with F, so its power is
+  the F test's measured-predictor integral with the F at which BF10
+  reaches the threshold in place of the critical value. Still exact.
+- **An R-squared increase or one coefficient:** each simulated study now
+  draws the noncentralities of its sums of squares first, as the
+  predictors vary, then the sums of squares as before; checked against
+  `lm()` and `lmBF()` on data sets with new normal predictors in each.
+- **Size:** a few people, as for the F tests: 193 against 189 for
+  R-squared .10 with three predictors at a threshold of 10.
+- **Input screen:** the question about the predictors is asked for the
+  Bayes factors too, preselecting neither answer; predictors set by the
+  design keep the fixed-predictor answer.

@@ -3,8 +3,10 @@
 #   1. analytic agreement: the unit tests (test-backend-formula-tests.R)
 #      check powerkit against pwrss called directly
 #   2. published examples: the G*Power 3.1 manual (below)
-#   3. direct-call agreement with a simulation: not yet (no simulation
-#      option)
+#   3. agreement with a simulation written out separately: studies drawn
+#      from two bivariate normal populations, compared by Fisher's z
+#      (helper-independent-simulation.R), equal and unequal groups, two-
+#      and one-sided
 #   4. Type I error: equal correlations give alpha by construction (unit
 #      tests)
 # Values transcribed from a published source or G*Power (tests marked
@@ -101,4 +103,30 @@ test_that("two independent correlations: required N matches the G*Power 3.1 manu
     r1, r2, alpha, tails, seed = 502, target_power = target_power, allocation_ratio = 1
   )
   expect_n_near(engine_n_required(spec), 2 * n_per_group)
+})
+
+# 3. Agreement with a simulation written out separately -------------------------
+
+test_that("two independent correlations: powerkit matches Fisher's z on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  cases <- list(
+    list(r1 = 0.2, r2 = 0.45, n = 180, ratio = 2, tails = 2),
+    list(r1 = 0.5, r2 = 0.3, n = 200, ratio = 1, tails = 1),
+    list(r1 = 0.1, r2 = 0.35, n = 150, ratio = 0.5, tails = 1)
+  )
+  for (case in cases) {
+    spec <- two_correlations_spec(case$r1, case$r2, alpha = 0.05, tails = case$tails, seed = 701, n = case$n,
+                                  allocation_ratio = case$ratio)
+    n1 <- round(case$n / (1 + case$ratio))
+    alternative <- if (case$tails == 2) "two.sided" else if (case$r2 > case$r1) "greater" else "less"
+    reference <- independent_two_correlations_power(n1, case$n - n1, case$r1, case$r2, alternative = alternative,
+                                                    nrep = validation_nrep(), seed = 702)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+})
+
+test_that("two independent correlations: Type I error is near alpha (simulation)", {
+  skip_unless_full_validation()
+  type1 <- independent_two_correlations_power(60, 120, 0.3, 0.3, nrep = validation_nrep(), seed = 703)
+  expect_type1_near(list(power = type1), 0.05)
 })

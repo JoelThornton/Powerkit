@@ -5,6 +5,10 @@
 #   2. published examples (placeholders for the maintainer)
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
+#   5. an independent simulation: studies drawn from the cell means, SD
+#      and correlation as the input screen takes them and tested by aov()
+#      (an Error() stratum per participant for the within factors), with
+#      no call to Superpower (helper-independent-simulation.R)
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -132,4 +136,37 @@ test_that("2b x 2w x 2w: Type I error for the three-way interaction is near alph
   spec <- three_spec(c("b", "w", "w"), c(2, 2, 2), mu, sd = 1, r = 0.5, n = 40,
                      effect = "interaction_ABC", seed = 401, method = "simulation")
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+# 5. Independent simulation ---------------------------------------------------------
+
+three_terms <- c(main_effect_A = "A", main_effect_B = "B", main_effect_C = "C", interaction_AB = "A:B",
+                 interaction_AC = "A:C", interaction_BC = "B:C", interaction_ABC = "A:B:C")
+
+check_three_independent <- function(types, levels, mu, sd, r = 0, n, effects, seed) {
+  reference <- independent_factorial_power(mu, levels, types, sd, r, n, three_terms[effects],
+                                           nrep = validation_nrep(), seed = seed)
+  for (effect in effects) {
+    spec <- three_spec(types, levels, mu, sd = sd, r = if (any(types == "w")) r, n = n, effect = effect, seed = seed)
+    expect_power_near(engine_power(spec), reference[[three_terms[[effect]]]], reference_nrep = validation_nrep())
+  }
+}
+
+test_that("2b x 2w x 3w, the effects of interest: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_three_independent(c("b", "w", "w"), c(2, 2, 3), mixed_mu, sd = 12, r = 0.5, n = 60,
+                          effects = c("main_effect_A", "interaction_AB", "interaction_BC", "interaction_ABC"), seed = 501)
+})
+
+test_that("2b x 2b x 2b, the three-way interaction: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_three_independent(c("b", "b", "b"), c(2, 2, 2), c(0, 0, 0, 0, 0, 0, 0, 0.6), sd = 1, n = 240,
+                          effects = c("main_effect_A", "interaction_ABC"), seed = 502)
+})
+
+test_that("3b x 2w x 2w, every effect with a between factor: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  mu <- c(10, 11, 10, 12, 10, 11.5, 10.5, 12, 10, 10.5, 10, 11)
+  check_three_independent(c("b", "w", "w"), c(3, 2, 2), mu, sd = 3, r = 0.6, n = 60,
+                          effects = c("main_effect_A", "interaction_AB", "interaction_AC", "interaction_ABC"), seed = 503)
 })

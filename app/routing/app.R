@@ -203,6 +203,12 @@ app_css <- "
      first field's.) */
   .terms-mode :not(.form-field) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
   .terms-mode :not(.form-field) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
+  /* A box's terms (22 November 2026): with explanations on, a small link
+     naming them, closed until asked for; with them off, behind the box's
+     corner button like its other notes. */
+  html:not(.terms-mode) .explanation-help.terms-more > summary { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 32px; cursor: pointer; color: #0a5a8c; font-size: 0.88rem; margin-bottom: 0.25rem; }
+  html:not(.terms-mode) .explanation-help.terms-more > summary::after { content: attr(data-label); }
+  html:not(.terms-mode) .explanation-help.terms-more > summary:hover::after { text-decoration: underline; }
   /* A field's help (design review D-11, 12 November 2026): one line in
      view, the rest behind the info button beside the label, closed to
      start with in both modes. With explanations off the line folds too. */
@@ -223,13 +229,13 @@ app_css <- "
      beside the label, heading or badge it explains. A group's sits beside
      its heading (the legend floats so the button can follow it). */
   fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
-  fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  fieldset.form-group-box > legend.h6 ~ * { clear: left; }
   /* A field shown only for some choices sits in Shiny's conditional
      wrapper, which has no box of its own (display: contents), so clearing
      the wrapper does nothing and the field rose beside the floated
      heading (17 November 2026). Its contents clear instead. */
   fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *,
-  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: both; }
+  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: left; }
   fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
   .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
   .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }
@@ -331,12 +337,17 @@ app_css <- "
   /* One info button in each box's corner with explanations off (19 November 2026). */
   .box-has-info { position: relative; }
   .box-info { display: none; }
-  .terms-mode .box-info { display: inline-flex; position: absolute; top: 0.55rem; right: 0.6rem; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
+  .terms-mode .box-info { display: inline-flex; float: right; position: relative; z-index: 1; margin: -0.3rem -0.4rem -0.5rem 0.75rem; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 0; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; cursor: pointer; }
   .terms-mode .box-info > span { border: 1px solid currentColor; border-radius: 50%; width: 1.2rem; height: 1.2rem; line-height: 1.1rem; text-align: center; font-weight: bold; }
   .terms-mode .box-info[aria-expanded='true'] { background: #e8f1f8; border-color: #0a5a8c; }
   .terms-mode .box-info:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
   .terms-mode .box-has-info .explanation-help.rep-note > summary { display: none !important; }
   .terms-mode .box-has-info .explanation-help.field-more > summary, .terms-mode .box-has-info .explanation-help.group-more > summary { display: none !important; }
+  /* With the fields' own buttons hidden, their labels drop the room kept
+     for them, and a box without a visible heading starts with its
+     question level with the corner button (22 November 2026). */
+  .terms-mode .box-has-info .form-field label.control-label { min-height: 0; padding-right: 0; }
+  .terms-mode .box-has-info > .group-more:not([open]) { margin: 0; }
   /* Opened explanations in a form box read as one set: the same size and
      colour, no trailing gap (22 November 2026). */
   .terms-mode .form-group-box .explanation-help[open] > .explanation-content { font-size: 0.9rem; color: #3d4652; }
@@ -345,13 +356,15 @@ app_css <- "
   /* The test box's heading asks the question, so the Test version label
      under it is for screen readers only (22 November 2026). */
   .form-group-test > .form-field:first-of-type > .form-group > label.control-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* A folded what-if tool shows its question once, as the fold's title. */
+  .sure-fold > div > h5:first-child { display: none; }
+  .sure-fold { margin-top: 0.5rem; }
   /* A field guide's labels sit beside their text, not above it (22 November 2026). */
   .input-guide dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.9rem; margin: 0.25rem 0 0; }
   .input-guide dt { font-weight: 600; }
   .input-guide dd { margin: 0; }
   @media (max-width: 575.98px) { .input-guide dl { display: block; } .input-guide dd { margin-bottom: 0.35rem; } }
-  .terms-mode .box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3rem); }
-  .terms-mode .plan-note.box-has-info { padding-right: 3.5rem; }
+  .terms-mode .box-has-info > legend, .terms-mode .form-group-box.box-has-info > legend, .terms-mode .box-has-info > h3, .terms-mode .box-has-info > h4 { max-width: calc(100% - 3.25rem); }
   /* A study plan's buttons in two groups, adding and keeping (19 November 2026). */
   .plan-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); align-items: start; gap: 0.75rem; margin: 1.25rem 0 0.75rem; }
   .plan-note + .plan-note { margin-top: 0.75rem; }
@@ -554,8 +567,10 @@ app_css <- "
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
   /* Text that only explains, left out with explanations off, as field help is (19 November 2026). */
   .terms-mode .plain-only { display: none; }
+  html:not(.terms-mode) .terms-only { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
+  .terms-mode .form-terms-list .hint { display: block; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
   /* A visible focus ring on the top bar's buttons (design review D-29). */
@@ -911,7 +926,7 @@ app_css <- "
      line of its own); what follows the button clears the heading. */
   .form-group-box > legend, .form-group-box legend.h6 { float: left; width: auto; max-width: calc(100% - 2.5rem); padding: 0; margin: 0 0.35rem 0.6rem 0;
                                                      font-size: 1rem; font-weight: 650; color: var(--pk-navy); line-height: 1.35; }
-  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: both; }
+  .form-group-box > legend + *:not(.group-more):not(.rep-note) { clear: left; }
   .form-section-effect > .form-group-box { border-width: 2px; }
   .form-section-effect > .form-group-box > legend { color: var(--pk-blue); }
   .form-field label, .form-field .control-label { font-weight: 550; color: #1d2733; margin-bottom: 0.3rem; }
@@ -927,8 +942,7 @@ app_css <- "
   .field-help, .default-source { color: #5a6573; }
   .form-terms > summary, .effect-help > summary { list-style: none; }
   .form-terms > summary::-webkit-details-marker, .effect-help > summary::-webkit-details-marker { display: none; }
-  .form-terms > summary::before, .effect-help > summary::before { content: '?'; display: inline-flex; align-items: center; justify-content: center;
-    width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 1.5px solid currentColor; font-size: 0.75rem; font-weight: 700; margin-right: 0.45rem; }
+  /* These folds use the app's one chevron (22 November 2026); the circled '?' turned with it. */
   .effect-unsure, .effect-help { background: #eef3fa; border: 0; box-shadow: none; border-radius: var(--pk-radius); padding: 0.75rem 1.1rem; margin-bottom: 0.75rem; }
   .effect-help > summary { min-height: 32px; }
   .effect-unsure .btn { border-radius: 8px; }
@@ -1021,10 +1035,9 @@ app_css <- "
   .card-more > summary:hover, .rep-more > summary:hover, .mismatch summary:hover, .bayes-mode-what > summary:hover { text-decoration: underline; }
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .known-open-all { padding-left: 0; padding-right: 0; }
-  /* The I don't know my effect size link starts at the column's edge when it is
-     on a line of its own, and keeps a space when it follows the text. */
-  .effect-unsure .btn { margin: 0 !important; }
-  .effect-unsure > div:first-child::after { content: ' '; }
+  /* The unknown-effect line's action is a link in the sentence. */
+  .effect-unsure .effect-unsure-go { color: var(--pk-blue); font-weight: 600; text-decoration: underline; }
+  .effect-unsure .terms-only .effect-unsure-go { margin-left: 0.25rem; }
   /* The action bar is a whole rounded bar, pinned a little above the
      window's edge: with only its top corners rounded it looked cut off
      when it came to rest at the foot of the page. */
@@ -1312,7 +1325,7 @@ server <- function(input, output, session) {
     long_route = NULL,       # checked app route for reopening a local-script result
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
-    ticked = character(), primary = character(), asks = list(), rule = "each",
+    ticked = character(), primary = character(), asks = list(), rule = NULL,
     plan_id = NULL,          # guided route: the analysis whose input screen is open
     plan_results = list(),   # guided route: the last calculation for each analysis, by analysis id
     plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
@@ -1682,8 +1695,19 @@ server <- function(input, output, session) {
       state$preset_version <- NULL
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
-      if (state$screen == "g_vars") save_guided_variables()
-      if (state$screen == "g_analyses") save_guided_analyses()
+      if (state$screen == "g_vars") {
+        save_guided_variables()
+        # Every variable answered before the analyses (the screen hides
+        # the button until then).
+        answered <- vapply(tree$guided$variables, function(v) !is.null(input[[paste0("g_", v$id)]]), logical(1))
+        if (!identical(value, "variables") && !all(answered)) return()
+      }
+      if (state$screen == "g_analyses") {
+        save_guided_analyses()
+        # Two or more main analyses need the claim's rule before the plan
+        # (the screen hides the button until it is chosen).
+        if (identical(value, "plan") && length(state$primary) >= 2 && is.null(state$rule)) return()
+      }
       if (state$screen == "g_sim") save_whole_study_values()
       if (identical(value, "simulate")) state$ws_calc <- NULL
       state$plan_opened <- NULL
@@ -2345,7 +2369,9 @@ server <- function(input, output, session) {
     content = function(file) {
       export <- engine_function("export_whole_study_script")
       goal <- input$ws_script_goal %||% "sample_size"
-      spec <- whole_study_script_spec(state$ws_spec, forms, goal, input$ws_target %||% "0.8")
+      # The button shows only once a target power is chosen for a search.
+      req(!identical(goal, "sample_size") || nzchar(input$ws_target %||% ""))
+      spec <- whole_study_script_spec(state$ws_spec, forms, goal, input$ws_target)
       export(spec, file = file, run_time = whole_study_script_time(forms, whole_study_screen()$plan, goal))
     }
   )
@@ -3133,7 +3159,18 @@ server <- function(input, output, session) {
   # Labs: Bayesian planning, from the engine's bayes_planning().
   bayes_plan <- eventReactive(input$bayes_run, {
     num <- function(x, default) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1 || is.na(v)) default else v }
-    if (identical(input$bayes_design, "sequential")) {
+    # Nothing is filled in for the researcher (22 November 2026): say what
+    # is still to choose, in the fields' words.
+    sequential <- identical(input$bayes_design, "sequential")
+    missing <- c(
+      if (is.na(num(input$bayes_n, NA))) "the sample size",
+      if (is.na(num(input$bayes_effect, NA))) "the effect you expect",
+      if (is.na(num(input$bayes_effect_sd, NA))) "how unsure you are about it (0 if not at all)",
+      if (is.na(num(input$bayes_threshold, NA))) "the evidence threshold",
+      if (!sequential && is.na(num(input$bayes_target, NA))) "the chance of reaching it",
+      if (sequential && is.na(num(input$bayes_threshold_null, NA))) "the threshold for stopping for no effect")
+    if (length(missing)) return(list(problem = paste0("Still needed: ", paste(missing, collapse = ", "), ".")))
+    if (sequential) {
       return(tryCatch(engine_function("bayes_sequential")(
         n_min = num(input$bayes_n_min, NA), n_max = num(input$bayes_n, NA), step = num(input$bayes_step, NA),
         type = input$bayes_type %||% "two.sample",
@@ -3604,7 +3641,8 @@ server <- function(input, output, session) {
             else p("The simulation needs powerkit's engine, which isn't installed where this prototype is running."))
         } else if (isTRUE(ws$plan$experiment)) {
           isolate(whole_study_experiment_ui(forms, ws$plan, ws$labels,
-            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values))
+            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values,
+            alpha = whole_study_plan_alpha(state$plan_values)))
         } else {
           isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared, ws$plan, state$plan_values),
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",

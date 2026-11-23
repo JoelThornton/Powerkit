@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 22 November 2026.*
+*Last updated: 23 November 2026.*
 
 *Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
@@ -20,20 +20,35 @@ Colleague testing began on 16 November 2026. New designs and features are paused
 what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
 smaller items), is `next.md` item 22 and comes first while testing runs;
-with it, item 24 audits every card that runs for a check independent of
-the package it wraps (moderation in regression, the ordinal card, the
-repeated-measures and mixed ANOVAs, the equivalence and rank tests, the
-logistic factorial, the three-way interaction, every moderated mediation
-card, the SEM model-fit tests and the clustered designs now have one (a group treatment trial now uses Satterthwaite's degrees
-of freedom, Departure 38); the record and the
-cards still to do are in `validation-log.md`, "Independent checks by
-card"), and the method choices each card makes for the
-researcher (so far E18, E23, E26, E33 and the other mixed models, E53
+the audit of every card that runs is finished (23 November 2026): every
+card has a power check independent of the package it wraps (a group
+treatment trial now uses Satterthwaite's degrees of freedom, Departure
+38; and the multiple regression card's F tests and Bayes factors now
+treat the predictors as measured unless they are set by the design,
+Departure 39, because G*Power's fixed model gave about 1 to 2 points too
+much power for measured predictors; the record is in
+`validation-log.md`, "Independent checks by card"), as is the audit of
+the method choices each card makes for the
+researcher (every card's are listed in `conventions.md`, "Choices each
+card makes for the researcher"; the planned contrast offers a one-sided
+test and uses the alpha set, which pwrss's contrast function ignored
+(22 November 2026), and the factorial logistic regression asks which
+test the researcher will run, Firth's, the likelihood-ratio or the Wald
+test (22 November 2026); input screens no longer preselect a test where
+neither is clearly better (the mixed models' yes/no test and degrees of
+freedom, the multinomial, interaction and item-bias tests), a mediation
+analysis or a pairwise adjustment, and the whole-study finder asks what a
+claim with two or more main analyses needs; questions that describe the
+study, and levels that work like alpha (the confidence level, the factor
+analysis's congruence, the whole-study screen's alpha and target power,
+the replication planner's and Tools' thresholds), start unanswered (22
+November 2026);
+so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
-size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026), and the results screen's sentences, evidence panel included, are plainer and shorter (21 November 2026), as are the cards, the design finder's help, form help and the downloads, and new Updates entries follow a checked style rule (22 November 2026); the full methods paragraph follows Lakens's (2022) reporting tables, with fill-in prompts for what only the author can say (why this significance level and target power, where the code is shared, and what a fixed sample's data are for). On the input screens, the simulation accuracy now sits in Settings, named on its line when the analysis is simulated, the first step in moving what doesn't apply to the chosen method out of view (22 November 2026). Folded sections share one turning-arrow style, underlines mark links only, the optional rows at the foot of a form (assumptions, Settings, the guess) share one card, and with explanations off each box has one info button in its corner, which opens every explanation in it under its own field. Headings that only restated their question, button lines that repeated their title and general meanings that repeated a field's own help are gone (22 November 2026). A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; the first, write-ups describing a different design, is fixed: the methods, ethics and sample-size sentences now give the group split the engine ran (`sample_structure()`, so unequal cells are written as run) and the design's own unit (pairs, time points, items). The ethics paragraph now says what success means for designs without a significance test (factor recovery, the number of profiles) and, for the test of not-close fit, the chance of showing the model fits closely. A simulated chance of zero for evidence of no effect is reported as none of the simulated studies, with an upper bound, not as impossible. The assumptions comparison also looks inside each range, so a range that crosses no effect no longer reads as "no change". Search finds cards by the tests they offer (RMSEA, sphericity corrections, the likelihood-ratio and Wald tests), an empty search offers a way back to the full list, and the main power figure shows a decimal near 80%, 90% and 95%. The full write-up's sample-size rule states only what the calculation assumes and leaves the recruitment cap, replacement and stopping rule for the author. A plan's downloads carry joint power only for the correlation and analyses now entered. Every mediation card and write-up says the power is for a statistical path and what a causal reading assumes. The last, the Bayes factor tables, now simulates the group sizes its sampling plan fixes (decided 21 November 2026), so all nine are closed. Messages about the answers name fields and choices as the screen shows them, a simulated sample-size search with few replications adds points rather than stopping without an answer, and the SEM card's factor analysis takes up to 100 items (21 November 2026).
+size goes in (17 November 2026). The same rule now covers the input screens, the design finder, study plans, the whole-study screen and the variation tool (20 November 2026), and the results screen's sentences, evidence panel included, are plainer and shorter (21 November 2026), as are the cards, the design finder's help, form help and the downloads, and new Updates entries follow a checked style rule (22 November 2026); the full methods paragraph follows Lakens's (2022) reporting tables, with fill-in prompts for what only the author can say (why this significance level and target power, where the code is shared, and what a fixed sample's data are for). On the input screens, the simulation accuracy now sits in Settings, named on its line when the analysis is simulated, the first step in moving what doesn't apply to the chosen method out of view (22 November 2026). Folded sections share one turning-arrow style, underlines mark links only, the optional rows at the foot of a form (assumptions, Settings, the guess) share one card, and with explanations off the unknown-effect sentence's own phrase links to the smallest detectable effect, every fold opens with the same arrow, and each box has one info button beside its first line, which also opens the box's term definitions; a note that applies to one goal shows only for that goal, which opens every explanation in it under its own field, the note on the chosen test included. Headings that only restated their question, button lines that repeated their title and general meanings that repeated a field's own help are gone (22 November 2026). The results screen is about a fifth shorter: the two what-if tools that ask for your own values open from their questions, and notes that only explain follow the explanations switch. A design-and-reporting review of 20 November 2026 found nine gaps between what powerkit calculates and what its write-ups, ethics paragraph and screens say; the first, write-ups describing a different design, is fixed: the methods, ethics and sample-size sentences now give the group split the engine ran (`sample_structure()`, so unequal cells are written as run) and the design's own unit (pairs, time points, items). The ethics paragraph now says what success means for designs without a significance test (factor recovery, the number of profiles) and, for the test of not-close fit, the chance of showing the model fits closely. A simulated chance of zero for evidence of no effect is reported as none of the simulated studies, with an upper bound, not as impossible. The assumptions comparison also looks inside each range, so a range that crosses no effect no longer reads as "no change". Search finds cards by the tests they offer (RMSEA, sphericity corrections, the likelihood-ratio and Wald tests), an empty search offers a way back to the full list, and the main power figure shows a decimal near 80%, 90% and 95%. The full write-up's sample-size rule states only what the calculation assumes and leaves the recruitment cap, replacement and stopping rule for the author. A plan's downloads carry joint power only for the correlation and analyses now entered. Every mediation card and write-up says the power is for a statistical path and what a causal reading assumes. The last, the Bayes factor tables, now simulates the group sizes its sampling plan fixes (decided 21 November 2026), so all nine are closed. Messages about the answers name fields and choices as the screen shows them, a simulated sample-size search with few replications adds points rather than stopping without an answer, and the SEM card's factor analysis takes up to 100 items (21 November 2026).
 Replication plans compare BUCSS publication assumptions when the original's
 publication process is unknown. Goals and exports describe what the selected
 criterion can show, including the replication Bayes factor for designs without
@@ -463,8 +478,8 @@ each area, is at the end of
   criterion's line says which criterion the answer to "What should the
   replication show?" gives and that it sets the sample size, each box's
   notes open from one info button in its corner with explanations off,
-  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 26 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
-  of item 25 (unequal groups for an ANOVA original, reliability for
+  and Delete is a small red button beside the plan's title. A field reached with Tab is scrolled clear of the sticky action bar on every form, and an ANOVA original's assurance choices run from 50% up, with BUCSS's 80% selected. Its labels are concise and the same in both modes, with what they explained in each field's help (queue item 25 applies this to the rest of powerkit; the input screens', design finder's, study plans', results screens' and exports' labels are done; the ethics and preregistration paragraphs and about 175 labels that keep a bracket naming a quantity remain). Still to come: the rest
+  of item 24 (unequal groups for an ANOVA original, reliability for
   pairs, claims resting on several tests). A three-factor ANOVA original
   (between, within or mixed) is planned through BUCSS's general functions.
 

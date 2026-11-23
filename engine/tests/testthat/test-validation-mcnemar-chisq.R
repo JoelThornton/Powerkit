@@ -1,7 +1,7 @@
 # Validation: McNemar's chi-square test, with and without the continuity
 # correction (E26, target_test > method "mcnemar_chisq" and
 # "mcnemar_chisq_corrected"). McNemar's exact test is pwrss's exact power,
-# validated with the basic tests.
+# checked in test-validation-formula-tests.R.
 # Backend: Spower simulation of powerkit's experiment p_mcnemar_chisq(),
 # which calls Spower's p_mcnemar.test() (stats::mcnemar.test()).
 #   1. agreement with an independent simulation: the pairs drawn as

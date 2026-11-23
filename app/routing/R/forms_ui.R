@@ -174,7 +174,7 @@ field_ui <- function(f, value, described_by = character()) {
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
     conditionalPanel(sprintf("input.%s == '%s'", id, k),
-      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]])))
+      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]]), class = "field-more choice-more"))
   }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
@@ -298,6 +298,21 @@ legend_repeats_question <- function(legend, g) {
   !length(head) || mean(head %in% words(label)) >= 0.6
 }
 
+effect_box_legend <- function(legend, g) {
+  labels <- vapply(g$fields, function(f) f$label %||% "", character(1))
+  if (is.null(legend) || !any(grepl("^How you\u2019?'?ll give", labels))) return(legend)
+  if (grepl(":", legend, fixed = TRUE)) return(sub(":.*$", "", legend))
+  if (grepl(", or ", legend, fixed = TRUE)) return("The effect")
+  legend
+}
+
+# A box note that only some goals need (`note_goals`) appears only when
+# one of them is chosen (22 November 2026).
+note_for_goals <- function(goals, ui) {
+  if (is.null(goals)) return(ui)
+  conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), ui)
+}
+
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   # The card lists every test version in one line ("Student's or Welch's
@@ -305,6 +320,10 @@ group_ui_build <- function(tree, g, values, index) {
   # heading that reads as a list, not a question, so the box led by the
   # test-version choice is headed plainly. Its terms stay explained.
   if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) legend <- "Which test you'll run"
+  # A box whose first question is how you'll give the effect lists the
+  # same forms that choice offers, so its heading names only what it is
+  # ("The effect", or the part before a colon) (22 November 2026).
+  legend <- effect_box_legend(legend, g)
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
   # Short name fields sit two to a row on wider screens; a legend that
@@ -318,15 +337,19 @@ group_ui_build <- function(tree, g, values, index) {
       legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
-    if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
+    if (!is.null(g$note) || !is.null(g$note_more)) note_for_goals(g$note_goals, explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
       if (!is.null(g$note)) p(class = "group-note", g$note),
-      if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
+      if (!is.null(g$note_more)) p(class = "group-note", g$note_more))),
     # Routine notes follow explanation mode; required-input prompts and
     # scientific warnings are rendered separately and remain visible.
     # The summary names its terms, so that two of these on one screen
     # don't read as the same link twice (16 November 2026).
-    if (length(hints)) tags$details(class = "form-terms", tags$summary(terms_summary(vapply(hints, `[[`, "", "term"))),
-      div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
+    # The box's terms are one of its explanations (22 November 2026): an
+    # info button in view, and behind the box's corner button with
+    # explanations off, rather than a fold of their own.
+    if (length(hints)) explanation_ui(sprintf("group-%d-terms", index), terms_summary(vapply(hints, `[[`, "", "term")),
+      class = "field-more terms-more",
+      div(id = hint_id, class = "form-terms-list", lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
   # Names that are all optional fold away (1 November 2026): they only
@@ -686,17 +709,29 @@ field_problems_js <- "
 # sets the two choices (what to find out, and the source); it fills in no
 # number.
 effect_unsure_ui <- function(form) {
+  # One sentence whose own words are the link (22 November 2026): an info
+  # button beside a separate "I don't know" button read as two choices.
+  # With explanations off, the sentence shortens to the question and the
+  # link.
+  # A link, not a button, so the phrase wraps with the sentence around it.
+  go <- function(label, no_effect) tags$a(href = "#", role = "button", class = "effect-unsure-go",
+    onclick = sprintf("pkEffectUnsure(%s); return false;", if (no_effect) "true" else "false"), label, .noWS = c("before", "after"))
+  line <- function(question, before, link, after, short, no_effect) {
+    p(class = "effect-unsure", tags$strong(question), " ",
+      tags$span(class = "plain-only", before, go(link, no_effect), after),
+      tags$span(class = "terms-only", go(short, no_effect)))
+  }
   if (isTRUE(form$sensitivity_without_effect)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know what effect to expect? "), "That's common. Tell Powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+    return(line("Don't know what effect to expect?",
+      "That's common. Give the number of people you can get, and Powerkit finds ",
+      "the smallest effect your study could detect", "; you then judge whether that is small enough.",
+      "Find the smallest effect my study could detect", TRUE))
   }
   if (isTRUE(form$sensitivity)) {
-    return(div(class = "effect-unsure",
-      explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and Powerkit can scale it up or down to the smallest size your sample could detect."),
-      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
+    return(line("Don't know how big the effect is?",
+      "If you know its pattern, enter that, and Powerkit scales it to ",
+      "the smallest size your sample could detect", ".",
+      "Find the smallest effect my study could detect", FALSE))
   }
   NULL
 }

@@ -265,8 +265,8 @@ power while matching G\*Power) is folded there instead
 | --- | --- | --- | --- |
 | G*Power | No contrast screen of its own: a contrast is entered into "F test: Fixed effects ANOVA - special, main effects and interactions" as an effect size f with "Numerator df" 1 and "Number of groups" the number of levels [GP-man, 11.3.3, p. 29] | f = sigma_m / sigma, where sigma_m = \|C\| / sqrt(N * sum(c_i^2 / n_i)) for the contrast C = sum(c_i * mu_i); the manual tabulates sigma_m, f and eta-squared for three contrasts of one example [GP-man, 11.3.3] | Weights are entered only through f, so G\*Power never sees them. Validated against GPower 2.0 [GP-man, 11.6] |
 | Superpower | `ANOVA_exact(emm = TRUE, contrast_type = )` and `emmeans_power()`: the contrast is computed by emmeans on one exact data set [SP-src] | emmeans contrast families (`"poly"` for trends, `"pairwise"`, ...), not arbitrary weights | Power is returned as a percentage. Agrees with pwrss and with the manual: for the manual's example its "poly" contrasts give 0.514737 (linear) and 0.0579695 (quadratic) [powerkit, `test-backend-formula-tests.R`] |
-| pwrss | `power.t.contrasts()`: a t test of each row of a contrast matrix (t^2 = F with numerator df 1, so the same test G\*Power computes) | `mu.vector`, `sd.vector`, `n.vector` and `contrast.matrix` | `k.covariates` **defaults to 1**, which spends a denominator degree of freedom a plain one-way design doesn't have; `adjust.alpha` offers none (the default), Tukey, Bonferroni, Holm, Hochberg, Hommel, BH, BY and fdr. No one-sided option |
-| **powerkit** | pwrss's `power.t.contrasts()` by formula, with `k.covariates = 0` and `r.squared = 0`; no simulation option yet (in the app since 26 October 2026, E19) [powerkit] | The means, the within-group SD and `target_test > weights`, one per level, adding up to 0. The weights' scale doesn't matter, which a unit test checks | **One contrast at a time**, `adjust.alpha = "none"` (pwrss's own default), equal groups, and two-sided only because pwrss's function has no one-sided option. Not a departure: the arguments are pwrss's defaults except `k.covariates`, which is 0 because the design has no covariates |
+| pwrss | `power.t.contrasts()`: a t test of each row of a contrast matrix (t^2 = F with numerator df 1, so the same test G\*Power computes) | `mu.vector`, `sd.vector`, `n.vector` and `contrast.matrix` | `k.covariates` **defaults to 1**, which spends a denominator degree of freedom a plain one-way design doesn't have; `adjust.alpha` offers none (the default), Tukey, Bonferroni, Holm, Hochberg, Hommel, BH, BY and fdr. No one-sided option. In pwrss 1.3.3, with `k.covariates = 0` it calls `power.t.test()` without its alpha, so the power is at 0.05 whatever `alpha` it is given (at four groups of 5, means 1.5, 2, 3, 4, SD 2 and a linear trend, 0.51 at alpha 0.01 instead of 0.25; docs/upstream-questions.md) |
+| **powerkit** | `power.t.contrasts()`'s own noncentral t with no covariates (the contrast over its standard error, SD x sqrt(sum(weight^2 / group size)), on n - groups df), passed to pwrss's `power.t.test()` with the alpha and sidedness asked for; no simulation option yet (in the app since 26 October 2026, E19; one-sided since 22 November 2026) [powerkit] | The means, the within-group SD, `target_test > weights`, one per level, adding up to 0, and the direction. The weights' scale doesn't matter, which a unit test checks | **One contrast at a time**, no alpha adjustment (pwrss's own default), equal groups. A one-sided test runs in the direction of the contrast (the weighted sum of the means above 0 for "greater"); one pointing the other way is refused. Not a departure: at alpha 0.05, two-sided, the result equals `power.t.contrasts()`'s, which a unit test checks with Superpower's emmeans contrast; at other alphas it is the noncentral t at that alpha, which pwrss intends but doesn't compute |
 
 ### Superpower and unequal group sizes (2 x 2 between and mixed)
 
@@ -787,7 +787,7 @@ the yes/no mediator card.
 | G\*Power | No Bayes factor tests | — | — |
 | JASP (Bayesian linear regression; analysis only, no planning) | BAS's `bas.lm()`: the Bayes factor of each model against the null model; with every predictor, the model with all of them against the intercept-only model | — | Prior "JZS" with "r scale" 0.354 by default (jaspRegression, `inst/qml/RegressionLinearBayesian.qml`); model prior uniform over model size |
 | BayesFactor | `regressionBF()` and `lmBF()` on the data (Liang, Paulo, Molina, Clyde and Berger, 2008; Rouder and Morey, "Bayesian testing in regression", the references in `regressionBF()`'s help); `linearReg.R2stat()` from R-squared, the same Bayes factor | — | `rscaleCont` "medium", sqrt(2)/4 (0.354), by default [BayesFactor help] |
-| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n, as for the F test), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
+| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n with predictors set by the design, as for the F test; averaged over measured predictors by default, Departure 39), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
 
 **The R-squared increase and one coefficient** (from 17 November 2026).
 powerkit plans the Bayes factor of the model with all the predictors
@@ -796,8 +796,9 @@ comparison BayesFactor's `regressionBF(whichModels = "top")` reports,
 and the ratio of two `lmBF()` Bayes factors, each `linearReg.R2stat()`
 from its model's R-squared. A study is simulated from the three
 independent sums of squares (the reduced model's, the increase's and the
-residual's, noncentral chi-squares with fixed predictors, as for the F
-test), with the same r scale 0.354. The inputs are both models'
+residual's, noncentral chi-squares; with measured predictors, the
+default, their noncentralities are drawn first, Departure 39), with the
+same r scale 0.354. The inputs are both models'
 R-squared, or a coefficient's partial R-squared and the R-squared of the
 other predictors, which the Bayes factor needs and the F test does not.
 JASP reports a coefficient's evidence as an inclusion Bayes factor
@@ -945,7 +946,7 @@ and 830 people.
 | --- | --- | --- | --- |
 | G\*Power | No test for crossed random effects | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`; for a factor, `fixed(xname)` tests by a likelihood ratio by default [simr help] | The model's own parameters | — |
-| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
+| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()` with the adjustment the researcher chooses (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, the adjustment Departure 17 |
 
 
 With a yes/no outcome (from 1 November 2026) the default test of the
@@ -1026,6 +1027,71 @@ paragraph give group 1's proportion, the ratio and group 2's proportion.
 An odds ratio from a logistic model with covariates is conditional and
 usually further from 1 than the groups' marginal odds ratio, which the
 input screen's help says.
+
+## Choices each card makes for the researcher
+
+Part (2) of the audit in `next.md` item 24 (22 November 2026): for every
+card that runs, the method choices built into it that the researcher
+doesn't make, next to those the form offers. A choice built in is fine
+when it is what the analysis is, or what researchers almost always run;
+where researchers commonly run something else, the form should offer it,
+and where the researcher's own study decides, it should ask. The
+assessment column says which, and points to the queue item where a
+change is planned. Departures and known differences (below) give the
+sizes; this table only lists. Sidedness, alpha and the goal (power,
+sample size or smallest effect) are offered on every card and are not
+repeated.
+
+| Card | Built in, not offered | Main choices offered on the form | Assessment |
+| --- | --- | --- | --- |
+| E1, E3 one-sample and paired t | Normal scores unless a shape is chosen | Student's t, Wilcoxon, Yuen (paired), Bayes factor, minimum-effect test; standardised or raw units; score shape; effects that vary between studies | Fine |
+| E2 two groups | — | Welch's (default, Departure 21), Student's, Mann-Whitney, Brunner-Munzel, Yuen, Bayes factor, minimum-effect; group sizes; score shape | Fine |
+| E4 correlation | Bivariate normal scores unless a shape is chosen | Pearson (exact distribution of r), Spearman, Kendall, Bayes factor; shape | Fine |
+| E76 repeated-measures correlation | One slope shared by everyone (rmcorr's model) | — | Fine: the card says a slope that varies needs a multilevel model |
+| E5 two proportions | Pooled-variance z test (G\*Power's) | z, z with continuity correction, Fisher's exact, Bayes factor; group sizes | Fine |
+| E6 chi-square of independence | — | Pearson with or without Yates' correction (2 x 2), Bayes factor with its sampling plan; proportions or w; group sizes | Fine |
+| E7, E21 two between factors | Equal cells; one SD (E21) | F, aligned rank transform, Bayes factor; score shape | Fine: unequal 2 x 2 cells are E22 |
+| E22 unequal 2 x 2 | Type III sums of squares | As E7 | Fine (Type III is what SPSS and `car::Anova(type = 3)` report) |
+| E8, E55, E20 designs with a within factor | — | Greenhouse-Geisser (default, Departure 26), Huynh-Feldt or none; F, aligned rank transform, Bayes factor; SDs and correlations per cell | Fine |
+| E18 one-way between | Equal groups | Welch's F (default, Departure 22), F, Kruskal-Wallis, pairwise tests (t, Mann-Whitney, Dunn) with Holm, Bonferroni or none, Bayes factor; SD per group | Fine: planning usually assumes equal groups |
+| E54 one-way within | — | Correction; F, Friedman, pairwise t, Wilcoxon or Conover with an adjustment; Bayes factor | Fine |
+| E56 three factors | Equal cells, one SD | F or Bayes factor | Fine |
+| E19 planned contrast | Pooled SD, equal groups, one contrast, no alpha adjustment | Weights; raw or standardised; one- or two-sided | Fine. A one-sided test was added on 22 November 2026, and the alpha fixed: pwrss's `power.t.contrasts()` gave the power at 0.05 whatever alpha was set |
+| E23 ANCOVA | Shieh's method | Covariates measured (random) or set (fixed); F or Bayes factor | Fine (asked since 17 November 2026) |
+| E24 multiple regression | Normal predictors when measured (Departure 39) | Predictors measured or set by the design (F test and Bayes factors); F, HC3 or HC4 robust t, quantile regression, Bayes factor; error shape | Fine (asked since 22 November 2026) |
+| E25 one proportion | — | Exact binomial, `binom.test()`, z with or without correction, Bayes factor | Fine |
+| E26 McNemar | — | Exact, chi-square with or without correction | Fine |
+| E36 equivalence (TOST) | Student's t for two groups (TOSTER's `power_t_TOST()`), symmetric bounds | Comparison, units, which direction is better | **Note:** TOSTER's `t_TOST()` runs Welch's tests by default; with equal SDs the two give nearly the same power, so this is a note on the card, not a change |
+| E48 goodness of fit | — | Proportions or w | Fine |
+| E29 ordinal, two groups | Whitehead's formula, proportional odds | Group sizes | Fine (checked against `MASS::polr()` simulations) |
+| E47 logistic factorial | Type III tests with sum-to-zero contrasts, equal cells | Effect tested; the test, with none preselected: Firth's penalised likelihood-ratio test (logistf), the likelihood-ratio test or the Wald test (22 November 2026) | Fine. The three test the same effect and differ in how the p-value is worked out, so the researcher chooses the one they will run, with a line on when each fits. Not a departure: each is a test researchers run (logistf's `logistftest()`; R's `car::Anova()` and `anova(test = "LRT")`; the coefficient table and Spower's `p_glm()`). With few events they differ. 2 x 2, a 5% base rate and no interaction, 2,000 simulated studies at alpha 0.05: false positives 0.6%, 6.5% and 2.9% (Wald, likelihood-ratio, Firth) at 20 per cell, 2.5%, 7.3% and 4.0% at 40, 4.5%, 6.3% and 5.5% at 100; power with proportions 0.05, 0.1, 0.1, 0.7 and 20 per cell 19%, 32% and 34% |
+| E49 two independent correlations | Fisher's z | Group sizes | Fine |
+| E51 two dependent correlations | Steiger's z, `pooled = FALSE` (Departure 12) | Overlapping or not | Fine |
+| E52, E53, E57 variance tests | Normal scores for the chi-square and F tests | E53: F, Levene's, Brown-Forsythe (default, Departure 32), shape | Fine |
+| E59 MANOVA | Equal groups, Pillai's trace | Pillai's trace (Hotelling's T² with two groups) or PERMANOVA; shape | Fine |
+| E60 one-sample Hotelling's T² | — | — | Fine |
+| E9, E15, E31 regression interactions | OLS t test of the product term | Reliabilities; R-squared change or correlations (E9) | Fine (Known differences 1 and 17) |
+| E10, E11, E12, E16 mediation | Residuals of parallel mediators free (Departure 7) | Maximum likelihood with a Monte Carlo interval (default; Departure 6, Known difference 14), maximum likelihood or ordinary regression (PROCESS-style) with a percentile bootstrap, and a quick joint-significance estimate | Fine |
+| E42, E39 mediation, X in groups or a yes/no or ordered mediator | Monte Carlo interval (E42); delta-method natural indirect effect (E39) | X, M and Y types (E39) | Fine |
+| E13, E14, E17, E38, E40 moderated mediation | Monte Carlo interval; W standardised; the interactions as products of standardised variables (stated on the form since 22 November 2026) | Model, X and W types | Fine |
+| E33, E63, E67, E68, E41, E62 mixed models | Every participant responds to every item (E33, E63, E67); groups of equal size (E62) | Satterthwaite (Departure 16) or Kenward-Roger, neither selected to start (22 November 2026); Wald or likelihood-ratio for yes/no, chosen by the researcher (likelihood-ratio selected on E63, where the Wald test ran above alpha); pairwise follow-ups with an adjustment (E63) | Fine |
+| E75 repeated counts, yes/no, categories | — | Likelihood-ratio or Wald (counts, neither selected to start); likelihood-ratio only for yes/no (the Wald test ran above alpha) | Fine |
+| E78 Cochran's Q | — | — | Fine |
+| E43 survival | — | Log-rank or Cox; group sizes | Fine |
+| E69 reliability and agreement | — | ICC test or Walter's method, alpha, kappa, Bland-Altman (MOVER by default, Departure 27, the original or Lu's formula); one- or two-sided | Fine |
+| E44 dyadic (APIM) | lavaan's Wald z | Which effects, distinguishable or not | Fine |
+| E61 meta-analysis | POMADE's defaults (CHE model, RVE) for several effects per study | Random or fixed; Hartung-Knapp (default, Departure 18) or z | Fine |
+| E27, E28 logistic and Poisson regression, one predictor | Demidenko's Wald z (G\*Power's procedure) | Score or yes/no X; count model (E28) | Fine |
+| E70 multinomial | — | Likelihood-ratio or Wald | Fine |
+| E32, E30 interactions with other outcomes or groups | — | Model, test, X and W types (E32) | Fine |
+| E71 differential item functioning | — | Which parameters are freed; LR, Wald, score or gradient test | Fine |
+| E35 growth curves | The z test of Diggle and colleagues' formula | Group sizes, dropout | Fine (checked against mixed models fitted to simulated studies) |
+| E73, E58, E74, E45, E72 latent and time-series models | psych's `fa()` minres and oblimin (E73); mclust's equal-variance model and the BIC (E58); powRICLPM's model (E74) | GLS by REML or ML (E45); constraints (E74); within or between (E72) | Fine: each is the named package's standard fit |
+| E34 clustered designs | Equal groups per condition (cluster-randomised), half of each group in each condition (multisite), equal numbers in each condition (group treatment) | Assignment, outcome, group sizes' SD, a baseline score, the formula or a glmer simulation for yes/no | Fine (Departures 14 and 38, Known difference 16) |
+| E37 SEM | Each item on one factor for a CFA's df | Exact, close or not-close fit; invariance level and over what | Fine |
+| E64, E66 trend tests | — | Shape (E64), group sizes | Fine |
+| E46 confidence intervals | — | The interval's method for r, a proportion and an odds ratio | Fine |
+| E50 generic, E77 prediction models | — | Test family (E50); purpose, outcome and metric (E77) | Fine |
 
 ## Departures
 
@@ -1620,7 +1686,9 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   each of these cards also offers Kenward and Roger's degrees of freedom
   (`target_test > df_method` "kenward_roger"; simr's method "kr", or
   lmerTest's `ddf = "Kenward-Roger"` for three or more conditions), the
-  same departure from simr's z test. With E33's example at 20
+  same departure from simr's z test. From 22 November 2026 neither starts
+  selected: the researcher picks the one they will report, and
+  Satterthwaite's is marked as the usual one. With E33's example at 20
   participants, on the same 500 simulated data sets: 27.0% with
   Kenward-Roger, 27.4% with Satterthwaite and 29.2% with z, the two
   corrections reaching the same decision in 99.6% of them (simr 1.0.11,
@@ -1635,20 +1703,23 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   ("Satterthwaite's test is never more liberal than simr's z test")
   checks the direction on the same simulated data sets.
 
-### 17. Pairwise comparisons: Holm's adjustment by default, not Superpower's none
+### 17. Pairwise comparisons: Holm's adjustment offered first, not Superpower's none
 
 Decided by the maintainer on 31 October 2026 (`docs/decisions.md`: Holm
-and Bonferroni first); Holm's method as the default is powerkit's.
+and Bonferroni first). From 22 November 2026 no adjustment starts
+selected: whether to adjust depends on the claim (Rubin, 2021, against
+Mayo, 2018, as for the claim on every input screen), so the form asks,
+and recommends Holm's method among the adjustments.
 
 - **Established convention:** Superpower's `ANOVA_power()` reports the
   power of every pairwise t-test with `p_adjust = "none"` by default, and
   adjusts them together (`p.adjust(paired_p, method = p_adjust)`, Superpower
   0.2.4.1) when asked.
 - **powerkit:** the pairwise comparison option on the one-way ANOVA cards
-  (E18, E54) adjusts by Holm's method unless the user chooses Bonferroni's
-  or none, because a study analysed by several pairwise tests and reported
-  without adjustment overstates its evidence. Holm's method never rejects
-  less often than Bonferroni's.
+  (E18, E54) asks for Holm's method, Bonferroni's or none. Holm's is
+  marked as recommended if the researcher adjusts, since it controls the
+  same error and never rejects less often than Bonferroni's; none is
+  described as the choice when each comparison is its own claim.
 - **Size:** for None against Praise in the one-way example (means 10, 11
   and 13, SD 6, 30 per group, three comparisons), 31.2% with Holm's
   adjustment, 30.1% with Bonferroni's and 47.8% with none (Superpower's
@@ -2344,6 +2415,63 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   with a score (`app/routing/forms.yaml`, `departures`, key "38"), in its
   methods paragraph, and in the exported R script, which computes the
   power in base R.
+
+### 39. Multiple regression's F tests and Bayes factors: predictors measured on each person by default, not fixed (G\*Power, pwrss)
+
+**The maintainer's decision, 22 November 2026** (`docs/decisions.md`).
+
+- **Established convention:** G\*Power's F tests for R-squared against 0,
+  an R-squared increase and one coefficient treat the predictors as fixed
+  ("fixed model": Y = X beta + e with fixed and known predictor values),
+  noncentrality lambda = f² N [GP-man, 14]; pwrss's `power.f.regression()`
+  (1.3.3), MBESS's `ss.power.R2()` (5.0.1) and WebPower's `wp.regression()`
+  (0.9.4) compute the same. G\*Power offers a separate exact "random
+  model" for R-squared against 0 only (Gatsonis and Sampson, 1989, refs.bib
+  `Gatsonis1989_multiple_correlation`).
+- **powerkit:** measured predictors by default (`target_test >
+  predictor_model` "random"): the fixed-predictor power averaged over the
+  predictors' distribution (Shieh, 2007, refs.bib
+  `Shieh2007_random_regression`). For multivariate normal predictors,
+  given the predictors F is noncentral F(q, N − k − 1) with noncentrality
+  f² times a chi-square on N − 1 − (k − q) df (the Wishart distribution of
+  the tested predictors' cross-products after the others are partialled
+  out), so power is one integral of the noncentral F's tail over that
+  chi-square (`engine/R/regression-measured.R`). No package powerkit builds
+  on computes it. Predictors set by the design ("fixed") keep G\*Power's
+  and pwrss's answer, and the input screen asks which, preselecting
+  neither, as the ANCOVA card does for its covariates (Known difference
+  15). Simulated studies with predictors drawn afresh agree with the
+  formula, and with predictor values held fixed agree with pwrss
+  (`test-validation-formula-tests.R`).
+- **Size:** two predictors added to three (R-squared .10 to .15): 73.6%
+  against 75.3% at N = 150, and 173 against 167 people for 80%; one
+  coefficient (partial R-squared .04, four predictors): 68.5% against
+  70.0% at 150, 196 against 191; R-squared .10 with five predictors: 124
+  against 122; f² .15 with three: 80 against 77; f² .02 with one
+  predictor: 398 against 395. The gap is a few people, largest in small
+  samples with many control predictors, and shrinks as N grows.
+- **The card's Bayes factors** take the same setting (22 November 2026).
+  For R-squared against 0 the Bayes factor rises with F, so its power is
+  the same integral with the F at which BF10 reaches the threshold in
+  place of the critical value (exact). For an R-squared increase or one
+  coefficient each simulated study draws its sums of squares' two
+  noncentralities first, as the predictors vary (`regression_measured_draw()`:
+  the reduced model's is R-squared reduced times a chi-square on N − 1,
+  plus the tested predictors' share of the kept predictors' space; the
+  increase's is the F test's measured one), then the three sums of
+  squares as before. Studies simulated by `lm()` and `lmBF()` on new
+  normal predictors each time agree (`test-validation-bayes-regression.R`,
+  `test-validation-bayes-r2change.R`). Size: R-squared .10 with three
+  predictors, threshold 10: 64.7% against 65.8% at N = 150, 193 against
+  189 people for a 0.8 chance; two predictors added to three (R-squared
+  .10 to .15): about 42% against 44% at 150 (20,000 studies).
+- **Test:** `test-backend-regression-measured.R`, "measured predictors
+  give less power than G\*Power's fixed model (Departure 39)", and the
+  Bayes factors' tests in the same file.
+- **Shown to users:** on the result screen for these tests unless the
+  predictors are set by the design (`app/routing/forms.yaml`,
+  `departures`, key "39"), in the methods paragraph, and in the exported
+  R script, which computes the power in base R.
 
 ## Known differences
 

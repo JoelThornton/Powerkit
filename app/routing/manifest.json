@@ -3316,6 +3316,37 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-18 07:40:10 UTC; unix"
       }
     },
+    "formula.tools": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "formula.tools",
+        "Type": "Package",
+        "Title": "Programmatic Utilities for Manipulating Formulas, Expressions,\nCalls, Assignments and Other R Objects",
+        "Version": "1.7.1",
+        "Date": "2018-02-22",
+        "Authors@R": "c(\n    person(\"Christopher\", \"Brown\", , \"chris.brown@decisionpatterns.com\", c(\"aut\", \"cre\") ),\n    person(\"Decision Patterns\", role = \"cph\")\n    )",
+        "Description": "These utilities facilitate the programmatic manipulations of\n    formulas, expressions, calls, assignments and other R language objects. \n    These objects all share the same structure: a left-hand side, operator and \n    right-hand side. This packages provides methods for accessing and \n    modifying this structures as well as extracting and replacing names and \n    symbols from these objects.",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "operator.tools(>= 1.4.0), utils, methods",
+        "Suggests": "magrittr, testthat",
+        "License": "GPL-2 | file LICENSE",
+        "URL": "https://github.com/decisionpatterns/formula.tools",
+        "BugReports": "https://github.com/decisionpatterns/formula.tools/issues",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "Collate": "'as.character.formula.R' 'env.R' 'get.vars.R' 'invert.R'\n'is.one.sided.R' 'is.two.sided.R' 'lhs.vars.R' 'op.type.R'\n'parts.R' 'parts.lhs.get.R' 'parts.lhs.set.R' 'parts.op.get.R'\n'parts.op.set.R' 'parts.rhs.get.R' 'parts.rhs.set.R'\n'rhs.vars.R' 'split.terms.R' 'terms.R' 'toggle.sign.R' 'zzz.R'",
+        "RoxygenNote": "6.0.1.9000",
+        "Repository": "RSPM",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2018-03-01 07:53:43 UTC; cbrown",
+        "Author": "Christopher Brown [aut, cre],\n  Decision Patterns [cph]",
+        "Maintainer": "Christopher Brown <chris.brown@decisionpatterns.com>",
+        "Date/Publication": "2018-03-01 12:56:01 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 21:57:52 UTC; unix"
+      }
+    },
     "fracdiff": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4915,6 +4946,35 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:43:10 UTC; unix"
       }
     },
+    "logistf": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "logistf",
+        "Version": "1.26.1",
+        "Date": "2025-04-16",
+        "Title": "Firth's Bias-Reduced Logistic Regression",
+        "Authors@R": "c(person(\"Georg\", \"Heinze\", role=c(\"aut\", \"cre\"), email=\"georg.heinze@meduniwien.ac.at\"),\n\t\t\t person(\"Meinhard\", \"Ploner\", role=c(\"aut\")),\n\t\t\t person(\"Daniela\",\"Dunkler\", role=c(\"ctb\")),\n\t\t\t person(\"Harry\", \"Southworth\", role=c(\"ctb\")), \n\t\t\t person(\"Lena\", \"Jiricka\", role=c(\"aut\")),\n\t\t\t person(\"Gregor\", \"Steiner\", role=c(\"aut\")))",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "mice, mgcv, formula.tools, Matrix",
+        "Suggests": "emmeans (>= 1.4), estimability",
+        "Description": "Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys \n\tprior. Confidence intervals for regression coefficients can be computed by penalized profile likelihood. Firth's method was proposed as ideal\n\tsolution to the problem of separation in logistic regression, see Heinze and Schemper (2002) <doi:10.1002/sim.1047>. If needed, the bias reduction can be turned off such that ordinary\n\tmaximum likelihood logistic regression is obtained. Two new modifications of Firth's method, FLIC and FLAC, lead to unbiased predictions and are now available\n\tin the package as well, see Puhr et al (2017) <doi:10.1002/sim.7273>.",
+        "License": "GPL",
+        "URL": "https://github.com/georgheinze/logistf",
+        "LazyLoad": "yes",
+        "NeedsCompilation": "yes",
+        "RoxygenNote": "7.3.2",
+        "LazyData": "true",
+        "BugReports": "https://github.com/georgheinze/logistf/issues/",
+        "Packaged": "2025-04-16 15:04:23 UTC; Georg",
+        "Author": "Georg Heinze [aut, cre],\n  Meinhard Ploner [aut],\n  Daniela Dunkler [ctb],\n  Harry Southworth [ctb],\n  Lena Jiricka [aut],\n  Gregor Steiner [aut]",
+        "Maintainer": "Georg Heinze <georg.heinze@meduniwien.ac.at>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-04-16 15:50:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-25 19:00:14 UTC; unix"
+      }
+    },
     "longpower": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5689,6 +5749,33 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:46:24 UTC; unix"
       }
     },
+    "operator.tools": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "operator.tools",
+        "Type": "Package",
+        "Title": "Utilities for Working with R's Operators",
+        "Version": "1.6.3.1",
+        "Date": "2017-02-28",
+        "Authors@R": "c(\n    person(\"Christopher\", \"Brown\", , \"chris.brown@decisionpatterns.com\", c(\"aut\", \"cre\") ),\n    person(\"Decision Patterns\", role = \"cph\")\n    )",
+        "Imports": "utils (>= 3.3.2)",
+        "Suggests": "operators (>= 0.1.8), magrittr (>= 1.5), testthat (>= 1.0.2)",
+        "Description": "Provides a collection of utilities that allow programming with \n    R's operators. Routines allow classifying operators, \n    translating to and from an operator and its underlying function, and inverting \n    some operators (e.g. comparison operators), etc. All methods can be extended\n    to custom infix operators. ",
+        "License": "GPL-2 | file LICENSE",
+        "URL": "https://github.com/decisionpatterns/operator.tools",
+        "BugReports": "https://github.com/decisionpatterns/operator.tools/issues",
+        "RoxygenNote": "6.0.1.9000",
+        "Repository": "RSPM",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-01-29 16:55:58 UTC; hornik",
+        "Author": "Christopher Brown [aut, cre],\n  Decision Patterns [cph]",
+        "Maintainer": "Christopher Brown <chris.brown@decisionpatterns.com>",
+        "Date/Publication": "2026-01-29 17:49:45 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 21:52:59 UTC; unix"
+      }
+    },
     "ordinal": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6461,7 +6548,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.81.25",
+        "Version": "0.81.39",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6471,7 +6558,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, BUCSS, boot,\nGPArotation, gsl, hypergeo, ICC.Sample.Size, irtpwr,\nJustifyAlpha, kappaSize, lavaan, longpower, lmhelprs (>=\n0.4.2), MASS, Matrix, MBESS, mclust, metafor, metapower, mirt,\nnnet, ordinal, pbkrtest, PITS, pmsampsize, pmvalsampsize,\nPMCMRplus, POMADE, powerSurvEpi, powRICLPM, presize, pscl,\nPUMP, quantreg, regmedint, semPower, simsem, SimplyAgree,\nstatpsych, survival, testthat (>= 3.0.0), TOSTER, vegan,\nWebPower, withr, WRS2",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, BUCSS, boot,\nGPArotation, gsl, hypergeo, ICC.Sample.Size, irtpwr,\nJustifyAlpha, kappaSize, lavaan, logistf, longpower, lmhelprs\n(>= 0.4.2), MASS, Matrix, MBESS, mclust, metafor, metapower,\nmirt, nnet, ordinal, pbkrtest, PITS, pmsampsize, pmvalsampsize,\nPMCMRplus, POMADE, powerSurvEpi, powRICLPM, presize, pscl,\nPUMP, quantreg, regmedint, semPower, simsem, SimplyAgree,\nstatpsych, survival, testthat (>= 3.0.0), TOSTER, vegan,\nWebPower, withr, WRS2",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6480,19 +6567,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
-        "RemoteSha": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
+        "RemoteRef": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
+        "RemoteSha": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
-        "GithubSHA1": "3f0135b984e16bd1e6609888bc581b7ba8c2e86d",
+        "GithubRef": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
+        "GithubSHA1": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-22 12:46:37 UTC; runner",
+        "Packaged": "2026-11-23 10:50:08 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-22 12:47:35 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-23 10:50:56 UTC; unix"
       }
     },
     "powertools": {
@@ -8860,10 +8947,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "107cbb4d01c445a218d9213cd2530769"
+      "checksum": "15b2823f2eea700ee34249e7e45c13a5"
     },
     "forms.yaml": {
-      "checksum": "e40d38857cb741a00bc4493957e46093"
+      "checksum": "292e2399902b93ce6399e218c126eebf"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8872,13 +8959,13 @@
       "checksum": "0f6a5d5e37ce494b0c11e5f726932128"
     },
     "optional-packages.R": {
-      "checksum": "5b2a00b18937d1cc462ab370661e1317"
+      "checksum": "cd09eb2e31ecd6dae6854316db49bd86"
     },
     "R/about.R": {
       "checksum": "981038794256b7685c7e99d4a9ae9f1f"
     },
     "R/assumptions.R": {
-      "checksum": "4081659eb5f6f5122273ad2d987c1b72"
+      "checksum": "f23bd67ae89fd26b64a10f5dc0b19c92"
     },
     "R/bayes-mode.R": {
       "checksum": "61ceec04bc71a01248f8cd559b2136f8"
@@ -8902,25 +8989,25 @@
       "checksum": "5a8411f75b9ac287a9e664d3195e5460"
     },
     "R/drafts.R": {
-      "checksum": "1e6da9a4f1b526b5267458923e5df09f"
+      "checksum": "d434a4c7fed2bdc99014fbab6a04457c"
     },
     "R/feedback.R": {
       "checksum": "f9cd950b4f27f5f426169a7f72e221ae"
     },
     "R/forms_ui.R": {
-      "checksum": "dc2ac7bc231535da8425d3f87131afac"
+      "checksum": "1c55e5c9e2928d92c0e0cb63da669378"
     },
     "R/forms.R": {
-      "checksum": "afa6c41197595e847b0a57c729d08040"
+      "checksum": "8507a536f0688b400a60338130bb5301"
     },
     "R/input-support.R": {
       "checksum": "e6b1580ff9ee634f06684662951c11a4"
     },
     "R/keep-result.R": {
-      "checksum": "01d979474ed1b10eb465050021502219"
+      "checksum": "e66758cdce8f355971fd8115fa8624d2"
     },
     "R/labs.R": {
-      "checksum": "c20884a6793404d6978feec9ed2a3dd2"
+      "checksum": "56f90b39bcc51c375d3743c00b5cfcd2"
     },
     "R/map.R": {
       "checksum": "05c61b63efb66961f54bb9cf1f8437cb"
@@ -8938,13 +9025,13 @@
       "checksum": "aac3b43d65bc8e471f715be9ecbe45c1"
     },
     "R/replication.R": {
-      "checksum": "a5dc189586e83526358c7d72d6713a96"
+      "checksum": "919a966b8dc5e992ba437a3d09385ce8"
     },
     "R/results-prediction.R": {
       "checksum": "24b0c333d82310a40b03a2441b5e150d"
     },
     "R/results.R": {
-      "checksum": "f743ce3d96fd524611d3d512c7295475"
+      "checksum": "345c1d7b291e42ed91e01286f0504f73"
     },
     "R/route-fit.R": {
       "checksum": "06592de04680b3130b5bd5712e5df968"
@@ -8965,7 +9052,7 @@
       "checksum": "a2df1beb27de917827ff1dd9dfb7b578"
     },
     "R/study-plan-replication.R": {
-      "checksum": "3249eb8392cc6f55a081567b29ff3e71"
+      "checksum": "8df8b9b65c454e2ba68b7469845fd9b4"
     },
     "R/study-plan.R": {
       "checksum": "0ad1ca3e9feebe5e7147f54d2cc3fe8a"
@@ -8983,16 +9070,16 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "153687008c80cb15563e8a120b931534"
+      "checksum": "80ebf959ad28aa67708eebbca3b0428d"
     },
     "R/whole-study.R": {
-      "checksum": "3d91f4825091b59128d5a117181025f0"
+      "checksum": "9fb61007f53af6e363e431719f4f71c2"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "bd645ba2ae61f89f2c56d10b1192aa0d"
+      "checksum": "e3d823479b52e9b2e74254198f9e4d85"
     },
     "whats-new-archive.yaml": {
       "checksum": "1c8fea0340f52b3fb556cebc16955878"
@@ -9001,7 +9088,7 @@
       "checksum": "3deb002bbaa98f06844fb88d56047327"
     },
     "whats-new.yaml": {
-      "checksum": "660cd402029388f02b72a0f307ed247d"
+      "checksum": "ed90d36d076f36c73d05f151e67b7928"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

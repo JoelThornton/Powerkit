@@ -1086,7 +1086,7 @@ check_proportions_formula_allowed <- function(spec) {
 
 # pwrss's one-sided tests (one proportion, McNemar, Fisher's exact test,
 # two correlations, dependent correlations, logistic and Poisson
-# regression, Welch's t-test by formula) run in the direction of the
+# regression, Welch's t-test by formula, a planned contrast) run in the direction of the
 # specified effect, so a one-sided test pointing the
 # other way can't be computed with them.
 check_direction_allowed <- function(spec) {
@@ -1094,7 +1094,7 @@ check_direction_allowed <- function(spec) {
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction", "growth_curve",
                  "single_predictor_count", "one_variance", "two_variances", "repeated_measures_correlation",
-                 "cluster_randomised", "multisite", "group_treatment", "t", "z")
+                 "cluster_randomised", "multisite", "group_treatment", "oneway_contrast", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -1127,6 +1127,8 @@ check_direction_allowed <- function(spec) {
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
     two_variances = pop$var1 - pop$var2,
+    # "greater" means the weighted sum of the means is above 0.
+    oneway_contrast = sum(as.numeric(unlist(spec$target_test$weights)) * as.numeric(unlist(pop$means))),
     # "greater" means the two scores rise together within people.
     repeated_measures_correlation = pop$r,
     # "greater" means the second condition's mean is higher.
@@ -2424,6 +2426,11 @@ check_single_coefficient <- function(spec) {
 
 check_multiple_regression <- function(spec) {
   pop <- spec$population
+  # Measured or set predictors (Departure 39) describe the model of the F
+  # test and the Bayes factors.
+  if (!is.null(spec$target_test$predictor_model) && !isTRUE(spec$target_test$method %in% regression_predictor_methods)) {
+    return("'target_test > predictor_model' applies to the F test (method \"f_test\") and the Bayes factor (\"bayes_factor\") only; remove it for this test.")
+  }
   if (identical(spec$template, "single_coefficient")) {
     return(check_single_coefficient(spec))
   }

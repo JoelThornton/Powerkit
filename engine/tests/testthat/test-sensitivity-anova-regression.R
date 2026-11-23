@@ -25,6 +25,7 @@ test_that("each ANOVA layout scales the pattern entered until the effect tested 
 
 test_that("multiple regression finds the smallest R-squared, matching pwr's formula for the same F test", {
   spec <- example_spec("regression_r2_zero")
+  spec$target_test$predictor_model <- "fixed" # pwr's fixed model (Departure 39)
   spec$goal <- list(type = "sensitivity", n = 100L, power = 0.8)
   result <- suppressWarnings(run_quietly(spec))
   k <- spec$population$predictors

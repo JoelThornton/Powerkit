@@ -51,6 +51,7 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
       key = formula_key %||% method_paper_key(package),
       same_as = if (!is.null(method_ref) && same_doi(method_ref, package_cit)) paste0(package, "_package")
     ),
+    predictors = measured_predictors_item(result$provenance, formula_key, entries),
     powerkit = list(
       label = "powerkit, the package that set up and checked the analysis (from its DESCRIPTION)",
       citation = package_citation("powerkit"),
@@ -62,6 +63,7 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
       key = powerkit_paper_key()
     )
   )
+  items <- Filter(Negate(is.null), items)
   software <- lapply(
     supporting_software(package, names(result$provenance$packages), psych_roles(result)),
     function(s) {
@@ -99,7 +101,20 @@ formula_reference_key <- function(provenance) {
   # (SimplyAgree's blandPowerCurve(), backend-agreement.R).
   if (identical(provenance$backend, "SimplyAgree") && grepl("Lu et al.", fun, fixed = TRUE)) return("Lu2016_bland_altman_n")
   if (!identical(provenance$backend, "stats")) return(NULL)
+  if (grepl("measured predictors", fun, fixed = TRUE)) return("Shieh2007_random_regression")
   if (grepl("Pillai's V", fun, fixed = TRUE)) "Faul2007_gpower" else if (grepl("Levy's noncentral F", fun, fixed = TRUE)) "Jan2014_welch_anova" else if (grepl("Donner & Eliasziw", fun, fixed = TRUE)) "Donner1987_icc"
+}
+
+# The multiple regression card's Bayes factors with measured predictors
+# (Departure 39) average their power over the predictors by Shieh's
+# (2007) result: cited beside the package's method paper. (The F tests
+# cite it as their formula, formula_reference_key().)
+measured_predictors_item <- function(provenance, formula_key, entries) {
+  key <- "Shieh2007_random_regression"
+  if (identical(formula_key, key) || !grepl("measured predictors|predictors measured on each person", provenance$backend_function %||% "")) {
+    return(NULL)
+  }
+  list(label = "The published result for measured predictors that the power is averaged over", ref = entries[[key]], key = key)
 }
 
 # Keys powerkit looks up in refs.bib (listed at the top of refs.bib).

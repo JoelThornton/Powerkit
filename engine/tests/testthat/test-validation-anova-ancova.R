@@ -9,9 +9,11 @@
 #      covariates fixed by the design (target_test > covariate_model
 #      "fixed", pwrss's power.f.ancova()), studies drawn here with the same
 #      covariate values in every cell and every study, tested with lm()'s
-#      F test; Shieh's method (measured covariates) has no simulation yet
+#      F test; with measured covariates (Shieh's method, the default),
+#      studies drawn here with new covariate scores in every study, one
+#      factor and two
 #   4. Type I error: an effect of 0 gives alpha by construction (unit
-#      tests)
+#      tests), and lm()'s F test on the simulated studies keeps alpha
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -85,6 +87,51 @@ test_that("ANCOVA 3 x 2 with a fixed covariate: powerkit matches lm()'s F test o
                         n = 120, covariate_model = "fixed")
     expect_power_agrees(engine_power(spec), direct)
   }
+})
+
+# 3. Measured covariates (Shieh's method): agreement with a simulation --------
+
+test_that("ANCOVA with measured covariates: powerkit matches lm()'s F test with covariates drawn afresh (simulation)", {
+  skip_unless_full_validation()
+  # One factor, three groups of 30, one covariate explaining 36% (the
+  # card's example), and two covariates explaining 50% with groups of 15.
+  oneway <- function(means, sd, r2, covariates, per_group, seed) {
+    v <- validation_variable
+    validation_spec(
+      design = "factorial_anova", template = "oneway_ancova",
+      variables = list(
+        A = v("between_factor", "A", levels = as.list(paste0("a", seq_along(means)))),
+        Y = v("continuous", "Outcome")
+      ),
+      population = list(metric = "raw", means = as.list(means), sd = sd, r2_covariates = r2, covariates = covariates),
+      target_test = list(effect = "main_effect_A", method = "ancova_f", alpha = 0.05),
+      seed = seed, n = per_group * length(means)
+    )
+  }
+  cases <- list(
+    list(means = c(20, 18, 16), sd = 6, r2 = 0.36, covariates = 1, per_group = 30),
+    list(means = c(0, 0.3, 0.5, 0.6), sd = 1, r2 = 0.5, covariates = 2, per_group = 15)
+  )
+  for (case in cases) {
+    spec <- oneway(case$means, case$sd, case$r2, case$covariates, case$per_group, seed = 311)
+    reference <- independent_ancova_power(case$means, case$sd, case$r2, case$covariates, case$per_group,
+                                          nrep = validation_nrep(), seed = 312)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+  # Two factors, 3 x 2, two covariates explaining 25%: each effect.
+  means <- matrix(c(0, 0.2, 0.1, 0.4, 0.2, 0.7), nrow = 3, byrow = TRUE)
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    spec <- ancova_spec(means, sd = 1, r2 = 0.25, covariates = 2, effect = effect, alpha = 0.05, seed = 313, n = 150)
+    reference <- independent_ancova_power(means, 1, 0.25, 2, per_cell = 25, effect = effect,
+                                          nrep = validation_nrep(), seed = 314)
+    expect_power_near(engine_power(spec), reference, reference_nrep = validation_nrep())
+  }
+})
+
+test_that("ANCOVA with measured covariates: Type I error is near alpha (simulation)", {
+  skip_unless_full_validation()
+  type1 <- independent_ancova_power(c(0, 0, 0), 1, 0.36, 1, per_cell = 30, nrep = validation_nrep(), seed = 315)
+  expect_type1_near(list(power = type1), 0.05)
 })
 
 # 2. Published examples ------------------------------------------------------------

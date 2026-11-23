@@ -5,6 +5,11 @@
 #   2. published examples (placeholders for the maintainer)
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
+#   5. an independent simulation: studies drawn from the cell means, SD
+#      and correlation as the input screen takes them and tested by
+#      aov() (with an Error() stratum per participant when the factors
+#      are within), with no call to Superpower
+#      (helper-independent-simulation.R)
 # Values transcribed from a published source or G*Power (tests marked
 # "(published)" or "(G*Power value)", or a value whose comment cites its
 # source) are owned by the maintainer: do not edit them. Other expected
@@ -158,4 +163,37 @@ test_that("within 2 x 3: Type I error for the interaction is near alpha (simulat
   means <- matrix(c(0, 0.3, 0.5, 0.4, 0.7, 0.9), nrow = 2, byrow = TRUE)
   spec <- factorial_spec(TRUE, means, sd = 1, r = 0.5, n = 30, effect = "interaction", seed = 401, method = "simulation")
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+# 5. Independent simulation ---------------------------------------------------------
+
+factorial_terms <- c(main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+
+check_factorial_independent <- function(within, means, sd, r = 0, n, seed) {
+  reference <- independent_factorial_power(as.vector(t(means)), dim(means), rep(if (within) "w" else "b", 2), sd, r, n,
+                                           factorial_terms, nrep = validation_nrep(), seed = seed)
+  for (effect in names(factorial_terms)) {
+    spec <- factorial_spec(within, means, sd = sd, r = if (within) r, n = n, effect = effect, seed = seed)
+    expect_power_near(engine_power(spec), reference[[factorial_terms[[effect]]]], reference_nrep = validation_nrep())
+  }
+}
+
+test_that("within 2 x 3, every effect: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_factorial_independent(TRUE, matrix(c(0, 0.3, 0.5, 0, 0.1, 0.2), nrow = 2, byrow = TRUE), sd = 1, r = 0.5, n = 30, seed = 501)
+})
+
+test_that("within 2 x 2, every effect, a higher correlation: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_factorial_independent(TRUE, matrix(c(10, 12, 10, 10.5), nrow = 2, byrow = TRUE), sd = 4, r = 0.8, n = 24, seed = 502)
+})
+
+test_that("between 3 x 3, every effect: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_factorial_independent(FALSE, matrix(c(0, 0.2, 0.4, 0, 0.1, 0.2, 0, 0, 0), nrow = 3, byrow = TRUE), sd = 1, n = 270, seed = 503)
+})
+
+test_that("between 2 x 4, every effect: powerkit matches aov() on simulated studies (simulation)", {
+  skip_unless_full_validation()
+  check_factorial_independent(FALSE, matrix(c(5, 5.5, 6, 6.5, 5, 5.2, 5.4, 5.6), nrow = 2, byrow = TRUE), sd = 1.5, n = 160, seed = 504)
 })

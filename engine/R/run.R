@@ -71,6 +71,14 @@
 #' partial eta-squared of the adjusted means (noncentrality N gamma^2,
 #' Shieh, 2020); `"random"`, the default, is Shieh's method for covariates
 #' measured on each person.
+#' Multiple regression's F tests (design `multiple_regression`, templates
+#' `r2_zero`, `r2_increase` and `single_coefficient`, method `"f_test"`)
+#' take `target_test > predictor_model`: `"random"`, the default, for
+#' predictors measured on each person (assumed multivariate normal; the
+#' fixed-predictor power averaged over them, Shieh, 2007), or `"fixed"` for
+#' predictors set by the design, as G*Power and pwrss's
+#' `power.f.regression()` take them (noncentrality f^2 N). Their Bayes
+#' factors (method `"bayes_factor"`) take the same setting.
 #' The mixed models with a score (templates `crossed_two_condition`,
 #' `crossed_conditions`, `two_level`, `three_level`, `item_predictor`) take
 #' `target_test > df_method`: `"satterthwaite"` (the default, lmerTest) or
@@ -114,10 +122,12 @@
 #' `power.z.poisson()` (Demidenko's method with variance correction).
 #' Planned comparisons (design `factorial_anova`, template
 #' `oneway_contrast`, engine only): the t test of a weighted combination of
-#' one factor's group means, by pwrss's `power.t.contrasts()`. The weights
+#' one factor's group means: `power.t.contrasts()`'s noncentral t, through
+#' pwrss's `power.t.test()` so the alpha and a one-sided test apply. The weights
 #' go in `target_test > weights`, one per level, adding up to 0; a trend
-#' test is the contrast with the matching weights. Two-sided only, equal
-#' groups, one contrast at a time.
+#' test is the contrast with the matching weights. One- or two-sided (a
+#' one-sided test in the direction of the contrast), equal groups, one
+#' contrast at a time.
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

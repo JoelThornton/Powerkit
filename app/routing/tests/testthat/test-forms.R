@@ -74,10 +74,11 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
 
 test_that("other settings start at the wrapped tool's default or, for alpha, its usual value one click away, and say whose it is", {
   alpha <- function(ep) Filter(function(f) f$id == "alpha", fields_for(ep))[[1]]
-  # Precision planning (E46) has a confidence level, not alpha: its
-  # default is the packages' own.
+  # Precision planning (E46) has a confidence level, not alpha: empty like
+  # alpha (22 November 2026), with the packages' own 0.95 one click away.
   level <- Filter(function(f) f$id == "conf_level", fields_for("E46"))[[1]]
-  expect_equal(level[["default"]], 0.95)
+  expect_null(level[["default"]])
+  expect_equal(level$usual, 0.95)
   expect_match(level$default_source, "MBESS", fixed = TRUE)
   expect_match(level$default_source, "presize", fixed = TRUE)
   # Latent profiles (E58) have no significance test, so no alpha.
@@ -700,9 +701,9 @@ test_that("long labels are short, with the detail as help linked to the field", 
 test_that("definitions and routine direction help use disclosures; scientific warnings stay in view", {
   groups <- form_groups(forms, "E2")
   html <- as.character(form_ui(tree, forms, "E2", groups))
-  expect_match(html, "<summary>What these terms mean: ", fixed = TRUE)
+  expect_match(html, 'data-label="What these terms mean: ', fixed = TRUE)
   # Each group's definitions name their terms, so no two summaries match.
-  summaries <- regmatches(html, gregexpr("<summary>What these terms mean[^<]*</summary>", html))[[1]]
+  summaries <- regmatches(html, gregexpr('data-label="What these terms mean[^"]*"', html))[[1]]
   expect_false(anyDuplicated(summaries) > 0)
   expect_identical(terms_summary(c("a", "b", "c", "d")), "What these terms mean: a, b, c and more")
   expect_match(html, 'aria-label="Info: Your hypothesis"', fixed = TRUE)
@@ -720,7 +721,10 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   # Below the "Don't know" prompt the list doesn't ask the same question again.
   expect_match(e2, "Four ways to a number you can defend", fixed = TRUE)
   expect_no_match(e2, "Not sure what number to put here?", fixed = TRUE)
-  expect_match(e2, "I don&#39;t know my effect size|I don't know my effect size")
+  expect_match(e2, "Find the smallest effect my study could detect", fixed = TRUE)
+  expect_match(e2, "the smallest effect your study could detect</a>", fixed = TRUE)
+  # One line, not an info button beside a second "don't know" button.
+  expect_no_match(e2, "Unknown effect size", fixed = TRUE)
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
   expect_match(e2, "divide it by how much people usually vary", fixed = TRUE)
   # The smallest detectable effect is offered once, in view, not again in the list.
@@ -1288,4 +1292,25 @@ test_that("wording that only restates a heading or a title is not shown", {
   n <- input_guide(list(id = "n", type = "number", label = "Number of participants analysed"))
   expect_match(n$meaning, "after exclusions and dropout", fixed = TRUE)
   expect_no_match(n$example, "pairs", fixed = TRUE)
+})
+
+test_that("a box's info button sits in the box's flow and covers its choice notes", {
+  # The button is placed first in the box and floated, so the question
+  # beside it wraps instead of running under it, and it counts only the
+  # notes the reader can see.
+  expect_match(terms_js, "box.insertBefore(btn, box.firstChild)", fixed = TRUE)
+  expect_match(terms_js, "d.closest(boxSel) === box && shown(d)", fixed = TRUE)
+  css <- paste(readLines(test_path("..", "..", "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(css, ".terms-mode .box-info { display: inline-flex; float: right;", fixed = TRUE)
+  expect_no_match(css, ".terms-mode .box-info { display: inline-flex; position: absolute;", fixed = TRUE)
+  # A choice's note is one of its box's explanations, not a second button.
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, 'class="explanation-help field-more choice-more"', fixed = TRUE)
+})
+
+test_that("the smallest-effect note shows only for that goal, and a box's terms are one of its explanations", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, "data-display-if=\"input.f_goal == &#39;sensitivity&#39; || input.f_goal == &#39;sensitivity_curve&#39;\"", fixed = TRUE)
+  expect_match(html, 'class="explanation-help field-more terms-more"', fixed = TRUE)
+  expect_no_match(html, '<details class="form-terms">', fixed = TRUE)
 })

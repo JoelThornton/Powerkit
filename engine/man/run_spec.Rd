@@ -178,6 +178,14 @@ by the design, as G\emph{Power does: pwrss's \code{power.f.ancova()} from the
 partial eta-squared of the adjusted means (noncentrality N gamma^2,
 Shieh, 2020); \code{"random"}, the default, is Shieh's method for covariates
 measured on each person.
+Multiple regression's F tests (design \code{multiple_regression}, templates
+\code{r2_zero}, \code{r2_increase} and \code{single_coefficient}, method \code{"f_test"})
+take \code{target_test > predictor_model}: \code{"random"}, the default, for
+predictors measured on each person (assumed multivariate normal; the
+fixed-predictor power averaged over them, Shieh, 2007), or \code{"fixed"} for
+predictors set by the design, as G}Power and pwrss's
+\code{power.f.regression()} take them (noncentrality f^2 N). Their Bayes
+factors (method \code{"bayes_factor"}) take the same setting.
 The mixed models with a score (templates \code{crossed_two_condition},
 \code{crossed_conditions}, \code{two_level}, \code{three_level}, \code{item_predictor}) take
 \code{target_test > df_method}: \code{"satterthwaite"} (the default, lmerTest) or
@@ -206,7 +214,7 @@ of a participant's cells; any main effect or interaction on
 Superpower's \code{ANOVA_exact()}. \code{goal > n} is the total number of
 participants, split equally across the between factors' combinations.
 Two dependent correlations in one group (engine only), by Steiger's z
-test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G}Power):
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
 \code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
 Logistic regression (design \code{logistic_regression}, engine only): the Wald z
@@ -221,10 +229,12 @@ predictors through their R-squared with it, by pwrss's
 \code{power.z.poisson()} (Demidenko's method with variance correction).
 Planned comparisons (design \code{factorial_anova}, template
 \code{oneway_contrast}, engine only): the t test of a weighted combination of
-one factor's group means, by pwrss's \code{power.t.contrasts()}. The weights
+one factor's group means: \code{power.t.contrasts()}'s noncentral t, through
+pwrss's \code{power.t.test()} so the alpha and a one-sided test apply. The weights
 go in \code{target_test > weights}, one per level, adding up to 0; a trend
-test is the contrast with the matching weights. Two-sided only, equal
-groups, one contrast at a time.
+test is the contrast with the matching weights. One- or two-sided (a
+one-sided test in the direction of the contrast), equal groups, one
+contrast at a time.
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.

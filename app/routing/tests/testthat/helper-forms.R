@@ -66,10 +66,10 @@ form_examples <- list(
                Y_label = "Persistence (minutes)", metric = "standardised", means = "0, 0, 0\n0.1, 0.3, 0.5", sd = "1",
                effect = "interaction", test_version = "anova_f", method = "exact"), closing_ok),
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
-               metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
+               metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3", alternative = "two_sided"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f", covariate_model = "random"), closing_ok),
-  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", r2_full = "0.15", r2_reduced = "0.1",
+  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", predictor_model = "random", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
@@ -277,7 +277,7 @@ form_examples$E29 <- c(list(X_label = "Condition", X_level1 = "Usual care", X_le
 # E47: a yes/no outcome with two crossed factors.
 form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", B_label = "Messenger", B_levels = "Doctor, Friend, Celebrity",
                             Y_label = "Booked a flu jab", probabilities = "0.3, 0.4, 0.25\n0.4, 0.45, 0.3",
-                            effect = "main_effect_A"), closing_ok)
+                            effect = "main_effect_A", factorial_test = "likelihood_ratio"), closing_ok)
 
 # E46: precision planning, a proportion (presize; MBESS cases are in
 # test-results.R).
@@ -290,7 +290,8 @@ form_examples$E77 <- list(purpose = "development", outcome = "binary", Y_label =
   c_statistic = "0.8", prevalence = "0.2", goal = "criteria", shrinkage = "0.9",
   just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
 
-# The mediation analysis selector starts at the existing ML/MC method.
+# The mediation analysis selector has no starting choice: the examples use
+# the maximum likelihood and Monte Carlo method, which runs here.
 for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
   form_examples[[ep]]$method <- "monte_carlo_ci"
 }

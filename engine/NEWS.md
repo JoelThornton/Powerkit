@@ -1,3 +1,214 @@
+# powerkit 0.81.39
+
+* The PROCESS-style OLS percentile bootstrap for mediation has a power
+  check independent of power4mome: simple mediation simulated in base R
+  and analysed by OLS with a casewise percentile bootstrap written out
+  (`independent_mediation_bootstrap_power()`, chunk `process_bootstrap`).
+  The validation log's table of independent checks now covers every card
+  that runs, which finishes the audit in docs/next.md item 24.
+
+# powerkit 0.81.38
+
+* The factorial ANOVA cards beyond 2 x 2 (two factors between or within
+  participants, and three factors) have validation checks independent of
+  Superpower: studies drawn from the cell means, SD and correlation and
+  analysed by `aov()`, with an Error() stratum per participant for within
+  factors (`independent_factorial_power()` in
+  helper-independent-simulation.R; chunk `anova`). Every effect agrees.
+  The validation log now records the independent checks the survival,
+  meta-analysis, reliability, trend and MANOVA cards already had.
+
+# powerkit 0.81.37
+
+* Multiple regression's Bayes factors (`multiple_regression`, method
+  `bayes_factor`) take `target_test > predictor_model` too, measured
+  ("random") by default (Departure 39). R-squared against 0 stays exact:
+  the chance of an F past the one where BF10 reaches the threshold,
+  averaged over the chi-square distribution of its noncentrality
+  (`regression_measured_tail()`). The R-squared increase and one
+  coefficient draw each simulated study's two noncentralities before its
+  sums of squares (`regression_measured_draw()`), checked against `lm()`
+  on new normal predictors. The exported scripts follow the setting,
+  Shieh (2007) is cited beside BayesFactor's method paper, and the
+  validation chunks `bayes` and `bayes_r2change` add `lmBF()` on data sets
+  with new normal predictors in each; their earlier cases now set
+  `predictor_model = "fixed"`.
+
+# powerkit 0.81.36
+
+* Multiple regression's F tests (`multiple_regression`, templates
+  `r2_zero`, `r2_increase` and `single_coefficient`, method `f_test`) take
+  the predictors as measured by default (`target_test > predictor_model`
+  "random", Departure 39): power is the fixed-predictor power averaged over
+  multivariate normal predictors, the noncentral F's tail integrated over
+  the chi-square distribution of its noncentrality (Shieh, 2007;
+  `R/regression-measured.R`), computed in base R (backend "stats").
+  `predictor_model = "fixed"` keeps pwrss's `power.f.regression()`, G*Power's
+  fixed model. The exported script computes the same integral. The
+  validation chunk `formula` checks both against `lm()` on simulated
+  studies, with new predictors in each study and with the same ones.
+  Shieh (2007) and Gatsonis and Sampson (1989) are added to refs.bib.
+
+# powerkit 0.81.35
+
+* Input-screen questions that describe the study start unselected (51
+  fields on 27 cards: which effect is tested on E59, E41, E62 and E44;
+  outcome type, assignment and crossing on the mixed-model cards, E75,
+  E67 and E68; X, W and the moderated model on the mediation cards; the
+  question asked on E23, E59, E61, E32, E34, E37, E46, E50 and E77).
+  Criteria that work like alpha start empty with the usual value one click
+  away: the confidence level (E46), Tucker's congruence (E73), and the
+  correlation between factors (E73) or predictors (E37 latent regression),
+  where 0 is the most hopeful case. The random-effects default on E61 now
+  says when a fixed-effect model fits.
+* Planning a whole study: the variables start unanswered, the
+  significance level comes from the plan's analyses when they agree and is
+  otherwise empty with one-click levels, and the script's target power is
+  chosen before it downloads.
+* Replication planner: the direction, the Bayes factor threshold, the
+  between-study variation and the BUCSS assurance start unselected and are
+  listed as still needed; the quick answer fills in the usual ones
+  visibly. Tools: the Bayes factor planner's sample size, effect,
+  uncertainty, thresholds and target, and the smallest-detectable-effect
+  tool's power, start empty.
+
+# powerkit 0.81.34
+
+* Validation: the formula cards now have checks that don't call pwrss
+  (docs/validation-log.md, "Independent checks by card"). A new chunk,
+  `formula` (`test-validation-formula-tests.R`), checks one proportion and
+  McNemar's exact test against `binom.test()`'s power summed over every
+  outcome, goodness of fit against `chisq.test()` on simulated counts, and
+  the regression F tests (R-squared against 0, an R-squared increase, one
+  coefficient) against `lm()` with the predictors set by the design. The
+  `two_correlations` chunk gains Fisher's z on simulated studies, and the
+  `ancova` chunk `lm()` with the covariates drawn afresh in each study
+  (Shieh's model), one and two factors. Simulators are in
+  `helper-independent-simulation.R`. With predictors measured afresh in
+  each study, simulated regression power is about 1 to 2 points below the
+  fixed-model F test's.
+
+# powerkit 0.81.33
+
+* Input screens no longer preselect a test where the alternatives test the
+  same hypothesis and none is clearly better: the yes/no-outcome test on
+  E33, E67, E68, E41 and E62 (Wald, marked as the usual one, or
+  likelihood-ratio), the count test on E75, the degrees of freedom on the
+  six mixed-model cards (Satterthwaite's marked as the usual one), the test
+  on E70 and E32's outcome in categories, and E71's test statistic. E63
+  keeps the likelihood-ratio test selected and now says why on the screen
+  (the Wald test ran at 6.2% at alpha .05). Pairwise adjustments on E18,
+  E54 and E63 start unselected, with Holm's method recommended among the
+  adjustments (Departure 17 updated). The whole-study finder's rule for two
+  or more main analyses starts unselected and must be answered before the
+  plan; a guided plan saved without a rule reopens without one.
+* The mediation analysis menu (E10-E14, E16, E17, E38, E40) starts
+  unselected: PROCESS-style ordinary regression with a percentile
+  bootstrap is marked as the usual one, and simple mediation (E10, E16)
+  no longer opens on the joint-significance quick estimate, which stays
+  as an option described as a rough first look.
+
+# powerkit 0.81.32
+
+* App: the effect box's note that the effect can stay empty is shown only
+  for the smallest-detectable-effect goals (`note_goals`, wrapped by
+  `note_for_goals()`). A box's term definitions are an explanation
+  (`explanation-help field-more terms-more`) in place of their own
+  `form-terms` fold, so with explanations off they open from the box's
+  info button.
+
+# powerkit 0.81.31
+
+* The factorial logistic regression (`logistic_regression/factorial`,
+  E47) offers Firth's penalised likelihood-ratio test (`target_test >
+  method` "firth_likelihood_ratio"). `p_logistic_factorial_firth()` draws
+  each study with Spower's `p_glm()`, fits it with logistf's `logistf()`
+  and tests the effect's coefficients with `logistftest()`. With few events
+  it keeps false positives near alpha (2 x 2, a 5% base rate, 20 per cell:
+  2.9%, where the likelihood-ratio test ran at 6.5% and the Wald test at
+  0.6%) without losing power. logistf joins Suggests and renv.lock. The
+  app's form no longer preselects a test: the three test the same effect,
+  so the researcher chooses the one they will run.
+
+# powerkit 0.81.30
+
+* App: the unknown-effect sentence's own phrase is its link (an `<a
+  role="button">`, so it wraps with the sentence); with explanations
+  off the line is the question and a short link. The effect help and
+  the terms folds use the app's one chevron in place of a circled "?",
+  which the shared fold style rotated.
+
+* The factorial logistic regression (`logistic_regression/factorial`,
+  E47) offers the likelihood-ratio test (`target_test > method`
+  "likelihood_ratio") beside the Wald test. `p_logistic_factorial_lr()`
+  draws and fits each study with Spower's `p_glm()` and refits the model
+  without the effect's columns of the sum-to-zero design matrix: the type
+  III test `car::Anova(type = 3, test.statistic = "LR")` reports, which a
+  unit test checks study by study. The app's form preselects it; the
+  Wald test stays an option, and the engine's default when a spec names
+  no test is unchanged. With
+  sparse cells the Wald test loses power the likelihood-ratio test keeps
+  (2 x 2, proportions 0.05, 0.1, 0.1, 0.7, 20 per cell: 17% against 30%).
+  The exported script, check run, sensitivity search and the validation
+  file (an independent `car::Anova()` simulation and a Type I error check)
+  cover it.
+
+# powerkit 0.81.29
+
+* The planned contrast (`factorial_anova/oneway_contrast`, E19) now uses
+  the alpha the spec sets and offers a one-sided test. pwrss 1.3.3's
+  `power.t.contrasts()` calls `power.t.test()` without its alpha when there
+  are no covariates, so it gave the power at 0.05 whatever alpha it was
+  passed (four groups of 5, means 1.5, 2, 3, 4, SD 2, a linear trend: 0.51
+  at alpha 0.01, where the noncentral t gives 0.25). The engine passes the
+  same noncentrality, the contrast over SD x sqrt(sum(weight^2 / group
+  size)), and df, n - groups, to pwrss's `power.t.test()` with the alpha and
+  sidedness asked for. At alpha 0.05, two-sided, results are unchanged. A
+  one-sided test runs in the direction of the contrast; one pointing the
+  other way is refused. The exported script, sensitivity search and check
+  run follow (docs/upstream-questions.md, pwrss).
+
+# powerkit 0.81.28
+
+* App: with explanations off, a box's info button is the box's first
+  child and floats right, in place of absolute positioning, so the
+  question beside it wraps rather than running under it (it overlapped
+  the claim question on phones and sat close to neighbouring boxes). The
+  note on the chosen test ("About this choice") is now one of the box's
+  explanations, opened by its info button. The button counts only notes
+  in view, so a box whose notes sit in a hidden choice or a closed fold
+  shows none, and it updates as choices and folds change.
+* App: the unknown-effect help above the effect size is one line, a
+  question and a link ("Find the smallest effect my study could
+  detect"), in place of an info button beside a separate "I don't know
+  my effect size" button. Its explaining sentence follows the
+  explanations switch.
+* App: an effect box whose first question is "How you'll give the
+  effect" no longer heads itself with the list of forms that question
+  offers (`effect_box_legend()`): the heading is "The effect", or the
+  part before a colon (the equivalence card's bound and difference).
+
+# powerkit 0.81.27
+
+* App: the results screen is shorter, with nothing that changes or
+  qualifies the answer hidden. The two what-if tools that ask for the
+  user's own values ("What if the true effect is smaller?", "Which
+  assumption matters most?") fold under their questions, with the power
+  curve still in view; their instructions, the rank-test offer and the
+  non-significant-result card are shorter; and the notes on each
+  download and on saving the analysis follow the explanations switch
+  (`plain-only`). On the two-group t-test the text shown before anything
+  is opened falls from about 1,040 words to about 830.
+
+# powerkit 0.81.26
+
+* Docs: `docs/conventions.md` has a new section, "Choices each card
+  makes for the researcher", listing for every card the method choices
+  built in and those the form offers, with an assessment of each (item
+  24, part 2). Two are to change: a one-sided test for the planned
+  contrast and the likelihood-ratio test for the factorial logistic
+  regression.
+
 # powerkit 0.81.25
 
 * Validation: the group treatment trial with a yes/no outcome is now

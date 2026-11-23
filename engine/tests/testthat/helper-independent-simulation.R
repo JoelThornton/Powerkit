@@ -166,7 +166,7 @@ independent_wilcox_power <- function(d, shape, n1, n2 = NULL, alternative = "two
 # people per cell. Each study fits glm(y ~ A * B, binomial) with sum-to-zero
 # contrasts and tests `term` ("A", "B" or "A:B") by the Wald chi-square of
 # its coefficients.
-independent_logistic_factorial_power <- function(probabilities, term, n, alpha = 0.05, nrep, seed) {
+independent_logistic_factorial_power <- function(probabilities, term, n, alpha = 0.05, nrep, seed, test = "wald") {
   p <- matrix(unlist(probabilities), nrow = length(probabilities), byrow = TRUE)
   d <- expand.grid(A = factor(seq_len(nrow(p))), B = factor(seq_len(ncol(p))))
   per_cell <- n / nrow(d)
@@ -177,6 +177,11 @@ independent_logistic_factorial_power <- function(probabilities, term, n, alpha =
     d$y <- stats::rbinom(nrow(d), 1, chance)
     fit <- stats::glm(y ~ A * B, family = stats::binomial(), data = d,
       contrasts = list(A = stats::contr.sum, B = stats::contr.sum))
+    if (identical(test, "likelihood_ratio")) {
+      # car's type III likelihood-ratio test, which refits the model
+      # without the term's columns.
+      return(car::Anova(fit, type = 3, test.statistic = "LR")[term, "Pr(>Chisq)"] < alpha)
+    }
     columns <- which(attr(stats::model.matrix(fit), "assign") == match(term, attr(stats::terms(fit), "term.labels")))
     b <- stats::coef(fit)[columns]
     v <- stats::vcov(fit)[columns, columns, drop = FALSE]
@@ -404,5 +409,194 @@ independent_group_treatment_binary_power <- function(p1, p2, icc, m, groups, ind
     z <- (mean(grouped) - mean(alone)) /
       sqrt(stats::var(grouped) / groups + mean(alone) * (1 - mean(alone)) / individuals)
     abs(z) > stats::qnorm(1 - alpha / 2)
+  }, nrep, seed)
+}
+
+# Tests by formula (pwrss) --------------------------------------------------------
+
+# One proportion: the exact power of stats::binom.test() for n people with
+# true proportion p against p0, summed over every count it could see.
+independent_one_proportion_power <- function(n, p, p0, alpha = 0.05, alternative = "two.sided") {
+  x <- 0:n
+  p_values <- vapply(x, function(k) stats::binom.test(k, n, p0, alternative = alternative)$p.value, numeric(1))
+  sum(stats::dbinom(x, n, p)[p_values <= alpha])
+}
+
+# McNemar's exact test: n pairs, each "yes" in the first condition only with
+# probability p_first_only, in the second only with p_second_only, and
+# otherwise the same in both. The test is stats::binom.test() of the pairs
+# that are yes in the second condition only among the discordant pairs
+# (conditional on their number, the usual exact McNemar test); its exact
+# power is summed over every number of discordant pairs and every split.
+independent_mcnemar_exact_power <- function(n, p_first_only, p_second_only, alpha = 0.05, alternative = "two.sided") {
+  discordant <- p_first_only + p_second_only
+  share <- p_second_only / discordant
+  sum(vapply(0:n, function(m) {
+    if (m == 0) return(0)
+    b <- 0:m
+    p_values <- vapply(b, function(k) stats::binom.test(k, m, 0.5, alternative = alternative)$p.value, numeric(1))
+    stats::dbinom(m, n, discordant) * sum(stats::dbinom(b, m, share)[p_values <= alpha])
+  }, numeric(1)))
+}
+
+# Goodness of fit: n people fall into the categories with the true
+# probabilities; each study runs stats::chisq.test() against the null
+# probabilities (Pearson's chi-square, categories - 1 df).
+independent_gof_power <- function(n, probabilities, null_probabilities, alpha = 0.05, nrep, seed) {
+  independent_power(function() {
+    counts <- as.vector(stats::rmultinom(1, n, probabilities))
+    suppressWarnings(stats::chisq.test(counts, p = null_probabilities)$p.value) < alpha
+  }, nrep, seed)
+}
+
+# Two independent correlations: n1 and n2 pairs from bivariate normal
+# populations correlating r1 and r2; each study compares the two sample
+# correlations by Fisher's z, (atanh(r2) - atanh(r1)) / sqrt(1 / (n1 - 3) +
+# 1 / (n2 - 3)), against the standard normal.
+independent_two_correlations_power <- function(n1, n2, r1, r2, alpha = 0.05, alternative = "two.sided", nrep, seed) {
+  sample_r <- function(n, r) stats::cor(MASS::mvrnorm(n, c(0, 0), matrix(c(1, r, r, 1), 2)))[1, 2]
+  independent_power(function() {
+    z <- (atanh(sample_r(n2, r2)) - atanh(sample_r(n1, r1))) / sqrt(1 / (n1 - 3) + 1 / (n2 - 3))
+    p <- switch(alternative,
+      two.sided = 2 * stats::pnorm(-abs(z)),
+      greater = stats::pnorm(z, lower.tail = FALSE),
+      less = stats::pnorm(z)
+    )
+    p < alpha
+  }, nrep, seed)
+}
+
+# ANCOVA with measured covariates (Shieh's model): `means` are the adjusted
+# group or cell means (a vector for one factor; a matrix, rows = levels of
+# A, for two), `per_cell` people in each; `covariates` independent standard
+# normal scores drawn afresh in each study, with equal slopes that together
+# explain r2 of the outcome's variance within cells, whose SD is sd. Each
+# study fits lm() with the covariates first and tests the effect by its
+# sequential F (the same as type II and III in a balanced design).
+independent_ancova_power <- function(means, sd, r2, covariates, per_cell, effect = "main_effect_A",
+                                     alpha = 0.05, nrep, seed) {
+  means <- as.matrix(means)
+  cells <- expand.grid(a = seq_len(nrow(means)), b = seq_len(ncol(means)))
+  a <- factor(rep(cells$a, each = per_cell))
+  b <- factor(rep(cells$b, each = per_cell))
+  centre <- means[cbind(as.integer(a), as.integer(b))]
+  n <- length(centre)
+  slope <- sd * sqrt(r2 / covariates)
+  row <- c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[effect]]
+  independent_power(function() {
+    x <- matrix(stats::rnorm(n * covariates), n)
+    y <- centre + drop(x %*% rep(slope, covariates)) + stats::rnorm(n, sd = sd * sqrt(1 - r2))
+    table <- if (ncol(means) == 1) stats::anova(stats::lm(y ~ x + a)) else stats::anova(stats::lm(y ~ x + a * b))
+    table[row, "Pr(>F)"] < alpha
+  }, nrep, seed)
+}
+
+# Linear regression. `controls` predictors explain r2_reduced; `tested`
+# more explain the rest of r2_full. With measured = FALSE the predictors
+# are set by the design (the fixed model, as G*Power's F tests assume):
+# the same values in every study, centred and uncorrelated with SD 1 in the
+# sample, so the sample's R-squared values are the population's. With
+# measured = TRUE each study draws new independent standard normal
+# predictors. Each study draws a normal outcome and tests the tested
+# predictors by the F test of the model with them against the model
+# without (with no controls, the regression's overall F).
+independent_regression_power <- function(n, r2_full, r2_reduced = 0, controls, tested, measured = FALSE,
+                                         alpha = 0.05, nrep, seed) {
+  k <- controls + tested
+  set.seed(seed)
+  x <- qr.Q(qr(cbind(1, matrix(stats::qnorm(stats::ppoints(n * k))[sample.int(n * k)], n))))[, -1, drop = FALSE] * sqrt(n)
+  slopes <- c(rep(sqrt(r2_reduced / max(controls, 1)), controls), rep(sqrt((r2_full - r2_reduced) / tested), tested))
+  centre <- drop(x %*% slopes)
+  tested_columns <- controls + seq_len(tested)
+  independent_power(function() {
+    if (measured) {
+      x <- matrix(stats::rnorm(n * k), n)
+      centre <- drop(x %*% slopes)
+    }
+    y <- centre + stats::rnorm(n, sd = sqrt(1 - r2_full))
+    full <- stats::lm(y ~ x)
+    reduced <- if (controls == 0) stats::lm(y ~ 1) else stats::lm(y ~ x[, -tested_columns, drop = FALSE])
+    stats::anova(reduced, full)[2, "Pr(>F)"] < alpha
+  }, nrep, seed)
+}
+
+# A factorial ANOVA with up to three factors, each between ("b") or within
+# ("w") participants. `mu` holds the cell means with the first factor
+# slowest and the last fastest (Superpower's order; for two factors, the
+# matrix of means row by row); `n` is the total number of participants,
+# split equally over the between cells; every participant's scores in the
+# within cells have SD `sd` and correlate `r` (compound symmetry). Each
+# study draws the scores and fits aov(), with an Error() stratum for each
+# participant when a factor is within (sphericity assumed, as the card's
+# test does). `terms` are aov()'s names ("A", "A:B", ...). Returns the
+# share of studies significant for each term, from the same studies.
+independent_factorial_power <- function(mu, levels, types, sd, r = 0, n, terms, alpha = 0.05, nrep, seed) {
+  names_ <- LETTERS[seq_along(levels)]
+  cells <- rev(expand.grid(lapply(rev(levels), seq_len)))
+  names(cells) <- names_
+  between <- names_[types == "b"]
+  within <- names_[types == "w"]
+  between_cell <- if (length(between)) interaction(cells[between], drop = TRUE, lex.order = TRUE) else factor(rep(1, nrow(cells)))
+  groups <- nlevels(between_cell)
+  per_group <- n / groups
+  stopifnot(per_group == round(per_group))
+  k <- nrow(cells) / groups
+  sigma <- if (length(within)) compound_symmetry(k, sd, r) else matrix(sd^2)
+  # One row per participant and within cell, participants nested in their
+  # between cell.
+  rows <- unlist(lapply(seq_len(groups), function(g) {
+    idx <- which(as.integer(between_cell) == g)
+    rep(idx, per_group)
+  }))
+  d <- cells[rows, , drop = FALSE]
+  d[] <- lapply(d, factor)
+  d$id <- factor(rep(seq_len(n), each = k))
+  rhs <- paste(names_, collapse = " * ")
+  formula <- stats::as.formula(if (length(within)) {
+    sprintf("y ~ %s + Error(id / (%s))", rhs, paste(within, collapse = " * "))
+  } else {
+    sprintf("y ~ %s", rhs)
+  })
+  set.seed(seed)
+  hits <- vapply(seq_len(nrep), function(i) {
+    d$y <- unlist(lapply(seq_len(groups), function(g) {
+      idx <- which(as.integer(between_cell) == g)
+      as.vector(t(MASS::mvrnorm(per_group, mu[idx], sigma)))
+    }))
+    fit <- summary(stats::aov(formula, data = d))
+    tables <- if (length(within)) unname(lapply(fit, `[[`, 1)) else list(fit[[1]])
+    p <- unlist(lapply(tables, function(t) stats::setNames(t[, "Pr(>F)"], trimws(rownames(t)))))
+    p[terms] < alpha
+  }, logical(length(terms)))
+  stats::setNames(rowMeans(matrix(hits, nrow = length(terms))), terms)
+}
+
+# Simple mediation (X -> M -> Y, standardised paths a, b and c') analysed
+# as PROCESS does: ordinary least squares, one equation at a time, and a
+# percentile bootstrap interval for a * b from `draws` resamples of whole
+# cases. Each resample's a and b come from the centred sums of squares and
+# cross-products of the resampled cases (the OLS estimates lm() gives),
+# so the bootstrap runs without lm() or any mediation package. A study is
+# significant when the (1 - alpha) interval excludes 0.
+independent_mediation_bootstrap_power <- function(a, b, c_prime, n, draws = 1000L, alpha = 0.05, nrep, seed) {
+  sd_m <- sqrt(1 - a^2)
+  sd_y <- sqrt(1 - (c_prime^2 + b^2 + 2 * a * b * c_prime))
+  probs <- c(alpha / 2, 1 - alpha / 2)
+  independent_power(function() {
+    x <- stats::rnorm(n)
+    m <- a * x + stats::rnorm(n, sd = sd_m)
+    y <- c_prime * x + b * m + stats::rnorm(n, sd = sd_y)
+    idx <- matrix(sample.int(n, n * draws, replace = TRUE), n)
+    xs <- matrix(x[idx], n)
+    ms <- matrix(m[idx], n)
+    ys <- matrix(y[idx], n)
+    centre <- function(v) sweep(v, 2, colMeans(v))
+    xs <- centre(xs); ms <- centre(ms); ys <- centre(ys)
+    sxx <- colSums(xs * xs); smm <- colSums(ms * ms); sxm <- colSums(xs * ms)
+    sxy <- colSums(xs * ys); smy <- colSums(ms * ys)
+    a_hat <- sxm / sxx
+    b_hat <- (sxx * smy - sxm * sxy) / (sxx * smm - sxm^2)
+    ci <- stats::quantile(a_hat * b_hat, probs, names = FALSE)
+    ci[1] > 0 || ci[2] < 0
   }, nrep, seed)
 }

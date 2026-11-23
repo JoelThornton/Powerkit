@@ -247,9 +247,10 @@ replication_original_priors_ui <- c("Vague (flat, or nearly)" = "vague",
 replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval" = "ci")
 
 # How much the true effect may vary between studies (Kenny & Judd, 2019,
-# whose example values for d these are). It starts at Small (0.05):
-# Kenny and Judd argue zero should not be the default (decided 15
-# November 2026).
+# whose example values for d these are). Kenny and Judd argue zero should
+# not be the default (decided 15 November 2026); from 22 November 2026
+# nothing is chosen for the researcher, and only the quick answer fills in
+# the smallest example, where it can be seen.
 replication_taus <- c(
   "None: the same effect in every study" = "0",
   "Example: 0.05" = "0.05",
@@ -710,7 +711,7 @@ replication_planner_sections <- function() {
             h5(class = "h6", "The quick answer"),
             actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary",
               onclick = "var r = document.querySelector('input[name=rep_section][value=goals]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }"),
-            rep_note("It opens Goals and uses an 80% chance of success when that field is blank. For frequentist criteria it also uses a significance level of .05 if you leave that field blank.")),
+            rep_note("It opens Goals and fills in the usual settings you have left blank, where you can see and change them: an 80% chance of success, a two-sided test at .05 for frequentist criteria, the smallest example of variation between studies, and 80% assurance for an ANOVA effect with several degrees of freedom.")),
           div(class = "rep-route", uiOutput("rep_card_status"))))),
 
     section("goals",
@@ -745,7 +746,7 @@ replication_planner_sections <- function() {
         conditionalPanel(replication_bucss_only_js,
           p(class = "small", "For an ANOVA effect with several degrees of freedom, BUCSS plans a significant F test while accounting for uncertainty in the original estimate. It also accounts for selection when publication depended on significance. You can also plan from the smallest effect that would matter."),
           radioButtons("rep_assurance", "Assurance (how sure to be of reaching the power)", choices = replication_assurances_ui,
-            selected = "0.8", width = "100%"),
+            selected = character(0), width = "100%"),
           rep_note("The corrected effect is itself uncertain. At 50% assurance the plan uses its best estimate, so the replication reaches the power aimed for about half the time; at 80% it uses a smaller effect, so it reaches it four times in five. More assurance needs more people. When publication is assumed to depend on significance, BUCSS uses the original study's significance level as the threshold.", label = "How assurance works"),
           conditionalPanel(replication_changes_js,
             p(class = "small rep-changes-note", role = "note",
@@ -761,9 +762,9 @@ replication_planner_sections <- function() {
             p(class = "small rep-changes-note", role = "note",
               "If the changes could affect the result, you can compare plans under different beliefs and between-study SDs.")),
           conditionalPanel("input.rep_design != 'correlation' && input.rep_design != 'generic'",
-            selectInput("rep_tau", "Variation in the true effect between studies (SD in d, or d_z for pairs)", choices = replication_taus, selected = "0.05", selectize = FALSE, width = "100%")),
+            selectInput("rep_tau", "Variation in the true effect between studies (SD in d, or d_z for pairs)", choices = c("Choose one" = "", replication_taus), selected = "", selectize = FALSE, width = "100%")),
           conditionalPanel("input.rep_design == 'correlation'",
-            selectInput("rep_tau_r", "Variation in the true correlation between studies (SD on Fisher's z)", choices = replication_taus_r, selected = "0.025", selectize = FALSE, width = "100%")),
+            selectInput("rep_tau_r", "Variation in the true correlation between studies (SD on Fisher's z)", choices = c("Choose one" = "", replication_taus_r), selected = "", selectize = FALSE, width = "100%")),
           conditionalPanel("input.rep_design == 'generic'",
             field("rep_tau_value", "Optional: variation in the true effect between studies (SD on its scale)",
               help = "In the units of the effect you entered: for a ratio, of its log; for a correlation, of Fisher's z. Kenny and Judd's examples are in d, so they can't be used here; a meta-analysis of this effect that reports tau is the best source. Empty plans for no variation.")),
@@ -779,7 +780,7 @@ replication_planner_sections <- function() {
             help = "If you are adjusting for multiple comparisons, enter the level you plan to use for this test.")),
         conditionalPanel("output.rep_criteria && output.rep_criteria.sided",
           radioButtons("rep_sided", "Two-sided or one-sided test?", choices = replication_sided_ui,
-            selected = "two.sided", width = "100%"),
+            selected = character(0), width = "100%"),
           rep_note("Either way, only a result in the original's direction counts as a success. A one-sided test at .05 needs fewer people than a two-sided test at .05, as a one-sided test at .025 is the two-sided one; choose it only if the replication's preregistration says so.")),
         shortcut_field("rep_power", "Chance of success (power)", c("0.8", "0.9", "0.95"), c("80%", "90%", "95%"),
           help = "The main criterion's sample size gives it this chance; a higher chance needs more people."),
@@ -792,7 +793,7 @@ replication_planner_sections <- function() {
           rep_note("If you can't say how the tests' results are related, choose unknown: measuring the same participants does not make the tests independent. Powerkit does not work out the joint chance; plan each of the other tests the same way, on its own effect.")),
         conditionalPanel("output.rep_criteria && output.rep_criteria.bf",
           radioButtons("rep_threshold", "Evidence threshold for the Bayes factors",
-            choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = "10", width = "100%"),
+            choices = c("3" = "3", "6" = "6", "10 (a common threshold)" = "10", "30" = "30"), selected = character(0), width = "100%"),
           p(class = "small text-muted plain-only", "A larger threshold asks for stronger evidence, and so more people. 3 and 10 are both common; there is no correct one, so choose what your claim needs.")),
         conditionalPanel(replication_one_number_js,
           field("rep_n_at", "Optional: a sample size to check (in total)", help = "Each goal's chance at this sample size is shown beside the plan.")),
@@ -1123,8 +1124,18 @@ replication_claim_ui <- function(plan) {
 replication_settings_missing <- function(values) {
   v <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
   settings <- replication_criteria_settings(values)
+  design <- values$rep_design %||% "two_groups"
+  bucss <- replication_bucss_only(values)
+  # Chosen by the researcher, not filled in (22 November 2026).
   c(if (settings$alpha && !v("rep_alpha")) "the significance level",
+    if (isTRUE(settings$sided) && !v("rep_sided")) "whether the test is two-sided or one-sided",
     if (!v("rep_power")) "the chance of success to aim for",
+    if (isTRUE(settings$bf) && !v("rep_threshold")) "the evidence threshold for the Bayes factors",
+    if (bucss && !v("rep_assurance")) "the assurance",
+    # The variation applies to the uncertain and shrunk beliefs only.
+    if (!bucss && !identical(design, "generic") && !identical(values$rep_prior, "as_reported") &&
+        !v(if (identical(design, "correlation")) "rep_tau_r" else "rep_tau"))
+      "how much the effect may vary between studies",
     if (isTRUE(settings$bound_needed)) "the smallest effect that would matter",
     if (v("rep_claim_tests") && is.na(replication_claim_tests(values)))
       "the number of tests as a whole number of at least 2, such as 3",
@@ -2506,6 +2517,14 @@ replication_server <- function(input, output, session, notes = function() list()
     usual <- list(rep_alpha = "0.05", rep_power = "0.8")
     if (!criteria()$alpha) usual$rep_alpha <- NULL
     for (id in names(usual)) if (!nzchar(trimws(input[[id]] %||% ""))) updateTextInput(session, id, value = usual[[id]])
+    # The other usual settings, filled in where they can be seen and
+    # changed, as the quick answer's note says (22 November 2026).
+    choices <- list(rep_sided = "two.sided", rep_tau = "0.05", rep_tau_r = "0.025", rep_assurance = "0.8")
+    if (!isTRUE(criteria()$sided)) choices$rep_sided <- NULL
+    for (id in names(choices)) if (nzchar(trimws(input[[id]] %||% ""))) choices[[id]] <- NULL
+    for (id in intersect(names(choices), c("rep_sided", "rep_assurance"))) updateRadioButtons(session, id, selected = choices[[id]])
+    for (id in intersect(names(choices), c("rep_tau", "rep_tau_r"))) updateSelectInput(session, id, selected = choices[[id]])
+    usual <- c(usual, choices)
     run(usual)
   })
   output$rep_result <- renderUI({

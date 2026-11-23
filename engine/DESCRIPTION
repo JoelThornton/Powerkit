@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.81.25
+Version: 0.81.39
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))
@@ -70,6 +70,7 @@ Suggests:
     JustifyAlpha,
     kappaSize,
     lavaan,
+    logistf,
     longpower,
     lmhelprs (>= 0.4.2),
     MASS,

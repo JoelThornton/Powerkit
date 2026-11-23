@@ -36,7 +36,7 @@ keep_result_ui <- function(can_export, plan = TRUE, kept = FALSE) {
       if (plan) uiOutput("study_plan_bar", inline = TRUE),
       download_button("download_project", "Save analysis", class = if (plan) "btn btn-outline-primary" else "btn btn-primary"),
       share_link_ui("project")),
-    p(class = "small mb-0", "An analysis file reopens this result in Powerkit. A study plan collects several analyses of one study."))
+    p(class = "small mb-0 plain-only", "An analysis file reopens this result in Powerkit; a study plan collects several analyses of one study."))
 }
 
 # The documents, in "Write it up".
@@ -48,7 +48,7 @@ documents_ui <- function(can_export, backend, planning_menu) {
       if (can_export) download_button("download_script", "R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) download_button("download_bundle", "Download analysis and files (.zip)", class = "btn btn-outline-primary")),
-    tags$ul(class = "result-downloads-notes small",
+    tags$ul(class = "result-downloads-notes small plain-only",
       if (can_export) tags$li(tags$strong("Print or save PDF: "), "the report. The arrow beside it gives Word and Markdown."),
       if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone, without Powerkit."),
       tags$li(tags$strong("Citations: "), "the package, its method paper and the software used."),

@@ -773,9 +773,11 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
   expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
+  # E24's F tests with measured predictors are powerkit's formula in base R
+  # (Departure 39); set predictors stay on pwrss.
   for (ep in c("E24", "E25")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
-    expect_identical(calc$result$provenance$backend, "pwrss", label = ep)
+    expect_identical(calc$result$provenance$backend, if (ep == "E24") "stats" else "pwrss", label = ep)
   }
   # One-way ANCOVA, on pwrss's Shieh method.
   calc <- run_calculation(light_spec("E23"), run, seed = 1L)
@@ -1387,7 +1389,7 @@ test_that("a planned contrast runs on pwrss, and refuses weights that don't add 
   spec <- build_spec(forms, "E19", fields, form_examples$E19)
   expect_equal(unlist(spec$target_test$weights), c(-3, -1, 1, 3))
   calc <- run_calculation(spec, run, seed = 1L)
-  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.test")
   expect_gt(calc$result$n_required$n, 0)
   html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
   expect_match(html, "Checks for this analysis in general", fixed = TRUE)
@@ -2330,7 +2332,15 @@ test_that("one regression coefficient (E24's third question) asks how it is test
   expect_null(robust$population$quantile)
   skip_without_run()
   calc <- run_calculation(usual, run, seed = 1L)
-  expect_identical(calc$result$provenance$backend, "pwrss")
+  # Measured predictors (Departure 39) by powerkit's formula; set
+  # predictors by pwrss.
+  expect_identical(usual$target_test$predictor_model, "random")
+  expect_identical(calc$result$provenance$backend, "stats")
+  expect_identical(names(departures_for(forms, "E24", usual)), "39")
+  set <- build_spec(forms, "E24", fields, modifyList(values, list(predictor_model = "fixed")))
+  expect_identical(run_calculation(set, run, seed = 1L)$result$provenance$backend, "pwrss")
+  expect_length(departures_for(forms, "E24", set), 0)
+  expect_length(departures_for(forms, "E24", robust), 0)
   robust$options$nrep <- 100L
   calc <- run_calculation(robust, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "Spower")
@@ -3657,6 +3667,7 @@ test_that("Cochran's Q has its own card (E78): one yes/no answer per condition, 
 test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {
   fields <- form_fields(form_groups(forms, "E24"))
   values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
+    predictor_model = "random",
     r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
   applies <- Filter(function(f) field_applies(f, values), fields)
   expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
@@ -3664,6 +3675,11 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   spec <- build_spec(forms, "E24", fields, values)
   expect_identical(spec$target_test$method, "bayes_factor")
   expect_null(spec$target_test$alpha)
+  # Measured predictors (Departure 39) apply to the Bayes factor too.
+  expect_true("predictor_model" %in% vapply(applies, function(f) f$id, ""))
+  expect_identical(names(departures_for(forms, "E24", spec)), "39")
+  set <- build_spec(forms, "E24", fields, modifyList(values, list(predictor_model = "fixed")))
+  expect_length(departures_for(forms, "E24", set), 0)
   skip_without_run()
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")

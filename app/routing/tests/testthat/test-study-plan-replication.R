@@ -22,11 +22,11 @@ test_that("the record keeps known fields only, as text, and blanks are left out"
   expect_null(replication_record(endpoint = "not an id")$endpoint)
   # The screen gets every field, with the planner's starting values.
   v <- replication_values(r)
-  # Alpha and power start empty, with buttons, as on the cards; variation
-  # between studies starts at Small (P-04, 15 November 2026).
+  # Alpha, power and the variation between studies start empty, with
+  # buttons, as on the cards (22 November 2026).
   expect_identical(v$rep_alpha, "")
   expect_identical(v$rep_power, "")
-  expect_identical(v$rep_tau, "0.05")
+  expect_identical(v$rep_tau, "")
   expect_identical(v$rep_published, "unknown")
   expect_identical(v$labs_goals, "")
   expect_setequal(names(v), replication_plan_field_ids)
@@ -287,6 +287,25 @@ test_that("legacy replication plans keep their filter and migrate the posterior 
     rep_effect = "0.5", rep_post_mean = "-0.15", rep_published = "unknown"))
   back <- plan_from_replication_text(plan_replication_only_text(plan))
   expect_identical(replication_values(back$replication), replication_values(plan$replication))
+})
+
+test_that("plans saved before the researcher chose tau, sidedness and the levels keep the values they were made with", {
+  old <- list(format = replication_plan_format, version = 2L, fields = list(rep_study = "Smith (2020)", rep_tau = "0.1"))
+  v <- replication_values(old)
+  expect_identical(v$rep_tau, "0.1")
+  expect_identical(v$rep_tau_r, "0.025")
+  expect_identical(v$rep_sided, "two.sided")
+  expect_identical(v$rep_threshold, "10")
+  expect_identical(v$labs_power, "0.8")
+  expect_identical(v$rep_assurance, "0.8")
+  # Saved again, the record keeps those values, so they don't go blank.
+  again <- replication_values(replication_record(v))
+  expect_identical(again$rep_sided, "two.sided")
+  expect_identical(again$labs_power, "0.8")
+  # A new plan leaves them for the researcher.
+  fresh <- replication_values(replication_record(list(rep_study = "Smith (2020)")))
+  expect_identical(fresh$rep_sided, "")
+  expect_identical(fresh$rep_assurance, "")
 })
 
 test_that("conceptual sensitivity reports the precise change and when a setting is already at its maximum", {

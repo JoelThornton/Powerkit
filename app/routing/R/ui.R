@@ -271,9 +271,16 @@ terms_js <- "
     // 2026), in place of a More context link under each note: with
     // explanations off it opens or closes every explanation in the box.
     var boxSel = '.form-group-box, .rep-routes, .rep-answer, .plan-action-group, .plan-note';
+    // Only the notes the reader can see now count: one inside a hidden
+    // choice or a closed fold would make the button open nothing visible.
+    var shown = function(d) {
+      if (!d.getClientRects().length) return false;
+      var fold = d.parentElement && d.parentElement.closest('details:not(.explanation-help)');
+      return !fold || fold.open;
+    };
     var boxNotes = function(box) {
       return Array.from(box.querySelectorAll('details.explanation-help.rep-note, details.explanation-help.rep-field-more, details.explanation-help.field-more, details.explanation-help.group-more'))
-        .filter(function(d) { return d.closest(boxSel) === box; });
+        .filter(function(d) { return d.closest(boxSel) === box && shown(d); });
     };
     document.querySelectorAll(boxSel).forEach(function(box) {
       var notes = boxNotes(box), btn = box.querySelector(':scope > .box-info');
@@ -292,7 +299,9 @@ terms_js <- "
           ns.forEach(function(n) { n.open = open; });
           window.pkSyncExplanations(false);
         });
-        box.appendChild(btn); box.classList.add('box-has-info');
+        // First in the box and floated right, so the question beside it
+        // wraps around the button instead of running under it.
+        box.insertBefore(btn, box.firstChild); box.classList.add('box-has-info');
       }
       btn.setAttribute('aria-expanded', notes.some(function(n) { return n.open && isNote(n); }) ? 'true' : 'false');
     });
@@ -317,6 +326,12 @@ terms_js <- "
       if (!relevant || pending) return;
       pending = true; requestAnimationFrame(function() { pending = false; window.pkSyncExplanations(false); });
     }).observe(document.body, {childList: true, subtree: true});
+    // A choice that shows or hides a field, or a fold opened, changes which
+    // notes a box's button can open.
+    var resync = function() { setTimeout(function() { window.pkSyncExplanations(false); }, 0); };
+    document.addEventListener('change', resync);
+    document.addEventListener('toggle', function(e) { if (!e.target.classList.contains('explanation-help')) resync(); }, true);
+    if (window.jQuery) window.jQuery(document).on('shown hidden', '.shiny-panel-conditional', resync);
   });
   document.addEventListener('toggle', function(event) {
     if (event.target.matches('details.explanation-help')) window.pkSyncExplanations(false);
@@ -1193,12 +1208,24 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     lapply(g$variables, function(v) {
       opts <- guided_options(v, ctx)
       selected <- answers[[v$id]]
-      if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
+      # Not answered for the researcher (22 November 2026), unless the
+      # screening already left one answer (besides "not sure").
+      if (is.null(selected) || !selected %in% names(opts)) {
+        real <- setdiff(names(opts), "notsure")
+        selected <- if (length(real) == 1) real else character(0)
+      }
       # Boxed like the input screen's groups of fields.
       div(class = "form-group-box guided-variable",
         radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%"))
     }),
-    action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))
+    {
+      all_answered <- paste(sprintf("input['g_%s']", vapply(g$variables, function(v) v$id, character(1))), collapse = " && ")
+      tagList(
+        conditionalPanel(sprintf("!(%s)", all_answered),
+          p(class = "status status-soon", role = "note", "Answer each question above to choose the analyses.")),
+        conditionalPanel(all_answered,
+          action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))))
+    }
   )
 }
 
@@ -1240,10 +1267,15 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       radioButtons("g_rule", "You have more than one main analysis. What does your study's claim need?",
         choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
         choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
-        selected = rule %||% "each", width = "100%"
+        # Not chosen for the researcher (22 November 2026): whether the
+        # main analyses need a correction is their claim's call.
+        selected = rule %||% character(0), width = "100%"
       )
     ),
-    action_bar(pick_button("Show my plan", "guided:plan", class = "btn btn-primary"))
+    conditionalPanel(sprintf("(%s) && !input.g_rule", several_main),
+      p(class = "status status-soon", role = "note", "Say above what your study's claim needs, and then you can see your plan.")),
+    conditionalPanel(sprintf("!(%s) || input.g_rule", several_main),
+      action_bar(pick_button("Show my plan", "guided:plan", class = "btn btn-primary")))
   )
 }
 
@@ -1251,7 +1283,8 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
                            history = list(), route_label = "Plan a whole study", raw_answers = answers,
                            forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
-  rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
+  rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)
+  rule_def <- if (length(rule_def)) rule_def[[1]]
   role_badge <- function(id) if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Main analysis") else tags$span(class = "badge bg-secondary ms-2", "Extra analysis")
   # One row per analysis: its name, its role, what powerkit calls it and
   # the button to its input screen; the full card is folded away.
@@ -1289,9 +1322,9 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
   separate <- tagList(
     if (length(ticked) == 0) p("No analyses ticked yet.") else rows,
     h3(class = "h4 mt-4", "Combined sample size"),
-    if (several_main) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ".")),
+    if (several_main) p(tags$strong("Your claim:"), if (is.null(rule_def)) " not chosen yet: say what it needs on the screen before this one." else paste0(" ", rule_def$label, ".")),
     combined_n_ui(tree, ticked, primary, asks, answers, forms, results),
-    if (several_main) tags$details(class = "plan-more", tags$summary("About your claim and significance levels"), p(rule_def$note)),
+    if (several_main && !is.null(rule_def)) tags$details(class = "plan-more", tags$summary("About your claim and significance levels"), p(rule_def$note)),
     if (length(shared_rel) || length(ticked) >= 2) tags$details(class = "plan-more",
       tags$summary("Check that your numbers describe the same study"),
       shared_values_ui(tree, ticked, answers, asks, shared),

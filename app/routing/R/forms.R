@@ -163,7 +163,10 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         if (isTRUE(f$effect) && !isTRUE(f$baseline)) f$optional_for <- c("sensitivity", "sensitivity_curve")
         f
       })
-      if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+      if (has_effect) {
+        g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+        g$note_goals <- c("sensitivity", "sensitivity_curve")
+      }
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
@@ -241,12 +244,12 @@ mediation_analysis_group <- function(simple = FALSE) {
   group <- mediation_analysis_group_full()
   if (!simple) return(group)
   f <- group$fields[[1]]
-  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, for planning)"), f$choices)
-  f$default <- "joint_significance"
-  f$default_source <- "the quick estimate, so the screen gives an answer straight away (pwrss's power.z.mediation(method = 'joint') formula, a little optimistic); choose a simulated method for the number you report"
+  # Offered, not preselected (22 November 2026): it is a rough first look,
+  # not the analysis a study reports.
+  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, a rough first look)"), f$choices)
   f$choice_notes <- list(
     joint_significance = "Validation in progress: this estimate has not had a validation run yet (the full simulation has). An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
-  f$help <- paste("Start with the quick estimate to see roughly how many people you need.", f$help)
+  f$help <- paste("The quick estimate shows roughly how many people you need, straight away; it is not the analysis to report.", f$help)
   group$fields[[1]] <- f
   group
 }
@@ -256,10 +259,11 @@ mediation_analysis_group_full <- function() {
     note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
     note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",
     fields = list(list(id = "method", label = "Estimation and confidence interval", type = "select",
-      path = "target_test.method", required = TRUE, default = "monte_carlo_ci",
-      default_source = "the existing power4mome method: maximum likelihood and a Monte Carlo interval; choose OLS bootstrap for PROCESS-style analysis",
-      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval (current Powerkit method)",
-        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style)",
+      # Nothing preselected (22 November 2026): the method is the analysis
+      # the researcher will report, and PROCESS's is the usual one.
+      path = "target_test.method", required = TRUE,
+      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval",
+        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style; the usual one)",
         percentile_bootstrap = "Maximum likelihood + percentile bootstrap"),
       help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option keeps its existing browser workflow.")))
 }
@@ -519,7 +523,12 @@ precision_goal_fields <- function(tool) {
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
          type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
     list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",
-         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = tool[["conf_level"]], default_source = tool[["conf_level_source"]])
+         # Empty, as the significance level is (22 November 2026): one
+         # click gives the usual 95%.
+         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = NULL,
+         usual = tool[["conf_level"]], usual_label = sprintf("Use %s, the usual level", format(tool[["conf_level"]])),
+         shortcuts = c(tool[["conf_level"]], 0.9, 0.99), shortcut_labels = c(sprintf("Use %s, the usual level", format(tool[["conf_level"]])), "0.90", "0.99"),
+         default_source = tool[["conf_level_source"]])
   )
 }
 
@@ -652,7 +661,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     situation,
     list(id = "cost_ratio", label = "How many times worse is a false positive than a missed effect?",
-         help = "1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%).",
+         help = "Your judgement: 1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%). It starts at 1 only as a placeholder: change it to what a false positive and a missed effect would cost in your study.",
          type = "number", path = "goal.cost_ratio", needed_for = "justified_alpha", min_exclusive = 0, default = 1,
          default_source = "both mistakes weighted equally"),
     list(id = "prior_odds", label = "How much more likely is the effect to be real than not, before the study?",
@@ -803,7 +812,7 @@ safeguard_fields <- function(template) {
          path = "effect_justification.small_telescopes.alpha", optional = TRUE, default = 0.05, min_exclusive = 0, max_exclusive = 0.5,
          default_source = "The usual two-sided level; change it if the original study used another", shown_if = telescoping)),
     list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
-         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
+         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one. More protection plans for a smaller effect, so it needs more people. Like target power, it is your choice.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
