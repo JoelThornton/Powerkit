@@ -182,7 +182,8 @@ test('Labs tool history returns to the tool/menu, then forwards again', async ({
 
 test('reported-statistic import fills supported fields and refuses unsupported summaries without edits', async ({ page }) => {
   await tPlan(page);
-  await page.getByText('I have published results, raw scores, or missing information', {exact:true}).click();
+  // The paste box sits with the conversion question, once t or F is chosen.
+  await setValue(page, 'conv_from', 't');
   const entry = page.locator('#reported_statistic');
   const use = page.getByRole('button', {name:'Use this reported statistic', exact:true});
   await entry.fill('t(58) = -2.5'); await use.click();

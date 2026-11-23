@@ -2909,6 +2909,26 @@ glossary:
   - {term: "equivalence test (TOST)", pattern: "\\bequivalence test(?: \\(TOST\\))?|\\bTOST\\b", hint: "A test that aims to show there is no meaningful effect: two one-sided tests (TOST) check that the effect lies above the lower equivalence bound and below the upper one."}
   - {term: "precision planning", pattern: "\\bprecision planning\\b", hint: "Choosing the sample size so that the confidence interval around the estimate is expected to come out no wider than a target width."}
   - {term: "Bayes factor", pattern: "\\bBayes factors?\\b", hint: "A ratio that says how strongly the data support one hypothesis compared with a competing one (often 'no effect'), used instead of a p-value."}
+  - {term: "t-test", pattern: "(?<!Bayes factor )\\bt-tests?\\b", hint: "A test of whether an average, or a difference between two averages, differs from a set value, using the scores' own values."}
+  - {term: "Wilcoxon signed-rank test", pattern: "\\bWilcoxon signed-rank\\b", hint: "A rank-based alternative to the one-sample or paired t-test: it uses the ranks of the scores (or of the differences) rather than their values, and assumes they are spread symmetrically around the centre."}
+  - {term: "Mann-Whitney test", pattern: "\\bMann-Whitney\\b", hint: "A rank-based alternative to the two-group t-test (also called the Wilcoxon rank-sum test): it uses the ranks of the scores rather than their values, and tests whether one group's scores are shifted relative to the other's."}
+  - {term: "Brunner-Munzel test", pattern: "\\bBrunner-Munzel\\b", hint: "A rank-based test of whether scores in one group tend to be higher than in the other (stochastic equality), also called the generalised Wilcoxon test; it doesn't assume the groups differ only by a shift."}
+  - {term: "Yuen's trimmed-means test", pattern: "\\bYuen'?s\\b", hint: "A t-test on trimmed means: averages taken after setting aside a share of the highest and lowest scores, so a few extreme scores count for less."}
+  - {term: "minimum-effect test", pattern: "\\bminimum-effect tests?\\b", hint: "A test of whether the effect is bigger than a smallest effect that matters, rather than bigger than zero."}
+  - {term: "Pearson's r", pattern: "\\bPearson'?s r\\b", hint: "The correlation computed from the scores' own values (the product-moment correlation); its test assumes the scores come from normal distributions."}
+  - {term: "Spearman's rho", pattern: "\\bSpearman'?s rho\\b", hint: "A correlation of the two measures' ranks rather than their values: a rank-based measure of association whose test doesn't need normal data."}
+  - {term: "Kendall's tau", pattern: "\\bKendall'?s tau\\b", hint: "Another rank-based measure of association; like Spearman's rho, its test doesn't need normal data."}
+  - {term: "Fisher's exact test", pattern: "\\bFisher'?s exact\\b", hint: "A test of whether two yes/no variables are related that works out the p-value exactly from the table of counts, with its row and column totals fixed, rather than by an approximation."}
+  - {term: "exact binomial test", pattern: "\\bexact binomial\\b", hint: "A test of a proportion that works out the p-value exactly from the count of 'yes', rather than by the z test's normal approximation."}
+  - {term: "chi-square test", pattern: "\\bchi-square test\\b(?! of independence)", hint: "A test that compares a table of counts with the counts expected if there were no difference or association."}
+  - {term: "F test", pattern: "\\bF test\\b", hint: "A test based on a ratio of variances: in an ANOVA or regression, the variation the effect explains against the variation left over; in a test of equal spread, one group's variance against the other's. It assumes normal distributions."}
+  - {term: "aligned rank transform", pattern: "\\baligned rank transform\\b", hint: "A rank-based (nonparametric) version of the factorial ANOVA: the scores are aligned for each effect and then ranked, so main effects and interactions can be tested without normal data."}
+  - {term: "Welch's F", pattern: "\\bWelch'?s F\\b", hint: "A one-way ANOVA that doesn't assume the groups' scores are equally spread out."}
+  - {term: "Kruskal-Wallis test", pattern: "\\bKruskal-Wallis\\b", hint: "A rank-based alternative to the one-way ANOVA: a test of whether scores tend to sit higher or lower in at least one group."}
+  - {term: "Friedman's test", pattern: "\\bFriedman'?s test\\b", hint: "A rank-based alternative to the one-way repeated-measures ANOVA, for designs with one score for each person in each condition."}
+  - {term: "pairwise comparisons", pattern: "\\bpairwise comparisons\\b", hint: "Tests of each pair of groups or conditions in turn, with a correction for running several tests, rather than one overall test of all of them."}
+  - {term: "Levene's test", pattern: "\\bLevene'?s\\b", hint: "A test of whether groups' scores are equally spread out, from each score's distance to its group's mean."}
+  - {term: "Brown-Forsythe test", pattern: "\\bBrown-Forsythe\\b", hint: "Levene's test with each score's distance taken from its group's median rather than its mean, a more robust version."}
 
 # ---------------------------------------------------------------------------
 # Coverage map: every coverage.md row in the MVP tier, and where it appears

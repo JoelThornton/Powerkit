@@ -975,6 +975,12 @@ app_css <- "
   .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
   .action-bar .form-needed:not(:disabled):hover { text-decoration: underline; }
   .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
+  /* Questions still needed, once Still needed is clicked (23 November
+     2026): a soft amber edge and tag, which clear as each is answered. */
+  .needs-answer { position: relative; background: #fffaf0; border: 1px solid #f1d9a6; border-left: 4px solid var(--pk-amber); border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-left: calc(-0.75rem - 4px); margin-right: -0.75rem; animation: pk-needs 0.9s ease-out 1; }
+  .needs-answer::after { content: 'Needed'; position: absolute; top: 0.45rem; right: 0.6rem; font-size: 0.75rem; font-weight: 600; color: #8a4b00; background: #fff3dc; border: 1px solid #f1d9a6; border-radius: 999px; padding: 0 0.5rem; }
+  @keyframes pk-needs { from { background: #ffe9bf; } to { background: #fffaf0; } }
+  @media (prefers-reduced-motion: reduce) { .needs-answer { animation: none; } }
   /* A field reached with Tab, or scrolled to by a step or a 'needed' link, stops above the
      sticky action bar instead of under it (WCAG 2.4.11, focus not obscured). */
   @media (min-width: 576px) { html:has(.action-bar) { scroll-padding-bottom: 6.5rem; } }

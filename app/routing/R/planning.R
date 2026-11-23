@@ -24,15 +24,32 @@ planning_decision_ui <- function(form) {
       conditionalPanel(chosen, inline = TRUE,
         "This plans the chance that your study reaches evidence at the threshold (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
-  explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",
-    tags$details(tags$summary("What this goal plans, and goals for other questions"),
-      p(current),
-      tags$ul(tags$li("Detect a departure from the null: choose the relevant significance test and expected population effect."),
-        tags$li("Establish that an effect exceeds a worthwhile threshold: choose a minimum-effect test, enter the threshold and an expected effect beyond it. T-test screens offer this test version."),
-        tags$li("Establish practical similarity: choose equivalence planning and justify both bounds; do not treat a non-significant difference as similarity."),
-        tags$li("Estimate precisely: choose precision planning; distinguish average interval width from assurance of reaching it."),
-        tags$li("Plan a structural equation model: distinguish overall fit from the specific path or correlation you want to test.")),
-      p("A directional scientific prediction can accompany a two-sided test. Choose the statistical decision rule before seeing the data.")))
+  # What each goal on this screen gives you (23 November 2026): the
+  # goals themselves first, in plain words, then what the plan does not
+  # show, then a pointer to the goals for other questions. The info
+  # button opens it directly, with no second fold inside.
+  explanation_ui("planning-goal-info", "What each goal gives you", class = "planning-decision small field-more terms-more",
+    goal_meanings_ui(form),
+    p(current),
+    p("Other questions need other plans: showing that an effect is at least a set size (a minimum-effect test, a test version on the t-test screens), that two conditions are practically the same (equivalence planning), or estimating an effect to a set precision (precision planning). The design finder leads to each."))
+}
+
+# One line for each goal this screen offers: what Powerkit works out, and
+# when that is the goal to choose.
+goal_meanings_ui <- function(form) {
+  if (isTRUE(form$generic) || isTRUE(form$criteria) || isTRUE(form$precision)) return(NULL)
+  labels <- goal_button_labels(form)
+  unit <- if (isTRUE(form$meta)) "studies" else if (identical(form$units, "pairs")) "pairs" else "people"
+  lines <- list(
+    sample_size = sprintf("Powerkit works out how many %s you need for the power you choose, if the true effect is the size you enter. Choose it while you can still decide how many to recruit.", unit),
+    power = sprintf("Powerkit works out the chance (power) that your study finds the effect, with the number of %s you have, if the true effect is the size you enter. Choose it when a budget, a participant pool or existing data sets the number.", unit),
+    sensitivity = sprintf("Powerkit works out the smallest effect your number of %s would find with the power you choose. Choose it when you don't know what effect to expect: you then judge whether effects that small would matter, or are likely.", unit),
+    sensitivity_curve = "The same, across a range of sample sizes, as a curve.",
+    justified_alpha = "Powerkit works out the significance level that best balances false positives against missed effects for your sample size (the JustifyAlpha package).")
+  offered <- c("sample_size", "power", if (isTRUE(form$sensitivity)) "sensitivity",
+    if (isTRUE(form$sensitivity_without_effect)) "sensitivity_curve", if (isTRUE(form$justified_alpha)) "justified_alpha")
+  if (!isTRUE(form$sensitivity)) lines$sensitivity_curve <- "Powerkit works out the smallest effect your study could find across a range of sample sizes, as a curve. Choose it when you don't know what effect to expect."
+  tags$dl(class = "goal-meanings", lapply(offered, function(g) tagList(tags$dt(labels[[g]]), tags$dd(lines[[g]]))))
 }
 
 # The planning document's decision rule (decision-rule.R).

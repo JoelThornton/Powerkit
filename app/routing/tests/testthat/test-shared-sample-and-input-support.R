@@ -23,5 +23,9 @@ test_that("input support exposes matching existing translations without invented
   }
   paired <- as.character(input_support_ui(forms$forms$E3, form_fields(form_groups(forms, "E3"))))
   expect_match(paired, "SD of changes", fixed = TRUE)
-  expect_match(paired, "smallest effect you could detect", fixed = TRUE)
+  # In the effect section, not at the top of the screen; the paste box sits
+  # with the conversion question.
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_lt(regexpr("Your effect size, and where it comes from", html, fixed = TRUE), regexpr("If your numbers are published another way", html, fixed = TRUE))
+  expect_gt(regexpr('id="reported_statistic"', html, fixed = TRUE), regexpr('id="f_conv_from"', html, fixed = TRUE))
 })
