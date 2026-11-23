@@ -97,4 +97,23 @@ only partly supported, and the details are listed there.
 | equivalence test (TOST) | A test that aims to show there is no meaningful effect: two one-sided tests (TOST) check that the effect lies above the lower equivalence bound and below the upper one. | E36 |
 | precision planning | Choosing the sample size so that the confidence interval around the estimate is expected to come out no wider than a target width. | E46 |
 | Bayes factor | A ratio that says how strongly the data support one hypothesis compared with a competing one (often 'no effect'), used instead of a p-value. | E-bayes |
-
+| t-test | A test of whether an average, or a difference between two averages, differs from a set value, using the scores' own values. | E1, E2, E3, E72 |
+| Wilcoxon signed-rank test | A rank-based alternative to the one-sample or paired t-test: it uses the ranks of the scores (or of the differences) rather than their values, and assumes they are spread symmetrically around the centre. | E1, E3 |
+| Mann-Whitney test | A rank-based alternative to the two-group t-test (also called the Wilcoxon rank-sum test): it uses the ranks of the scores rather than their values, and tests whether one group's scores are shifted relative to the other's. | E2 |
+| Brunner-Munzel test | A rank-based test of whether scores in one group tend to be higher than in the other (stochastic equality), also called the generalised Wilcoxon test; it doesn't assume the groups differ only by a shift. | E2 |
+| Yuen's trimmed-means test | A t-test on trimmed means: averages taken after setting aside a share of the highest and lowest scores, so a few extreme scores count for less. | E2, E3 |
+| minimum-effect test | A test of whether the effect is bigger than a smallest effect that matters, rather than bigger than zero. | E1, E2, E3 |
+| Pearson's r | The correlation computed from the scores' own values (the product-moment correlation); its test assumes the scores come from normal distributions. | E4 |
+| Spearman's rho | A correlation of the two measures' ranks rather than their values: a rank-based measure of association whose test doesn't need normal data. | E4 |
+| Kendall's tau | Another rank-based measure of association; like Spearman's rho, its test doesn't need normal data. | E4 |
+| Fisher's exact test | A test of whether two yes/no variables are related that works out the p-value exactly from the table of counts, with its row and column totals fixed, rather than by an approximation. | E5 |
+| exact binomial test | A test of a proportion that works out the p-value exactly from the count of 'yes', rather than by the z test's normal approximation. | E25 |
+| chi-square test | A test that compares a table of counts with the counts expected if there were no difference or association. | E6, E26, E37, E52 |
+| F test | A test based on a ratio of variances: in an ANOVA or regression, the variation the effect explains against the variation left over; in a test of equal spread, one group's variance against the other's. It assumes normal distributions. | E7, E8, E20, E21, E22, E23, E24, E30, E63, E53, E55, E56 |
+| aligned rank transform | A rank-based (nonparametric) version of the factorial ANOVA: the scores are aligned for each effect and then ranked, so main effects and interactions can be tested without normal data. | E7, E8, E20, E21, E22, E55 |
+| Welch's F | A one-way ANOVA that doesn't assume the groups' scores are equally spread out. | E18 |
+| Kruskal-Wallis test | A rank-based alternative to the one-way ANOVA: a test of whether scores tend to sit higher or lower in at least one group. | E18 |
+| Friedman's test | A rank-based alternative to the one-way repeated-measures ANOVA, for designs with one score for each person in each condition. | E54 |
+| pairwise comparisons | Tests of each pair of groups or conditions in turn, with a correction for running several tests, rather than one overall test of all of them. | E18, E54 |
+| Levene's test | A test of whether groups' scores are equally spread out, from each score's distance to its group's mean. | E53 |
+| Brown-Forsythe test | Levene's test with each score's distance taken from its group's median rather than its mean, a more robust version. | E53 |

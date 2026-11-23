@@ -3,7 +3,12 @@ test_that("prediction and decision direction are explicitly separated", {
   expect_match(direction_note, "predict a direction and still test two-sided", fixed = TRUE)
   expect_match(group$fields[[1]]$choices$two_sided, "directional prediction", fixed = TRUE)
   html <- as.character(planning_decision_ui(forms$forms$E2))
-  for (word in c("minimum-effect", "equivalence", "assurance", "overall fit")) expect_match(html, word, fixed = TRUE)
+  for (word in c("minimum-effect", "equivalence", "precision planning", "how many people you need", "Smallest detectable effect")) expect_match(html, word, fixed = TRUE)
+  # One click opens it: no fold inside the info button's note.
+  expect_no_match(html, "<details[^>]*>.*<details", perl = TRUE)
+  expect_identical(names(group$fields[[1]]$choices)[1], "two_sided")
+  expect_match(group$fields[[1]]$choices$two_sided, "the usual one", fixed = TRUE)
+  expect_null(group$fields[[1]][["default"]])
 })
 
 test_that("accuracy presets change only replication controls and old answers retain their settings", {
@@ -118,4 +123,16 @@ test_that("planning recruitment keeps the counted units instead of relabelling p
   expect_match(lines, "Analysed: 40 pairs. Recruitment target: 50 pairs.", fixed = TRUE)
   expect_no_match(lines, "50 participants", fixed = TRUE)
   expect_match(planning_recruitment_lines(list(recruitment = NA), list(unit = "pairs")), "whether you expect any losses", fixed = TRUE)
+})
+
+test_that("the test box explains how its choices differ, in the order it names them", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(html, 'data-label="How these tests differ"', fixed = TRUE)
+  expect_lt(regexpr("<dfn>Mann-Whitney test</dfn>", html, fixed = TRUE), regexpr("<dfn>Brunner-Munzel test</dfn>", html, fixed = TRUE))
+  expect_lt(regexpr("<dfn>Brunner-Munzel test</dfn>", html, fixed = TRUE), regexpr("<dfn>minimum-effect test</dfn>", html, fixed = TRUE))
+})
+
+test_that("Still needed marks every unanswered question, not only the first", {
+  expect_match(needed_js, "empty.forEach", fixed = TRUE)
+  expect_match(needed_js, "needs-answer", fixed = TRUE)
 })

@@ -417,14 +417,17 @@ direction_group <- function(tool, shown_if = NULL) {
   list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
     list(
       id = "alternative", label = "Which directions will your statistical decision test?", type = "select", path = "target_test.alternative", required = TRUE,
+      # Two-sided first and marked as the usual one, but not chosen for
+      # the researcher ("Ask, mark the usual", 22 November 2026; order
+      # 23 November 2026).
       choices = list(
+        two_sided = "Effects in either direction (two-sided test, the usual one; a directional prediction is still possible)",
         greater = "Positive effects only (one-sided test)",
-        less = "Negative effects only (one-sided test)",
-        two_sided = "Effects in either direction (two-sided test; a directional prediction is still possible)"),
-      buttons = TRUE, button_labels = list(greater = "Positive only", less = "Negative only", two_sided = "Either direction"),
-      button_notes = list(greater = "One-sided test: an effect the other way can't be declared",
-        less = "One-sided test: an effect the other way can't be declared",
-        two_sided = "Two-sided test: you can still predict a direction"),
+        less = "Negative effects only (one-sided test)"),
+      buttons = TRUE, button_labels = list(two_sided = "Either direction", greater = "Positive only", less = "Negative only"),
+      button_notes = list(two_sided = "Two-sided test, the usual one: you can still predict a direction",
+        greater = "One-sided test: an effect the other way can't be declared",
+        less = "One-sided test: an effect the other way can't be declared"),
       default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
       shown_if = shown_if
     ),
