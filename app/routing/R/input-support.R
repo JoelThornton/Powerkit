@@ -1,26 +1,27 @@
 # Route people to existing, supported translations; never impute an input.
+# A fold in the effect section (23 November 2026), not at the top of the
+# screen: it is about the effect's numbers, and the conversion question
+# and the "don't know what effect to expect" line now say the rest.
 input_support_ui <- function(form, fields) {
   ids <- vapply(fields, `[[`, "", "id")
   has <- function(id) id %in% ids
   tags$details(class = "input-support mb-3",
-    tags$summary("I have published results, raw scores, or missing information"),
-    if (has("metric") || has("effect_units")) p("For means and SDs in the original measure, choose the raw-score option in the effect/units selector below. Use SDs, not standard errors or variances. Keep means and SDs in the same measure units."),
-    if (has("conv_from")) p("For a published t, F or another effect size, use the question below the effect size that asks whether you have it in another form. Only the conversions supported by this analysis are offered. Use the original study's degrees of freedom and group sizes, not your planned sample size. An F statistic loses the direction of an effect; check the original contrast before choosing a one-sided decision."),
-    if (has("conv_from")) published_import_ui(),
-    if (has("eta_source")) p("A published repeated-measures effect and an effect derived from population means use different conventions. Select the source that matches your information; do not copy partial eta-squared from a different design."),
-    if (has("raw_r") && identical(form$base$template, "paired_t")) p("For paired scores, the correlation must describe the two measurements on the same people. Marginal means and SDs alone do not identify the SD of changes. If you have the SD of changes, use the change-score option; otherwise save a draft or compare explicitly labelled correlation assumptions."),
-    if (any(grepl("^(p_|r_)", ids))) p("Regression and mediation need the stated model's component coefficients and correlations. A total indirect effect, an unadjusted correlation, or a p-value alone does not identify the full population. Keep raw versus standardised units and binary-variable coding consistent."),
-    p("If an input is missing, open its 'What this means and where to find it' help. You can record it as unknown under assumptions/sources and save an unfinished draft. Named alternatives can compare defensible assumptions; they do not establish which assumption is true."),
-    if (has("just_type") && has("goal") && isTRUE(form$base$design == "basic_test")) p("If you cannot justify an effect but know your available sample size, choose the smallest effect you could detect under 'Your goal'. This describes sensitivity at that budget; it does not choose a meaningful effect for you."),
-    p("An unsupported published summary cannot always be converted uniquely. Keep the draft and seek the matching model output or data. If you use a rule-of-thumb effect meanwhile, choose \u201cA convention or rule of thumb\u201d as its source, so the write-up says where the number came from. Zero or a package default is not an effect to plan for."))
+    tags$summary("If your numbers are published another way, or missing"),
+    if (has("metric") || has("effect_units")) p("Have means and SDs in the measure's own units? Choose that option under \u201cHow you'll give the effect\u201d. Use SDs, not standard errors or variances, and keep means and SDs in the same units."),
+    if (has("conv_from")) p("Have a t or F statistic, or another effect size? Choose it in the question below the effect size. Use the published study's degrees of freedom and group sizes, not your planned sample size. An F statistic doesn't give the effect's direction: check the original contrast before choosing a one-sided test."),
+    if (has("eta_source")) p("A published repeated-measures effect and an effect worked out from population means use different conventions. Choose the source that matches your numbers; don't copy partial eta-squared from a different design."),
+    if (has("raw_r") && identical(form$base$template, "paired_t")) p("For paired scores, the correlation must be between the two measurements on the same people. Means and SDs at each time alone don't give the SD of changes. If you have the SD of changes, use the change-score option; otherwise save a draft, or compare named alternatives with different correlations."),
+    if (any(grepl("^(p_|r_)", ids))) p("Regression and mediation need each coefficient or correlation in the model. A total indirect effect, an unadjusted correlation or a p-value alone doesn't give them. Keep raw and standardised units, and how yes/no variables are coded, the same throughout."),
+    p("Missing a number? Open its info button for where to find it. You can record it as unknown under \u201cAssumptions, sources and named alternatives\u201d and save an unfinished draft. Named alternatives compare defensible values; they don't show which one is right."),
+    p("A published summary cannot always be converted uniquely into what this screen needs: keep the draft and look for the matching model output or data. If you use a rule-of-thumb effect meanwhile, choose \u201cA convention or rule of thumb\u201d as its source, so the write-up says where the number came from. Zero or a package's default is not an effect to plan for."))
 }
 
 published_import_ui <- function() {
-  tagList(textInput("reported_statistic", "Paste a reported t or F statistic (optional)",
+  tagList(textInput("reported_statistic", "Or paste it as the paper reports it (optional)", width = "100%",
       value = "", placeholder = "t(58) = 2.5 or F(1, 58) = 6.25"),
     tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkImportStatistic()", "Use this reported statistic"),
     p(id = "reported_statistic_message", role = "status"),
-    p("This fills existing fields; the engine performs the conversion. Only the stated statistic and whole-number degrees of freedom are read. A p-value alone is insufficient. Add the paper/source, adjustment, and both original group sizes if unequal."),
+    p(class = "small text-muted", "Fills the boxes below from text such as t(58) = 2.5. A p-value alone isn't enough. Add the source, and both group sizes if they were unequal."),
     tags$script(HTML(reported_statistic_js)))
 }
 

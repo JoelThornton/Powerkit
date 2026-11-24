@@ -179,6 +179,9 @@ field_ui <- function(f, value, described_by = character()) {
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
   if (identical(f$id, "just_type")) field <- tagList(field, observed_power_warning_ui(), labs_signpost_ui())
+  # A reported t or F can be pasted as the paper prints it, once t or F is
+  # chosen (23 November 2026; it was at the top of the screen).
+  if (identical(f$id, "conv_from")) field <- tagList(field, conditionalPanel(sprintf("input.%s == 't' || input.%s == 'F'", id, id), class = "reported-import", published_import_ui()))
   # Fields needed only for some goals (power, N) appear when that goal is
   # chosen, instead of saying which goals need them.
   # (`shown_for_goals`: the same for an optional field, such as the reason
@@ -326,13 +329,17 @@ group_ui_build <- function(tree, g, values, index) {
   legend <- effect_box_legend(legend, g)
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
+  # In the order the heading names them, so the test box's notes read in
+  # the order of its choices (23 November 2026).
+  if (length(hints) > 1) hints <- hints[order(vapply(hints, function(h) regexpr(h$pattern, g$input, ignore.case = TRUE, perl = TRUE)[[1]], numeric(1)))]
+  is_test_box <- identical(legend, "Which test you'll run")
   # Short name fields sit two to a row on wider screens; a legend that
   # repeats its section's title is kept for screen readers only.
   names_only <- length(g$fields) > 1 && all(vapply(g$fields, function(f) identical(f$type, "text") && grepl("_(label|level[0-9]*|levels)$", f$id), logical(1)))
   # A group that only some choices need (`shown_if`, as on a field; its
   # fields carry the same condition, so the server ignores them too).
   box <- tags$fieldset(
-    class = paste("form-group-box", if (names_only) "form-group-names", if (identical(legend, "Which test you'll run")) "form-group-test"),
+    class = paste("form-group-box", if (names_only) "form-group-names", if (is_test_box) "form-group-test"),
     tags$legend(class = if (legend_repeats_question(legend, g)) "visually-hidden" else "h6",
       legend),
     # The group's info button sits beside its heading, as a field's does
@@ -347,7 +354,9 @@ group_ui_build <- function(tree, g, values, index) {
     # The box's terms are one of its explanations (22 November 2026): an
     # info button in view, and behind the box's corner button with
     # explanations off, rather than a fold of their own.
-    if (length(hints)) explanation_ui(sprintf("group-%d-terms", index), terms_summary(vapply(hints, `[[`, "", "term")),
+    # The test box's terms are its choices, so its link says what they
+    # explain (23 November 2026).
+    if (length(hints)) explanation_ui(sprintf("group-%d-terms", index), if (is_test_box) "How these tests differ" else terms_summary(vapply(hints, `[[`, "", "term")),
       class = "field-more terms-more",
       div(id = hint_id, class = "form-terms-list", lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
@@ -426,7 +435,6 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     uiOutput("selected_evidence"),
     if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),
     placeholders_at(tree, "form"),
-    input_support_ui(forms$forms[[ep_id]], form_fields(groups)),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
     action_bar(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
@@ -597,7 +605,8 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
       effect_boxes_ui(groups),
-      part("effect")),
+      part("effect"),
+      input_support_ui(form, form_fields(groups))),
     # The optional sections share one card, a row each (22 November 2026);
     # the Settings row keeps its summary of the choices that change the result.
     if (any(section %in% c("scenarios", "guess")) || length(settings)) div(class = "form-extras",
@@ -644,10 +653,26 @@ needed_js <- "
       (named ? 'Still needed: ' + named : (empty.length === 1 ? '1 answer still needed' : empty.length + ' answers still needed'));
     line.classList.toggle('form-needed-done', empty.length === 0);
     line.disabled = empty.length === 0;
+    // Once asked for, the marks stay on the questions still empty and
+    // clear as each is answered (or hidden by another choice).
+    document.querySelectorAll('#screen .needs-answer').forEach(function(box) {
+      var el = document.getElementById(box.getAttribute('data-needs-for'));
+      if (!el || empty.indexOf(el) < 0) { box.classList.remove('needs-answer'); box.removeAttribute('data-needs-for'); }
+    });
   };
+  // The box each needed answer sits in (its field, or its row of buttons).
+  var pkNeededBox = function(el) { return el.closest('.form-field') || el.closest('.form-group') || el.parentElement; };
   window.pkGoToNeeded = function() {
     var empty = pkNeededEmpty();
     if (!empty.length) return;
+    // Mark every question still needed, as well as moving to the first
+    // (23 November 2026): a soft amber edge and a 'Needed' tag on each.
+    empty.forEach(function(el) {
+      var box = pkNeededBox(el);
+      if (!box) return;
+      box.classList.remove('needs-answer'); void box.offsetWidth;
+      box.classList.add('needs-answer'); box.setAttribute('data-needs-for', el.id);
+    });
     var folded = empty[0].closest('details');
     if (folded) folded.open = true;
     // A choice shown as buttons (R/choice-buttons.R) is reached by its first button.

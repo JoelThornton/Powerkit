@@ -6548,7 +6548,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.81.39",
+        "Version": "0.81.40",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6567,19 +6567,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
-        "RemoteSha": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
+        "RemoteRef": "e12734b4a09bbadb2b35a588e975caa91a337d83",
+        "RemoteSha": "e12734b4a09bbadb2b35a588e975caa91a337d83",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
-        "GithubSHA1": "5c5c477f5150b162ab2542a5e847239b00ee9e9c",
+        "GithubRef": "e12734b4a09bbadb2b35a588e975caa91a337d83",
+        "GithubSHA1": "e12734b4a09bbadb2b35a588e975caa91a337d83",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-23 10:50:08 UTC; runner",
+        "Packaged": "2026-11-24 03:01:20 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-23 10:50:56 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-24 03:02:22 UTC; unix"
       }
     },
     "powertools": {
@@ -8947,7 +8947,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "15b2823f2eea700ee34249e7e45c13a5"
+      "checksum": "79d34f33cf2b6ac1fd74ce7ab06fbf22"
     },
     "forms.yaml": {
       "checksum": "292e2399902b93ce6399e218c126eebf"
@@ -8995,13 +8995,13 @@
       "checksum": "f9cd950b4f27f5f426169a7f72e221ae"
     },
     "R/forms_ui.R": {
-      "checksum": "1c55e5c9e2928d92c0e0cb63da669378"
+      "checksum": "71f95139c65c25453b199bb7f18c4ee5"
     },
     "R/forms.R": {
-      "checksum": "8507a536f0688b400a60338130bb5301"
+      "checksum": "adba1d4f2f1b2383e9eea336e6c9fc36"
     },
     "R/input-support.R": {
-      "checksum": "e6b1580ff9ee634f06684662951c11a4"
+      "checksum": "8fbd0326b5cfaa71a418b139881373db"
     },
     "R/keep-result.R": {
       "checksum": "e66758cdce8f355971fd8115fa8624d2"
@@ -9019,7 +9019,7 @@
       "checksum": "f9f3d3bc788fa5eedb2c9e8de761f766"
     },
     "R/planning.R": {
-      "checksum": "b50b011889fe427fcd4d174be05aea2f"
+      "checksum": "1f26a1ad7b224ede51174a7f9561d95c"
     },
     "R/project.R": {
       "checksum": "aac3b43d65bc8e471f715be9ecbe45c1"
@@ -9079,16 +9079,16 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "e3d823479b52e9b2e74254198f9e4d85"
+      "checksum": "afff369d7d8b99951c4adf75245fa0e1"
     },
     "whats-new-archive.yaml": {
-      "checksum": "1c8fea0340f52b3fb556cebc16955878"
+      "checksum": "bc58a4683a6157134c519fff4b4b8904"
     },
     "whats-new.d/README": {
       "checksum": "3deb002bbaa98f06844fb88d56047327"
     },
     "whats-new.yaml": {
-      "checksum": "ed90d36d076f36c73d05f151e67b7928"
+      "checksum": "0a66e7bcd64b6d4c3e3e27a0204b9284"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
