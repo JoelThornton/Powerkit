@@ -1,8 +1,0 @@
-entries:
-  - date: "2026-11-28"
-    title: "No preset answer for how you give the effect"
-    text: >-
-      Screens that ask how you'll give the effect, such as Cohen's d or each
-      group's mean and SD on the t tests, now start with nothing chosen, as
-      the ANOVA screens already did. Choose the way in that matches the
-      numbers you have, and the boxes for it appear.
