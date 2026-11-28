@@ -168,7 +168,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         g$note_goals <- c("sensitivity", "sensitivity_curve")
       }
     }
-    with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
+    with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template, form$base$target_test$method), form$base$template)))
   })
   groups <- unlist(lapply(groups, split_route_question), recursive = FALSE)
   # Mediation with X in three or more groups (E42) is planned for the
@@ -874,8 +874,12 @@ eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between",
 # measurements.
 eta_squared_mixed_templates <- c("oneway_within", "2x2_mixed", "mixed")
 
-with_eta_squared <- function(group, template) {
+with_eta_squared <- function(group, template, method = NULL) {
   if (!isTRUE(template %in% eta_squared_templates)) return(group)
+  # A test that isn't the ANOVA's F test (the Jonckheere-Terpstra trend
+  # test on the one-way template) needs the means: the engine refuses
+  # partial eta-squared for it.
+  if (isTRUE(method %in% c("jonckheere_terpstra"))) return(group)
   by_means <- list(field = "metric", is_not = "eta_squared")
   hide <- function(f) {
     if (isTRUE(f$effect) || isTRUE(f$in_effect_text) || identical(f$id, "sd_mode")) {
@@ -906,6 +910,9 @@ with_eta_squared <- function(group, template) {
       f$help <- paste("Means and an SD make you think about the difference you expect on your own measure; Powerkit shows the effect size",
         "they give. An effect size from earlier work (a published partial eta-squared or Cohen's f) skips the means.")
       f$route_question <- TRUE
+      # Three factors: partial eta-squared only when every factor is
+      # between participants, as the engine takes it.
+      if (identical(template, "factorial_three")) f$choices_shown_if <- c(f$choices_shown_if, list(eta_squared = list(list(field = "within", is = "none"))))
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
@@ -1064,8 +1071,12 @@ with_conversion <- function(group, template) {
   if (is.null(conversion_choices[[template %||% ""]])) return(group)
   # A field marked no_conversion (the two-group card's point-biserial r)
   # is another way to give the effect, not the one a conversion fills.
+  # On the ANOVAs the conversion fills partial eta-squared, never the
+  # correlation between measurements (population.r), which E8 and E56
+  # also ask for.
+  effect_path <- if (isTRUE(template %in% eta_squared_templates)) "^population\\.eta_squared$" else "^population\\.(d|dz|r|eta_squared|p2)$"
   at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && !isTRUE(f$no_conversion) &&
-    grepl("^population\\.(d|dz|r|eta_squared|p2)$", f$path %||% ""), logical(1)))
+    grepl(effect_path, f$path %||% ""), logical(1)))
   if (length(at) != 1) return(group)
   effect <- group$fields[[at]]
   when <- shown_if_conditions(effect)

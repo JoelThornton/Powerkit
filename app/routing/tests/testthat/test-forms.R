@@ -1346,3 +1346,17 @@ test_that("ANOVA and ANCOVA screens ask first how the effect is given, and show 
   expect_null(implied_effect_text(NULL, list(effect_units = "standardised")))
   expect_null(implied_effect_text(NULL, list(metric = "eta_squared")))
 })
+
+test_that("the effect-size route is offered only where the engine takes it, and its conversion appears once", {
+  # The Jonckheere-Terpstra trend test needs the means.
+  metric <- Filter(function(f) identical(f$id, "metric"), form_fields(form_groups(forms, "E64")))[[1]]
+  expect_false("eta_squared" %in% names(metric$choices))
+  # Three factors: only when every factor is between participants.
+  metric <- Filter(function(f) identical(f$id, "metric"), form_fields(form_groups(forms, "E56")))[[1]]
+  expect_equal(metric$choices_shown_if$eta_squared, list(list(field = "within", is = "none")))
+  # The conversion fills partial eta-squared, never the correlation between measurements.
+  for (ep in c("E7", "E8", "E18", "E21", "E22", "E23", "E54", "E55", "E56")) {
+    ids <- vapply(form_fields(form_groups(forms, ep)), `[[`, "", "id")
+    expect_false(anyDuplicated(ids) > 0, label = ep)
+  }
+})
