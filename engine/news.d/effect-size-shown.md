@@ -11,7 +11,7 @@
 * App: on the ANOVA and ANCOVA screens, "How you'll give the effect"
   (the `metric` field, once "Units of the means") opens the effect section
   in a box of its own, offering expected means with an SD or an effect
-  size from earlier work, with nothing preselected (`split_effect_route()`
+  size from earlier work, with nothing preselected (`split_route_question()`
   in R/forms.R). The screens that take means and an SD, the t-tests'
   own-units route included, show the effect size those numbers give as
   they are typed (`output$implied_effect`, `implied_effect_text()`), and

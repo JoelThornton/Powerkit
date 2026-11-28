@@ -390,7 +390,7 @@ effect_boxes_ui <- function(groups) {
   defaults <- list()
   for (f in form_fields(groups)) if (!is.null(f[["default"]])) defaults[[f$id]] <- f[["default"]]
   boxes <- Filter(function(g) identical(form_section(g), "effect") && is.null(g$shown_if) &&
-    !any(vapply(g$fields, function(f) isTRUE(f$effect_route), logical(1))) &&
+    !any(vapply(g$fields, function(f) isTRUE(f$route_question), logical(1))) &&
     any(vapply(g$fields, function(f) isTRUE(f$effect) && field_applies(f, defaults), logical(1))), groups)
   names <- unique(vapply(boxes, function(g) g$input %||% g$title %||% "", character(1)))
   names <- names[nzchar(names)]
@@ -399,7 +399,7 @@ effect_boxes_ui <- function(groups) {
   list_text <- paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
   line <- p(class = "effect-boxes", sprintf("For this analysis, the effect size is set by what you enter in the boxes headed %s.", list_text))
   # Given as an effect size from earlier work, those boxes are hidden.
-  route <- Filter(function(f) isTRUE(f$effect_route), form_fields(groups))
+  route <- Filter(function(f) isTRUE(f$route_question), form_fields(groups))
   if (length(route)) return(conditionalPanel(sprintf("input.%s != 'eta_squared'", field_input_id(route[[1]])), line))
   line
 }
@@ -408,7 +408,7 @@ effect_boxes_ui <- function(groups) {
 # ANCOVAs ("How you'll give the effect", with_eta_squared()) and the
 # t-tests in the measure's own units.
 implied_effect_shown <- function(fields) {
-  any(vapply(fields, function(f) isTRUE(f$effect_route) ||
+  any(vapply(fields, function(f) isTRUE(f$route_question) ||
     (identical(f$id, "effect_units") && "raw" %in% names(f$choices) && grepl("^population\\.metric$", f$path %||% "")), logical(1)))
 }
 

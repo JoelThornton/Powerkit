@@ -170,7 +170,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
-  groups <- unlist(lapply(groups, split_effect_route), recursive = FALSE)
+  groups <- unlist(lapply(groups, split_route_question), recursive = FALSE)
   # Mediation with X in three or more groups (E42) is planned for the
   # Monte Carlo interval only, so it keeps its own draws setting and offers
   # no choice of method; mediation with a yes/no mediator (E39) uses the
@@ -895,7 +895,7 @@ with_eta_squared <- function(group, template) {
   for (f in group$fields) {
     if (identical(f$id, "metric")) {
       # The question comes first in the effect section, in a box of its
-      # own (split_effect_route()), and names both ways in: the expected
+      # own (split_route_question()), and names both ways in: the expected
       # means with an SD, or an effect size from earlier work (28 November
       # 2026). No choice is preselected.
       f$label <- "How you'll give the effect"
@@ -905,7 +905,7 @@ with_eta_squared <- function(group, template) {
         eta_squared = if ("f" %in% conversion_choices[[template]]) "An effect size from earlier work: partial eta-squared or Cohen's f" else "An effect size from earlier work: partial eta-squared")
       f$help <- paste("Means and an SD make you think about the difference you expect on your own measure; Powerkit shows the effect size",
         "they give. An effect size from earlier work (a published partial eta-squared or Cohen's f) skips the means.")
-      f$effect_route <- TRUE
+      f$route_question <- TRUE
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
@@ -957,12 +957,12 @@ with_eta_squared <- function(group, template) {
 # earlier work and its conversions, ahead of the box of means it used to
 # sit in: a question about the means box's units read as if the means were
 # the only way in (28 November 2026). The means box keeps its card line.
-effect_route_ids <- c("metric", "eta_source", "eta_squared", "eta_r")
+route_question_ids <- c("metric", "eta_source", "eta_squared", "eta_r")
 
-split_effect_route <- function(g) {
-  route <- vapply(g$fields, function(f) isTRUE(f$effect_route), logical(1))
+split_route_question <- function(g) {
+  route <- vapply(g$fields, function(f) isTRUE(f$route_question), logical(1))
   if (!any(route)) return(list(g))
-  moved <- vapply(g$fields, function(f) f$id %in% effect_route_ids || isTRUE(f$conversion) || identical(f$id, "conv_from"), logical(1))
+  moved <- vapply(g$fields, function(f) f$id %in% route_question_ids || isTRUE(f$conversion) || identical(f$id, "conv_from"), logical(1))
   first <- list(input = NULL, title = "How you'll give the effect", fields = g$fields[moved])
   g$fields <- g$fields[!moved]
   if (!length(g$fields)) return(list(first))
