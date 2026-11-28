@@ -392,7 +392,7 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio, a risk ratio, Cohen's f or Cohen's f-squared. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f; two proportions (two_proportions) odds_ratio or risk_ratio, with group 1's proportion in population > p1; multiple regression (r2_zero, single_coefficient, r2_increase) f2, into R-squared, the partial R-squared, or R-squared with all the predictors given population > r2_reduced.",
+              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio, a risk ratio, Cohen's f or Cohen's f-squared. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f; two proportions (two_proportions) odds_ratio or risk_ratio, with group 1's proportion in population > p1; multiple regression (r2_zero, single_coefficient, r2_increase) f2, into R-squared, the partial R-squared, or R-squared with all the predictors given population > r2_reduced; one coefficient (single_coefficient) also t (with df_error) or its partial r, into the partial R-squared; a yes/no predictor in logistic regression (single_predictor) p2, group 2's proportion, into the odds ratio given group 1's in population > base_prob.",
               "enum": [
                 "t",
                 "F",
@@ -401,7 +401,8 @@
                 "odds_ratio",
                 "risk_ratio",
                 "f",
-                "f2"
+                "f2",
+                "p2"
               ]
             },
             "value": {

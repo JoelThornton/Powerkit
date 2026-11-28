@@ -18,9 +18,10 @@ convert_effect(
 }
 \arguments{
 \item{from}{The form of the published effect: \code{"t"}, \code{"F"}, \code{"r"},
-\code{"d"}, \code{"odds_ratio"}, \code{"risk_ratio"}, \code{"f"} or \code{"f2"} (Cohen's
+\code{"d"}, \code{"odds_ratio"}, \code{"risk_ratio"}, \code{"f"}, \code{"f2"} (Cohen's
 f-squared, for multiple regression: \code{"r2_zero"},
-\code{"single_coefficient"} and \code{"r2_increase"}).}
+\code{"single_coefficient"} and \code{"r2_increase"}) or \code{"p2"} (group 2's
+proportion, for \code{"single_predictor"}).}
 
 \item{value}{The published value.}
 
@@ -39,7 +40,9 @@ can't exceed n1 + n2 - 2.}
 into an ANOVA's partial eta-squared.}
 
 \item{p0}{Group 1's proportion, for an odds ratio or a risk ratio
-converted into group 2's proportion (\code{"two_proportions"}).}
+converted into group 2's proportion (\code{"two_proportions"}), or for
+group 2's proportion converted into an odds ratio
+(\code{"single_predictor"}).}
 
 \item{r2_reduced}{R-squared without the tested predictors, for Cohen's
 f-squared converted into R-squared with all the predictors
@@ -60,8 +63,12 @@ ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
 t-test) or r (correlation); and an F statistic (with both its degrees of
 freedom) or Cohen's f into the partial eta-squared of a
 between-participants ANOVA (\code{"oneway_between"}, \code{"2x2_between"},
-\code{"factorial_between"}); and an odds ratio or a risk ratio, with group
-1's proportion, into group 2's proportion (\code{"two_proportions"}).
+\code{"factorial_between"}); an odds ratio or a risk ratio, with group
+1's proportion, into group 2's proportion (\code{"two_proportions"}); a t
+statistic (with its error df) or a partial r into one coefficient's
+partial R-squared (\code{"single_coefficient"}); and group 2's proportion,
+with group 1's, into a yes/no predictor's odds ratio
+(\code{"single_predictor"}).
 }
 \examples{
 convert_effect("t", 2.5, "independent_t", df_error = 58)
