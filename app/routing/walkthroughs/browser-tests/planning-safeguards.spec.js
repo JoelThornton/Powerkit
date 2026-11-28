@@ -15,7 +15,7 @@ test('all-test planning starts with unknown dependence and keeps the input scree
  await put(page,'claim','all'); await put(page,'n_tests','2');
  await expect(page.locator('#f_all_dependence')).toHaveValue('unknown');
  await put(page,'goal','power'); await put(page,'method','student_t');
- await put(page,'alternative','two_sided'); await put(page,'d','0.4');
+ await put(page,'alternative','two_sided'); await put(page,'effect_units','standardised'); await put(page,'d','0.4');
  await put(page,'n','120'); await put(page,'alpha','0.05');
  await put(page,'just_type','smallest_effect_of_interest'); await put(page,'just_source','Synthetic browser scenario');
  // The checks are listed under the card's "More about this analysis", not on
