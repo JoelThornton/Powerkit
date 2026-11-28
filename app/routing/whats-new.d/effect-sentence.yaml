@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-28"
+    title: "The write-up says which number is the effect"
+    text: >-
+      The box at the end of each input screen now asks where your numbers
+      come from, since many screens never ask for an effect size. You can
+      also say where the other numbers come from, such as an SD from a
+      test's norms. The write-up names the effect you tested, then the
+      other values you assumed and their source, and no longer lists
+      counts like the number of items as part of the effect.

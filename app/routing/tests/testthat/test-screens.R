@@ -543,7 +543,7 @@ test_that("cards list what you'll need, and fold the package and the next questi
   # The rank-test note stays in view. The effect size's source is asked on
   # the input screen only, not listed on the card first (28 October 2026).
   before <- sub('<details class="card-more">.*', "", html)
-  expect_no_match(before, "Where your effect size comes from", fixed = TRUE)
+  expect_no_match(before, "Where these numbers come from", fixed = TRUE)
   expect_match(before, "rank-test-note", fixed = TRUE)
 })
 

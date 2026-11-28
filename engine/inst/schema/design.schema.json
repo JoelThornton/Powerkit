@@ -317,6 +317,11 @@
         "notes": {
           "type": "string"
         },
+        "other_sources": {
+          "description": "Where the values other than the effect (SDs, correlations, baseline rates) come from, in the user's words, when that differs from the effect's source.",
+          "type": "string",
+          "minLength": 1
+        },
         "small_telescopes": {
           "description": "Small telescopes (Simonsohn, 2015), for a replication of one original study: plan the replication's one-sided test of whether the effect is smaller than d33 (r33 for a correlation), the effect the original study had 33% power to detect with its sample size at its own significance level, for a true effect of 0. For prior_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the original study's estimate, which sets the direction.",
           "type": "object",

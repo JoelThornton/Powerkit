@@ -186,7 +186,7 @@ test_that("ordinal two groups, survival, growth curves and reliability give the 
     methods <- writeup_text(forms$forms[[case$ep]], run$spec, run$result, run$fields, run$values)[["short"]]
     # The effect is what was found, so the write-up doesn't call what was
     # entered the effect size.
-    expect_no_match(methods, "The effect size, ", fixed = TRUE)
+    expect_no_match(methods, "The effect tested, ", fixed = TRUE)
   }
   lines <- result_sentences(run$spec, run$result)
   expect_match(lines[["headline"]], "would show the kappa is above 0.4 with 80% power if it is", fixed = TRUE)

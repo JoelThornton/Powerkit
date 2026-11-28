@@ -10,7 +10,7 @@ compact_field_label <- function(f) {
     alpha_reason = "Alpha rationale", alternative = "Tail(s)", alternative_reason = "One-sided test rationale",
     effect_units = "Effect-size input", d = "Standardised difference (d)", dz = "Standardised change (dz)",
     welch_sd_ratio = "SD ratio (group 2 / group 1)", just_type = "Effect-size source",
-    just_source = "Effect-size rationale", just_adjustment = "Effect adjustment",
+    just_source = "Effect-size rationale", just_adjustment = "Effect adjustment", just_other = "Other values' sources",
     conv_from = "Effect-size conversion")
   if (f$id %in% names(labels)) unname(labels[[f$id]]) else NULL
 }

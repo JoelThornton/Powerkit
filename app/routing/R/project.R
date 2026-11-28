@@ -221,7 +221,7 @@ plan_check_ui <- function(tree, forms, project) {
   tool <- forms$tool_defaults[[forms$forms[[ep_id]]$tool]]
   questions <- plan_questions(values, result, tool[["alpha"]] %||% 0.05)
   quote <- function(label, id) if (!blank(values[[id]])) tags$li(tags$strong(label), " ", writeup_quote(values[[id]]))
-  reasons <- list(quote("The effect size:", "just_source"), quote("The adjustment:", "just_adjustment"),
+  reasons <- list(quote("The numbers:", "just_source"), quote("The other numbers:", "just_other"), quote("The adjustment:", "just_adjustment"),
     quote("The target power:", "power_reason"), quote("The significance level:", "alpha_reason"),
     quote("A one-sided test:", "alternative_reason"))
   reasons <- Filter(Negate(is.null), reasons)

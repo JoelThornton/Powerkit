@@ -57,7 +57,7 @@ usual_seconds <- function(forms, ep_id, goal) {
 # shown again with the new words (11 November 2026).
 words_only_field <- function(f) {
   identical(f$type, "text") && !is.null(f$path) &&
-    (f$id %in% c("just_source", "just_adjustment", "research_question") || grepl("_reason$", f$id))
+    (f$id %in% c("just_source", "just_adjustment", "just_other", "research_question") || grepl("_reason$", f$id))
 }
 calculation_key <- function(spec, fields, extra = NULL) {
   for (f in Filter(words_only_field, fields)) spec <- set_path(spec, split_path(f$path), NULL)
@@ -1779,7 +1779,7 @@ source_stale_ui <- function(fields, values) {
       if (!blank(values$source_was) && !blank(now)) sprintf(" (it was %s; it is now %s)", values$source_was, now), ". ",
       "Your browser can still keep the form answers and your reasoning as a draft. Confirm or edit the reasoning to save the finished result or export its write-up."),
     actionButton("source_still_applies", "Yes, it still applies", class = "btn btn-outline-primary"),
-    span(class = "small", " or edit your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."))
+    span(class = "small", " or edit your reasoning under \u201cWhere these numbers come from\u201d and press \u201cCalculate\u201d again."))
 }
 
 # The sample size at 80% and at 95% power side by side (the new design:
@@ -3597,7 +3597,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     if (blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("No reason for the effect size is recorded yet. "),
-      "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
+      "The write-up and saved files say so. To add one, write it under \u201cWhere these numbers come from\u201d and press \u201cCalculate\u201d again."),
     # The documents made from the result; keeping the result itself is
     # under the answer (keep_result_ui(), R/keep-result.R).
     documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
@@ -3665,11 +3665,15 @@ writeup_source <- c(
   own_study_result = "the effect observed in the finished study itself (observed power)"
 )
 
-# "Cohen's d = 0.4", from the fields marked as the effect.
-writeup_effect <- function(fields, values) {
+# "Cohen's d = 0.4", from the fields marked as the effect. `roles` picks
+# the effect itself ("tested"), the other values the calculation assumes
+# ("assumed": SDs, correlations, baseline rates) and the design's counts
+# ("design": items, raters); see effect_role() in forms.R.
+writeup_effect <- function(fields, values, roles = c("tested", "assumed", "design")) {
   out <- character()
   for (f in fields) {
     if (!(isTRUE(f$effect) || isTRUE(f$in_effect_text)) || blank(values[[f$id]]) || !field_applies(f, values)) next
+    if (!effect_role(f) %in% roles) next
     value <- trimws(as.character(values[[f$id]]))
     # A table (one line per row) reads as bracketed rows on one line.
     if (identical(f$type, "table")) {
@@ -3741,6 +3745,14 @@ reason_prompts <- function(fields, values) {
 writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
 
 writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
+
+# The other values the calculation assumed, as their own sentence, with
+# where they came from when the researcher said (I-32).
+writeup_assumed <- function(assumed, values) {
+  if (is.null(assumed)) return("")
+  sprintf(" The other values assumed were %s%s.", assumed,
+    if (blank(values$just_other)) "" else sprintf(", from %s", writeup_quote(values$just_other)))
+}
 
 # powerkit as named in exported text. Until version 1.0 every export says
 # that powerkit is a prototype, since text copied out of the app loses the
@@ -3841,7 +3853,7 @@ without_reason <- function(text) {
 # and its units are reworded, then put back as written: a pattern that
 # rewrites "140 participants" as observations or pairs must never reach a
 # quotation (audit of the exports, 21 November 2026).
-held_text_ids <- c("just_source", "just_adjustment", "alpha_reason", "evidence_reason", "alternative_reason", "power_reason", "assurance_reason")
+held_text_ids <- c("just_source", "just_adjustment", "just_other", "alpha_reason", "evidence_reason", "alternative_reason", "power_reason", "assurance_reason")
 
 hold_user_text <- function(values) {
   held <- character()
@@ -3962,7 +3974,15 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   } else if (!is.null(telescopes)) {
     sprintf("Power to show the effect is smaller than %s, if the true effect is zero, is %%.1f%%%%.", telescopes$effect_name)
   } else "Power to detect this effect is %.1f%%."
-  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
+  # The effect tested, and apart from it the other values assumed, each
+  # with its own source when one was given (I-02, I-32; 28 November 2026).
+  # Counts that describe the design (items, raters) are in the design's
+  # own sentence, not here.
+  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values, "tested")
+  assumed <- if (is_meta(spec)) NULL else writeup_effect(fields, values, "assumed")
+  # Nothing entered for the effect (the smallest detectable effect): what
+  # was entered is all assumed values, said as before.
+  if (is.null(effect) && is.null(result$effect_conversion)) { effect <- assumed; assumed <- NULL }
   # A converted effect: the published value, what it became and how,
   # after any other values the reader needs (two proportions: group 1's).
   if (!is.null(conv <- result$effect_conversion)) {
@@ -4011,9 +4031,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     } else if (identical(spec$goal$type, "sensitivity")) {
       # The effect itself is what the analysis finds: what was entered is
       # the rest of the population it keeps.
-      sprintf("The analysis keeps the other values entered (%s); the reasoning given: %s.%s", effect, reasoning, adj)
+      sprintf("The analysis keeps the other values entered (%s); the reasoning given: %s.%s", paste(c(effect, assumed), collapse = "; "), reasoning, adj)
     } else {
-      sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
+      paste0(sprintf("The effect tested, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj),
+        writeup_assumed(assumed, values))
     }
   } else {
     sprintf("The reasoning about the effect size: %s.", reasoning)
@@ -4021,7 +4042,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # A Bayes factor design analysis plans with a design prior: the effect
   # entered is its centre (Schonbrodt & Wagenmakers, 2018).
   if (is_bayes_test(spec) && !is.null(result$bayes)) {
-    basis <- sub("^The effect size, (.*), was based on ", "The design prior is centred on the planned effect, \\1, based on ", basis)
+    basis <- sub("^The effect tested, (.*?), was based on ", "The design prior is centred on the planned effect, \\1, based on ", basis)
     basis <- paste(basis, bayes_design_prior_sentence(spec, result))
   }
   reason <- if (!blank(values$power_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$power_reason))) else ""
@@ -4224,13 +4245,17 @@ ethics_text <- function(spec, result, fields, values) {
   }
   alpha <- if (is.null(spec$target_test$alpha)) NA_character_ else paste0(format(100 * spec$target_test$alpha), "%")
   fixed <- identical(values$situation, "fixed")
-  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
+  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values, "tested")
+  assumed <- if (is_meta(spec)) NULL else writeup_effect(fields, values, "assumed")
+  if (is.null(effect)) { effect <- assumed; assumed <- NULL }
   reasoning <- writeup_quote(values$just_source)
   basis <- if (identical(values$just_type, "none") || is.null(effect)) {
     sprintf("Our reasoning about the size of the effect: %s.", reasoning)
   } else {
-    sprintf("We are planning for an effect of %s, based on %s: %s.", effect,
-      writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning)
+    paste0(sprintf("We are planning for an effect of %s, based on %s: %s.", effect,
+      writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning),
+      if (is.null(assumed)) "" else sprintf(" We also assume %s%s.", assumed,
+        if (blank(values$just_other)) "" else sprintf(", from %s", writeup_quote(values$just_other))))
   }
   n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
   # The chance this study succeeds is the power at the N found, where the
@@ -4646,7 +4671,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       if (blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("No reason for the effect size is recorded yet. "),
-        "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
+        "The write-up and saved files say so. To add one, write it under \u201cWhere these numbers come from\u201d and press \u201cCalculate\u201d again."),
       documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
         "Print or save PDF", "the report")),
       simulated_data_ui(spec, result)),

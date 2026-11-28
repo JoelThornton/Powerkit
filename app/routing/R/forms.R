@@ -223,6 +223,11 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
   out <- c(groups, simulation_accuracy_group(forms, ep_id), closing_groups(forms, ep_id, start))
+  # "Where the other numbers come from" only where the screen takes numbers
+  # other than the effect (SDs, correlations, baseline rates).
+  if (!any(vapply(form_fields(groups), function(f) isTRUE(f$effect) && identical(effect_role(f), "assumed"), logical(1)))) {
+    out <- lapply(out, function(g) { g$fields <- Filter(function(f) !identical(f$id, "just_other"), g$fields); g })
+  }
   candidates <- form_fields(out)
   c(out, list(list(input = NULL, title = "Assumptions and named alternatives", fields = list(
     list(id = "scenario_library", label = "Assumptions and named alternatives", type = "scenario_library", optional = TRUE,
@@ -725,7 +730,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
         help = "For example, whether training improves recall enough to change practice. This labels the report; it does not choose a statistical test for you.")))),
     if (!isTRUE(form$precision) && !isTRUE(form$criteria)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
-    list(input = NULL, title = "Where your effect size comes from", fields = c(list(
+    list(input = NULL, title = "Where these numbers come from", fields = c(list(
       list(id = "just_type", label = "Source of the numbers above", type = "select", path = "effect_justification.type", required = TRUE,
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
@@ -734,9 +739,15 @@ closing_groups <- function(forms, ep_id, start = list()) {
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"),
              # Last, as the source for a finished study rather than a new one (S-21).
              list(own_study_result = "The result of my finished study (observed power)"))),
-      list(id = "just_source", label = "Why this effect size?",
-           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. If you leave it empty, the write-up says no justification was recorded.",
+      list(id = "just_source", label = "Why these numbers?",
+           help = "In your own words: where the numbers come from, or why there aren't any. Any length, any language. If you leave it empty, the write-up says no justification was recorded.",
            type = "text", path = "effect_justification.source", optional = TRUE),
+      # One source rarely covers every number (I-32, 28 November 2026): the
+      # means may come from a pilot and the SD from a norms paper. Kept only
+      # on screens with such numbers (form_groups(), effect_role()).
+      list(id = "just_other", label = "Where the other numbers come from (optional)",
+           help = "If the SDs, correlations or other values that aren't the effect come from somewhere else, say where, for example \u201cthe SD from the test's norms\u201d. Leave it empty if they come from the same source. It goes into the write-up.",
+           type = "text", path = "effect_justification.other_sources", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
       # Optional like every other reasoning box (S-02, 15 November 2026):
@@ -1052,8 +1063,9 @@ conversion_fields <- function(template, when = list()) {
            "with covariates is a conditional one, usually further from 1 than the two groups' raw odds ratio. Published effects",
            "tend to be larger than the true effect: say how you adjusted it.") else paste("Powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
                       "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
-                      "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
-                      "from one study.")),
+                      paste0("tend to be larger than the true effect: say how you adjusted it",
+                        # Safeguard power is offered only where the screen has it (I-03).
+                        if (is.null(safeguard_sizes[[template %||% ""]])) "." else ", or use safeguard power below if it comes from one study."))),
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
          path = "effect_justification.conversion.value", shown_if = converting),
     if (isTRUE(template %in% eta_squared_templates)) {
@@ -1723,3 +1735,27 @@ answers_text <- function(tree, route_label, history, ep_id, fields, values) {
 # Target power starts empty on every card (8 November 2026), whatever the
 # package's own default, so the user chooses it and says why.
 target_power_source <- "Empty on every card: choose the power your study needs and say why; the result compares 80%, 90% and 95%"
+
+
+# What part an effect field plays in the write-up's effect sentence (I-02,
+# 28 November 2026): "tested", the effect itself (means, a d, proportions,
+# paths); "assumed", a value the calculation needs that isn't the effect
+# (SDs, correlations between measurements, variance components, baseline
+# rates); or "design", a count that describes the design rather than the
+# population (items, raters, occasions), which the write-up leaves out.
+# A field's own `effect_role` overrides the rule.
+effect_role <- function(f) {
+  if (!is.null(f$effect_role)) return(f$effect_role)
+  # Which items have DIF is part of the effect, though a whole number.
+  if ((isTRUE(f$integer) && !identical(f$id, "dif_items")) || identical(f$id, "times")) return("design")
+  # The label as the write-up gives it (results.R), without the screen's
+  # explanations ("Cohen's d: ... / the outcome's total SD").
+  label <- writeup_field_label(f)
+  assumed_ids <- c("base_prob", "base_rate", "med_base_rate", "med_y_baseline", "cat_probabilities", "r2_covariates",
+    "reg_r2_predictor", "r2_reduced", "r2_main", "meta_tau", "meta_omega", "meta_rho", "i2", "zero_prob", "glmm_dispersion",
+    "retention", "eta_r", "icc_group", "icc_site", "icc_grouped", "r_dprime", "r_intercept_slope", "r_x", "r_y")
+  if (f$id %in% assumed_ids) return("assumed")
+  if (grepl("\\bSDs?\\b", label) && !grepl("per SD", label, fixed = TRUE)) return("assumed")
+  if (grepl("correlations? between (the )?(measurements|conditions|timepoints|repeated|combinations|outcomes|two measurements)", label, ignore.case = TRUE)) return("assumed")
+  "tested"
+}
