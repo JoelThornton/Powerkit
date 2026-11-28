@@ -67,5 +67,5 @@ test_that("an assurance plan shows Departure 25, compares 80%, 90% and 95%, and 
   values <- list(just_source = "a meta-analysis", just_type = "meta_analysis", assurance_reason = "a second study is not affordable.")
   text <- precision_writeup(forms$forms$E46, spec, result, list(), values, departures_for(forms, "E46", spec))
   expect_match(text[["short"]], "with 90% assurance (the chance that it is no wider), chosen because a second study is not affordable. This requires", fixed = TRUE)
-  expect_match(text[["full"]], "Departures from the established tools' defaults: Precision planning", fixed = TRUE)
+  expect_match(text[["full"]], "Where these methods differ from common defaults: Precision planning", fixed = TRUE)
 })

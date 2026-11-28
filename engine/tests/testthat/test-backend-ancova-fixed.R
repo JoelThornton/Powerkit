@@ -84,7 +84,7 @@ test_that("the covariate model is refused where it can't apply, in plain English
   eta <- ancova_fixed_spec()
   eta$population <- list(metric = "eta_squared", eta_squared = 0.06, covariates = 1L)
   eta$target_test$covariate_model <- "random"
-  expect_spec_problem(eta, "planned with the covariates fixed, as in G*Power")
+  expect_spec_problem(eta, "planned with the covariates fixed: ")
   eta$target_test$covariate_model <- "fixed"
   expect_valid_spec(eta)
   other <- example_spec("anova_oneway_between")

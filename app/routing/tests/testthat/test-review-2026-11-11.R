@@ -223,7 +223,7 @@ test_that("a Welch's t-test result also gives Student's answer, the one G*Power 
   expect_identical(spec$target_test$method, "welch_t")
   calc <- run_calculation(spec, seed = forms$default_seed)
   line <- usual_test_line(calc$spec, calc$result, seed = forms$default_seed)
-  expect_match(line, "With Student's t-test (the test G*Power and pwr plan for) the answer is 128", fixed = TRUE)
+  expect_match(line, "With Student's t-test (the usual test) the answer is 128", fixed = TRUE)
   # Student's own result needs no such line.
   spec$target_test$method <- "student_t"
   student <- run_calculation(spec, seed = forms$default_seed)

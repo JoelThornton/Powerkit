@@ -112,7 +112,7 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
 test_that("end points outside the five tools say so", {
   for (id in names(tree$endpoints)) {
     if (!identical(tree$endpoints[[id]]$five_tools, "not covered")) next
-    expect_match(as.character(card_ui(tree, id)), "Not covered by the five tools", fixed = TRUE, label = id)
+    expect_match(as.character(card_ui(tree, id)), "Not covered by the packages", fixed = TRUE, label = id)
   }
 })
 

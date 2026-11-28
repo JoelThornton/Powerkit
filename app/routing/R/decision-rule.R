@@ -46,7 +46,7 @@ methods_test_name <- function(form, spec, result = NULL) {
   }
   # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
   # effect given as partial eta-squared) or measured (Shieh's method).
-  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
+  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design (F test)"
   # A mixed model's test with Kenward and Roger's degrees of freedom in
   # place of Satterthwaite's (17 November 2026).
   if (identical(spec$target_test$df_method, "kenward_roger")) {

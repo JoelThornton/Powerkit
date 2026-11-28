@@ -253,7 +253,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "download_simulated_data", fixed = TRUE)            # the simulated data set
   expect_match(html, "Simulated, not real data.", fixed = TRUE)
   expect_match(html, "Short version (for the paper)", fixed = TRUE)
-  expect_match(html, "Departures from the established tools&#39; defaults:|Departures from the established tools' defaults:")
+  expect_match(html, "Where these methods differ from common defaults:", fixed = TRUE)
   expect_match(html, calc$result$provenance$spec_hash, fixed = TRUE)
   # The settings for the maintainer show only in the maintainer's view.
   result_settings <- c("result_wording", "n_rounding", "power_curve")
@@ -689,7 +689,7 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   # Using pwr's formula is not a departure (Departure 9, retired), and the
   # evidence record is not part of the paragraph; powerkit is named as a
   # prototype until 1.0.
-  expect_no_match(w[["full"]], "Departures from the established tools' defaults", fixed = TRUE)
+  expect_no_match(w[["full"]], "Where these methods differ from common defaults", fixed = TRUE)
   expect_no_match(w[["full"]], "Evidence registry|SHA-256|Software agreement")
   expect_match(w[["full"]], "a prototype in development whose results are not yet fully validated", fixed = TRUE)
   expect_match(w[["full"]], calc$result$provenance$spec_hash, fixed = TRUE)

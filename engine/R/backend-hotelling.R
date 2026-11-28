@@ -226,7 +226,7 @@ pillai_sensitivity <- function(spec, n, target) {
     abort_run("No Pillai's V reaches the target power at this sample size: choose a larger sample.")
   }
   v <- stats::uniroot(function(v) power_at(v) - target, c(1e-10, upper), tol = 1e-10)$root
-  list(effect = v, power = power_at(v), effect_name = "V", effect_description = "Pillai's V (the population value, as G*Power takes it)")
+  list(effect = v, power = power_at(v), effect_name = "V", effect_description = "Pillai's V (the population value)")
 }
 
 pillai_backend <- function(spec, seed = NULL) {

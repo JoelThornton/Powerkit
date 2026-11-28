@@ -142,7 +142,7 @@ prediction_writeup <- function(form, spec, result, fields, values, departures = 
     p$packages[["pmsampsize"]], powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
   full <- paste(c(short,
-    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    if (length(departures)) paste("Where these methods differ from common defaults:", paste(unname(departures), collapse = " ")),
     sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
     sprintf("We plan to include %s.", prediction_people(pr$n)), recruit_line,
@@ -176,7 +176,7 @@ prediction_validation_writeup <- function(spec, result, values, departures) {
     p$packages[["pmvalsampsize"]], powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
   full <- paste(c(short,
-    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    if (length(departures)) paste("Where these methods differ from common defaults:", paste(unname(departures), collapse = " ")),
     sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
     sprintf("We plan to include %s.", prediction_people(pr$n)), recruit_line,

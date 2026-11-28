@@ -100,7 +100,7 @@ planning_writeup <- function(forms, id, spec, result, fields, values) {
   if (identical(spec$design, "prediction_model")) return(prediction_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
   if (identical(spec$design, "precision")) return(precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
   writeup_text(forms$forms[[id]], spec, result, fields, values,
-    departures = departures_for(forms, id, spec),
+    departures = departures_methods_for(forms, departures_for(forms, id, spec)),
     known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),
     known = known_differences_for(forms, id, spec))
 }
@@ -148,7 +148,7 @@ input_guide <- function(f) {
     example = "0.30 is a positive correlation; -0.30 is negative. A correlation matrix must also be jointly possible.", source = "A comparable dataset or paper's correlation matrix, matched to the variables and model in this field.") else if (identical(f$id, "f2") || grepl("f-squared", key)) list(
     meaning = "Cohen's f-squared is the variance a test explains as a ratio to the variance left unexplained: R-squared / (1 - R-squared) for a whole model, or the R-squared a set of predictors adds divided by 1 minus the full model's R-squared.",
     example = "0.15 is the same as an R-squared of about 0.13 for a whole model against zero; 0.02, 0.15 and 0.35 are Cohen's labels, not evidence about your effect.",
-    source = "The R-squared values of a comparable model fitted to data, converted; or the f-squared G*Power reports for that model.") else if (grepl("r.squared|r-squared|r2|explained variance", key)) list(
+    source = "The R-squared values of a comparable model fitted to data, converted; or the f-squared reported for that model.") else if (grepl("r.squared|r-squared|r2|explained variance", key)) list(
     meaning = "R-squared is a share of outcome variance explained by a specified model. An increase compares two models and is distinct from total R-squared.",
     example = "0.20 means 20% of the outcome variance; a change from 0.20 to 0.25 is an increase of 0.05.", source = "A comparable model fitted to data, with the same outcome and predictor sets.") else if (grepl("variance|(^| )var[012]?($| )", key) && !grepl("covariance", key)) list(
     meaning = "Variance measures spread in squared outcome units. It is the square of the standard deviation (SD), not another name for the SD.",
