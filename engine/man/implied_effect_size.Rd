@@ -17,7 +17,12 @@ incomplete), otherwise a list with \code{name} and \code{value} of the main
 effect size (\code{"Cohen's d"}, \code{"d_z"} or \code{"Cohen's f"}), and for the
 ANOVAs \code{eta_squared} (partial eta-squared), \code{adjusted} (\code{TRUE} for an
 ANCOVA) and \code{equal_groups} (\code{TRUE} when the design has unequal groups
-and the value is the one for equal groups).
+and the value is the one for equal groups). For mediation, two
+proportions, a table of proportions, a one-factor MANOVA, a cluster
+trial and a 2 x 2 logistic table, a list with \code{kind = "derived"} and
+\code{items}, each with a \code{name} and a \code{value}: the indirect effects, the
+odds ratio, difference and Cohen's h, Cohen's w, Pillai's V, the
+design effect, or the interaction odds ratio.
 }
 \description{
 The input screens of the t-tests, the ANOVAs and the ANCOVAs can take the

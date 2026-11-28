@@ -413,7 +413,14 @@ effect_boxes_ui <- function(groups) {
 # Screens where the effect can be given as means and an SD: the ANOVAs and
 # ANCOVAs ("How you'll give the effect", with_eta_squared()) and the
 # t-tests in the measure's own units.
-implied_effect_shown <- function(fields) {
+implied_effect_shown <- function(fields, base = list()) {
+  # Designs whose other numbers give a quantity worth seeing (I-17 to
+  # I-23): mediation's indirect effects, two proportions' odds ratio, a
+  # table's Cohen's w, a MANOVA's Pillai's V, a cluster trial's design
+  # effect, a 2 x 2 logistic table's interaction odds ratio.
+  if (isTRUE(base$design %in% c("mediation", "cluster_trial")) ||
+      isTRUE(base$template %in% c("two_proportions", "chi_square_independence", "chi_square_gof", "manova")) ||
+      (identical(base$design, "logistic_regression") && identical(base$template, "factorial"))) return(TRUE)
   any(vapply(fields, function(f) isTRUE(f$route_question) ||
     (identical(f$id, "effect_units") && "raw" %in% names(f$choices) && grepl("^population\\.metric$", f$path %||% "")), logical(1)))
 }
@@ -431,6 +438,12 @@ implied_effect_text <- function(implied, values) {
     return(p(class = "implied-effect-waiting", "Once the means and SD are filled in, the effect size they give appears here."))
   }
   number <- function(x, digits) formatC(x, format = "f", digits = digits)
+  # Other quantities the numbers give (mediation, proportions, tables,
+  # MANOVA, cluster trials): shown whatever the route.
+  if (identical(implied$kind, "derived")) {
+    parts <- vapply(implied$items, function(i) sprintf("%s = %s", i$name, number(i$value, if (abs(i$value) < 0.1) 3 else 2)), "")
+    return(p(tags$strong("From these numbers: "), paste0(paste(parts, collapse = "; "), ".")))
+  }
   if (identical(implied$given, "eta_squared")) {
     if (!identical(route, "eta_squared")) return(NULL)
     return(p(tags$strong("Your effect size: "), sprintf("a partial eta-squared of %s is Cohen's f = %s.",
@@ -635,7 +648,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
   # before the question of where the numbers come from (28 November 2026).
   effect_part <- function() {
     source_at <- which(vapply(groups, function(g) any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1))), logical(1)))
-    shows <- implied_effect_shown(form_fields(groups))
+    shows <- implied_effect_shown(form_fields(groups), form$base)
     lapply(index[section == "effect"], function(i) tagList(
       if (shows && i %in% source_at) implied_effect_ui(),
       group_ui(tree, groups[[i]], values, i)))

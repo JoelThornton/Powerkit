@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-28"
+    title: "See what your numbers add up to"
+    text: >-
+      More input screens now show what your numbers give as you type: the
+      indirect effect on the mediation screens, the odds ratio and Cohen's
+      h for two proportions, Cohen's w for a table of proportions,
+      Pillai's V for a MANOVA, the design effect for a cluster trial, and
+      the interaction odds ratio for a 2 x 2 logistic design.
