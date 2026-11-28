@@ -8,6 +8,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-28"
+    title: "Methods described by name, not by other programs"
+    text: >-
+      The methods paragraphs, results, input screens and R scripts now say
+      what each choice is, for example that the covariate was treated as
+      measured, instead of comparing it with another program. Another
+      program is named only where it helps you find a number in your own
+      output or match a setting in the software you'll analyse with, such
+      as JASP's default priors or PROCESS model numbers.
+  - date: "2026-11-28"
     title: "See the effect size your means and SD give"
     text: >-
       On the ANOVA and ANCOVA screens, the first question about the effect
