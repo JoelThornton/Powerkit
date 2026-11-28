@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-28"
+    title: "Clearer labels on the input screens"
+    text: >-
+      On the 2 x 2 screens, each mean and SD box now shows the level names
+      you typed, such as "Mean: Praise, Hard", so a number is harder to put
+      in the wrong cell. A few labels and help lines now say plainly what
+      their box asks for, and menus no longer list R function names.
+  - date: "2026-11-28"
     title: "The write-up says which number is the effect"
     text: >-
       The box at the end of each input screen now asks where your numbers
