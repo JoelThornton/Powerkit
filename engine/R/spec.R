@@ -87,6 +87,9 @@ validate_spec <- function(spec) {
     problems <- safeguard$problems
   }
   if (length(problems) == 0) {
+    problems <- bias_correction_problems(spec)
+  }
+  if (length(problems) == 0) {
     # A two-group X's paths given as Cohen's d (mediation-group-d.R) are
     # found at run time; the other checks see them as 0 meanwhile.
     problems <- group_d_problems(spec)

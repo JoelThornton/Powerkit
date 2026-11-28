@@ -59,6 +59,11 @@ earlier powerkit converted differently (\code{now} is this version's).
 \item \code{safeguard}: \code{NULL} unless the effect justification uses safeguard
 power; otherwise \code{\link[=safeguard_effect]{safeguard_effect()}}'s list for the earlier study's
 estimate, with \code{lower} the effect size the calculation used.
+\item \code{bias_correction}: \code{NULL} unless the effect justification asks for
+the correction for publication bias and uncertainty (an ANOVA whose
+effect is one earlier study's F); otherwise \code{\link[=replication_bucss]{replication_bucss()}}'s
+list, BUCSS's sample sizes at 50\% and 80\% assurance. The plan's own
+result still uses the estimate as published.
 \item \code{clusters}: \code{NULL} unless the design is clustered (design
 \code{cluster_trial}); otherwise \code{\link[=cluster_summary]{cluster_summary()}}'s list for the n
 analysed: the number of groups, the design effect and the effective

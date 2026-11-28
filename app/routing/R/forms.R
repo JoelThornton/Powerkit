@@ -765,7 +765,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
            empty_value = "none recorded",
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
-    ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
+    ), safeguard_fields(form$base$template), bias_correction_fields(form$base$template), heterogeneity_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%. This only adds a recruitment buffer for the analysed sample; it does not model missing data or your method for handling them. If unsure, compare plausible loss rates rather than treating zero as known.", type = "number",
@@ -836,6 +836,52 @@ safeguard_fields <- function(template) {
          help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one. More protection plans for a smaller effect, so it needs more people. Like target power, it is your choice.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
+}
+
+# One earlier study's F on the ANOVA and ANCOVA screens (input-screen
+# review of 28 November 2026): plan with BUCSS's correction for
+# publication bias and uncertainty (Anderson, Kelley & Maxwell, 2017),
+# shown beside the plan's own sample size, or with safeguard power, the
+# lower end of the interval around its partial eta-squared, as on the
+# t-tests (Perugini, Gallucci & Costantini, 2014); BUCSS first. BUCSS gives
+# a sample size, so it is offered for that goal, and not on the ANCOVAs:
+# it has no design with covariates. Both are the engine's (bias-correction.R,
+# safeguard.R).
+bias_correction_field_templates <- c("oneway_between", "2x2_between", "factorial_between", "factorial_three",
+                                     "oneway_within", "2x2_mixed", "mixed")
+anova_safeguard_field_templates <- c(bias_correction_field_templates, "oneway_ancova", "factorial_ancova")
+
+bias_correction_fields <- function(template) {
+  if (!isTRUE(template %in% anova_safeguard_field_templates)) return(list())
+  bucss <- template %in% bias_correction_field_templates
+  asked <- list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "conv_from", is = "F"))
+  correcting <- c(asked, list(list(field = "sg_use", is = "bucss"), list(field = "goal", is = "sample_size")))
+  safeguarding <- c(asked, list(list(field = "sg_use", is = "yes")))
+  choices <- c(
+    if (bucss) list(bucss = "Correct the F for publication bias and uncertainty (BUCSS)"),
+    list(yes = "Use the safeguard effect size", no = "Plan with the F as published"))
+  c(list(
+    list(id = "sg_use", label = "How to plan from this one study", type = "select", required = TRUE,
+         help = paste("A published F is more likely to be one that came out large, and one study's estimate is uncertain.",
+                      if (bucss) paste("BUCSS corrects the F for both and gives the sample size you'd need, shown beside the one from the F as published",
+                                       "(Anderson, Kelley & Maxwell, 2017); it assumes the earlier study had the same design as yours, and gives a sample size only."),
+                      "Safeguard power plans with the lower end of a confidence interval around the earlier partial eta-squared,",
+                      "so the study is protected if the true effect is smaller (Perugini, Gallucci & Costantini, 2014); it allows for uncertainty, not publication bias."),
+         choices = choices,
+         choices_shown_if = if (bucss) list(bucss = list(list(field = "goal", is = "sample_size"))),
+         shown_if = asked)),
+    if (bucss) list(
+      list(id = "bc_n", label = "How many people the earlier study had in total", type = "number", integer = TRUE, min = 3,
+           required = TRUE, path = "effect_justification.bias_correction.n", shown_if = correcting),
+      list(id = "bc_published", label = "Was the earlier study published because its result was significant?", type = "select",
+           required = TRUE, path = "effect_justification.bias_correction.published",
+           help = "Most published results were. Choose the other answer only for a study that would have been published whatever it found, such as a Registered Report; then only the uncertainty is corrected.",
+           choices = list(significant = "Probably: it was published in the usual way", any = "No: it would have been published whatever it found"),
+           shown_if = correcting)),
+    list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
+         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one. More protection plans for a smaller effect, so it needs more people. Like target power, it is your choice.",
+         path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
+         default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = safeguarding)))
 }
 
 # Effects that vary between studies, for the t-tests (Kenny & Judd, 2019)

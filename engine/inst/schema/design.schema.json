@@ -310,7 +310,7 @@
           "minLength": 1
         },
         "adjustment": {
-          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power or small telescopes is used.",
+          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power, small telescopes or the correction for publication bias and uncertainty is used.",
           "type": "string",
           "minLength": 1
         },
@@ -351,7 +351,7 @@
           }
         },
         "safeguard": {
-          "description": "Safeguard power (Perugini, Gallucci & Costantini, 2014): plan with the lower bound of a two-sided confidence interval around one earlier study's effect size. For prior_study and pilot_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the earlier estimate; validation replaces it with the safeguard effect and records the estimate here.",
+          "description": "Safeguard power (Perugini, Gallucci & Costantini, 2014): plan with the lower bound of a two-sided confidence interval around one earlier study's effect size. For prior_study and pilot_study, with the one-sample, paired and independent t-tests and the correlation (the earlier study's n, or n1 and n2), and with an ANOVA or ANCOVA given by partial eta-squared from one earlier study's F (conversion from F with both dfs, which set the interval: effectsize's F_to_eta2()). The population value given is the earlier estimate; validation replaces it with the safeguard effect and records the estimate here.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -379,6 +379,34 @@
             "estimate": {
               "description": "Filled in by powerkit: the earlier study's estimate, before the safeguard effect replaced it in the population.",
               "type": "number"
+            }
+          }
+        },
+        "bias_correction": {
+          "description": "For an ANOVA without covariates whose effect comes from one earlier study's F (conversion from F, with both dfs): with the goal sample_size, also give the sample sizes BUCSS finds after correcting that F for publication bias and uncertainty (Anderson, Kelley & Maxwell, 2017), at 50% and 80% assurance. The earlier study is taken to have the same design. The plan's own result still uses the estimate as published.",
+          "type": "object",
+          "required": [
+            "n"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "n": {
+              "description": "The earlier study's total sample size.",
+              "type": "integer",
+              "minimum": 3
+            },
+            "published": {
+              "description": "'significant' (the default): the study was published because its result was significant, so BUCSS corrects for publication bias at original_alpha as well as for uncertainty. 'any': it would have been published whatever it found (a Registered Report, say), so only uncertainty is corrected.",
+              "enum": [
+                "significant",
+                "any"
+              ]
+            },
+            "original_alpha": {
+              "description": "The significance level the earlier study's literature published at; 0.05 if not given.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 0.5
             }
           }
         },
@@ -496,8 +524,30 @@
                 "required": [
                   "small_telescopes"
                 ]
+              },
+              {
+                "required": [
+                  "bias_correction"
+                ]
               }
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "bias_correction"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "prior_study",
+                  "pilot_study"
+                ]
+              }
+            }
           }
         },
         {
