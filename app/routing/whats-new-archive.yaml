@@ -3,6 +3,233 @@
 # newest entry. Same format and rules as whats-new.yaml; the Updates tab
 # shows these with the rest.
 entries:
+  - date: "2026-10-27"
+    title: "Text fixes: results, the analysis list and mediation"
+    text: >-
+      The plain-words line under a result no longer rounds 95% power up to
+      "10 in 10 studies"; it now says "95 in 100", and fits equivalence
+      tests. The analysis list and the methods paragraph no longer label
+      mediation by PROCESS model numbers, and a few out-of-date or garbled
+      lines are corrected.
+  - date: "2026-10-27"
+    title: "Sample size for a CFA or structural equation model"
+    text: >-
+      The card "Check that a model or questionnaire structure fits" now
+      calculates. Enter how many items and factors your confirmatory factor
+      analysis has (or your model's degrees of freedom) and how much misfit
+      you would want to notice, and powerkit works out the sample size or
+      the power for the test of model fit. The result explains that this is
+      the power to show a model is wrong.
+  - date: "2026-10-27"
+    title: "Power for studies where people are randomised within groups"
+    text: >-
+      The "People nested in groups" card now also covers studies where every
+      class, clinic or team has people in both conditions, such as pupils
+      randomised within each school. You say how much the effect is likely
+      to vary from group to group, and the result shows how the grouping
+      changes the number of people you need.
+  - date: "2026-10-27"
+    title: "Power for studies where whole groups get the condition"
+    text: >-
+      If whole classes, clinics or teams are assigned to a condition, the
+      card "People nested in groups" now calculates power, the number of
+      groups you need, or the smallest effect you could detect. You enter
+      how many people are in each group and how alike people in the same
+      group are, and the result shows how much the grouping costs compared
+      with a study of separate people.
+  - date: "2026-10-27"
+    title: "Whole-study simulation: find your sample size on your computer"
+    text: >-
+      The whole-study simulation now runs a quick look in the app, and
+      gives you an R script for the full run on your own computer. The
+      script can find the sample size you need for the power you choose,
+      for all of your main analyses together, or work out the power at
+      your N more precisely. It is still experimental.
+  - date: "2026-10-27"
+    title: "A simpler whole-study plan"
+    text: >-
+      When powerkit can simulate your whole study, your plan now starts
+      with it: describe the study once and see every analysis's power. The
+      separate calculations are still there, folded underneath, and the
+      plan page is shorter. Mediation cards now lead with the analysis's
+      own name; the PROCESS model number is a note for people who use
+      PROCESS.
+  - date: "2026-10-27"
+    title: "Experimental: simulate your whole study at once"
+    text: >-
+      On "Plan my whole study", you can now describe your study once and
+      have every planned analysis run on the same simulated studies. You
+      see each analysis's power, the chance that all of your main analyses
+      succeed together, and whether the numbers you entered for separate
+      analyses describe the same study. It is experimental and waiting for
+      a statistician's check, so use it to explore, not to report.
+  - date: "2026-10-27"
+    title: "Show that a difference is too small to matter"
+    text: >-
+      You can now plan an equivalence test: the two one-sided tests (TOST)
+      that show a difference lies inside bounds you set, rather than just
+      failing to find it. It works for two groups, the same people measured
+      twice, or one mean against a fixed value, with the bound and the
+      expected difference as Cohen's d or in your measure's own units.
+  - date: "2026-10-27"
+    title: "Six more analyses checked against published examples"
+    text: >-
+      Planned contrasts, logistic regression, the tests from a
+      noncentrality parameter, comparing two correlations in the same
+      people, and the two tests of how spread out scores are now give the
+      same answers as the published G*Power examples, so their cards now
+      say "Validated". Nothing about the calculations changed.
+  - date: "2026-10-27"
+    title: "Safeguard power for an effect size from one study"
+    text: >-
+      If your effect size comes from one earlier study or a pilot, you can
+      now plan with a safer, smaller value: the lower end of a confidence
+      interval around that study's estimate. Give the earlier study's sample
+      size and powerkit works it out, so your study keeps its power if the
+      true effect is smaller. Available for the t-tests and the correlation.
+  - date: "2026-10-27"
+    title: "A map of the methods, in Labs"
+    text: >-
+      Labs has a new map of every analysis powerkit knows about, drawn
+      as a cosmos: each thing a study can want to show is a star, with its
+      analyses as planets around it. Fly about by dragging and zooming,
+      search, filter down the side by outcome, how often people are
+      measured and whether powerkit calculates it, and click a planet to
+      see how to get there and read about it. A switch shows the tests'
+      usual names instead of plain words.
+  - date: "2026-10-27"
+    title: "Share a page by link"
+    text: >-
+      Press "Share this page" at the top right to copy a link that opens
+      straight on the page you're looking at, such as the pre-replication
+      notes in Labs, ready to paste into an email or message.
+  - date: "2026-10-27"
+    title: "See how much the answer depends on the effect"
+    text: >-
+      On the result for a t-test or a correlation, you can now enter a
+      smaller and a larger effect you would still find plausible. powerkit
+      draws power for those and your plan's effect on one chart, and says
+      how many participants each would need, so you can see how much
+      rides on being right about the effect.
+  - date: "2026-10-27"
+    title: "Give your effect in your measure's own units"
+    text: >-
+      For the one-sample, two-group and paired t-tests you can now enter
+      the effect as you think of it: say 4.5 against 3.8 on a 1 to 7 scale,
+      with an SD of 1.2. powerkit works out Cohen's d for you and shows it
+      on the result. If you ask for the smallest effect you could detect,
+      it is also given in your measure's units.
+  - date: "2026-10-26"
+    title: "Easier to read on large screens, and the result comes into view"
+    text: >-
+      On large screens the text is now a little bigger, so you shouldn't
+      need to zoom in, and zooming in no longer makes the page scroll
+      sideways. After "Check my answers", the page moves to your result.
+      The result screen is reordered: your answer and notes on reading it,
+      then exploring, then saving and the write-up, with how it was
+      calculated last. The short write-up for your paper is shorter, and
+      its longer versions are folded away until you open them.
+  - date: "2026-10-26"
+    title: "Your whole study's sample size"
+    text: >-
+      In "Plan my whole study", each sample size you work out from the plan
+      now appears on it, and the plan gives the sample size your study
+      needs: the largest of your main analyses, with that analysis named.
+      Until you have done them all, it shows the largest so far and which
+      are still to do.
+  - date: "2026-10-26"
+    title: "Type shared numbers once"
+    text: >-
+      When two analyses on your plan ask for the same number, such as the
+      path from X to the mediator, you type it once: it is filled in when
+      you open the other analysis, so both describe the same study. You can
+      still change it there.
+  - date: "2026-10-26"
+    title: "Hypotheses about how much scores vary"
+    text: >-
+      Some hypotheses are about spread, not averages: that reaction times
+      become more consistent with practice, say, or that one group's
+      answers vary more than another's. powerkit can now plan for these,
+      for one group against a fixed value or for two groups. Choose "That
+      scores are more spread out (or more consistent)" on the first
+      question. Power for these tests is simulated, so the answer can
+      differ from G*Power's by a participant or two.
+  - date: "2026-10-26"
+    title: "Comparing two correlations in the same people"
+    text: >-
+      powerkit can now work out the sample size or power for comparing two
+      correlations measured in the same people: for example, whether
+      wellbeing is more strongly related to self-control than to grit, or
+      whether the link between stress and sleep is stronger at 16 than at
+      14. Find it under "A relationship between two things you measure".
+  - date: "2026-10-26"
+    title: "Planned comparisons among three or more groups"
+    text: >-
+      If your hypothesis is about a specific comparison, such as both kinds
+      of feedback beating no feedback, or scores rising steadily with the
+      dose, powerkit can now work out the sample size or power for that
+      comparison itself, rather than for "any difference among the
+      groups". You give the group means and a weight for each group that
+      says which comparison you mean.
+  - date: "2026-10-26"
+    title: "Poisson regression: predicting a count"
+    text: >-
+      powerkit can now work out the sample size or power when you predict a
+      count, such as how many times someone visits a clinic in a year, from
+      a score or a yes/no group. You enter the rate ratio, the starting
+      rate and how long people are followed. It assumes the counts vary as
+      much as their average; counts that vary more need a negative binomial
+      model, which powerkit doesn't do yet.
+  - date: "2026-10-26"
+    title: "Logistic regression: predicting a yes/no outcome"
+    text: >-
+      powerkit can now work out the sample size or power for a logistic
+      regression, where one predictor (a score, or a yes/no group) predicts
+      a yes/no outcome such as whether someone seeks help. You enter the
+      odds ratio and how common "yes" is to start with; if your model has
+      other predictors, you say how much they overlap with this one. Until
+      today this card said powerkit couldn't do it.
+  - date: "2026-10-26"
+    title: "A simpler first screen"
+    text: >-
+      The first screen now asks just one thing: how you want to start. The
+      next screen asks what your study is trying to do. Whether your sample
+      size is fixed, and whether your conclusion rests on several tests,
+      are now asked on the screen where you enter your numbers; most
+      studies rest on one test, so that setting starts there.
+  - date: "2026-10-26"
+    title: "A cleaner, simpler look"
+    text: >-
+      The app has a new look. "Back" and "Start again" are at the top of
+      every screen, and the next step (such as "Enter your values" or "Check
+      my answers") stays in view at the bottom of the window. Choices are
+      cards, the starting questions fit on one screen, results come in
+      clear sections with the details folded away, and there is less
+      technical text to wade through.
+  - date: "2026-10-26"
+    title: "Calculate from your whole-study plan"
+    text: >-
+      In "Plan my whole study", each analysis on your plan that powerkit can
+      calculate now has an "Enter your values" button. If you have several
+      main analyses, the input screen already knows how they combine and how
+      many there are, and "Back to my plan" takes you back to the plan.
+  - date: "2026-10-26"
+    title: "powerkit has a version number"
+    text: >-
+      The About page now says which version of powerkit you are using, and
+      so does every result and every R script you download, so a sample
+      size you quote in a paper can be traced back to the version that
+      worked it out. This is 0.4; version 1.0 will be the first proper
+      release, once the numbers are fully checked.
+  - date: "2026-10-26"
+    title: "Straight to the list of analyses"
+    text: >-
+      If you already know which analysis you want, "I know my analysis" no
+      longer makes you answer the four screening questions first: one
+      button shows every analysis powerkit knows about, as a menu. Some of
+      them won't suit your design and nothing checks that for you, so each
+      analysis's card still says what its test assumes; the four questions
+      are there on the list if you would rather have it narrowed down.
   - date: "2026-10-22"
     title: "The browser's Back button works"
     text: >-

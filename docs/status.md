@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 23 November 2026.*
+*Last updated: 28 November 2026.*
 
 *Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
