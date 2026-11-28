@@ -21,6 +21,7 @@ async function tPlan(page) {
   await setValue(page, 'goal', 'power');
   await setValue(page, 'method', 'student_t');
   await setValue(page, 'alternative', 'two_sided');
+  await setValue(page, 'effect_units', 'standardised');
   await setValue(page, 'd', '0.4');
   await setValue(page, 'n', '120');
   // The significance level starts empty; one click gives the usual level.

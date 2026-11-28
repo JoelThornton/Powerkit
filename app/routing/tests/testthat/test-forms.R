@@ -68,7 +68,12 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     for (f in Filter(function(f) field_applies(f, start), effect)) {
       expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
     }
-    expect_true(any(grepl("Powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
+    # Where the screen first asks how the effect will be given (28 November
+    # 2026), that question is what's missing until it is answered.
+    route <- Filter(function(f) f$id %in% c("effect_units", "interaction_metric", "x_effects", "r2_given", "manova_metric", "chisq_metric") &&
+      field_applies(f, start), form_fields(groups))
+    missing <- if (length(route)) route[[1]]$label else "Powerkit doesn't fill in effect sizes"
+    expect_true(any(grepl(missing, problems, fixed = TRUE)), label = ep)
   }
 })
 
@@ -455,7 +460,7 @@ test_that("one-way ANOVA takes one mean per group, and the screen counts them", 
 })
 
 test_that("regression: the question sets the template and the effect, and shows only its own fields", {
-  zero <- c(list(Y_label = "Wellbeing score", question = "r2_zero", r2 = "0.1", predictors = "5"), closing_ok)
+  zero <- c(list(Y_label = "Wellbeing score", question = "r2_zero", r2_given = "r2", r2 = "0.1", predictors = "5"), closing_ok)
   spec <- build_spec(forms, "E24", fields_for("E24"), zero)
   expect_identical(spec$template, "r2_zero")
   expect_identical(spec$target_test$effect, "r_squared")

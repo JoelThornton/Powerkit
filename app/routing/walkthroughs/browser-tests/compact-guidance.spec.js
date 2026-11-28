@@ -5,6 +5,8 @@ async function open(page) {
   await page.goto('/?card=E2');
   await page.getByRole('button', { name: 'Enter your values', exact: false }).click();
   await page.locator('#f_goal').selectOption('sample_size');
+  // How the effect is given starts unchosen (28 November 2026).
+  await page.locator('#f_effect_units').selectOption('standardised');
 }
 async function put(page, id, value) {
   const el = page.locator('#f_' + id);

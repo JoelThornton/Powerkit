@@ -295,3 +295,24 @@ form_examples$E77 <- list(purpose = "development", outcome = "binary", Y_label =
 for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
   form_examples[[ep]]$method <- "monte_carlo_ci"
 }
+
+# "How you'll give the effect" has no starting choice (28 November 2026):
+# the examples take the way in they were written for, on the screens that
+# ask it.
+route_starts <- list(effect_units = "standardised", interaction_metric = "r2_change", x_effects = "paths",
+  r2_given = "r2", manova_metric = "raw", chisq_metric = "proportion")
+route_start_screens <- local({
+  y <- yaml::read_yaml(file.path("..", "..", "forms.yaml"))
+  lapply(y$forms, function(form) {
+    s <- unlist(form)
+    intersect(names(route_starts), s[grepl("(^|\\.)id$", names(s))])
+  })
+})
+with_route_starts <- function(examples) {
+  for (ep in names(examples)) {
+    for (id in route_start_screens[[ep]]) if (is.null(examples[[ep]][[id]])) examples[[ep]][[id]] <- route_starts[[id]]
+  }
+  examples
+}
+form_examples <- with_route_starts(form_examples)
+form_examples_rank <- with_route_starts(form_examples_rank)

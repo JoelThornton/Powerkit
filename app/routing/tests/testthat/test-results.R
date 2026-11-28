@@ -3668,7 +3668,7 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   fields <- form_fields(form_groups(forms, "E24"))
   values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
     predictor_model = "random",
-    r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
+    r2_given = "r2", r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
   applies <- Filter(function(f) field_applies(f, values), fields)
   expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
   expect_equal(form_problems(applies, values), character())
