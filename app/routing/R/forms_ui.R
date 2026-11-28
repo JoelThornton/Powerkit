@@ -390,13 +390,54 @@ effect_boxes_ui <- function(groups) {
   defaults <- list()
   for (f in form_fields(groups)) if (!is.null(f[["default"]])) defaults[[f$id]] <- f[["default"]]
   boxes <- Filter(function(g) identical(form_section(g), "effect") && is.null(g$shown_if) &&
+    !any(vapply(g$fields, function(f) isTRUE(f$effect_route), logical(1))) &&
     any(vapply(g$fields, function(f) isTRUE(f$effect) && field_applies(f, defaults), logical(1))), groups)
   names <- unique(vapply(boxes, function(g) g$input %||% g$title %||% "", character(1)))
   names <- names[nzchar(names)]
   if (length(names) < 2) return(NULL)
   quoted <- paste0("\u201c", names, "\u201d")
   list_text <- paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
-  p(class = "effect-boxes", sprintf("For this analysis, the effect size and the values it depends on go in the boxes headed %s.", list_text))
+  line <- p(class = "effect-boxes", sprintf("For this analysis, the effect size is set by what you enter in the boxes headed %s.", list_text))
+  # Given as an effect size from earlier work, those boxes are hidden.
+  route <- Filter(function(f) isTRUE(f$effect_route), form_fields(groups))
+  if (length(route)) return(conditionalPanel(sprintf("input.%s != 'eta_squared'", field_input_id(route[[1]])), line))
+  line
+}
+
+# Screens where the effect can be given as means and an SD: the ANOVAs and
+# ANCOVAs ("How you'll give the effect", with_eta_squared()) and the
+# t-tests in the measure's own units.
+implied_effect_shown <- function(fields) {
+  any(vapply(fields, function(f) isTRUE(f$effect_route) ||
+    (identical(f$id, "effect_units") && "raw" %in% names(f$choices) && grepl("^population\\.metric$", f$path %||% "")), logical(1)))
+}
+
+implied_effect_ui <- function() div(class = "implied-effect", role = "status", `aria-live` = "polite", uiOutput("implied_effect"))
+
+# The line itself, from the engine's implied_effect_size(); `values` are the
+# screen's answers. Empty when the effect is entered as an effect size
+# directly, and a prompt while the means and SD are incomplete.
+implied_effect_text <- function(implied, values) {
+  route <- values$metric %||% values$effect_units %||% ""
+  by_means <- route %in% c("raw", "standardised") && (!is.null(values$metric) || identical(route, "raw"))
+  if (is.null(implied)) {
+    if (!by_means) return(NULL)
+    return(p(class = "implied-effect-waiting", "Once the means and SD are filled in, the effect size they give appears here."))
+  }
+  number <- function(x, digits) formatC(x, format = "f", digits = digits)
+  if (identical(implied$given, "eta_squared")) {
+    if (!identical(route, "eta_squared")) return(NULL)
+    return(p(tags$strong("Your effect size: "), sprintf("a partial eta-squared of %s is Cohen's f = %s.",
+      number(implied$eta_squared, 3), number(implied$value, 2))))
+  }
+  if (!by_means) return(NULL)
+  if (is.null(implied$eta_squared)) {
+    return(p(tags$strong("Your effect size: "), sprintf("these means and SD give %s = %s.", implied$name, number(implied$value, 2))))
+  }
+  p(tags$strong("Your effect size: "), sprintf("these means and SD give Cohen's f = %s (partial eta-squared %s) for the effect you test%s%s.",
+    number(implied$value, 2), number(implied$eta_squared, 3),
+    if (isTRUE(implied$adjusted)) ", after adjusting for the covariates" else "",
+    if (isTRUE(implied$equal_groups)) ", with equal groups" else ""))
 }
 
 # The browser condition under which at least one of a group's fields is
@@ -584,6 +625,15 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
   section <- vapply(groups, form_section, character(1))
   index <- seq_along(groups)
   part <- function(which) lapply(index[section == which], function(i) group_ui(tree, groups[[i]], values, i))
+  # The effect size the means and SD give, shown as they are typed, just
+  # before the question of where the numbers come from (28 November 2026).
+  effect_part <- function() {
+    source_at <- which(vapply(groups, function(g) any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1))), logical(1)))
+    shows <- implied_effect_shown(form_fields(groups))
+    lapply(index[section == "effect"], function(i) tagList(
+      if (shows && i %in% source_at) implied_effect_ui(),
+      group_ui(tree, groups[[i]], values, i)))
+  }
   # The simulation accuracy sits in Settings (22 November 2026): it is
   # used only when the analysis is simulated, and its choice is named on
   # the Settings line whenever it applies.
@@ -605,7 +655,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
       effect_boxes_ui(groups),
-      part("effect"),
+      effect_part(),
       input_support_ui(form, form_fields(groups))),
     # The optional sections share one card, a row each (22 November 2026);
     # the Settings row keeps its summary of the choices that change the result.

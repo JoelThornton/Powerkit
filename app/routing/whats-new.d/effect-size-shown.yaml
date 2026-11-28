@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-28"
+    title: "See the effect size your means and SD give"
+    text: >-
+      On the ANOVA and ANCOVA screens, the first question about the effect
+      now asks how you'll give it: expected means with an SD, or an effect
+      size from earlier work such as a published partial eta-squared or
+      Cohen's f. Nothing is chosen for you. When you enter means and an SD,
+      here or on the t-tests, Powerkit shows the effect size they give as
+      you type, for example Cohen's f = 0.21, so the question about where
+      your effect size comes from is about numbers you can see.

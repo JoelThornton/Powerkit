@@ -170,6 +170,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
+  groups <- unlist(lapply(groups, split_effect_route), recursive = FALSE)
   # Mediation with X in three or more groups (E42) is planned for the
   # Monte Carlo interval only, so it keeps its own draws setting and offers
   # no choice of method; mediation with a yes/no mediator (E39) uses the
@@ -725,7 +726,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     if (!isTRUE(form$precision) && !isTRUE(form$criteria)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
-      list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
+      list(id = "just_type", label = "Source of the numbers above", type = "select", path = "effect_justification.type", required = TRUE,
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
@@ -893,19 +894,30 @@ with_eta_squared <- function(group, template) {
   fields <- list()
   for (f in group$fields) {
     if (identical(f$id, "metric")) {
-      f$choices <- c(f$choices, list(eta_squared = if ("f" %in% conversion_choices[[template]]) "An effect size: partial eta-squared or Cohen's f, as in G*Power" else "An effect size: partial eta-squared, as in G*Power"))
+      # The question comes first in the effect section, in a box of its
+      # own (split_effect_route()), and names both ways in: the expected
+      # means with an SD, or an effect size from earlier work (28 November
+      # 2026). No choice is preselected.
+      f$label <- "How you'll give the effect"
+      f$choices <- list(
+        raw = "Expected means and an SD, in the outcome's own units",
+        standardised = "Expected means in SD units (the SD is then 1)",
+        eta_squared = if ("f" %in% conversion_choices[[template]]) "An effect size from earlier work: partial eta-squared or Cohen's f" else "An effect size from earlier work: partial eta-squared")
+      f$help <- paste("Means and an SD make you think about the difference you expect on your own measure; Powerkit shows the effect size",
+        "they give. An effect size from earlier work (a published partial eta-squared or Cohen's f) skips the means.")
+      f$effect_route <- TRUE
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
         choices = list(published = "A published repeated-measures or mixed ANOVA (as SPSS, R or JASP report it)",
-                       planned = "An effect size planned the G*Power way, without the correlation"),
+                       planned = "An effect size worked out without the correlation between measurements"),
         help = paste("The two are different numbers for the same study. A published value already includes the correlation",
-                     "between measurements. G*Power's default effect size doesn't, so you then give the correlation as well.")))
+                     "between measurements. One worked out from the means and SD alone doesn't, so you then give the correlation as well.")))
       fields <- c(fields, list(f), source, list(list(
         id = "eta_squared", label = "Partial eta-squared of the effect you test", writeup_label = "partial eta-squared",
         type = "number", path = "population.eta_squared", effect = TRUE, min_exclusive = 0, max_exclusive = 1,
         shown_if = list(field = "metric", is = "eta_squared"),
-        help = paste("For one factor, its eta-squared. Powerkit treats it as the true effect, as G*Power does. A published value",
+        help = paste("For one factor, its eta-squared. Powerkit treats it as the true effect. A published value",
                      "is that study's estimate and tends to be too large; omega-squared, if reported, is less biased. Groups are",
                      "taken as equal in size, and the test is the classical ANOVA F test: Welch's F and rank tests need the means, so",
                      "choosing an effect size sets the test version to the classical ANOVA.")
@@ -917,17 +929,17 @@ with_eta_squared <- function(group, template) {
   at <- which(vapply(fields, function(f) identical(f$id, "eta_squared"), logical(1)))
   if (length(at) == 1 && template %in% c("oneway_ancova", "factorial_ancova")) {
     fields[[at]]$help <- paste("The partial eta-squared of the effect you test, from an ANCOVA with the same covariates. It already",
-      "allows for them, so their R-squared isn't needed; their number still counts, as in G*Power. Powerkit treats it as the",
+      "allows for them, so their R-squared isn't needed; their number still counts. Powerkit treats it as the",
       "true effect; a published value tends to be too large. Groups are taken as equal in size.")
   }
   if (length(at) == 1 && identical(template, "factorial_three")) {
-    fields[[at]]$help <- paste("The partial eta-squared of the effect you test, as in G*Power. This is for three factors that are all",
+    fields[[at]]$help <- paste("The partial eta-squared of the effect you test. This is for three factors that are all",
       "between participants (different people in every cell); with a within-participants factor, give the means instead.",
       "Powerkit treats it as the true effect; a published value tends to be too large. Groups are taken as equal in size.")
   }
   if (mixed) {
     if (length(at) == 1) {
-      fields[[at]]$help <- paste("The partial eta-squared of the effect you test. Powerkit treats it as the true effect, as G*Power does;",
+      fields[[at]]$help <- paste("The partial eta-squared of the effect you test. Powerkit treats it as the true effect;",
         "a published value tends to be too large. Groups are equal in size, and sphericity is assumed.")
       fields <- append(fields, list(list(
         id = "eta_r", label = "Correlation between measurements (the same for every pair)", writeup_label = "correlation between measurements",
@@ -938,6 +950,23 @@ with_eta_squared <- function(group, template) {
   }
   group$fields <- fields
   group
+}
+
+# The ANOVAs' and ANCOVAs' "How you'll give the effect" (with_eta_squared())
+# opens the effect section in a box of its own, with the effect size from
+# earlier work and its conversions, ahead of the box of means it used to
+# sit in: a question about the means box's units read as if the means were
+# the only way in (28 November 2026). The means box keeps its card line.
+effect_route_ids <- c("metric", "eta_source", "eta_squared", "eta_r")
+
+split_effect_route <- function(g) {
+  route <- vapply(g$fields, function(f) isTRUE(f$effect_route), logical(1))
+  if (!any(route)) return(list(g))
+  moved <- vapply(g$fields, function(f) f$id %in% effect_route_ids || isTRUE(f$conversion) || identical(f$id, "conv_from"), logical(1))
+  first <- list(input = NULL, title = "How you'll give the effect", fields = g$fields[moved])
+  g$fields <- g$fields[!moved]
+  if (!length(g$fields)) return(list(first))
+  list(first, g)
 }
 
 # Effect-size conversion: a published effect in another form (a t or F
@@ -987,7 +1016,7 @@ conversion_fields <- function(template, when = list()) {
   # Cohen's f is G*Power's own input for an ANOVA, not a published form:
   # say so where it is offered, so it is found.
   has_f <- "f" %in% from
-  if (has_f) labels$f <- "Cohen's f (the effect size G*Power asks for)"
+  if (has_f) labels$f <- "Cohen's f"
   choices <- c(list(none = if (has_f) "No: I'll enter partial eta-squared" else "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   # Shown before a goal is chosen too (W-03: Cohen's f was hard to find).

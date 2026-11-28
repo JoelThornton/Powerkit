@@ -1181,7 +1181,7 @@ test_that("headings and labels are the same with explanations on or off, and the
   expect_true("The expected mean in each condition" %in% legends)
   expect_false(any(grepl("^Effect size:", legends)))
   expect_false(anyDuplicated(legends[nzchar(legends)]) > 0)
-  expect_match(html, "the effect size and the values it depends on go in the boxes headed \u201cThe expected mean in each condition\u201d, \u201cThe SD\u201d and \u201cThe correlation between any two conditions\u201d.", fixed = TRUE)
+  expect_match(html, "the effect size is set by what you enter in the boxes headed \u201cThe expected mean in each condition\u201d, \u201cThe SD\u201d and \u201cThe correlation between any two conditions\u201d.", fixed = TRUE)
   # A box whose fields each depend on the test still counts when they
   # show with the default answers (the one-way ANOVA's SD).
   expect_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))),
@@ -1313,4 +1313,36 @@ test_that("the smallest-effect note shows only for that goal, and a box's terms 
   expect_match(html, "data-display-if=\"input.f_goal == &#39;sensitivity&#39; || input.f_goal == &#39;sensitivity_curve&#39;\"", fixed = TRUE)
   expect_match(html, 'class="explanation-help field-more terms-more"', fixed = TRUE)
   expect_no_match(html, '<details class="form-terms">', fixed = TRUE)
+})
+
+test_that("ANOVA and ANCOVA screens ask first how the effect is given, and show the effect size the means and SD give", {
+  for (ep in c("E7", "E8", "E18", "E21", "E22", "E23", "E54", "E55", "E56")) {
+    groups <- form_groups(forms, ep)
+    route <- Filter(function(g) identical(g$title, "How you'll give the effect"), groups)
+    expect_length(route, 1)
+    metric <- Filter(function(f) identical(f$id, "metric"), route[[1]]$fields)[[1]]
+    expect_equal(metric$label, "How you'll give the effect", label = ep)
+    expect_setequal(names(metric$choices), c("raw", "standardised", "eta_squared"))
+    expect_null(metric[["default"]], label = ep)
+    # The route's box comes before the means, and the means keep their card line.
+    at <- which(vapply(groups, function(g) identical(g$title, "How you'll give the effect"), logical(1)))
+    expect_false(is.null(groups[[at + 1]]$input), label = ep)
+    expect_true(any(vapply(groups[[at + 1]]$fields, function(f) grepl("^population\\.means", f$path %||% ""), logical(1))), label = ep)
+    html <- as.character(form_ui(tree, forms, ep, groups))
+    expect_match(html, "implied_effect", fixed = TRUE)
+    expect_match(html, "Source of the numbers above", fixed = TRUE)
+  }
+  # Screens that take an effect size directly have no such line.
+  expect_no_match(as.character(form_ui(tree, forms, "E4", form_groups(forms, "E4"))), "implied_effect", fixed = TRUE)
+  line <- function(implied, values) gsub("<[^>]+>", "", as.character(implied_effect_text(implied, values)))
+  expect_match(line(list(name = "Cohen's f", value = 0.2079, eta_squared = 0.0414), list(metric = "raw")),
+    "these means and SD give Cohen's f = 0.21 (partial eta-squared 0.041) for the effect you test.", fixed = TRUE)
+  expect_match(line(list(name = "Cohen's f", value = 0.26, eta_squared = 0.0632, adjusted = TRUE), list(metric = "raw")),
+    "after adjusting for the covariates", fixed = TRUE)
+  expect_match(line(list(name = "Cohen's d", value = 0.5), list(effect_units = "raw")), "give Cohen's d = 0.50.", fixed = TRUE)
+  expect_match(line(NULL, list(metric = "standardised")), "Once the means and SD are filled in", fixed = TRUE)
+  expect_match(line(list(name = "Cohen's f", value = 0.2526, eta_squared = 0.06, given = "eta_squared"), list(metric = "eta_squared")),
+    "a partial eta-squared of 0.060 is Cohen's f = 0.25.", fixed = TRUE)
+  expect_null(implied_effect_text(NULL, list(effect_units = "standardised")))
+  expect_null(implied_effect_text(NULL, list(metric = "eta_squared")))
 })

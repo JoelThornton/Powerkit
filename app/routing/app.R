@@ -396,6 +396,8 @@ app_css <- "
   .form-terms { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
   .form-terms > summary { cursor: pointer; color: #0a5a8c; min-height: 32px; }
   .effect-unsure { background: #eef3fa; border-radius: 0.5rem; padding: 0.6rem 0.9rem; margin-bottom: 0.75rem; }
+  .implied-effect p { background: #eef7f1; border-left: 3px solid #2e7d4f; border-radius: 0.35rem; padding: 0.55rem 0.9rem; margin: 0 0 1rem; }
+  .implied-effect p.implied-effect-waiting { background: transparent; border-left-color: #c9d3df; color: #5a6675; }
   .effect-help { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.5rem 1rem; margin-bottom: 0.75rem; }
   .effect-help > summary { cursor: pointer; color: #0a5a8c; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
   .effect-help dt { margin-top: 0.5rem; }
@@ -1435,6 +1437,21 @@ server <- function(input, output, session) {
   output$selected_evidence <- renderUI({
     req(identical(state$screen, "form"), state$endpoint)
     selected_evidence_ui(forms, state$endpoint, current_form_fields(), current_form_values())
+  })
+  # The effect size the means and SD give, as they are typed (28 November
+  # 2026): the engine's implied_effect_size() works it out; nothing is
+  # calculated here, and no power is run.
+  implied_values <- debounce(reactive({
+    req(identical(state$screen, "form"), state$endpoint)
+    current_form_values()
+  }), 400)
+  output$implied_effect <- renderUI({
+    values <- implied_values()
+    fields <- current_form_fields()
+    spec <- tryCatch(build_spec(forms, state$endpoint, fields, values), error = function(e) NULL)
+    implied_fn <- engine_function("implied_effect_size")
+    implied <- if (!is.null(spec) && !is.null(implied_fn)) tryCatch(implied_fn(spec), error = function(e) NULL)
+    implied_effect_text(implied, values)
   })
   observeEvent(input$verify_corrected_count, {
     req(calculation_matches_values(state$calc, current_form_values()))
