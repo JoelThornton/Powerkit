@@ -219,6 +219,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
   if ("effectsize" %in% used) {
     packages <- c(packages, list(s("effectsize", "which converted the effect size entered into the one the calculation uses")))
   }
+  if ("BUCSS" %in% used) {
+    packages <- c(packages, list(s("BUCSS", "which gave the sample sizes corrected for publication bias and uncertainty in the earlier study's F")))
+  }
   if ("JustifyAlpha" %in% used) {
     packages <- c(packages, list(s("JustifyAlpha", "which found the justified alpha (optimal_alpha())")))
   }
@@ -238,7 +241,7 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
 psych_roles <- function(result) {
   c(
     if (identical(result$effect_conversion$package$name, "psych")) "converted the effect size entered into the one the calculation uses",
-    if (!is.null(result$safeguard)) "computed the confidence interval safeguard power starts from"
+    if (identical(result$safeguard$package$name, "psych")) "computed the confidence interval safeguard power starts from"
   )
 }
 

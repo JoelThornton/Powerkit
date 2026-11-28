@@ -1535,13 +1535,38 @@ safeguard_wording <- function(text, result) {
 safeguard_sentence <- function(result) {
   sg <- result$safeguard
   if (is.null(sg)) return(NULL)
-  sizes <- if (!is.null(sg$n1)) sprintf("%s and %s people in its two groups", sg$n1, sg$n2) else sprintf("%s people", sg$n)
-  sprintf(paste0("Safeguard power: the earlier study's estimate was %s = %s, with %s. The calculation uses the lower end ",
+  sizes <- if (!is.null(sg$df_error)) sprintf("from its F with %s and %s degrees of freedom", sg$df, sg$df_error) else
+    if (!is.null(sg$n1)) sprintf("with %s and %s people in its two groups", sg$n1, sg$n2) else sprintf("with %s people", sg$n)
+  sprintf(paste0("Safeguard power: the earlier study's estimate was %s = %s, %s. The calculation uses the lower end ",
     "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small. ",
     "Across studies like the earlier one, a bound found this way falls below the true effect %d%% of the time, if the ",
     "earlier estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."),
     sg$effect_name, format(round(sg$estimate, 3)), sizes, round(100 * sg$conf_level), sg$effect_name,
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+}
+
+# The sample sizes corrected for publication bias and uncertainty (BUCSS,
+# through the engine's replication_bucss()), in words beside the result:
+# at 50% and 80% assurance, or why BUCSS couldn't plan one.
+bias_correction_sizes <- function(b) {
+  rows <- b$sizes
+  vapply(seq_len(nrow(rows)), function(i) {
+    a <- sprintf("%d%% assurance", round(100 * rows$assurance[i]))
+    if (!is.na(rows$n[i])) return(sprintf("%s people at %s", format(rows$n[i], big.mark = ","), a))
+    if (identical(rows$reason[i], "not_significant")) sprintf("none at %s (the earlier F wasn't significant at its level, so there is no publication threshold to correct)", a)
+    else sprintf("none at %s (corrected, the effect could be zero)", a)
+  }, character(1))
+}
+
+bias_correction_sentence <- function(result) {
+  b <- result$bias_correction
+  if (is.null(b)) return(NULL)
+  what <- if (isTRUE(b$inputs$publication_filter)) "publication bias and uncertainty" else "uncertainty (the study would have been published whatever it found)"
+  sprintf(paste0("Corrected for %s, the earlier study's F = %s with %s people needs %s for %d%% power (BUCSS; Anderson, Kelley & Maxwell, 2017). ",
+    "Assurance is the chance the study reaches that power. The sample size above uses the F as published; the corrected one ",
+    "assumes the earlier study had the same design as yours."),
+    what, format(signif(b$f, 4)), format(b$inputs$original_n, big.mark = ","), paste(bias_correction_sizes(b), collapse = " and "),
+    round(100 * b$inputs$power))
 }
 
 # Effects that vary between studies (Kenny & Judd, 2019), worked out by
@@ -2364,7 +2389,7 @@ guess_gap <- function(guess, answer) {
 
 # A short warning for effect sizes taken from one earlier study.
 source_note <- function(values) {
-  if (!identical(values$just_type, "prior_study") || isTRUE(values$sg_use %in% c("yes", "telescopes"))) return(NULL)
+  if (!identical(values$just_type, "prior_study") || isTRUE(values$sg_use %in% c("yes", "telescopes", "bucss"))) return(NULL)
   "Your effect size comes from one earlier study. An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. The BUCSS R package offers a correction for publication bias."
 }
 
@@ -3556,6 +3581,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(bc <- bias_correction_sentence(result))) p(class = "result-safeguard", bc),
     if (!is.null(ma <- mediation_analysis_sentence(result))) p(class = "result-mediation-analysis", ma),
     if (!is.null(ct <- count_test_sentence(spec))) p(class = "result-count-analysis", ct),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
@@ -4006,13 +4032,21 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sprintf("No effect size was chosen in advance (no formal justification of an effect size); the reasoning: %s.", reasoning)
   } else if (!is.null(effect)) {
     adj <- if (!blank(values$just_adjustment) && is.null(result$safeguard)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else
-      if (isTRUE(values$just_type %in% c("prior_study", "pilot_study")) && is.null(result$safeguard)) " No adjustment for the uncertainty of a single study was recorded." else ""
+      if (isTRUE(values$just_type %in% c("prior_study", "pilot_study")) && is.null(result$safeguard) && is.null(result$bias_correction)) " No adjustment for the uncertainty of a single study was recorded." else ""
     if (!is.null(sg <- result$safeguard)) {
       adj <- sprintf(paste0(" Following the safeguard power approach (Perugini, Gallucci & Costantini, 2014), the calculation used ",
-        "the lower bound of the %d%% confidence interval around that estimate (%s, computed with the psych package's %s), %s = %s, ",
+        "the lower bound of the %d%% confidence interval around that estimate (%s, computed with the %s package's %s), %s = %s, ",
         "giving %d%% protection against the estimate being too large."),
-        round(100 * sg$conf_level), if (!is.null(sg$n1)) sprintf("n = %s and %s", sg$n1, sg$n2) else sprintf("n = %s", sg$n),
-        sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+        round(100 * sg$conf_level),
+        if (!is.null(sg$df_error)) sprintf("F(%s, %s)", sg$df, sg$df_error) else if (!is.null(sg$n1)) sprintf("n = %s and %s", sg$n1, sg$n2) else sprintf("n = %s", sg$n),
+        sg$package$name, sub("\\(.*", "()", sub("^[A-Za-z]+::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+    }
+    if (!is.null(b <- result$bias_correction)) {
+      adj <- paste0(adj, sprintf(paste0(" Correcting the earlier study's F (%s, N = %s) for %s with BUCSS (Anderson, Kelley & Maxwell, 2017; ",
+        "%s(), assuming the same design) gives %s for the same power."),
+        format(signif(b$f, 4)), b$inputs$original_n,
+        if (isTRUE(b$inputs$publication_filter)) sprintf("publication bias at a significance level of %s and for uncertainty", format(b$inputs$original_alpha)) else "uncertainty",
+        sub("\\(.*", "", sub("^BUCSS::", "", b$function_used)), paste(bias_correction_sizes(b), collapse = " and ")))
     }
     if (!is.null(h <- result$heterogeneity)) {
       adj <- paste0(adj, if (identical(h$scale, "Fisher's z")) {

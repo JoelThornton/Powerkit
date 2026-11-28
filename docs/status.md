@@ -244,7 +244,11 @@ each area, is at the end of
 - **Effect sizes:** the commonest cards take what researchers have: a
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the
   R-squared change; safeguard power for an effect from one study or a
-  pilot, or small telescopes for a replication (Simonsohn, 2015); the
+  pilot, or small telescopes for a replication (Simonsohn, 2015); for one
+  earlier study's F on the ANOVAs, BUCSS's sample size corrected for
+  publication bias and uncertainty beside the plan's own (not on the
+  ANCOVAs), or safeguard power from the interval around its partial
+  eta-squared (28 November 2026); the
   smallest detectable effect on the t-tests, the correlation,
   proportions, the ANOVAs (Welch's F by formula; by partial eta-squared
   too), multiple, logistic and Poisson regression, moderated regression,

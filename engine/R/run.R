@@ -257,6 +257,11 @@
 #'   * `safeguard`: `NULL` unless the effect justification uses safeguard
 #'     power; otherwise [safeguard_effect()]'s list for the earlier study's
 #'     estimate, with `lower` the effect size the calculation used.
+#'   * `bias_correction`: `NULL` unless the effect justification asks for
+#'     the correction for publication bias and uncertainty (an ANOVA whose
+#'     effect is one earlier study's F); otherwise [replication_bucss()]'s
+#'     list, BUCSS's sample sizes at 50% and 80% assurance. The plan's own
+#'     result still uses the estimate as published.
 #'   * `clusters`: `NULL` unless the design is clustered (design
 #'     `cluster_trial`); otherwise [cluster_summary()]'s list for the n
 #'     analysed: the number of groups, the design effect and the effective
@@ -424,6 +429,7 @@ run_spec <- function(spec) {
       justified_alpha = outcome$justified_alpha,
       effect_from_units = units,
       safeguard = safeguard_record(spec),
+      bias_correction = bias_correction_record(planned),
       small_telescopes = small_telescopes_record(spec, n_analysed, backend),
       heterogeneity = heterogeneity_record(planned, n_analysed),
       mediation_analysis = mediation_analysis_record(spec),
@@ -455,7 +461,8 @@ run_spec <- function(spec) {
         backend_function = backend$functions[[method]],
         r_version = R.version.string,
         packages = package_versions(c("powerkit", backend$packages, if (justified_alpha_goal(spec)) "JustifyAlpha",
-          if (!is.null(spec$effect_justification$safeguard)) "psych",
+          if (!is.null(spec$effect_justification$safeguard) && !isTRUE(spec$template %in% safeguard_anova_templates)) "psych",
+          if (!is.null(spec$effect_justification$bias_correction)) "BUCSS",
           spec_conversion_package(spec))),
         started = format(started, "%Y-%m-%d %H:%M:%S %Z"),
         run_time_seconds = as.numeric(difftime(Sys.time(), started, units = "secs"))
