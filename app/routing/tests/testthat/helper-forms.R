@@ -302,7 +302,10 @@ for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
 route_starts <- list(effect_units = "standardised", interaction_metric = "r2_change", x_effects = "paths",
   r2_given = "r2", manova_metric = "raw", chisq_metric = "proportion")
 route_start_screens <- local({
-  y <- yaml::read_yaml(file.path("..", "..", "forms.yaml"))
+  # Sourced by the test suite (from tests/testthat) and by
+  # walkthroughs/every-card-list.R (which sets `routing`).
+  path <- if (exists("routing") && is.character(routing)) file.path(routing, "forms.yaml") else file.path("..", "..", "forms.yaml")
+  y <- yaml::read_yaml(path)
   lapply(y$forms, function(form) {
     s <- unlist(form)
     intersect(names(route_starts), s[grepl("(^|\\.)id$", names(s))])
