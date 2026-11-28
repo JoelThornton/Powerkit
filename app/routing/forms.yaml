@@ -113,7 +113,7 @@ tool_defaults:
     alternative_source: "metapower's default (two-sided: mpower(test_type = \"two-tailed\"), metapower 0.2.2)"
   formula:
     alpha: 0.05
-    alpha_source: "the usual 5% level, as in the G*Power 3.1 manual's examples; powerkit's formulas have no default of their own"
+    alpha_source: "the usual 5% level; powerkit's formulas have no default of their own"
     power_source: "enter a target power: the formula has no default"
     alternative_source: "two-sided, as R's var.test() is by default (alternative = \"two.sided\")"
   power4mome:
@@ -387,38 +387,38 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
-  "39": "Multiple regression with measured predictors: Powerkit works out the F test's power for predictors that differ from one sample to the next, as measured scores do, averaging over the samples they could give (Shieh, 2007). G*Power and pwrss treat the predictors as fixed, which gives a little more power: for two predictors added to three, 75.3% against 73.6% here at N = 150, and 167 against 173 people for 80%. Choose predictors set by the design for G*Power's answer. The Bayes factors are planned the same way: for R-squared .10 with three predictors and a threshold of 10, 193 people rather than 189."
+  "39": "Multiple regression with measured predictors: Powerkit works out the F test's power for predictors that differ from one sample to the next, as measured scores do, averaging over the samples they could give (Shieh, 2007). The usual formula (pwrss's too) treats the predictors as fixed, which gives a little more power: for two predictors added to three, 75.3% against 73.6% here at N = 150, and 167 against 173 people for 80%. Choose predictors set by the design for the fixed-predictor answer. The Bayes factors are planned the same way: for R-squared .10 with three predictors and a threshold of 10, 193 people rather than 189."
   "38": "Group treatment trial with a score: Powerkit tests the difference with Welch-Satterthwaite degrees of freedom, the usual ones for comparing the people taking part individually with the groups' means, and what a mixed model's Satterthwaite test gives. powertools' irgtt.cont() uses the same variance but computes the degrees of freedom another way and gets about half as many, so it gives less power when there are few groups: 51% rather than 55% with 10 groups of 8 and 80 people taking part individually (ICC 0.1, d = 0.4), and up to about 12 percentage points less with 4 to 6 groups. With 30 or more groups the two differ by about a point."
   "37": "Bayes factor t-tests with an informed prior (a centre other than 0, or degrees of freedom other than 1): Powerkit works out the chance of evidence exactly from bfpwr's own Bayes factor, because bfpwr's power function, powertbf01(), gives wrong answers for informed priors in small samples. With a prior centred on 0.3 (scale 0.15), an expected effect of 0.4 (SD 0.1) and a threshold of 10, 10 people give a 5.4% chance of strong evidence (5.5% in simulated studies), where powertbf01() gives 0; from about 30 people the two agree within a point or two."
   "35": "A measured score in a Cox regression: Powerkit counts both tails of the two-sided test, so with no effect the power is alpha (5%). powerSurvEpi's formula counts only the tail in the effect's direction, which gives alpha / 2 with no effect and too little with small effects (4.5% against 5.8% for a hazard ratio of 1.05 with 100 people); for effects worth planning for the difference is well under 0.001."
   "36": "The z test of one proportion (R's prop.test()): Powerkit sums the chance of every possible count where prop.test() would be significant, so the power is the test's own, with no approximation. pwrss and the textbook formula use a normal approximation, which can be off by a few percentage points either way: for 20% against 10% at 80% power, 78 people rather than pwrss's 86 without the continuity correction, and 89 rather than 96 with it."
   "34": "Cronbach's alpha: for a two-sided test Powerkit counts both tails of Bonett and Wright's z test, so at the null value the power is alpha (5%). statpsych's sample-size formula counts only the tail in the effect's direction, which gives alpha / 2 there; with an effect worth planning for the other tail adds well under 0.0001, so the sample size is statpsych's."
   "33": "Equivalence of a correlation or of two proportions: Powerkit works out the power of the test TOSTER runs (two one-sided z tests, on Fisher's z for a correlation, with the unpooled standard error for two proportions) with pwrss. TOSTER's own planning functions give different answers: power_z_cor() ignores the expected correlation (for r = 0.1, bounds of 0.2 and 500 people it gives 99.6%, against 73.8%), and power_twoprop() applies the distance to the nearer bound on both sides (0% against 47.5% for 0.5 and 0.55, bounds of 0.1 and 500 per group)."
-  "32": "Two variances: Powerkit plans for the Brown-Forsythe test unless you choose Levene's test or the F test. G*Power plans for the F test, which assumes normal scores: with skewed or heavy-tailed scores its chance of a false positive is far above alpha (12% and 43% at alpha .05 with 100 per group), while the Brown-Forsythe test keeps it near 5%. With normal scores the Brown-Forsythe test has a little less power: 46.6% against the F test's 51.8% for variances of 1.5 and 1 and 200 people."
+  "32": "Two variances: Powerkit plans for the Brown-Forsythe test unless you choose Levene's test or the F test. The usual planning formula is for the F test, which assumes normal scores: with skewed or heavy-tailed scores its chance of a false positive is far above alpha (12% and 43% at alpha .05 with 100 per group), while the Brown-Forsythe test keeps it near 5%. With normal scores the Brown-Forsythe test has a little less power: 46.6% against the F test's 51.8% for variances of 1.5 and 1 and 200 people."
   "29": "The ICC: Powerkit works out the F test's power from its exact distribution (Donner and Eliasziw, 1987), unless you choose ICC.Sample.Size's approximation (Walter, Eliasziw and Donner), which asks for a few more people than needed: for an ICC of 0.8 against 0.6 with 3 raters, one-sided, 80% power needs 26 subjects by the exact power and 27 by the approximation."
   "26": "Repeated measures with SDs or correlations that differ: Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
   "27": "Bland-Altman limits of agreement: Powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
-  "28": "Repeated measures with a sphericity correction and SDs or correlations that differ: Powerkit simulates the corrected F test by default (Superpower's ANOVA_power()), where Superpower's ANOVA_exact() and G*Power scale the test's noncentrality and degrees of freedom by epsilon. That scaling is an approximation that can miss the corrected test's power by a few points either way: with means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people, 68.4% from the exact dataset against 71.5% in 40,000 simulated studies; in a mixed design with 20 people per group, 23.1% against 21.7%. The exact dataset stays available, as an approximation, and finds the smallest detectable effect."
+  "28": "Repeated measures with a sphericity correction and SDs or correlations that differ: Powerkit simulates the corrected F test by default (Superpower's ANOVA_power()), where Superpower's ANOVA_exact() and the usual formula scale the test's noncentrality and degrees of freedom by epsilon. That scaling is an approximation that can miss the corrected test's power by a few points either way: with means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people, 68.4% from the exact dataset against 71.5% in 40,000 simulated studies; in a mixed design with 20 people per group, 23.1% against 21.7%. The exact dataset stays available, as an approximation, and finds the smallest detectable effect."
   "25": "Precision planning: for d, a standardised mean and a regression coefficient, Powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies (optional): an entered SD on Fisher's z makes the correlation an average across studies, following McShane and Bockenholt (2014). This averages significance across differing true correlations; it is not power at the average correlation and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, r = .1 with variation SD 0.025 and 80% power needs 904 people against 782 without; r = .3 needs 86 against 85."
   "23": "Effects that vary between studies (optional): an entered SD makes the effect an average across studies, following Kenny and Judd (2019). This averages significance across differing true effects; it is not power at the average effect and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, d = 0.3 with variation SD 0.05 and 80% power needs 376 people in total against 352 without."
-  "22": "One-way ANOVA: Powerkit plans for Welch's F unless you choose the classical F test, as Delacre, Leys, Mora and Lakens (2019) recommend, because Welch's F keeps the chance of a false positive at alpha when the groups' SDs differ and loses little power when they don't; G*Power and Superpower plan for the classical F test. With one SD of 6 and means 10, 11 and 13, 80% power needs about 231 people with Welch's F against 228 with the F test."
-  "21": "Two groups: Powerkit plans for Welch's t-test unless you choose Student's, as Delacre, Lakens and Leys (2017) recommend, because Welch's test keeps the chance of a false positive at alpha when the groups' spreads differ; G*Power and pwr plan for Student's. With equal spreads and equal groups the two need the same number of people; with unequal groups Welch's needs a few more: 145 rather than 143 for d = 0.5 and 80% power when group 2 is twice the size of group 1."
+  "22": "One-way ANOVA: Powerkit plans for Welch's F unless you choose the classical F test, as Delacre, Leys, Mora and Lakens (2019) recommend, because Welch's F keeps the chance of a false positive at alpha when the groups' SDs differ and loses little power when they don't; the usual planning formula, and Superpower's, is for the classical F test. With one SD of 6 and means 10, 11 and 13, 80% power needs about 231 people with Welch's F against 228 with the F test."
+  "21": "Two groups: Powerkit plans for Welch's t-test unless you choose Student's, as Delacre, Lakens and Leys (2017) recommend, because Welch's test keeps the chance of a false positive at alpha when the groups' spreads differ; the usual planning formula, and pwr's, is for Student's. With equal spreads and equal groups the two need the same number of people; with unequal groups Welch's needs a few more: 145 rather than 143 for d = 0.5 and 80% power when group 2 is twice the size of group 1."
   "19": "Moderation of both mediation links: Powerkit calculates residual variances from the full product moments and supplies them directly to power4mome. Its default standardisation can use the mediator's old values in the later product and generate the wrong outcome variance. Impossible combinations of paths are rejected before running."
   "20": "Differential item functioning: the test frees both of each DIF item's parameters (discrimination and difficulty) between the groups, whichever you expect to differ, because that is the test usually run (the omnibus test in mirt's DIF() help) and a power analysis should be for the test you will run. irtpwr's DIF preset tests only the parameters that differ, which is more powerful when only the difficulty changes: for the 8-item example with one item 0.4 harder, 53.6% against 64.1% at 600 people. That test is a choice on the input screen."
   "1": "Required N for a 2 x 2 interaction: Powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
-  "2": "Mixed design: Powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
+  "2": "Mixed design: Powerkit uses Superpower's ANOVA_exact(), which reproduces the published values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
-  "10": "Correlation: you chose pwr's formula, which uses Fisher's z, an approximation. powerkit's default, like G*Power's, is the exact distribution of r. For r = .3 to .5 and N = 20 to 100 the two differ by at most 0.004 in power and 1 participant (85 rather than 84 for r = .3 and 80% power); for a large correlation in a small sample the gap is wider (r = .9 and N = 6: 77.2% by Fisher's z, 81.6% exactly)."
-  "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power. Both round the groups to whole people at each total, but powerkit's total always reaches the target, so it can be one higher (for 95% power with group 2 twice the size of group 1, 371 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
-  "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. Powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
+  "10": "Correlation: you chose pwr's formula, which uses Fisher's z, an approximation. powerkit's default is the exact distribution of r. For r = .3 to .5 and N = 20 to 100 the two differ by at most 0.004 in power and 1 participant (85 rather than 84 for r = .3 and 80% power); for a large correlation in a small sample the gap is wider (r = .9 and N = 6: 77.2% by Fisher's z, 81.6% exactly)."
+  "11": "Two proportions: the usual z test (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test. Both round the groups to whole people at each total, but powerkit's total always reaches the target, so it can be one higher than a total from the formula alone (for 95% power with group 2 twice the size of group 1, 371 rather than 370, whose groups of 123 and 247 fall just short of 95%)."
+  "12": "Two dependent correlations: Steiger's z test with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. Powerkit reproduces two published worked examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): separate power calculations do not establish the chance that several tests all succeed. Here one population model generates each study and the supported analyses use the same data, so their joint success is counted directly. Comparisons with separate calculations cover the recorded cases only; omitted model terms can change what an individual analysis estimates. This is not validation of every study plan."
   "14": "Smallest detectable effect when only one condition is in groups: Powerkit finds the d at which the t test's power reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 79% power rather than 80%; Powerkit gives 0.346."
   "18": "Meta-analysis: under the random-effects model Powerkit plans for the Hartung-Knapp test unless you choose otherwise, because it keeps the chance of a false positive closer to alpha than the z test, especially with few studies (IntHout, Ioannidis & Borm, 2014); metapower plans for the z test. No package has a formula for its power, so it is simulated (metafor's rma(test = \"knha\"), with Spower). It gives less power: for d = 0.15 in ten studies of 40 with I-squared 0.5, about 16.5% against 21.4% with the z test."
   "17": "Pairwise comparisons: Powerkit adjusts the p-values for the number of comparisons by Holm's method unless you choose otherwise; Superpower's ANOVA_power() adjusts none by default. Adjusting costs power: for None against Praise in powerkit's example (means 10, 11 and 13, SD 6, 30 per group), 31.2% with Holm's adjustment, 30.1% with Bonferroni's and 47.8% with none."
   "16": "Mixed model: the condition is tested with Satterthwaite's t test (lmerTest), or Kenward and Roger's (pbkrtest) if you choose it, not simr's default z test, which treats the t statistic as normal and so rejects too often in designs with few participants or items. In powerkit's example (40 items), the z test gives 42.0% power at 40 participants where Satterthwaite's gives 39.6% (27.7% and 25.0% at 20 participants)."
   "15": "Bayes factor t-tests: Powerkit plans for exactly the effect you entered unless you say how unsure you are about it (a design prior SD of 0), as a usual power analysis does. bfpwr's own default spreads the true effect as widely as the analysis prior (SD 0.707), which needs far more people: for d = 0.5 and BF10 of at least 10, 120 per group give 80% with powerkit's default and 67% with bfpwr's, which needs 372 per group."
-  "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
+  "5": "No continuity correction, the usual planning formula's choice; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
   "6": "Mediation is fitted with lavaan (maximum likelihood), as power4mome does, not by PROCESS's ordinary least squares. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
   "7": "Parallel mediators: Powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
   "8": "Boos and Zhang's (2000) method is switched off: every simulated sample is tested with its confidence interval. power4mome switches the method on for some numbers of Monte Carlo draws (39, 79, ..., 359). In powerkit's runs this makes no difference to power."
@@ -435,46 +435,65 @@ departures_folded: ["2", "3", "8", "11"]
 # differences". They are not departures: powerkit follows one established
 # tool, and another gives a different answer.
 known_differences:
-  "1": "Regression interactions: this route simulates studies with the predictors drawn afresh each time (InteractionPoweR). Formula-based regression planning can give a different answer. A recorded comparison found higher power from InteractionPoweR's formula in the checked cases; it is not a universal error bound or a direct G*Power comparison."
+  "1": "Regression interactions: this route simulates studies with the predictors drawn afresh each time (InteractionPoweR). Formula-based regression planning can give a different answer. A recorded comparison found higher power from InteractionPoweR's formula in the checked cases; it is not a universal error bound."
   "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, not simulation. It is an approximate threshold for the simulated-study route: check power at your proposed effect and sample size by simulation. The recorded formula/simulation comparison does not bound the difference for every setting."
-  "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. Powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
-  "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than Powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). Powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
-  "4": "Variance tests (retired 31 October 2026): Powerkit simulated power with Spower's p_var.test() while G*Power computes these tests exactly. Powerkit now computes them exactly too; this note is kept for results saved before then."
-  "5": "Rank tests: Powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
-  "6": "Bayes factor t-tests: bfpwr calculates the chance of evidence at the threshold by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
+  "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. Powerkit reports the smallest N that reaches the target; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, exact)."
+  "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), a published worked example reports a slightly larger sample size than Powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). Powerkit applies the adjustment as that source's formulas describe it; why the example differs hasn't been settled, so it may be worth allowing a few per cent more people. With no overlap (R-squared 0) the two agree."
+  "4": "Variance tests (retired 31 October 2026): Powerkit simulated power with Spower's p_var.test(), where these tests can be computed exactly. Powerkit now computes them exactly too; this note is kept for results saved before then."
+  "5": "Rank tests: Powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. The usual formula for these tests instead adjusts the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
+  "6": "Bayes factor t-tests: bfpwr calculates the chance of evidence at the threshold by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change uses pwrss's fixed-model regression formula. In the recorded example, power was 59.9% with pwrss versus 58.3% with InteractionPoweR's formula at N = 200 and R-squared change .0225. The correlation route instead simulates studies; these methods need not agree, and this example does not bound the difference."
-  "8": "MANOVA with three or more groups: Powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
+  "8": "MANOVA with three or more groups: Powerkit simulates power (Spower), because no package it builds on has a formula for it; the usual alternative is an F approximation to Pillai's trace. How far that approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
   "10": "Minimum-effect tests (retired 12 November 2026): Powerkit used pwrss's t-test against the smallest effect of interest in SD units, which gives very slightly less power than the test researchers run (a t-test against the margin in the measure's own units, as TOSTER's minimum-effect test does). Powerkit now plans that test; this note is kept for results saved before then."
-  "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
+  "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. A compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for that answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
   "14": "Mediation: Powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
-  "15": "ANCOVA: Powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
+  "15": "ANCOVA: Powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. Treating the covariate as fixed gives a little more power and so a slightly smaller sample size: in a three-group example, 87 against 90 here."
   "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much. To plan without the factor, choose the simulation under \u201cHow power is worked out\u201d."
-  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 78% power in simulation rather than 80%, and about 900 were needed. Consider adding about 5% to this sample size."
+  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 78% power in simulation rather than 80%, and about 900 were needed. Consider adding about 5% to this sample size."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). Powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
+
+# The departures above, for the write-up's methods paragraph: the same
+# choice stated by its method, without naming other programs (28 November
+# 2026; docs/decisions.md). A departure not listed here has no other
+# program in its text and is used as it is. test-writeup-software.R checks
+# that every departure the write-up uses names none.
+departures_methods:
+  "39": "The predictors were treated as measured, varying from one sample to the next, and power was averaged over the samples they could give (Shieh, 2007). Treating them as fixed gives a little more power: for two predictors added to three, 75.3% rather than 73.6% at N = 150, and 167 rather than 173 people for 80%."
+  "32": "Power was planned for the Brown-Forsythe test, which keeps the false-positive rate near alpha whatever the scores' shape; the F test of two variances assumes normal scores, and with skewed or heavy-tailed scores its false-positive rate is far above alpha (12% and 43% at alpha .05 with 100 per group). With normal scores the Brown-Forsythe test has a little less power (46.6% against 51.8% for variances of 1.5 and 1 and 200 people)."
+  "28": "The corrected F test was simulated (Superpower's ANOVA_power()) rather than approximated by scaling its noncentrality and degrees of freedom by epsilon, an approximation that can miss the corrected test's power by a few points either way (68.4% against 71.5% in 40,000 simulated studies for means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people)."
+  "22": "Power was planned for Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend, because it keeps the false-positive rate at alpha when the groups' SDs differ and loses little power when they don't; the classical F test needs slightly fewer people when the SDs are equal (228 rather than about 231 for one SD of 6 and means 10, 11 and 13 at 80% power)."
+  "21": "Power was planned for Welch's t-test, as Delacre, Lakens and Leys (2017) recommend, because it keeps the false-positive rate at alpha when the groups' spreads differ. With equal spreads and equal groups Student's t-test needs the same number of people; with unequal groups Welch's needs a few more (145 rather than 143 for d = 0.5 and 80% power when group 2 is twice the size of group 1)."
+  "2": "Power was calculated with Superpower's ANOVA_exact() rather than ANOVA_exact2(); the two differ slightly (91.2% against 90.5% in Superpower's vignette example)."
+  "10": "Power was calculated with pwr's formula, which uses Fisher's z approximation rather than the exact distribution of r. For r = .3 to .5 and N = 20 to 100 the two differ by at most 0.004 in power and 1 participant; for a large correlation in a small sample the gap is wider (r = .9 and N = 6: 77.2% by Fisher's z, 81.6% exactly)."
+  "11": "The z test used a pooled variance under the null, no continuity correction, and both tails counted (base R's power.prop.test() with strict = TRUE; pwrss's z test for unequal groups). The groups are whole numbers of people and the total always reaches the target, so it can be one higher than a total from the formula alone."
+  "12": "Steiger's z test used the null hypothesis's correlation in the formula for how the two correlations vary together, rather than pwrss's default of their average, which gives about 1 to 4% fewer people."
+  "5": "No continuity correction was applied; with Yates' correction power is a little lower (.789 rather than .818 for proportions .50 and .65 with 170 per group)."
+  "6": "The mediation model was fitted by maximum likelihood (lavaan, as power4mome does) rather than by ordinary least squares regressions. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
+  "7": "The parallel mediators' residuals were allowed to correlate, as separate regressions of each mediator imply; fixing that correlation at 0 (lavaan's and power4mome's default) would, with a residual correlation of 0.4 and N = 200, understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
 known_differences_methods:
-  "1": "Power was estimated by simulation, drawing the predictors afresh in each study. Fixed-model formulas condition on the predictor design and can give a different answer; the recorded comparison of InteractionPoweR methods does not establish a universal difference or direct G*Power agreement."
+  "1": "Power was estimated by simulation, drawing the predictors afresh in each study. Fixed-model formulas condition on the predictor design and can give a different answer; the recorded comparison of InteractionPoweR methods does not establish a universal difference."
   "1 sensitivity": "The smallest detectable effect was found with a fixed-model formula. It is an approximation to the simulation route, not a simulation-confirmed target; power at the proposed effect and sample size should be checked by simulation."
-  "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power, as in G*Power; pwrss's own sample-size answer can be slightly larger."
-  "3": "The predictor's overlap with the other predictors was allowed for through its R-squared with them; for this case the G*Power manual's example reports a sample size a few per cent larger than this method gives, a difference that has not yet been resolved."
-  "4": "Power was estimated by simulation, so it carries Monte Carlo error, whereas G*Power computes this test exactly."
-  "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency as G*Power does, so the two can give slightly different sample sizes."
+  "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power; pwrss's own sample-size answer can be slightly larger."
+  "3": "The predictor's overlap with the other predictors was allowed for through its R-squared with them; for this case a published worked example reports a sample size a few per cent larger than this method gives, a difference that has not yet been resolved."
+  "4": "Power was estimated by simulation, so it carries Monte Carlo error; an exact calculation of this test has none."
+  "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency, so the two can give slightly different sample sizes."
   "6": "The probability of evidence at the threshold was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
   "7": "Power was calculated by pwrss's fixed-model formula for an R-squared increase. The correlation route instead simulates studies with newly sampled predictors; numerical agreement between these planning methods is not assumed."
-  "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Pillai's trace with an F approximation."
+  "8": "Power was estimated by simulation, so it carries Monte Carlo error; an F approximation to Pillai's trace is the usual alternative."
   "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
-  "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
+  "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); a compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
-  "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
-  "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
-  "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; G*Power treats it as fixed, which gives slightly more power and a slightly smaller sample size."
+  "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
+  "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval is a different test, whose power can differ a little."
+  "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; treating it as fixed gives slightly more power and a slightly smaller sample size."
   "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
   "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 78% where the formula gave 80%, needing about 5% more participants)."
-  "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
+  "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, with that probability calculated exactly rather than estimated from posterior draws."
 
 # How a replication plan takes each card's original effect (queue item 21;
 # decisions.md, 12 November 2026). Every card has one entry:
@@ -667,7 +686,7 @@ forms:
       - input: "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation"
         fields:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {standardised: "As a standardised mean difference: group 2 minus group 1, in SD units", raw: "In my measure's own units: each group's mean and the SD information", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
+             choices: {standardised: "As a standardised mean difference: group 2 minus group 1, in SD units", raw: "In my measure's own units: each group's mean and the SD information", point_biserial: "As a point-biserial correlation r between group and outcome"},
              default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); Powerkit works it out from the means and SD, or from a point-biserial r, if you give those"}
           - {id: d, label: "Standardised mean difference (d)", writeup_label: "Cohen's d", type: number, path: population.d, effect: true,
              shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}],
@@ -675,7 +694,7 @@ forms:
           - {id: r_pb, label: "Point-biserial r between group and outcome", type: number, path: population.r, effect: true, no_conversion: true,
              min_exclusive: -1, max_exclusive: 1, writeup_label: "point-biserial r",
              shown_if: {field: effect_units, is: point_biserial},
-             help: "The correlation between group membership (group 1 counted as 0, group 2 as 1) and the outcome: positive if group 2 scores higher. Powerkit turns it into Cohen's d for the group sizes you plan (d = r / sqrt(p(1 - p)(1 - r squared)), p the share in group 2), which gives the same test as G*Power's point-biserial model. Powerkit treats it as the true effect; a published value tends to be too large."}
+             help: "The correlation between group membership (group 1 counted as 0, group 2 as 1) and the outcome: positive if group 2 scores higher. Powerkit turns it into Cohen's d for the group sizes you plan (d = r / sqrt(p(1 - p)(1 - r squared)), p the share in group 2), which gives the same test as the point-biserial model. Powerkit treats it as the true effect; a published value tends to be too large."}
           - {id: raw_mean_1, label: "Expected mean, group 1", type: number, path: population.raw.mean_1, effect: true, writeup_label: "group 1 mean",
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_mean_2, label: "Expected mean, group 2", type: number, path: population.raw.mean_2, effect: true, writeup_label: "group 2 mean",
@@ -701,7 +720,7 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", yuen: "Yuen's trimmed-means test (robust t-test)", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
-             default: welch_t, default_source: "Welch's t-test, as Delacre, Lakens and Leys (2017) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses almost nothing when they don't. R's t.test() runs it unless told otherwise; G*Power and pwr plan for Student's",
+             default: welch_t, default_source: "Welch's t-test, as Delacre, Lakens and Leys (2017) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses almost nothing when they don't. R's t.test() runs it unless told otherwise; the usual planning formula is for Student's",
              choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", yuen: "Compares trimmed means (20% trimmed from each end by default, as in WRS2's yuen()), so a few extreme scores have little pull; allows unequal spreads. Simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Plans for normal scores. If the two groups' spreads differ, say so under \u201cMy groups' spreads differ\u201d below, or give raw means and SDs.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
           - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
              shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
@@ -872,7 +891,7 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r, instead of a p-value"},
-             default: pearson, default_source: "Pearson's r, the correlation G*Power and pwr plan for",
+             default: pearson, default_source: "Pearson's r, the correlation pwr plans for",
              help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; Powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
           - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [spearman, kendall]},
@@ -894,8 +913,8 @@ forms:
     method_extra:
       - {id: correlation_formula, label: "Which formula", type: select, path: options.correlation_formula, optional: true,
          shown_if: [{field: calc_method, is: exact}, {field: method, is: pearson}],
-         choices: {exact: "Exact, as in G*Power (the exact distribution of r; pwrss)", fisher_z: "Fisher's z, an approximation (pwr)"},
-         default: exact, default_source: "the exact method, G*Power's default for this test (pwrss's power.exact.onecor(), pwrss 1.3.3)"}
+         choices: {exact: "Exact (the exact distribution of r; pwrss)", fisher_z: "Fisher's z, an approximation (pwr)"},
+         default: exact, default_source: "the exact method, the usual one for this test (pwrss's power.exact.onecor(), pwrss 1.3.3)"}
 
   # The repeated-measures correlation (Bakdash and Marusich, 2017): pwrss's
   # exact distribution of r at the effective sample size N(k - 1) + 1.
@@ -950,7 +969,7 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {z_test: "Two-proportion z test (uncorrected)", z_test_corrected: "Two-proportion test (continuity-corrected)", fisher_exact: "Fisher's exact test", bayes_factor: "Bayes factor test"},
-             default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions",
+             default: z_test, default_source: "the test pwr's formulas cover for two independent proportions",
              help: "Choose the test you will actually use to analyse your study. R's prop.test() applies continuity correction by default; that can lower power compared with the uncorrected test.",
              choice_notes: {fisher_exact: "An exact test of two independent proportions, rather than a large-sample z approximation. Group sizes and expected proportions still determine its power.", z_test_corrected: "R's prop.test(correct = TRUE) with fixed group sizes. Powerkit works out its power exactly, over every possible result of the study, so there is no simulation error and the sample size is the smallest that reaches the target. Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
@@ -971,8 +990,8 @@ forms:
     method_extra:
       - {id: proportions_formula, label: "Which formula", type: select, path: options.proportions_formula, optional: true,
          shown_if: [{field: calc_method, is: exact}, {field: method, is: z_test}],
-         choices: {z_test: "z test, as in G*Power (base R's power.prop.test() for equal groups, pwrss for unequal groups)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
-         default: z_test, default_source: "G*Power's z test for two independent proportions, with its default options"}
+         choices: {z_test: "z test (base R's power.prop.test() for equal groups, pwrss for unequal groups)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
+         default: z_test, default_source: "the usual z test for two independent proportions: pooled variance under the null, no continuity correction"}
 
   E6:
     sides: false
@@ -997,19 +1016,19 @@ forms:
       - input: "The expected proportion of people in each combination (adding up to 1), or Cohen's w"
         fields:
           - {id: chisq_metric, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {proportion: "As a table of proportions", w: "As an effect size: Cohen's w, as in G*Power"},
+             choices: {proportion: "As a table of proportions", w: "As an effect size: Cohen's w"},
              default: proportion, default_source: "the proportions, from which pwr's ES.w2() works out Cohen's w (pwr 1.3-0); pwr.chisq.test() itself takes w"}
           - {id: probabilities, label: "Proportion in each cell", text_layout: "one line per category of the first variable, one number per category of the second, separated by commas", help: "One line per category of the first variable, with one number per category of the second, separated by commas.", type: table, path: population.probabilities, effect: true, when_empty: no_association,
              alternative: {field: chisq_metric, value: w, label: "Give Cohen's w instead"},
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: w, label: "Cohen's w", writeup_label: "Cohen's w", type: number, path: population.w, effect: true, min_exclusive: 0,
-             help: "Cohen's w for the association, as G*Power takes it. The degrees of freedom come from the numbers of categories. Powerkit treats it as the true effect; a published value tends to be too large.",
+             help: "Cohen's w for the association. The degrees of freedom come from the numbers of categories. Powerkit treats it as the true effect; a published value tends to be too large.",
              shown_if: {field: chisq_metric, is: w}}
       - input: "The chi-square test or a Bayes factor"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {pearson_chi_square: "Pearson's chi-square test (uncorrected)", pearson_chi_square_corrected: "Pearson's chi-square test (continuity-corrected)", bayes_factor: "Bayes factor test (a contingency table Bayes factor), instead of a p-value, simulated"},
-             default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
+             default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0)",
              help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
              choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. R's chisq.test(correct = TRUE) with a fixed total sample size; row and column totals vary. Powerkit works out its power exactly, over every possible table. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
@@ -1080,7 +1099,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1155,7 +1174,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1215,7 +1234,7 @@ forms:
         fields:
           - {id: spread, label: "Are the SD and correlation the same throughout?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation between the two measurements", differ: "No: an SD for each cell and a correlation for each group"},
-             default: same, default_source: "one SD and one correlation, as G*Power's repeated-measures analysis and Superpower's examples take them",
+             default: same, default_source: "one SD and one correlation, as Superpower's examples take them",
              help: "In both groups and at both measurements. Groups whose spread or consistency differs (for example, a treatment that makes people's change more variable) change the power, so give each cell's SD and each group's correlation if you expect them to differ."}
           - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
@@ -1237,7 +1256,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
@@ -1261,7 +1280,7 @@ forms:
           # groups only in a mixed design.
           - {id: group_sizes, label: "Will the two groups be the same size?", type: select, required: true,
              choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
-             default: equal, default_source: "equal groups, as Superpower and G*Power's repeated-measures analysis take them",
+             default: equal, default_source: "equal groups, as Superpower takes them",
              help: "Unequal groups (for example twice as many in treatment as in control) usually lower the power of the group difference and the interaction. Their power is then found by simulation, which takes longer."}
           - {id: g1, writeup_label: "relative size of between level 1", label: "Group size (or ratio): between level 1", type: number, path: options.group_ratio.1, required: true, min: 1, integer: true,
              shown_if: {field: group_sizes, is: unequal}}
@@ -1296,8 +1315,8 @@ forms:
           # and G*Power give the R-squared change; the correlations are
           # InteractionPoweR's inputs, for those who have them.
           - {id: interaction_metric, label: "What do you have for the interaction?", type: select, path: population.metric,
-             choices: {r2_change: "The R-squared the interaction adds (its R-squared change), as papers and G*Power report it", correlation: "Correlations of X, W and the interaction XW with Y, and of X with W"},
-             default: r2_change, default_source: "the R-squared change, as papers usually report an interaction and G*Power takes it; the correlations are InteractionPoweR's inputs (power_interaction(), InteractionPoweR 0.2.4)",
+             choices: {r2_change: "The R-squared the interaction adds (its R-squared change), as papers report it", correlation: "Correlations of X, W and the interaction XW with Y, and of X with W"},
+             default: r2_change, default_source: "the R-squared change, as papers usually report an interaction; the correlations are InteractionPoweR's inputs (power_interaction(), InteractionPoweR 0.2.4)",
              help: "These inputs use different planning methods, so their answers can differ.",
              choice_notes: {r2_change: "Uses a fixed-model regression formula, with the interaction's R-squared change and the R-squared without it. It does not simulate newly sampled predictors.", correlation: "Simulates studies with newly sampled predictors. The smallest-detectable-effect goal still uses a formula approximation: check the proposed effect with a fixed-sample power simulation."}}
           - {id: r_X_Y, label: "Correlation of X with Y", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1, shown_if: {field: interaction_metric, is_not: r2_change}}
@@ -1505,7 +1524,7 @@ forms:
           - {id: binm_m, label: "The mediator is", type: select, path: template, required: true,
              choices: {binary_mediator: "Yes or no (for example, booked an appointment or not)", ordinal_mediator: "Ordered categories (for example, a rating from 'unlikely' to 'certain')"},
              sets: {ordinal_mediator: [{path: variables.M.type, value: categorical}, {path: population.metric, value: latent_response}]},
-             choice_notes: {ordinal_mediator: "The categories are treated as cut from an underlying score, the usual structural equation model for an ordered variable (lavaan, as in Mplus). Powerkit tests the indirect effect through that score."}}
+             choice_notes: {ordinal_mediator: "The categories are treated as cut from an underlying score, the usual structural equation model for an ordered variable (lavaan). Powerkit tests the indirect effect through that score."}}
           - {id: M_levels, label: "The mediator's two answers", type: levels, path: variables.M.levels, required: true,
              shown_if: {field: binm_m, is_not: ordinal_mediator},
              help: "Separated by commas: the 'no' first, then the 'yes'. For example: No, Yes, or Did not book, Booked. The paths below are about the second answer."}
@@ -2558,7 +2577,7 @@ forms:
                        bayes_factor: "Bayes factor ANOVA"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}], mann_whitney: [{path: target_test.effect, value: pairwise}],
                     dunn: [{path: target_test.effect, value: pairwise}]},
-             default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
+             default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. The usual planning formula is for the classical F test",
              choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.",
                             mann_whitney: "Each pair is compared on its own two groups' scores, so its result depends only on those two groups. Simulated, with the adjustment chosen below across all pairs; power depends on the score shape you choose.",
                             dunn: "Compares pairs on the ranks of all the groups together, as JASP does after the Kruskal-Wallis test, so a pair's result can change with the other groups' scores. Choose it if that is the test you will report. Simulated, with the adjustment chosen below across all pairs.",
@@ -2626,7 +2645,7 @@ forms:
         fields:
           - {id: spread, label: "Are the SD and the correlation the same in every condition?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of conditions", differ: "No: an SD for each condition and a correlation for each pair"},
-             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             default: same, default_source: "one SD and one correlation, as Superpower's examples take them",
              help: "When they differ, sphericity can fail, so Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every condition; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
@@ -2729,7 +2748,7 @@ forms:
         fields:
           - {id: spread, label: "Are the SD and the correlation the same everywhere?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of timepoints or conditions", differ: "No: an SD for each cell and a correlation for each pair of timepoints or conditions"},
-             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             default: same, default_source: "one SD and one correlation, as Superpower's examples take them",
              help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail, so Powerkit plans for the Greenhouse-Geisser corrected F tests unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
@@ -2755,7 +2774,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
@@ -2778,7 +2797,7 @@ forms:
           # are simulated with Spower and afex.
           - {id: group_sizes, label: "Will the groups be the same size?", type: select, required: true,
              choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
-             default: equal, default_source: "equal groups, as Superpower and G*Power's repeated-measures analysis take them",
+             default: equal, default_source: "equal groups, as Superpower takes them",
              help: "Unequal groups usually lower the power of the groups' difference and the interaction. Their power is then found by simulation, which takes longer."}
           - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true,
              shown_if: {field: group_sizes, is: unequal},
@@ -2868,7 +2887,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does",
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)",
              choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below. Simulated from the cell means, with equal groups; with a factor everyone is measured in, the full analysis is an R script you run yourself."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
@@ -2919,7 +2938,7 @@ forms:
         fields:
           - {id: spread, label: "Are the SD and the correlation the same in every combination?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of combinations", differ: "No: an SD for each combination and a correlation for each pair"},
-             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             default: same, default_source: "one SD and one correlation, as Superpower's examples take them",
              help: "When they differ, sphericity can fail, so Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
@@ -2945,7 +2964,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
@@ -3017,7 +3036,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1)"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -3095,8 +3114,8 @@ forms:
              choices: {random: "Measured on each person (for example, a before score or age)",
                        fixed: "Set by the design (for example, doses or times chosen in advance)"},
              help: "This changes how the covariates' spread enters the plan. Most covariates are measured, so they differ from one sample to the next.",
-             choice_notes: {random: "Powerkit uses Shieh's (2020) method, which allows for measured covariates varying from sample to sample. G*Power treats covariates as fixed, so it gives a little more power and a slightly smaller sample.",
-                            fixed: "The covariates' values are chosen in advance and would be the same in a repeat of the study, as G*Power assumes. For a measured covariate this gives slightly too much power."}}
+             choice_notes: {random: "Powerkit uses Shieh's (2020) method, which allows for measured covariates varying from sample to sample. Treating the covariates as fixed gives a little more power and a slightly smaller sample.",
+                            fixed: "The covariates' values are chosen in advance and would be the same in a repeat of the study, the assumption of the usual fixed-covariate formula. For a measured covariate this gives slightly too much power."}}
       # The Bayes factor ANCOVA (15 November 2026): the effect's inclusion
       # Bayes factor, as JASP's Bayesian ANCOVA gives it, simulated with
       # BayesFactor's generalTestBF().
@@ -3104,7 +3123,7 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {ancova_f: "ANCOVA (F test)", bayes_factor: "Bayes factor of the effect (an inclusion Bayes factor), instead of a p-value, simulated"},
-             default: ancova_f, default_source: "the ANCOVA's F test, the test G*Power's ANCOVA calculates; how the covariates come about is asked above",
+             default: ancova_f, default_source: "the ANCOVA's F test; how the covariates come about is asked above",
              choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
@@ -3153,9 +3172,9 @@ forms:
           # linear regression, exact from the noncentral F.
           - {id: r2_test, label: "Test version", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: r2_zero},
-             choices: {f_test: "The F test of R-squared (G*Power's R-squared deviation from zero)",
+             choices: {f_test: "The F test of R-squared (its deviation from zero)",
                        bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
-             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             default: f_test, default_source: "the F test, the test pwrss's power.f.regression() computes",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
           # The Bayes factor for an increase or one coefficient (17 November
           # 2026): the full model against the model without the tested
@@ -3163,9 +3182,9 @@ forms:
           # (backend-bayesfactor-r2change.R).
           - {id: r2c_test, label: "Test version", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: r2_increase},
-             choices: {f_test: "The F test of the increase (G*Power's R-squared increase)",
+             choices: {f_test: "The F test of the R-squared increase",
                        bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
-             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             default: f_test, default_source: "the F test, the test pwrss's power.f.regression() computes",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without the ones you are testing, reaches the threshold you choose below (what BayesFactor's regressionBF() reports for that comparison). Simulated from the two R-squared values."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
@@ -3183,20 +3202,20 @@ forms:
              choices: {random: "Measured on each person (for example, scores, age or income); the usual case",
                        fixed: "Set by the design (for example, doses or conditions chosen in advance)"},
              help: "This changes how the predictors' spread enters the plan. Measured predictors differ from one sample to the next, which costs a little power.",
-             choice_notes: {random: "Powerkit averages the power over the samples the predictors could give, assuming they are roughly normal (Shieh, 2007). G*Power and pwrss treat the predictors as fixed, so they give a little more power and a slightly smaller sample.",
-                            fixed: "The predictors' values are chosen in advance and would be the same in a repeat of the study, as G*Power and pwrss assume. For measured predictors this gives slightly too much power."}}
+             choice_notes: {random: "Powerkit averages the power over the samples the predictors could give, assuming they are roughly normal (Shieh, 2007). Treating the predictors as fixed, as the usual formula does, gives a little more power and a slightly smaller sample.",
+                            fixed: "The predictors' values are chosen in advance and would be the same in a repeat of the study, as the usual formula assumes. For measured predictors this gives slightly too much power."}}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine
           # converts it (effectsize's f2_to_eta2()) into the R-squared the
           # question takes, so the R-squared boxes give way to it.
           - {id: r2_given, label: "How you'll give the effect", type: select, optional: true, default: r2,
-             choices: {r2: "As R-squared", f2: "As Cohen's f-squared, as in G*Power"},
+             choices: {r2: "As R-squared", f2: "As Cohen's f-squared"},
              sets: {f2: [{path: effect_justification.conversion.from, value: f2}]},
              shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}]}
           - {id: f2, writeup_label: "Cohen's f²", label: "Cohen's f-squared", type: number, path: effect_justification.conversion.value, conversion: true, required: true, min_exclusive: 0,
              shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: f2}],
-             help: "As G*Power asks for it: R² / (1 − R²) against 0; for one predictor or a set, the R-squared it adds over 1 minus the R-squared with all the predictors. Powerkit turns it into R-squared (with the effectsize package) and shows the result. For a set, give the R-squared without the tested predictors below too (0 if there are none)."}
+             help: "R² / (1 − R²) against 0; for one predictor or a set, the R-squared it adds over 1 minus the R-squared with all the predictors. Powerkit turns it into R-squared (with the effectsize package) and shows the result. For a set, give the R-squared without the tested predictors below too (0 if there are none)."}
           - {id: r2, writeup_label: "R²", label: "R-squared of the model", help: "Between 0 and 1.", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_zero}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors", help: "Between 0 and 1.", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
@@ -3206,7 +3225,7 @@ forms:
              help: "Without the predictors you are testing (0 to 1; 0 if there are no others). For one coefficient's Bayes factor, the R-squared of the outcome on the other predictors: the Bayes factor depends on both models' R-squared, not only the partial R-squared."}
           - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
-             help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²). Between 0 and 1."}
+             help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). Cohen's f² is partial R² / (1 − partial R²). Between 0 and 1."}
       - input: "Number of predictors"
         fields:
           - {id: predictors, label: "Number of predictors", type: number, path: population.predictors, required: true, min: 1, integer: true,
@@ -3219,12 +3238,12 @@ forms:
         fields:
           - {id: coef_test, label: "How the coefficient is tested", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: single_coefficient},
-             choices: {f_test: "The usual t test (G*Power's single regression coefficient)",
+             choices: {f_test: "The usual t test of one regression coefficient",
                        ols_hc3: "The t test with HC3 robust standard errors, simulated",
                        ols_hc4: "The t test with HC4 robust standard errors, simulated",
                        quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated",
                        bayes_factor: "Bayes factor (JZS prior on the coefficients), instead of a p-value"},
-             default: f_test, default_source: "the usual t test, the test G*Power and pwrss's power.f.regression() compute",
+             default: f_test, default_source: "the usual t test, the test pwrss's power.f.regression() computes",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without this one, reaches the threshold you choose. It needs the R-squared without this predictor too. Simulated from the two R-squared values."},
              help: "The usual test assumes the outcome spreads out as much at every value of the predictor. Robust (HC3 or HC4) standard errors keep the test honest when the spread changes; HC4 is the safer of the two when a few people have extreme predictor values. Quantile regression tests a quantile of the outcome, such as the median, and is less affected by extreme outcome values."}
           - {id: variance_ratio, label: "Change in the spread", type: number, path: population.variance_ratio, required: true, min_exclusive: 0,
@@ -3319,7 +3338,7 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {mcnemar_exact: "McNemar's exact test", mcnemar_chisq: "McNemar's chi-square test (uncorrected)", mcnemar_chisq_corrected: "McNemar's chi-square test (continuity-corrected)"},
-             default: mcnemar_exact, default_source: "the exact test G*Power's McNemar test computes, pwrss's exact power (power.exact.mcnemar(method = \"exact\"), pwrss 1.3.3)",
+             default: mcnemar_exact, default_source: "McNemar's exact test, pwrss's exact power (power.exact.mcnemar(method = \"exact\"), pwrss 1.3.3)",
              help: "Choose the test you will actually use to analyse your study. R's mcnemar.test() applies the continuity correction by default; jamovi reports the uncorrected chi-square test by default; SPSS reports the exact test. The chi-square tests are two-sided.",
              choice_notes: {mcnemar_exact: "The binomial test of the pairs that changed. It never rejects a true null more often than alpha, so it can need a few more pairs than the chi-square test.", mcnemar_chisq: "The chi-square test without the correction, as jamovi reports it by default and R's mcnemar.test(correct = FALSE) runs it. Powerkit simulates its power with Spower.", mcnemar_chisq_corrected: "R's mcnemar.test() with its default continuity correction, which lowers power compared with the uncorrected test. Powerkit simulates its power with Spower."}}
 
@@ -3471,14 +3490,14 @@ forms:
       - input: "The expected proportion in each category, and the fixed proportions they are compared with, or Cohen's w"
         fields:
           - {id: chisq_metric, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {proportion: "As proportions", w: "As an effect size: Cohen's w, as in G*Power"},
+             choices: {proportion: "As proportions", w: "As an effect size: Cohen's w"},
              default: proportion, default_source: "the proportions, from which pwrss's probs.to.w() works out Cohen's w (pwrss 1.3.3); power.chisq.gof() itself takes w"}
           - {id: probabilities, baseline: true, writeup_label: "expected proportions", label: "Expected proportions", help: "One for each category, in the same order, separated by commas, adding up to 1.", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true,
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: null_probabilities, writeup_label: "proportions under the null hypothesis", label: "Proportions under the null hypothesis", help: "Fixed proportions to compare with, in the same order as the categories. Optional: equal proportions if left empty.", type: numbers, per_levels: Y_levels, path: population.null_probabilities, optional: true,
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: w, label: "Cohen's w", writeup_label: "Cohen's w", type: number, path: population.w, effect: true, min_exclusive: 0,
-             help: "Cohen's w for the departure from the fixed proportions, as G*Power takes it. The degrees of freedom are the number of categories minus 1. Powerkit treats it as the true effect; a published value tends to be too large.",
+             help: "Cohen's w for the departure from the fixed proportions. The degrees of freedom are the number of categories minus 1. Powerkit treats it as the true effect; a published value tends to be too large.",
              shown_if: {field: chisq_metric, is: w}}
 
   E29:
@@ -3615,9 +3634,9 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {f_var: "F test of two variances", levene: "Levene's test (deviations from the means)", brown_forsythe: "Brown-Forsythe test (deviations from the medians)"},
-             default: brown_forsythe, default_source: "the Brown-Forsythe test, car::leveneTest()'s default, because it keeps the false-positive rate at alpha whatever the scores' shape (Departure 32); G*Power plans for the F test",
+             default: brown_forsythe, default_source: "the Brown-Forsythe test, car::leveneTest()'s default, because it keeps the false-positive rate at alpha whatever the scores' shape (Departure 32); the usual planning formula is for the F test",
              help: "Choose the test you will actually use to analyse your study. The F test assumes normal scores, and with skewed or heavy-tailed scores it finds differences that aren't there. Levene's test is what SPSS reports; the Brown-Forsythe version is the default of R's car::leveneTest() and is the safer of the two with skewed or heavy-tailed scores. Only the F test can be one-sided.",
-             choice_notes: {f_var: "Powerkit works out its power exactly, as G*Power does, for normal scores.", levene: "An ANOVA of each person's distance from their group's mean (car::leveneTest(center = mean)). Powerkit simulates its power with Spower, on scores of the shape you choose.", brown_forsythe: "As Levene's test, with distances from each group's median (car::leveneTest(center = median), car's default). Powerkit simulates its power with Spower, on scores of the shape you choose."}}
+             choice_notes: {f_var: "Powerkit works out its power exactly, for normal scores.", levene: "An ANOVA of each person's distance from their group's mean (car::leveneTest(center = mean)). Powerkit simulates its power with Spower, on scores of the shape you choose.", brown_forsythe: "As Levene's test, with distances from each group's median (car::leveneTest(center = median), car's default). Powerkit simulates its power with Spower, on scores of the shape you choose."}}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [levene, brown_forsythe]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -3692,11 +3711,11 @@ forms:
       - input: "The expected means on each outcome, or Pillai's V"
         fields:
           - {id: manova_metric, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {raw: "As each group's mean on each outcome", pillai_v: "As an effect size: Pillai's V, as in G*Power"},
-             default: raw, default_source: "the means, from which Powerkit works out the test; Pillai's V is G*Power's single effect size for a MANOVA (Faul et al., 2007)",
+             choices: {raw: "As each group's mean on each outcome", pillai_v: "As an effect size: Pillai's V"},
+             default: raw, default_source: "the means, from which Powerkit works out the test; Pillai's V is the usual single effect size for a MANOVA (Faul et al., 2007)",
              help: "Means show which outcomes you expect the groups to differ on, and can be justified from earlier studies or from the differences that would matter. Pillai's V is one number for the whole pattern, so it hides which differences it assumes."}
           - {id: pillai_v, label: "Pillai's V of the effect you test", writeup_label: "Pillai's V", type: number, path: population.pillai_v, effect: true, min_exclusive: 0,
-             help: "Pillai's trace, as G*Power's MANOVA tests take it: between 0 and the smaller of the number of outcomes and the number of groups minus 1 (for an interaction, its degrees of freedom). Powerkit treats it as the true effect, as G*Power does; a published V is that study's estimate and tends to be too large. Power is by the formula of Faul et al. (2007), as in G*Power; the outcomes' SDs and correlation aren't needed.",
+             help: "Pillai's trace: between 0 and the smaller of the number of outcomes and the number of groups minus 1 (for an interaction, its degrees of freedom). Powerkit treats it as the true effect; a published V is that study's estimate and tends to be too large. Power is by the formula of Faul et al. (2007); the outcomes' SDs and correlation aren't needed.",
              shown_if: {field: manova_metric, is: pillai_v}}
           - {id: means, writeup_label: "group means", text_layout: "one line per group, with one number per outcome, separated by commas", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome",
@@ -3716,7 +3735,7 @@ forms:
         fields:
           - {id: manova_test, label: "Test", type: select, path: target_test.method, required: true,
              choices: {pillai_trace: "MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)", permanova: "PERMANOVA (a permutation test on distances between people), simulated"},
-             default: pillai_trace, default_source: "the MANOVA test of Pillai's trace, as G*Power computes it",
+             default: pillai_trace, default_source: "the MANOVA test of Pillai's trace",
              help: "PERMANOVA (vegan's adonis2()) compares the groups' average distances on the standardised outcomes with a permutation test, so it doesn't assume normal scores. It can also react to groups that differ in spread rather than in their means."}
           - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: manova_test, is: permanova},
@@ -4408,7 +4427,7 @@ forms:
              choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated",
                        zero_inflated_poisson: "Zero-inflated Poisson regression (extra zeros from people who could not have had an event), simulated",
                        zero_inflated_negative_binomial: "Zero-inflated negative binomial regression (extra zeros, and counts that vary more than their average), simulated"},
-             default: wald_z, default_source: "Poisson regression, the test G*Power and pwrss's power.z.poisson() compute",
+             default: wald_z, default_source: "Poisson regression, the test pwrss's power.z.poisson() computes",
              help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression. If some people could not have had any event at all (for example, people who never drink, when you count drinks), the zero-inflated models add a share of extra zeros."}
           - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
              shown_if: {field: count_model, is_one_of: [negative_binomial, zero_inflated_negative_binomial]},
@@ -4740,11 +4759,11 @@ forms:
       - input: "The two correlations you are comparing"
         fields:
           - {id: r_X_Y, baseline: true, writeup_label: "correlation under no difference (X with Y)", label: "X with Y, the value under no difference", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: overlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+             shown_if: {field: comparison, is: overlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (the null hypothesis's correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
           - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "expected correlation (X with Z)", label: "X with Z, the value you expect", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations}}
           - {id: r_X1_Y1, baseline: true, writeup_label: "correlation under no difference (X1 with Y1)", label: "X1 with Y1, the value under no difference", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
-             shown_if: {field: comparison, is: nonoverlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (G*Power's H0 correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
+             shown_if: {field: comparison, is: nonoverlapping_correlations}, help: "With no difference, both correlations would take this value, which sets the test's spread under the null (the null hypothesis's correlation; pwrss's unpooled method). The order matters: entering the two the other way round changes the sample size."}
           - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "expected correlation (X2 with Y2)", label: "X2 with Y2, the value you expect", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The correlations between the other pairs of variables"

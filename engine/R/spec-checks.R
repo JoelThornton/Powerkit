@@ -3830,7 +3830,7 @@ check_ancova_covariate <- function(spec) {
   }
   if (identical(spec$population$metric, "eta_squared") && identical(model, "random")) {
     return(paste0(
-      "An effect given as partial eta-squared is planned with the covariates fixed, as in G*Power: ",
+      "An effect given as partial eta-squared is planned with the covariates fixed: ",
       "Shieh's method for measured covariates needs the adjusted means. Give the means, or set ",
       "'target_test > covariate_model' to \"fixed\"."))
   }
@@ -3849,7 +3849,7 @@ check_eta_squared_anova <- function(spec) {
       any(vapply(c("A", "B", "C"), function(v) identical(spec$variables[[v]]$type, "within_factor"), logical(1)))) {
     return(paste0(
       "With three factors, partial eta-squared is available when every factor is between participants (different ",
-      "people in every cell), as in G*Power. With a within-participants factor, give the cell means, the SD and the ",
+      "people in every cell). With a within-participants factor, give the cell means, the SD and the ",
       "correlation instead."))
   }
   ancova <- spec$template %in% c("oneway_ancova", "factorial_ancova")

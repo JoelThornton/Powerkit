@@ -3,7 +3,7 @@ test_that("interaction input routes explain their different calculations before 
   method <- Filter(function(f) identical(f$id, "interaction_metric"), fields)[[1]]
   expect_match(method$choice_notes$r2_change, "fixed-model regression formula", fixed = TRUE)
   expect_match(method$choice_notes$correlation, "formula approximation", fixed = TRUE)
-  expect_match(forms$known_differences[["1"]], "not a universal error bound or a direct G*Power comparison", fixed = TRUE)
+  expect_match(forms$known_differences[["1"]], "it is not a universal error bound.", fixed = TRUE)
   expect_false(grepl("3%", forms$known_differences[["1"]], fixed = TRUE))
   student <- Filter(function(f) identical(f$id, "method"), form_fields(form_groups(forms, "E2")))[[1]]
   expect_match(student$choice_notes$student_t, "even when group sizes are equal", fixed = TRUE)

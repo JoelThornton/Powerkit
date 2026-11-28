@@ -204,7 +204,7 @@ about_ui <- function(tree, forms) {
         div(class = "about-card",
           tags$h4("Where the numbers come from"),
           p("Most calculations call established R packages. Some use documented formulas or simulations implemented in Powerkit; the result and its reproduction script identify the method. ",
-            "Where powerkit's settings differ from that package's or from G*Power's usual ones, the result screen says so ",
+            "Where powerkit's settings differ from that package's or from the usual ones, the result screen says so ",
             "and explains it. The result's R script reproduces the supported calculation, so anyone can inspect how it was obtained.")),
         div(class = "about-card",
           tags$h4("How far along it is"),

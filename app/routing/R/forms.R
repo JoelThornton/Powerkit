@@ -916,7 +916,7 @@ with_eta_squared <- function(group, template, method = NULL) {
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
-        choices = list(published = "A published repeated-measures or mixed ANOVA (as SPSS, R or JASP report it)",
+        choices = list(published = "A published repeated-measures or mixed ANOVA (as analysis software reports it)",
                        planned = "An effect size worked out without the correlation between measurements"),
         help = paste("The two are different numbers for the same study. A published value already includes the correlation",
                      "between measurements. One worked out from the means and SD alone doesn't, so you then give the correlation as well.")))

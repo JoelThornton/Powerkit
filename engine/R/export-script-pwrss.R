@@ -42,7 +42,7 @@ pwrss_script_inputs <- function(spec) {
       sprintf("r2_change <- %s # R-squared the interaction %s x %s adds", r_code(pop$r2_change), comment_text(v$X$label), comment_text(v$W$label)),
       sprintf("r2_main <- %s # R-squared of %s and %s without the interaction", r_code(pop$r2_main %||% 0), comment_text(v$X$label), comment_text(v$W$label)),
       "# pwrss turns r.squared.change into f^2 = r / (1 - r); the partial R-squared",
-      "# change gives Cohen's f^2 = r2_change / (1 - r2_main - r2_change), as in G*Power.",
+      "# change gives Cohen's f^2 = r2_change / (1 - r2_main - r2_change).",
       "partial <- r2_change / (1 - r2_main)"
     ),
     anova_eta_squared = {
@@ -63,27 +63,27 @@ pwrss_script_inputs <- function(spec) {
           comment_text(if (identical(spec$template, "oneway_within")) v$A$label else v$B$label))
       }
       c(
-        sprintf("eta_squared <- %s # partial eta-squared of the effect tested, taken as the population value (as in G*Power)",
+        sprintf("eta_squared <- %s # partial eta-squared of the effect tested, taken as the population value",
           r_code(pop$eta_squared)),
         factors,
         if (isTRUE(design$mixed)) {
           if (identical(pop$eta_source, "published")) {
             c("rho <- NA # NA: the eta-squared is as a repeated-measures ANOVA reports it, so it already reflects the correlation",
               "# A published partial eta-squared is the effect's sum of squares over the error sum of squares, so",
-              "# the F test's noncentrality is f^2 x the error df (as Superpower's ANOVA_exact() and G*Power's",
-              "# \"as in SPSS\" setting have it). pwrss takes it as f^2 x n_total, so f^2 is rescaled first.",
+              "# the F test's noncentrality is f^2 x the error df (as Superpower's ANOVA_exact() has",
+              "# it). pwrss takes it as f^2 x n_total, so f^2 is rescaled first.",
               "eta_for_pwrss <- function(n_total) {",
               sprintf("  df_error <- (n_total - levels[1]) * %s", if (identical(design$target, "between")) "1 # the between effect" else "(levels[2] - 1)"),
               "  f2 <- eta_squared / (1 - eta_squared) * df_error / n_total",
               "  f2 / (1 + f2)",
               "}")
           } else {
-            sprintf("rho <- %s # correlation between measurements (the eta-squared doesn't include it, as in G*Power)", r_code(pop$r))
+            sprintf("rho <- %s # correlation between measurements (the eta-squared doesn't include it)", r_code(pop$r))
           }
         },
         if (!is.null(design$target)) sprintf("effect <- %s # the effect tested", r_code(design$target)),
         if (!is.null(pop$covariates)) {
-          sprintf("covariates <- %d # number of covariates (each takes one error df, as in G*Power)", as.integer(pop$covariates))
+          sprintf("covariates <- %d # number of covariates (each takes one error df)", as.integer(pop$covariates))
         }
       )
     },
@@ -154,7 +154,7 @@ pwrss_script_inputs <- function(spec) {
       alt_line
     ),
     chi_square_gof = if (chisq_by_w(spec)) c(
-      sprintf("effect <- list(w = %s, df = %d) # Cohen's w, taken as the population value (as in G*Power), and its df (%d categories - 1)",
+      sprintf("effect <- list(w = %s, df = %d) # Cohen's w, taken as the population value, and its df (%d categories - 1)",
         r_code(pop$w), as.integer(chisq_df(spec)), length(v$Y$levels))
     ) else c(
       sprintf("probabilities <- %s # expected proportion in each category: %s",
@@ -274,7 +274,7 @@ ancova_fixed_script_lines <- function(spec) {
   c(
     "",
     "# Covariates fixed by the design: the F test's noncentrality is N gamma^2,",
-    "# as G*Power takes it, where gamma^2 is the effect over the error variance",
+    "# where gamma^2 is the effect over the error variance",
     "# after adjusting (Shieh, 2020): (C mu)' (C Q C')^-1 (C mu) / (sd^2 (1 - R^2)),",
     "# with Q = the number of cells for equal groups.",
     if (identical(spec$template, "oneway_ancova")) {
@@ -289,7 +289,7 @@ ancova_fixed_script_lines <- function(spec) {
 
 ancova_fixed_call <- function(spec) {
   design <- eta_anova_design(spec)
-  list(head = "power.f.ancova( # ANCOVA with fixed covariates, as in G*Power", args = c(
+  list(head = "power.f.ancova( # ANCOVA with fixed covariates", args = c(
     "eta.squared = eta_squared",
     if (identical(spec$template, "oneway_ancova")) "factor.levels = groups" else "factor.levels = levels",
     if (!is.null(design$target)) sprintf("target.effect = %s", r_code(design$target)),
@@ -301,7 +301,7 @@ ancova_fixed_call <- function(spec) {
 pwrss_script_call_lines <- function(spec, inputs) {
   call <- switch(
     pwrss_key(spec),
-    interaction_r2_change = list(head = "power.f.regression( # F test of the interaction term, a fixed model as in G*Power", args = c(
+    interaction_r2_change = list(head = "power.f.regression( # F test of the interaction term, a fixed model", args = c(
       "r.squared.change = partial", "k.total = 3 # X, W and their product", "k.tested = 1 # the product",
       "n = n_total", "alpha = alpha", "verbose = 0"
     )),
@@ -384,7 +384,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
       args = c(
         "rho12 = r_X_Y # pwrss numbers the variables: 1 = X (shared), 2 = Y, 3 = Z",
         "rho13 = r_X_Z", "rho23 = r_Y_Z", "n = n_total", "alpha = alpha", "alternative = alternative",
-        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "pooled = FALSE # the null hypothesis's correlation (powerkit's Departure 12; pwrss's default is TRUE)",
         "common.index = TRUE", "ceil.n = FALSE", "verbose = 0"
       )
     ),
@@ -394,7 +394,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
         "rho12 = r_X1_Y1 # pwrss numbers the variables: 1 = X1, 2 = Y1, 3 = X2, 4 = Y2",
         "rho34 = r_X2_Y2", "rho13 = r_X1_X2", "rho14 = r_X1_Y2", "rho23 = r_Y1_X2", "rho24 = r_Y1_Y2",
         "n = n_total", "alpha = alpha", "alternative = alternative",
-        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "pooled = FALSE # the null hypothesis's correlation (powerkit's Departure 12; pwrss's default is TRUE)",
         "common.index = FALSE", "ceil.n = FALSE", "verbose = 0"
       )
     ),
@@ -607,7 +607,7 @@ regression_measured_script <- function(spec, result, inputs) {
     "# tested predictors' cross-products after the others are partialled out).",
     "# Power is the noncentral F's tail averaged over that chi-square (Shieh, 2007).",
     "# With predictors set by the design, pwrss::power.f.regression() gives",
-    "# G*Power's fixed-model power, noncentrality f2 * n, a little higher.",
+    "# the fixed-model power, noncentrality f2 * n, a little higher.",
     "power_at <- function(n_total) {",
     sprintf("  f2 <- %s # Cohen's f-squared of the tested predictors",
       if (spec$template == "r2_zero") "r2 / (1 - r2)" else "partial_r2 / (1 - partial_r2)"),

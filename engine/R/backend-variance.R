@@ -73,9 +73,9 @@ variance_inputs <- function(spec) {
     },
     statistic = if (one) "chi-square" else "F",
     description = if (one) {
-      "stats::pchisq() (the chi-square test of one variance, as in the G*Power 3.1 manual, section 26)"
+      "stats::pchisq() (the chi-square test of one variance)"
     } else {
-      "stats::pf() (the F test of two variances, as in the G*Power 3.1 manual, section 15)"
+      "stats::pf() (the F test of two variances)"
     }
   )
 }

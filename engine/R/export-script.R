@@ -1499,7 +1499,7 @@ pillai_script <- function(spec, result) {
   c(
     script_header(spec, result, "base R's stats package", inputs$description),
     "# Inputs ----",
-    if (!sensitivity) sprintf("v <- %s # Pillai's V of the effect tested (the population value, as G*Power takes it)", r_code(inputs$v)),
+    if (!sensitivity) sprintf("v <- %s # Pillai's V of the effect tested (the population value)", r_code(inputs$v)),
     sprintf("outcomes <- %d # number of outcomes", inputs$outcomes),
     sprintf("groups <- %d # number of groups (every combination of the factors)", inputs$groups),
     sprintf("effect_df <- %d # the effect's degrees of freedom", inputs$effect_df),
@@ -1639,7 +1639,7 @@ exact_correlation_script_lines <- function(inputs) {
   args <- inputs$args(4)
   call <- function(alternative, sig) {
     c(
-      "  power.exact.onecor( # the exact distribution of r, as G*Power",
+      "  power.exact.onecor( # the exact distribution of r",
       paste0("    ", ensure_commas(c(
         if (identical(args$rho, .Machine$double.eps)) {
           "rho = .Machine$double.eps # pwrss stops at a correlation of exactly 0, where the power is alpha"
@@ -1693,7 +1693,7 @@ prop_test_script_lines <- function(spec, inputs) {
           "ceil.n = FALSE # pwrss otherwise rounds n2 * n.ratio up",
           sprintf("alpha = %s", sig),
           sprintf("alternative = %s", r_code(alternative)),
-          "std.error = \"pooled\" # pooled variance under the null, as G*Power",
+          "std.error = \"pooled\" # pooled variance under the null",
           "verbose = FALSE"
         ))),
         "  )$power"
@@ -1707,7 +1707,7 @@ prop_test_script_lines <- function(spec, inputs) {
         sprintf("sig.level = %s", sig),
         sprintf("alternative = %s", r_code(alternative)),
         if (alternative == "two.sided") {
-          "strict = TRUE # count rejections in both tails, as G*Power does"
+          "strict = TRUE # count rejections in both tails"
         } else {
           "strict = TRUE # no effect on a one-sided test"
         }
@@ -2170,7 +2170,7 @@ spower_script_inputs <- function(spec) {
     ),
     chi_square_independence = if (chisq_by_w(spec)) {
       c(
-        sprintf("w <- %s # Cohen's w for the association of %s and %s, taken as the population value (as in G*Power)",
+        sprintf("w <- %s # Cohen's w for the association of %s and %s, taken as the population value",
           r_code(spec$population$w), comment_text(v$X$label), comment_text(v$Y$label)),
         sprintf("df <- %d # degrees of freedom: (%d categories - 1) x (%d categories - 1)", as.integer(chisq_df(spec)),
           length(v$X$levels), length(v$Y$levels))
@@ -3795,7 +3795,7 @@ superpower_exact_sections <- function(spec, result, inputs) {
     if (spec$template == "2x2_mixed") {
       c(
         "# powerkit uses ANOVA_exact() rather than ANOVA_exact2() for mixed",
-        "# designs: it reproduces G*Power's values (powerkit's Departure 2)."
+        "# designs: it reproduces the published values in Superpower's vignette (powerkit's Departure 2)."
       )
     },
     "exact_result <- function(n_total, means = mu) {",

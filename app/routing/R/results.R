@@ -1258,7 +1258,7 @@ units_sentence <- function(result) {
     if (!is.null(u$smallest_r)) {
       return(sprintf("As a point-biserial correlation, that is r = %s (with %s).", round3(u$smallest_r), share))
     }
-    return(sprintf("From the point-biserial r of %s you entered, Powerkit worked out Cohen's d = %s (with %s), which gives the same test as G*Power's point-biserial model.",
+    return(sprintf("From the point-biserial r of %s you entered, Powerkit worked out Cohen's d = %s (with %s), which gives the same test as the point-biserial model.",
       format(u$r), round3(u$value), share))
   }
   if (!is.null(u$smallest_difference)) {
@@ -1908,10 +1908,10 @@ usual_test_line <- function(spec, result, run = engine_function("run_spec"), see
   if (identical(result$goal_type, "sample_size")) {
     n <- calc$result$n_required$n
     same <- isTRUE(all.equal(as.numeric(n), as.numeric(result$n_required$n)))
-    return(sprintf("With Student's t-test%s (the test G*Power and pwr plan for) the answer is %s%s%s.",
+    return(sprintf("With Student's t-test%s (the usual test) the answer is %s%s%s.",
       spreads, whole(n), group_text(student, n), if (same) ", the same" else ""))
   }
-  sprintf("With Student's t-test%s (the test G*Power and pwr plan for) the power is %s.", spreads, sprintf("%.1f%%", 100 * calc$result$curve$power))
+  sprintf("With Student's t-test%s (the usual test) the power is %s.", spreads, sprintf("%.1f%%", 100 * calc$result$curve$power))
 }
 
 # The rank tests and the parametric tests they stand in for (17 November
@@ -3054,6 +3054,14 @@ departures_for <- function(forms, ep_id, spec) {
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
+# The departures in the write-up's words: each stated by its method, with no
+# other program named (forms.yaml's departures_methods; 28 November 2026).
+departures_methods_for <- function(forms, departures) {
+  if (!length(departures)) return(departures)
+  out <- vapply(names(departures), function(k) forms$departures_methods[[k]] %||% departures[[k]], character(1))
+  stats::setNames(out, names(departures))
+}
+
 # An ANCOVA planned with fixed covariates: chosen, or implied by an effect
 # given as partial eta-squared (pwrss's power.f.ancova(), as G*Power).
 is_fixed_ancova <- function(spec) {
@@ -3140,7 +3148,7 @@ whole_groups_note <- function(spec, result) {
       !is.null(result$allocation) || !is.list(result$n_required)) return(NULL)
   n <- result$n_required$n
   if (!is.numeric(n) || n %% step != 0) return(NULL)
-  sprintf("The total is a whole number of people in each of the %s groups (%s each), the smallest such total that reaches the target. G*Power gives the total its formula reaches, which can be a few people lower and not split evenly.",
+  sprintf("The total is a whole number of people in each of the %s groups (%s each), the smallest such total that reaches the target. A total from the formula alone can be a few people lower and not split evenly.",
     whole(step), whole(n / step))
 }
 
@@ -3585,7 +3593,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     sequential_card,
     div(class = "result-card result-save", id = "result-take",
     h4(class = "h5", "Write it up"),
-    writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
+    writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures_methods_for(forms, departures),
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     if (blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("No reason for the effect size is recorded yet. "),
@@ -4151,8 +4159,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       reason_prompts(fields, values), resources_prompt), collapse = " "),
     paste(writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
       "[Say where the R script or saved plan that reproduces this calculation is shared, for example with the preregistration.]"),
-    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
-    if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
+    # Stated by method, never by naming another program (28 November 2026):
+    # the departures' methods wording, and the known differences' methods
+    # sentences, which the short version carries too.
+    if (length(departures)) paste("Where these methods differ from common defaults:", paste(unname(departures), collapse = " ")),
+    if (length(known_methods)) paste("Where other methods give a different answer:", paste(unname(known_methods), collapse = " "))
   ), collapse = "\n\n")
   tidy <- function(x) gsub("([.!?])\u201d\\.", "\\1\u201d", x)
   c(short = tidy(short), full = tidy(full), ethics = tidy(ethics_text(spec, result, fields, values)))
@@ -4532,7 +4543,7 @@ precision_writeup <- function(form, spec, result, fields, values, departures = c
     p$backend, p$packages[[p$backend]], pr$function_used, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
   full <- paste(c(short,
-    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    if (length(departures)) paste("Where these methods differ from common defaults:", paste(unname(departures), collapse = " ")),
     sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
     sprintf("We plan to include %s.", precision_people(spec, pr$n)), recruit_line,

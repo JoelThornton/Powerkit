@@ -971,7 +971,7 @@ status_ui <- function(tree, ep) {
       htmltools::htmlEscape(pk$url), htmltools::htmlEscape(pk$name), htmltools::htmlEscape(pk$what))))
   }))
   not_five <- if (identical(ep$five_tools, "not covered")) {
-    p(tags$strong("Not covered by the five tools"), " Powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
+    p(tags$strong("Not covered by the packages"), " Powerkit builds on.")
   }
   if (identical(ep$guide, "bayes")) return(bayes_guide_ui(tree, ep, package_list))
   switch(
