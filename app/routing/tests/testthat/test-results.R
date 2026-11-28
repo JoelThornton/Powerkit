@@ -2519,7 +2519,7 @@ test_that("between-participants ANOVA by its effect size: partial eta-squared, o
   expect_identical(calc$status, "ok")
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.ancova")
   text <- paste(writeup_text(forms$forms$E18, spec, calc$result, fields, values), collapse = " ")
-  expect_match(text, "The effect size, partial eta-squared = 0.06", fixed = TRUE)
+  expect_match(text, "The effect tested, partial eta-squared = 0.06", fixed = TRUE)
   expect_match(text, "pwrss::power.f.ancova()", fixed = TRUE)
   # A published F(2, 114) for the factorial card's interaction.
   fields <- form_fields(form_groups(forms, "E21"))

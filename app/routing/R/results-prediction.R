@@ -220,7 +220,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       writeup_ui(prediction_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       if (blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("No reason for the model's anticipated performance is recorded yet. "),
-        "The write-up and saved files say so. To add one, write it under “Where your effect size comes from” and press “Calculate” again."),
+        "The write-up and saved files say so. To add one, write it under “Where these numbers come from” and press “Calculate” again."),
       documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
         "Print or save PDF", "the report"))),
     div(class = "result-card result-how", id = "result-how-card",

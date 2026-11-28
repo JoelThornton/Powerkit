@@ -409,7 +409,7 @@ replication_notes_ui <- function(tree) {
 }
 
 # Planning the replication from the notes (22 October 2026): the user's own
-# words go into "Why this effect size?" on the input screen, never a
+# words go into "Why these numbers?" on the input screen, never a
 # number into a box. NULL when the notes say nothing to carry.
 labs_seed_reasoning <- function(answers) {
   a <- function(id) trimws(answers[[id]] %||% "")
@@ -427,7 +427,7 @@ labs_return_ui <- function(on_form = FALSE, carried = FALSE) {
   div(class = "labs-return", role = "note",
     "You're planning the replication from your pre-replication notes. Your notes are kept in your replication plan. ",
     actionLink("labs_back", "Back to the notes"),
-    if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy this effect size?\u201d below; edit them as you like."))
+    if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy these numbers?\u201d below; edit them as you like."))
 }
 
 

@@ -1317,7 +1317,7 @@ server <- function(input, output, session) {
   state <- reactiveValues(
     screen = "start",        # start | aim | known | node | card | form | g_vars | g_analyses | g_plan
     from_labs = FALSE,       # planning a replication from the pre-replication notes (Labs)
-    labs_seed = NULL,        # the notes' words for "Why this effect size?" (labs_seed_reasoning())
+    labs_seed = NULL,        # the notes' words for "Why these numbers?" (labs_seed_reasoning())
     start = list(),          # the aim (and, from a plan or an older project, the claim and situation)
     route = "choose",        # the route chosen on the start screen
     node = NULL,             # current question id (screening or "Help me choose")
