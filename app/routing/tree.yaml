@@ -1149,7 +1149,7 @@ endpoints:
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
-      - "Fisher's exact test (an option) is still in validation: it matches pwrss called directly in the engine's tests; checks against G*Power and a published example are to come."
+      - "Fisher's exact test (an option) is still in validation: it matches pwrss called directly in the engine's tests; checks against an independent calculation and a published example are to come."
       - "The Bayes factor test (an option) is still in validation: it matches BayesFactor's contingencyTableBF() table by table and in simulated studies; a check against a published example is to come."
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]

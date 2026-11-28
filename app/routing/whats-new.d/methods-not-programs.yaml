@@ -1,9 +1,10 @@
 entries:
   - date: "2026-11-28"
-    title: "Write-ups describe methods, not other programs"
+    title: "Methods described by name, not by other programs"
     text: >-
-      The methods paragraphs and downloads now say what each choice is,
-      for example that the covariate was treated as measured, instead of
-      comparing it with another program. The input screens and analysis
-      cards no longer add "as in G*Power" to choices that work the same
-      way; another program is named only where its answer would differ.
+      The methods paragraphs, results, input screens and R scripts now say
+      what each choice is, for example that the covariate was treated as
+      measured, instead of comparing it with another program. Another
+      program is named only where it helps you find a number in your own
+      output or match a setting in the software you'll analyse with, such
+      as JASP's default priors or PROCESS model numbers.

@@ -238,14 +238,14 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "Seed: 5.", fixed = TRUE)
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_no_match(html, "Calculated with a formula", fixed = TRUE)       # Departure 9, retired 7 November 2026
-  expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
+  expect_match(html, "Two proportions: the usual z test", fixed = TRUE)      # Departure 11
   expect_match(html, "Checks for this analysis in general", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
   # answer; the ones that don't (11) are folded.
   expect_match(html, "slightly different answer for this design", fixed = TRUE)
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
-  expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
+  expect_match(minor, "Two proportions: the usual z test", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
   expect_match(html, "in group 1: 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
@@ -302,7 +302,7 @@ test_that("E1-E6 simulate with Spower when chosen, and say so under the result (
   expect_match(html, "Calculated by simulation with 100 replications; a different seed can shift the result slightly.", fixed = TRUE)
   expect_match(html, "Seed: 1.", fixed = TRUE)
   expect_no_match(html, "Calculated with a formula", fixed = TRUE)         # Departure 9 doesn't apply
-  expect_no_match(html, "the z test as G*Power runs it", fixed = TRUE)     # nor Departure 11
+  expect_no_match(html, "Two proportions: the usual z test", fixed = TRUE)     # nor Departure 11
   # Welch's t-test has no formula: the choice isn't shown, and it simulates.
   e2 <- form_fields(form_groups(forms, "E2"))
   choice <- Filter(function(f) identical(f$id, "calc_method"), e2)[[1]]

@@ -1,8 +1,12 @@
 # Other programs in what researchers read and copy (28 November 2026,
-# docs/decisions.md): write-ups state each method by name, never "as in"
-# another program; input screens name another program only where its answer
-# differs (the fields listed below), and the cards only in their validation
-# records and a formula's published source.
+# docs/decisions.md): another program is named only where it helps a
+# researcher find a number in their own output ("SPSS calls them Exp(B)") or
+# match a setting in the software they will analyse with (JASP's priors,
+# PROCESS model numbers). Other power-analysis programs are never named in
+# what researchers read: methods are stated by name, never "as in" another
+# program. The cards keep them only in their validation records and a
+# formula's published source, and the packages Powerkit runs are cited as
+# attribution.
 
 run <- engine_function("run_spec", file.path(repo_dir, "engine"))
 skip_without_run <- function() {
@@ -13,6 +17,16 @@ skip_without_run <- function() {
 }
 
 other_software <- "G\\*Power|GPower|\\bJASP\\b|\\bSPSS\\b|jamovi|\\bPROCESS\\b|Mplus|\\bStata\\b|MorePower|PANGEA|WebPower|PAMLj"
+# Programs for planning power, which no screen, result or write-up needs to
+# name: none is software a researcher analyses with.
+power_programs <- "G\\*Power|GPower|MorePower|PANGEA|PAMLj|BFDA|\\bPASS\\b|nQuery"
+
+test_that("the departures and known differences name no power-analysis program", {
+  departures <- unlist(forms$departures)
+  expect_equal(names(departures)[grepl(power_programs, departures)], character(), label = "departures naming one")
+  known <- unlist(forms$known_differences)
+  expect_equal(names(known)[grepl(power_programs, known)], character(), label = "known differences naming one")
+})
 
 test_that("the write-up's departures and known differences name no other program", {
   departures <- unlist(forms$departures)
@@ -32,35 +46,40 @@ test_that("the write-up's own headings and sentences name no other program", {
   expect_no_match(code, "Departures from the established tools", fixed = TRUE)
 })
 
-test_that("input screens name G*Power only where its answer differs", {
-  allowed <- list(E2 = "method", E18 = "test_version", E23 = "covariate_model", E24 = "predictor_model", E53 = "method")
+test_that("input screens name no power-analysis program, and say nothing is 'as in' another", {
   for (ep in names(forms$forms)) {
     fields <- form_fields(form_groups(forms, ep))
     for (f in fields) {
-      shown <- c(f$label, unlist(f$choices), f$writeup_label)
-      expect_false(any(grepl("G\\*Power", shown)), label = paste(ep, f$id, "label or choices"))
-      explained <- c(f$help, f$default_source, unlist(f$choice_notes))
-      if (any(grepl("G\\*Power", explained))) expect_true(f$id %in% allowed[[ep]], label = paste(ep, f$id, "help names G*Power"))
+      shown <- c(f$label, unlist(f$choices), f$writeup_label, f$help, f$default_source, unlist(f$choice_notes))
+      expect_false(any(grepl(power_programs, shown)), label = paste(ep, f$id))
+      expect_false(any(grepl(paste0("as in (", other_software, ")"), shown)), label = paste(ep, f$id, "'as in' another program"))
     }
   }
 })
 
-test_that("cards name G*Power only in validation records and a formula's source", {
+test_that("cards name a power-analysis program only in validation records and a formula's source", {
   hits <- list()
   walk <- function(x, path) {
     if (is.character(x)) {
-      if (any(grepl("G\\*Power", x))) hits <<- c(hits, list(path))
+      if (any(grepl(power_programs, x))) hits <<- c(hits, list(path))
     } else if (is.list(x)) {
       for (n in seq_along(x)) walk(x[[n]], c(path, if (!is.null(names(x)) && nzchar(names(x)[n])) names(x)[n] else "*"))
     }
   }
   for (id in names(tree$endpoints)) walk(tree$endpoints[[id]], id)
   where <- vapply(hits, function(h) h[2], "")
-  expect_true(all(where %in% c("validation", "backend", "card_points")), label = paste(unique(where), collapse = ", "))
-  # A card point may name it only as a check still to come.
-  points <- unlist(lapply(tree$endpoints, function(e) unlist(e$card_points)))
-  points <- points[!is.na(points)]
-  expect_true(all(grepl("checks against G\\*Power", points[grepl("G\\*Power", points)])))
+  # BFDA is listed with the R packages for designs not yet built.
+  expect_true(all(where %in% c("validation", "backend", "packages")), label = paste(unique(where), collapse = ", "))
+})
+
+test_that("the R script a researcher runs says nothing is 'as' another program", {
+  scripts <- file.path(repo_dir, "engine", "R", c("export-script.R", "export-script-pwrss.R"))
+  for (path in scripts) {
+    lines <- readLines(path)
+    # The script's own lines are the strings in this code, not its comments.
+    code <- lines[!grepl("^\\s*#", lines)]
+    expect_false(any(grepl("as (in )?G\\*Power|G\\*Power's (values|fixed|approach)|as G\\*Power", code)), label = basename(path))
+  }
 })
 
 test_that("a calculated write-up names no other program", {
