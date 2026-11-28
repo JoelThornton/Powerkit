@@ -105,6 +105,9 @@ names_group <- function(form, k) {
   roles <- unlist(form$names)
   if (!is.null(form$mediators)) roles <- c("X", intersect("W", roles), mediator_roles(k), "Y")
   describe <- c(X = "X (the cause or predictor)", W = "W (the moderator)", M = "M (the mediator)", Y = "Y (the outcome)")
+  # Z is a second moderator wherever a form names it (the three-way
+  # interaction; I-24), never a mediator.
+  if ("Z" %in% roles && is.null(form$mediators)) describe <- c(describe, Z = "Z (the second moderator)")
   list(
     input = NULL, title = "What you call each variable",
     fields = lapply(roles, function(role) list(
@@ -200,7 +203,9 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         help = "Leave empty for the numerical default, or match your planned analysis. More draws reduce simulation noise and take longer.")))))
     groups <- c(list(mediation_analysis_group(simple_mediation_card(form))), groups)
   }
-  if (!is.null(form$mediators)) {
+  # A menu with one choice is no question (I-28a): with only two mediators
+  # offered, the names box's M1 and M2 say it, and the spec takes two.
+  if (!is.null(form$mediators) && length(mediator_choices_for(form$mediators)) > 1) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
       id = "n_mediators", label = "Number of mediators", type = "select", required = TRUE,
       choices = stats::setNames(as.list(as.character(mediator_choices_for(form$mediators))), mediator_choices_for(form$mediators)),
@@ -218,6 +223,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   }
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
   groups <- lapply(groups, function(g) { g$fields <- lapply(g$fields, function(f) with_level_count(with_name_default(f))); g })
+  groups <- with_level_names(groups)
   groups <- with_sd_units(groups)
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
@@ -271,7 +277,7 @@ mediation_analysis_group_full <- function() {
       choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval",
         ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style; the usual one)",
         percentile_bootstrap = "Maximum likelihood + percentile bootstrap"),
-      help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option keeps its existing browser workflow.")))
+      help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option runs here, in the app.")))
 }
 
 simulation_accuracy_group <- function(forms, ep_id) {
@@ -1758,4 +1764,35 @@ effect_role <- function(f) {
   if (grepl("\\bSDs?\\b", label) && !grepl("per SD", label, fixed = TRUE)) return("assumed")
   if (grepl("correlations? between (the )?(measurements|conditions|timepoints|repeated|combinations|outcomes|two measurements)", label, ignore.case = TRUE)) return("assumed")
   "tested"
+}
+
+
+# The 2 x 2 screens' cell boxes ("Mean: A level 1, B level 1") are named by
+# the levels the researcher types (I-04, 28 November 2026): `label_names`
+# maps each generic phrase in a label to the field that names it, so the
+# screen (named_labels_js) and the write-up (writeup_effect()) put the
+# names in.
+level_name_phrases <- c("A level 1" = "A_level1", "A level 2" = "A_level2", "B level 1" = "B_level1", "B level 2" = "B_level2",
+  "between level 1" = "A_level1", "between level 2" = "A_level2", "within level 1" = "B_level1", "within level 2" = "B_level2")
+with_level_names <- function(groups) {
+  ids <- vapply(form_fields(groups), function(f) f$id %||% "", "")
+  phrases <- level_name_phrases[level_name_phrases %in% ids]
+  if (!length(phrases)) return(groups)
+  lapply(groups, function(g) {
+    g$fields <- lapply(g$fields, function(f) {
+      found <- phrases[vapply(names(phrases), function(k) grepl(k, f$label %||% "", fixed = TRUE), logical(1))]
+      if (length(found)) f$label_names <- as.list(found)
+      f
+    })
+    g
+  })
+}
+
+# A label with the level names typed so far in place of the generic ones.
+named_label <- function(label, label_names, values) {
+  for (k in names(label_names)) {
+    v <- values[[label_names[[k]]]]
+    if (!blank(v)) label <- gsub(k, trimws(as.character(v)), label, fixed = TRUE)
+  }
+  label
 }

@@ -3681,6 +3681,7 @@ writeup_effect <- function(fields, values, roles = c("tested", "assumed", "desig
       value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
     }
     label <- writeup_field_label(f)
+    if (length(f$label_names)) label <- named_label(label, f$label_names, values)
     if (identical(f$id, "d") && identical(values$method, "welch_t") &&
         !blank(values$welch_sd_ratio) && isTRUE(parse_number(values$welch_sd_ratio) != 1)) {
       label <- "standardised mean difference (RMS SD)"

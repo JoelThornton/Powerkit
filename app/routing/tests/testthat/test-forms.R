@@ -224,7 +224,8 @@ test_that("with every name left empty, each screen's spec still passes validate_
 
 test_that("parallel mediation offers two mediators only (decided 22 October 2026); serial offers up to four", {
   choices <- function(ep) unname(unlist(Filter(function(f) f$id == "n_mediators", fields_for(ep, 2))[[1]]$choices))
-  expect_identical(choices("E11"), "2")
+  # With only one number of mediators to choose, parallel mediation doesn't ask.
+  expect_false("n_mediators" %in% vapply(fields_for("E11", 2), `[[`, "", "id"))
   expect_identical(choices("E12"), c("2", "3", "4"))
   expect_identical(setting_by_key(tree, "parallel_mediators_max")$value, "two")
   # Three asked for (e.g. from an older project file) gives two for parallel mediation.

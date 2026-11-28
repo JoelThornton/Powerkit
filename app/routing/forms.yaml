@@ -769,7 +769,7 @@ forms:
       # request (8 November 2026).
       - {id: welch_method, label: "How power is worked out", type: select, path: options.method, optional: true,
          shown_if: {field: method, is: welch_t},
-         choices: {exact: "Formula (pwrss's power.t.welch()): no simulation noise", simulation: "Simulation (Spower): repeat studies under the specified population"},
+         choices: {exact: "Formula (pwrss): no simulation noise", simulation: "Simulation (Spower): repeat studies under the specified population"},
          default: exact, default_source: "pwrss's formula for Welch's t-test (power.t.welch(), pwrss 1.3.3), which agrees with a simulation and has no random error (pwr has no Welch formula)"}
 
   E3:
@@ -1267,7 +1267,7 @@ forms:
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
-             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions. Simulating it takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1956,7 +1956,7 @@ forms:
              shown_if: {field: question, is: log_rank}}
           - {id: p_event2, optional_for: [sensitivity], when_empty: same_as, same_as: p_event1, writeup_label: "proportion with the event in group 2", label: "Proportion of group 2 who have had the event by then", type: number, path: population.p_event.2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: log_rank},
-             help: "The smallest difference worth detecting, for example 0.25 where group 1's is 0.40."}
+             help: "Group 2's proportion by then, for example 0.25 where group 1's is 0.40."}
           - {id: accrual, writeup_label: "recruitment period", label: "How long recruitment takes", type: number, path: population.accrual, required: true, min: 0,
              shown_if: {field: question, is: log_rank},
              default: 0, default_source: "0: everyone starts together (cpower() takes accrual = 0 for this, Hmisc 5.3-0)",
@@ -2612,7 +2612,7 @@ forms:
       # request (13 November 2026).
       - {id: welch_f_method, label: "How power is worked out", type: select, path: options.method, optional: true,
          shown_if: {field: test_version, is: welch_f},
-         choices: {exact: "Formula (Levy's approximation, Jan and Shieh 2014): instant, no simulation noise", simulation: "Simulation (Spower, stats::oneway.test()): repeat studies under the specified population; slower"},
+         choices: {exact: "Formula (Levy's approximation, Jan and Shieh 2014): instant, no simulation noise", simulation: "Simulation (Spower): repeat studies under the specified population; slower"},
          default: exact, default_source: "Levy's noncentral F approximation to Welch's F, which Jan and Shieh (2014) recommend for power and sample size after finding it within .01 of simulated power; no package powerkit uses has a formula for Welch's F",
          help: "Both plan for the same test, Welch's F. The formula is an approximation that is very close to simulation; choose the simulation to check it, or to have the answer come from repeated studies."}
 
@@ -2686,7 +2686,7 @@ forms:
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
-             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions. Simulating it takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is_one_of: [friedman, wilcoxon_signed_rank, conover]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -2785,7 +2785,7 @@ forms:
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
-             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions. Simulating it takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -2975,7 +2975,7 @@ forms:
              shown_if: {field: test_version, is: bayes_factor},
              choices: {all_models: "Across all models", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
-             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions. Simulating it takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -3102,7 +3102,7 @@ forms:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"},
              shown_if: {field: factors, is: factorial_ancova}}
-      - input: "How much the covariate explains (R-squared), or its correlation with the outcome"
+      - input: "How much the covariates explain (R-squared; for one covariate, its correlation with the outcome, squared)"
         fields:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", help: "The share of the outcome's variance the covariates explain. For one covariate, its correlation with the outcome, squared.", label: "R-squared of the covariates", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}
           - {id: covariates, label: "Number of covariates", type: number, path: population.covariates, required: true, min: 1, integer: true,
@@ -3551,7 +3551,7 @@ forms:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
           - {id: factorial_test, label: "Test", type: select, path: target_test.method, required: true,
-             choices: {firth_likelihood_ratio: "Firth's penalised likelihood-ratio test (logistf's logistftest())", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect, as car's Anova(type = 3, test.statistic = 'LR') reports it)", wald_chi_square: "Wald test (of the effect's coefficients, as the model summary and car's linearHypothesis() report it)"},
+             choices: {firth_likelihood_ratio: "Firth's penalised likelihood-ratio test (logistf)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect, as car's Anova(type = 3, test.statistic = 'LR') reports it)", wald_chi_square: "Wald test (of the effect's coefficients, as the model summary and car's linearHypothesis() report it)"},
              default_source: "Not filled in for you: choose the test you will run (for reference: Spower's p_glm() runs the Wald test, Spower 0.7)",
              help: "All three test the same effect; choose the one you will report. Firth's test suits few 'yes' (or few 'no') answers in some combinations, or one where everyone answers the same way: it kept false positives near the significance level there, where the likelihood-ratio test ran a little above it and the Wald test lost power. The likelihood-ratio test is what R's model comparison reports, and the Wald test what the coefficient table shows. With many answers of each kind in every combination the three agree."}
 
@@ -4550,7 +4550,7 @@ forms:
         fields:
           - {id: cluster_bin_method, label: "How power is worked out", type: select, path: target_test.method, required: true,
              shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is_not: group_treatment}],
-             choices: {logistic_mixed: "powertools' formula (crt.parallel.bin() or multisite.bin())", glmer_simulation: "Simulated studies analysed with glmer(), the mixed-effects logistic regression"},
+             choices: {logistic_mixed: "Formula (powertools): instant", glmer_simulation: "Simulated studies analysed with glmer(), the mixed-effects logistic regression"},
              default: logistic_mixed, default_source: "powertools' formula, the published method for this design (crt.parallel.bin() and multisite.bin(), powertools 1.0.0); it is instant, and it is what other researchers' plans for this design usually cite",
              choice_notes: {logistic_mixed: "Instant. The formula multiplies its variance by 1.2, a factor its help pages give no source for, so it asks for about a sixth more groups than the simulation: for the example, 28 groups rather than 24.",
                             glmer_simulation: "Simulates the trial and fits the model you will run (lme4's glmer(), Wald z test), without the formula's factor. Slower: power at one size takes about two minutes here, and a sample size runs in the R script. Use it when groups are expensive and you want to check the formula's answer."}}
@@ -4653,7 +4653,7 @@ forms:
              help: "How many of the first factor's items differ in the last group (or on the last occasion). At least one item must be the same everywhere. The other groups or occasions, and the other factors, are invariant."}
           - {id: loading_group2, writeup_label: "loading in the last group", label: "Their standardised loading in the last group (or on the last occasion)", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: question, is: invariance}, {field: level, is: metric}],
-             help: "The smallest difference worth detecting: for example 0.5 where the others' is 0.7."}
+             help: "The items' loading in the last group, for example 0.5 where the others' is 0.7."}
           - {id: intercept_difference, writeup_label: "intercept shift", label: "Intercept shift in the last group", type: number, path: population.intercept_difference, effect: true,
              shown_if: [{field: question, is: invariance}, {field: level, is: scalar}],
              help: "How far the intercepts are shifted in the last group (or on the last occasion), in item SDs. The smallest shift worth detecting, for example 0.3 (higher in the last group) or -0.3 (lower)."}
