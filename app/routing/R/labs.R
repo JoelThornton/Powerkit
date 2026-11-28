@@ -99,6 +99,7 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
   for (f in fields) if (!is.null(f[["default"]] %||% f$usual)) values[[f$id]] <- as.character(f[["default"]] %||% f$usual)
+  values <- labs_route_values(fields, values)
   # What the original study's own design could detect: one study's true
   # effect, so no variation between studies.
   values$het_tau <- NULL
@@ -146,6 +147,7 @@ labs_telescopes <- function(forms, ep_id, n, alpha = "0.05", run = engine_functi
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
   for (f in fields) if (!is.null(f[["default"]] %||% f$usual)) values[[f$id]] <- as.character(f[["default"]] %||% f$usual)
+  values <- labs_route_values(fields, values)
   sizes <- if (identical(ep_id, "E2")) list(st_n1 = as.character(total %/% 2), st_n2 = as.character(total - total %/% 2)) else list(st_n = as.character(total))
   effect <- switch(ep_id, E3 = list(dz = "0.5"), E4 = list(r = "0.3"), list(d = "0.5"))
   values <- utils::modifyList(values, c(list(
@@ -1217,4 +1219,15 @@ bayes_curves_plot <- function(plan) {
   graphics::abline(v = plan$n, lty = 3, col = chart_colours$navy)
   chart_key(lwd = 2.5, col = c(chart_colours$blue, chart_colours$red), lty = c(1, 2),
     legend = c("For an effect, if your belief is right", "For no effect, if there is none"))
+}
+
+# The input screens ask how the effect is given with nothing chosen
+# (28 November 2026); these tools work in the effect size itself, so they
+# answer it as the engine's own effect-size inputs.
+labs_route_starts <- list(effect_units = "standardised", chisq_metric = "proportion", interaction_metric = "r2_change",
+  x_effects = "paths", r2_given = "r2", manova_metric = "raw")
+labs_route_values <- function(fields, values) {
+  ids <- vapply(fields, `[[`, "", "id")
+  for (id in intersect(names(labs_route_starts), ids)) if (is.null(values[[id]])) values[[id]] <- labs_route_starts[[id]]
+  values
 }
