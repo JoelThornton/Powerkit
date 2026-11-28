@@ -1662,12 +1662,12 @@ forms:
              shown_if: {field: outcome_type, is: binary}}
       - input: "How much participants and items vary (the variance components)"
         fields:
-          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
+          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0, help: "For example, 100 ms in a masked-priming lexical-decision study with a score outcome (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_participant_condition, writeup_label: "SD of participants' condition effects", label: "Participant-by-condition SD", type: number, path: population.sd_participant_condition, effect: true, min: 0,
              shown_if: {field: crossed_participants, is: within_factor},
              help: "How much each participant's mean in a condition departs from their average plus the condition's effect. The same for every condition. The several-condition counterpart of the SD of participants' condition differences: with two conditions, a participant's difference varies with an SD of about 1.4 times this value."}
-          - {id: sd_item, writeup_label: "SD of items' averages", label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0}
-          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+          - {id: sd_item, writeup_label: "SD of items' averages", label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0, help: "For example, 43.6 ms in a masked-priming lexical-decision study with a score outcome (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0, help: "For example, 148.8 ms in a masked-priming lexical-decision study with a score outcome (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently.",
              shown_if: {field: outcome_type, is: continuous}}
       - input: "The items: how many, and whether each appears in one condition or all"
         fields:
@@ -1848,13 +1848,13 @@ forms:
           - {id: slope, writeup_label: "effect per SD of the item score", label: "Effect of one SD more of the item score", help: "In the outcome's units, or on the log odds for yes/no.", type: number, path: population.slope, effect: true, optional_for: [sensitivity], when_empty: zero}
           - {id: probability, writeup_label: "chance of yes at the average item", label: "Chance of 'yes' at the average item score", help: "For a typical participant (0 to 1).", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: outcome_type, is: binary}}
-          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
+          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0, help: "For example, 100 ms in a masked-priming lexical-decision study with a score outcome (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_participant_slope, writeup_label: "SD of participants' slopes", label: "SD of the effect across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
           - {id: r_participant, label: "Correlation of participants' averages and slopes", help: "Empty means 0.", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_item, writeup_label: "SD of items beyond the score", label: "SD of items' averages beyond what the item score explains", type: number, path: population.sd_item, effect: true, min: 0}
           - {id: sd_item_slope, label: "SD of the effect across items", help: "Empty means 0.", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: x_level, is: trial}}
-          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0, help: "For example, 148.8 ms in a masked-priming lexical-decision study with a score outcome (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently.",
              shown_if: {field: outcome_type, is: continuous}}
       - input: "The items"
         fields:
@@ -2929,6 +2929,7 @@ forms:
           - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected cell means"
+        note: "With two factors measured in everyone, Powerkit plans from the means and the correlation between measurements: it can't yet take a partial eta-squared for this design, as it can for one factor measured in everyone."
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
@@ -3210,12 +3211,23 @@ forms:
           # converts it (effectsize's f2_to_eta2()) into the R-squared the
           # question takes, so the R-squared boxes give way to it.
           - {id: r2_given, label: "How you'll give the effect", type: select, optional: true, default: r2,
-             choices: {r2: "As R-squared", f2: "As Cohen's f-squared"},
-             sets: {f2: [{path: effect_justification.conversion.from, value: f2}]},
+             choices: {r2: "As R-squared", f2: "As Cohen's f-squared", coef_t: "As the coefficient's t statistic, with its error df", coef_r: "As its partial correlation"},
+             choices_shown_if: {coef_t: [{field: question, is: single_coefficient}], coef_r: [{field: question, is: single_coefficient}]},
+             sets: {f2: [{path: effect_justification.conversion.from, value: f2}], coef_t: [{path: effect_justification.conversion.from, value: t}],
+                    coef_r: [{path: effect_justification.conversion.from, value: r}]},
              shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}]}
           - {id: f2, writeup_label: "Cohen's f²", label: "Cohen's f-squared", type: number, path: effect_justification.conversion.value, conversion: true, required: true, min_exclusive: 0,
              shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: f2}],
              help: "R² / (1 − R²) against 0; for one predictor or a set, the R-squared it adds over 1 minus the R-squared with all the predictors. Powerkit turns it into R-squared (with the effectsize package) and shows the result. For a set, give the R-squared without the tested predictors below too (0 if there are none)."}
+          - {id: coef_t, writeup_label: "the coefficient's t", label: "The coefficient's t statistic", type: number, path: effect_justification.conversion.value, conversion: true, required: true,
+             shown_if: [{field: question, is: single_coefficient}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: coef_t}],
+             help: "As a regression table reports it. Powerkit turns it into the partial R-squared, the t's partial correlation squared (the effectsize package's t_to_r()), and shows the result."}
+          - {id: coef_t_df, label: "Its error degrees of freedom", type: number, path: effect_justification.conversion.df_error, conversion: true, required: true, integer: true, min: 1,
+             shown_if: [{field: question, is: single_coefficient}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: coef_t}],
+             help: "The residual df of the model: the sample size minus the number of predictors minus 1."}
+          - {id: coef_r, writeup_label: "partial correlation", label: "The predictor's partial correlation with the outcome", type: number, path: effect_justification.conversion.value, conversion: true, required: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: [{field: question, is: single_coefficient}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: coef_r}],
+             help: "Its correlation with the outcome once the other predictors are held constant. Its square is the partial R-squared."}
           - {id: r2, writeup_label: "R²", label: "R-squared of the model", help: "Between 0 and 1.", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_zero}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors", help: "Between 0 and 1.", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
@@ -3224,7 +3236,7 @@ forms:
              shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              help: "Without the predictors you are testing (0 to 1; 0 if there are no others). For one coefficient's Bayes factor, the R-squared of the outcome on the other predictors: the Bayes factor depends on both models' R-squared, not only the partial R-squared."}
           - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
-             shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
+             shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_one_of: [r2, ""]}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
              help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). Cohen's f² is partial R² / (1 − partial R²). Between 0 and 1."}
       - input: "Number of predictors"
         fields:
@@ -3876,8 +3888,19 @@ forms:
              shown_if: {field: X_type, is: binary}}
       - input: "The odds ratio and the proportion of 'yes' at the starting point"
         fields:
+          # A yes/no group's effect also from the two groups' proportions
+          # (I-15, 28 November 2026): the engine works out the odds ratio.
+          - {id: or_given, label: "How you'll give the effect", type: select, optional: true, default: odds_ratio,
+             choices: {odds_ratio: "As an odds ratio", proportions: "As the proportion of 'yes' in each group"},
+             sets: {proportions: [{path: effect_justification.conversion.from, value: p2}]},
+             shown_if: [{field: X_type, is: binary}, {field: goal, is_one_of: [power, sample_size]}]}
           - {id: odds_ratio, when_empty: one, writeup_label: "odds ratio", label: "Odds ratio", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: {any: [[{field: X_type, is_not: binary}], [{field: or_given, is_not: proportions}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]},
              help: "For a score: how many times the odds of 'yes' change for each standard deviation higher on the predictor. For a group: the odds of 'yes' in the second group divided by the odds in the first. 1 means no effect."}
+          - {id: or_p2, writeup_label: "proportion of 'yes' in the second group", label: "Proportion of 'yes' in the second group", type: number, path: effect_justification.conversion.value, conversion: true, required: true,
+             min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: X_type, is: binary}, {field: goal, is_one_of: [power, sample_size]}, {field: or_given, is: proportions}],
+             help: "Between 0 and 1. With the first group's proportion below, Powerkit works out the odds ratio (the effectsize package) and shows it."}
           - {id: base_prob, baseline: true, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group. Between 0 and 1."}
           - {id: x_prob, label: "Proportion of people in the second group", help: "Between 0 and 1.", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
@@ -4715,6 +4738,7 @@ forms:
           - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected group means"
+        note: "A contrast's power comes from all the group means and the weights together, so a d or t for the contrast from a paper can't stand in for them. To plan for a d between the two sets of groups the contrast compares, enter means that give it: for example 0 and 0.4 with an SD of 1 for a d of 0.4."
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}

@@ -145,3 +145,40 @@ test_that("two proportions: an odds ratio or a risk ratio with group 1's proport
   expect_identical(run_spec(checked)$n_required, run_spec(validate_spec(direct))$n_required)
   expect_identical(conversion_record(checked)$function_used, "effectsize::oddsratio_to_riskratio(OR = 2, p0 = 0.6) * 0.6")
 })
+
+test_that("one coefficient is converted from its t statistic or partial correlation (I-13)", {
+  # The partial r of a t with its error df is t / sqrt(t^2 + df), so the
+  # partial R-squared is t^2 / (t^2 + df).
+  out <- convert_effect("t", 3, "single_coefficient", df_error = 96)
+  expect_equal(out$value, 9 / (9 + 96))
+  expect_identical(out$package$name, "effectsize")
+  r <- convert_effect("r", -0.3, "single_coefficient")
+  expect_equal(r$value, 0.09)
+  expect_identical(r$package$name, "base")
+  expect_error(convert_effect("r", 1.2, "single_coefficient"), "between -1 and 1")
+  expect_error(convert_effect("t", 3, "single_coefficient"), "error degrees of freedom")
+  # Through a spec, the partial R-squared reaches the population.
+  spec <- example_spec("regression_coefficient")
+  spec$population$partial_r2 <- NULL
+  spec$effect_justification$conversion <- list(from = "t", value = 3, df_error = 96)
+  checked <- validate_spec(spec)
+  expect_equal(checked$population$partial_r2, 9 / 105)
+})
+
+test_that("a yes/no predictor's odds ratio comes from the two groups' proportions (I-15)", {
+  out <- convert_effect("p2", 0.4, "single_predictor", p0 = 0.25)
+  expect_equal(out$value, (0.4 / 0.6) / (0.25 / 0.75))
+  expect_error(convert_effect("p2", 1.2, "single_predictor", p0 = 0.25), "between 0 and 1")
+  spec <- example_spec("logistic_regression")
+  spec$variables$X <- list(type = "binary", label = "Group", levels = list("Control", "Treatment"))
+  spec$population$odds_ratio <- NULL
+  spec$population$base_prob <- 0.25
+  spec$population$x_prob <- 0.5
+  spec$effect_justification$conversion <- list(from = "p2", value = 0.4)
+  checked <- validate_spec(spec)
+  expect_equal(checked$population$odds_ratio, 2)
+  # A score has no second group's proportion.
+  spec$variables$X <- list(type = "continuous", label = "Score")
+  spec$population$x_prob <- NULL
+  expect_error(validate_spec(spec), "Converting an effect size")
+})

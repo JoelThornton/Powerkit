@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-28"
+    title: "More ways to give the effect"
+    text: >-
+      For one regression coefficient you can now give its t value and
+      degrees of freedom, or its partial correlation, as papers report
+      them. For logistic regression with a yes/no group you can give each
+      group's proportion of 'yes' instead of an odds ratio. The mixed-model
+      screens with several conditions or an item score now give example
+      SDs from a published study, and the planned-contrast and two-factor
+      repeated-measures screens say why they need the means.

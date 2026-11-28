@@ -45,13 +45,22 @@ conversion_templates <- list(
   # r2_reduced, 0 if none): R2_full = R2_reduced + partial (1 - R2_reduced),
   # so (R2_full - R2_reduced) / (1 - R2_full) is the f-squared given.
   r2_zero = list(effect = "r2", name = "R-squared", from = "f2"),
-  single_coefficient = list(effect = "partial_r2", name = "partial R-squared", from = "f2"),
-  r2_increase = list(effect = "r2_full", name = "R-squared with all the predictors", from = "f2")
+  # One coefficient also from its t statistic with the error df, or its
+  # partial correlation, as papers report it (I-13, 28 November 2026):
+  # effectsize's t_to_r() gives the partial r, whose square is the
+  # partial R-squared.
+  single_coefficient = list(effect = "partial_r2", name = "partial R-squared", from = c("f2", "t", "r")),
+  r2_increase = list(effect = "r2_full", name = "R-squared with all the predictors", from = "f2"),
+  # A yes/no predictor in logistic regression from the two groups'
+  # proportions (I-15, 28 November 2026): group 2's proportion with group
+  # 1's (population > base_prob) gives the odds ratio, by effectsize's
+  # probs_to_odds().
+  single_predictor = list(effect = "odds_ratio", name = "odds ratio", from = "p2")
 )
 
 conversion_from_names <- c(
   t = "a t statistic", F = "an F statistic", r = "r", d = "Cohen's d", odds_ratio = "an odds ratio",
-  f = "Cohen's f", risk_ratio = "a risk ratio", f2 = "Cohen's f-squared"
+  f = "Cohen's f", risk_ratio = "a risk ratio", f2 = "Cohen's f-squared", p2 = "group 2's proportion"
 )
 
 or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], collapse = ", "), "or", x[length(x)])
@@ -68,13 +77,18 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' t-test) or r (correlation); and an F statistic (with both its degrees of
 #' freedom) or Cohen's f into the partial eta-squared of a
 #' between-participants ANOVA (`"oneway_between"`, `"2x2_between"`,
-#' `"factorial_between"`); and an odds ratio or a risk ratio, with group
-#' 1's proportion, into group 2's proportion (`"two_proportions"`).
+#' `"factorial_between"`); an odds ratio or a risk ratio, with group
+#' 1's proportion, into group 2's proportion (`"two_proportions"`); a t
+#' statistic (with its error df) or a partial r into one coefficient's
+#' partial R-squared (`"single_coefficient"`); and group 2's proportion,
+#' with group 1's, into a yes/no predictor's odds ratio
+#' (`"single_predictor"`).
 #'
 #' @param from The form of the published effect: `"t"`, `"F"`, `"r"`,
-#'   `"d"`, `"odds_ratio"`, `"risk_ratio"`, `"f"` or `"f2"` (Cohen's
+#'   `"d"`, `"odds_ratio"`, `"risk_ratio"`, `"f"`, `"f2"` (Cohen's
 #'   f-squared, for multiple regression: `"r2_zero"`,
-#'   `"single_coefficient"` and `"r2_increase"`).
+#'   `"single_coefficient"` and `"r2_increase"`) or `"p2"` (group 2's
+#'   proportion, for `"single_predictor"`).
 #' @param value The published value.
 #' @param template The design's template: `"independent_t"`,
 #'   `"one_sample_t"`, `"paired_t"`, `"correlation"`, `"oneway_between"`,
@@ -87,7 +101,9 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' @param df The numerator degrees of freedom, for an F statistic converted
 #'   into an ANOVA's partial eta-squared.
 #' @param p0 Group 1's proportion, for an odds ratio or a risk ratio
-#'   converted into group 2's proportion (`"two_proportions"`).
+#'   converted into group 2's proportion (`"two_proportions"`), or for
+#'   group 2's proportion converted into an odds ratio
+#'   (`"single_predictor"`).
 #' @param r2_reduced R-squared without the tested predictors, for Cohen's
 #'   f-squared converted into R-squared with all the predictors
 #'   (`"r2_increase"`); 0 if there are none.
@@ -110,6 +126,7 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
     abort_spec(sprintf("Converting %s needs its error degrees of freedom ('df_error').", conversion_from_names[[from]]))
   }
   if (identical(rule$effect, "p2")) return(convert_to_p2(from, value, p0))
+  if (identical(rule$effect, "odds_ratio")) return(convert_to_odds_ratio(value, p0))
   if (identical(from, "f2")) return(convert_f2(value, rule, r2_reduced))
   anova <- identical(rule$effect, "eta_squared")
   if (anova && identical(from, "F") && is.null(df)) {
@@ -168,7 +185,14 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
       used = sprintf("effectsize::d_to_r(d = %s%s)", value, sizes)),
     "r odds_ratio" = list(
       value = effectsize::oddsratio_to_r(value),
-      used = sprintf("effectsize::oddsratio_to_r(OR = %s)", value))
+      used = sprintf("effectsize::oddsratio_to_r(OR = %s)", value)),
+    "partial_r2 t" = list(
+      value = effectsize::t_to_r(value, df_error)[[1]]^2,
+      used = sprintf("effectsize::t_to_r(t = %s, df_error = %s)^2", value, df_error)),
+    "partial_r2 r" = {
+      if (!is.finite(value) || abs(value) >= 1) abort_spec(sprintf("A partial correlation (%s) must be between -1 and 1.", value))
+      list(value = value^2, used = sprintf("r^2 = %s^2", value))
+    }
   )
   package <- conversion_package(from, rule)
   list(effect_name = rule$name, value = unname(call$value), function_used = call$used,
@@ -221,12 +245,26 @@ convert_to_p2 <- function(from, value, p0) {
        package = list(name = package, version = as.character(utils::packageVersion(package))))
 }
 
+# The odds ratio of a yes/no predictor from group 2's proportion `value`
+# and group 1's `p0`: the ratio of their odds.
+convert_to_odds_ratio <- function(value, p0) {
+  for (x in list(list(v = value, what = "Group 2's proportion"), list(v = p0, what = "Group 1's proportion ('population > base_prob')"))) {
+    if (!is.numeric(x$v) || length(x$v) != 1 || !is.finite(x$v) || x$v <= 0 || x$v >= 1) {
+      abort_spec(sprintf("%s must be between 0 and 1 to give an odds ratio.", x$what))
+    }
+  }
+  odds <- effectsize::probs_to_odds(c(p0, value))
+  list(effect_name = "odds ratio", value = unname(odds[2] / odds[1]),
+       function_used = sprintf("effectsize::probs_to_odds(%s) / effectsize::probs_to_odds(%s)", value, p0),
+       package = list(name = "effectsize", version = as.character(utils::packageVersion("effectsize"))))
+}
+
 # The package a conversion uses: psych for a t or F statistic into d or
 # d_z, base R for a risk ratio into a proportion (a multiplication),
 # effectsize otherwise.
 conversion_package <- function(from, rule) {
   if (rule$effect %in% c("d", "dz") && from %in% c("t", "F")) "psych" else
-    if (identical(from, "risk_ratio")) "base" else "effectsize"
+    if (identical(from, "risk_ratio") || (identical(rule$effect, "partial_r2") && identical(from, "r"))) "base" else "effectsize"
 }
 
 # The package a spec's conversion uses, for the provenance (NULL without
@@ -254,7 +292,9 @@ apply_conversion <- function(spec) {
   rule <- conversion_templates[[spec$template %||% ""]]
   anova <- identical(spec$design, "factorial_anova") && identical(rule$effect, "eta_squared") &&
     identical(spec$population$metric, "eta_squared")
-  regression <- identical(spec$design, "multiple_regression") && identical(conv$from, "f2")
+  logistic <- identical(spec$template, "single_predictor") && identical(spec$variables$X$type, "binary") && identical(conv$from, "p2")
+  regression <- logistic || identical(spec$design, "multiple_regression") &&
+    (identical(conv$from, "f2") || (identical(spec$template, "single_coefficient") && conv$from %in% c("t", "r")))
   if (is.null(rule) || !(identical(spec$design, "basic_test") || anova || regression)) {
     return(list(spec = spec, problems = paste0(
       "Converting an effect size ('effect_justification > conversion') is available for the one-sample, paired and ",
@@ -278,7 +318,7 @@ apply_conversion <- function(spec) {
   }
   out <- tryCatch(
     convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]],
-      p0 = spec$population$p1, r2_reduced = spec$population$r2_reduced %||% 0),
+      p0 = spec$population$p1 %||% spec$population$base_prob, r2_reduced = spec$population$r2_reduced %||% 0),
     powerkit_spec_error = function(e) e
   )
   if (inherits(out, "powerkit_spec_error")) return(list(spec = spec, problems = out$problems %||% conditionMessage(out)))
@@ -299,7 +339,7 @@ conversion_record <- function(spec) {
   conv <- spec$effect_justification$conversion
   if (is.null(conv$result)) return(NULL)
   out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]],
-    p0 = spec$population$p1, r2_reduced = spec$population$r2_reduced %||% 0)
+    p0 = spec$population$p1 %||% spec$population$base_prob, r2_reduced = spec$population$r2_reduced %||% 0)
   earlier <- !isTRUE(all.equal(out$value, conv$result, tolerance = 1e-10))
   list(from = conv$from, from_name = conversion_from_names[[conv$from]], value = conv$value,
        df = conv[["df"]], df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, effect_name = out$effect_name,
