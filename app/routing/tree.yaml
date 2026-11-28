@@ -1490,7 +1490,7 @@ endpoints:
       - "The overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA, for different people in each group, equal group sizes and the same SD in every group."
       - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, which gives a little more power."
       - "Will you analyse it with a Bayes factor instead of a p-value? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with the usual default priors, which you can change."
-    inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
+    inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariates explain (R-squared; for one covariate, its correlation with the outcome, squared)", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
     alternatives: ["a t-test or ANOVA on change scores", "the mixed (group by time) interaction", "a regression with the covariate as a predictor"]
   E24:

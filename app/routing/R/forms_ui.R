@@ -48,6 +48,12 @@ field_ui <- function(f, value, described_by = character()) {
   # A table's label names what goes in it; the line-by-line layout it
   # also describes is shown only when typing it as text (R/table-grid.R).
   if (identical(f$type, "table")) label <- table_grid_label(label)
+  # Cell boxes named by the levels typed above (named_labels_js).
+  if (length(f$label_names)) {
+    names_to <- lapply(f$label_names, function(x) paste0("f_", x))
+    label <- tags$span(class = "named-label", `data-template` = label,
+      `data-names` = as.character(jsonlite::toJSON(names_to, auto_unbox = TRUE)), label)
+  }
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(if (is.null(f$prompt) && !is.null(help_lead(f$help))) paste0(help_id, "_lead"), help_id, described_by)
@@ -884,4 +890,24 @@ effect_unsure_js <- "
     if (noEffect) set('f_just_type', 'none');
     setTimeout(function() { var n = document.getElementById('f_n'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus(); } }, 150);
   };
+"
+
+
+# Puts the level names typed so far into the cell boxes' labels (I-04);
+# a level not yet named keeps its generic phrase ("A level 1").
+named_labels_js <- "
+(function() {
+  function update() {
+    document.querySelectorAll('.named-label').forEach(function(el) {
+      var text = el.getAttribute('data-template'), names = JSON.parse(el.getAttribute('data-names') || '{}');
+      Object.keys(names).forEach(function(k) {
+        var box = document.getElementById(names[k]), v = box && box.value ? box.value.trim() : '';
+        if (v) text = text.split(k).join(v);
+      });
+      el.textContent = text;
+    });
+  }
+  $(document).on('input change', 'input[type=text]', update);
+  $(document).on('shiny:value', function() { setTimeout(update, 0); });
+})();
 "
